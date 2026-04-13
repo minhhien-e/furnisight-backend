@@ -1,0 +1,15 @@
+fastapi
+uvicorn[standard]
+
+torch
+torchvision
+
+opencv-python-headless
+Pillow
+
+ultralytics
+simple-lama-inpainting
+
+python-multipart
+requests
+pydantic-settings
