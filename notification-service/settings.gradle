@@ -1,0 +1,6 @@
+rootProject.name = 'notification-service'
+
+include 'notification-domain'
+include 'notification-application'
+include 'notification-adapter'
+include 'notification-bootstrap'

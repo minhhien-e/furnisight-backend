@@ -1,0 +1,60 @@
+server:
+  port: 8082
+  servlet:
+    context-path: /api/v1/notifications
+grpc:
+  server:
+    port: 9092
+spring:
+  application:
+    name: notification-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_SERVER_URL}/.well-known/jwks.json
+  mail:
+    host: ${MAIL_HOST}
+    port: ${MAIL_PORT}
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+  kafka:
+    bootstrap-servers: ${KAFKA_HOST}:${KAFKA_PORT}
+
+    consumer:
+      group-id: notification-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    listener:
+      missing-topics-fatal: false
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI}
+      database: ${MONGODB_NAME}
+      uuid-representation: standard
+
+  transaction:
+    default-timeout: 30
+app:
+  notification:
+    email:
+      from: ${EMAIL_HOST}
+logging:
+  level:
+    root: INFO
+    org.springframework.data.mongodb: DEBUG
+    org.mongodb.driver: INFO
