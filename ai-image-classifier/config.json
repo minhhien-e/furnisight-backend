@@ -1,0 +1,29 @@
+{
+  "project_name": "AI Image Classification Microservice",
+  "version": "1.0.0",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
+  "classifier_normal": {
+    "model_name": "resnet50",
+    "image_size": 224,
+    "num_classes": 4,
+    "model_path": "models/resnet50_normal_best.pth",
+    "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
+  },
+  "classifier_360": {
+    "model_name": "resnet50",
+    "image_size": 224,
+    "num_classes": 4,
+    "model_path": "models/resnet50_360_best.pth",
+    "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
+  },
+  "object_remover": {
+    "yolo_model_path": "models/yolov8s-seg.pt",
+    "lama_model_url": "https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt",
+    "confidence": 0.35,
+    "max_image_size": 1024,
+    "remove_classes": [0, 56, 57, 58, 59, 60, 62, 63, 66, 67, 72, 73, 74, 75]
+  }
+}
