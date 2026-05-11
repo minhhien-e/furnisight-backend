@@ -44,6 +44,7 @@
 **/.mvn/wrapper/maven-wrapper.jar
 **/.gradle/
 **/build/
+**/bin/
 !**/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -111,3 +112,4 @@
 **/.Trashes
 **/ehthumbs.db
 **/Thumbs.db
+**/*.pem
