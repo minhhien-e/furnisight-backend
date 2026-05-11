@@ -9,5 +9,4 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CreateDefaultNotificationProfileCommand {
     private UUID userId;
-    private String email;
 }

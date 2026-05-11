@@ -21,7 +21,6 @@ public class NotificationProfile {
     @Id
     private UUID id;
     private UUID userId;
-    private String userEmail;
 
     private boolean orderUpdatesEnabled;
     private boolean promotionsEnabled;

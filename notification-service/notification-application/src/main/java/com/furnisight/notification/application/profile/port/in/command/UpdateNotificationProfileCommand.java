@@ -9,5 +9,4 @@ import java.util.UUID;
 @Builder
 public class UpdateNotificationProfileCommand {
     private final UUID userId;
-    private final String email;
 }

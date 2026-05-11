@@ -23,7 +23,6 @@ public class CreateDefaultNotificationProfileService implements CreateDefaultNot
         NotificationProfile preference = NotificationProfile.builder()
             .id(UUID.randomUUID())
             .userId(command.getUserId())
-            .userEmail(command.getEmail())
             .orderUpdatesEnabled(true)
             .promotionsEnabled(true)
             .walletUpdatesEnabled(true)

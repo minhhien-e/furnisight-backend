@@ -20,8 +20,6 @@ public class UpdateNotificationProfileService implements UpdateNotificationProfi
     public NotificationProfileProjection execute(UpdateNotificationProfileCommand command) {
         NotificationProfile preference = notificationProfileRepository.findByUserId(command.getUserId());
 
-        preference.setUserEmail(command.getEmail());
-
         NotificationProfile saved = notificationProfileRepository.save(preference);
         return NotificationProfileProjection.from(saved);
     }

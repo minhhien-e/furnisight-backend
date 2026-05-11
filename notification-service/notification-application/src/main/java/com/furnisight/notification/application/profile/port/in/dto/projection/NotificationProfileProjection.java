@@ -11,7 +11,6 @@ import java.util.UUID;
 public class NotificationProfileProjection {
     private UUID id;
     private UUID userId;
-    private String userEmail;
     private boolean orderUpdatesEnabled;
     private boolean promotionsEnabled;
     private boolean walletUpdatesEnabled;
@@ -20,7 +19,6 @@ public class NotificationProfileProjection {
         return NotificationProfileProjection.builder()
             .id(preference.getId())
             .userId(preference.getUserId())
-            .userEmail(preference.getUserEmail())
             .orderUpdatesEnabled(preference.isOrderUpdatesEnabled())
             .promotionsEnabled(preference.isPromotionsEnabled())
             .walletUpdatesEnabled(preference.isWalletUpdatesEnabled())
