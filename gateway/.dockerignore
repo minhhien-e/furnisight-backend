@@ -1,0 +1,10 @@
+.gradle
+.idea
+build
+*/build
+out
+*/out
+.env
+*.log
+DockerFile
+dockerfile
