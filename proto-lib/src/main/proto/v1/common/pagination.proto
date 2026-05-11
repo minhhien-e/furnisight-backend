@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package com.furnisight.v1.common;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.common.v1";
+
+message PaginationRequest {
+  int32 page = 1;
+  int32 size = 2;
+}
+
+message PaginationResponse {
+  int32 page = 1;
+  int32 size = 2;
+  int64 total_elements = 3;
+  int32 total_pages = 4;
+}

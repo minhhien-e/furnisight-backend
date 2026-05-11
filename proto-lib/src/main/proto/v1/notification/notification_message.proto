@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package v1.notification;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.notification";
+
+message CreateNotificationProfileRequest {
+    string accountId = 1;
+    string email = 2;
+}
+
+message CreateNotificationProfileResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message UpdateNotificationProfileRequest {
+    string accountId = 1;
+    string email = 2;
+}
+
+message UpdateNotificationProfileResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message DeleteNotificationProfileRequest {
+    string accountId = 1;
+}
+
+message DeleteNotificationProfileResponse {
+    bool success = 1;
+    string message = 2;
+}

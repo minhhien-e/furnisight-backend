@@ -1,0 +1,14 @@
+syntax = "proto3";
+
+package v1.notification;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.notification";
+
+import "v1/notification/notification_message.proto";
+
+service NotificationService {
+    rpc CreateNotificationProfile (CreateNotificationProfileRequest) returns (CreateNotificationProfileResponse);
+    rpc UpdateNotificationProfile (UpdateNotificationProfileRequest) returns (UpdateNotificationProfileResponse);
+    rpc DeleteNotificationProfile (DeleteNotificationProfileRequest) returns (DeleteNotificationProfileResponse);
+}
