@@ -9,6 +9,4 @@ import "v1/notification/notification_message.proto";
 
 service NotificationService {
     rpc CreateNotificationProfile (CreateNotificationProfileRequest) returns (CreateNotificationProfileResponse);
-    rpc UpdateNotificationProfile (UpdateNotificationProfileRequest) returns (UpdateNotificationProfileResponse);
-    rpc DeleteNotificationProfile (DeleteNotificationProfileRequest) returns (DeleteNotificationProfileResponse);
 }
