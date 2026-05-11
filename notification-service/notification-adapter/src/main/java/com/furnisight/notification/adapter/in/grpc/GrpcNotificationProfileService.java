@@ -1,4 +1,4 @@
-package com.furnisight.notification.adapter.in.web.controller.grpc;
+package com.furnisight.notification.adapter.in.grpc;
 
 import com.furnisight.notification.CreateNotificationProfileRequest;
 import com.furnisight.notification.CreateNotificationProfileResponse;
