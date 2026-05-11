@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+dependencies {
+    api project(':notification-application')
+    api project(':notification-domain')
+
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
+    implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
+    implementation 'com.furnisight:proto-lib:1.0.1776241973168'
+    api 'org.springframework.kafka:spring-kafka'
+    api 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+    annotationProcessor 'org.projectlombok:lombok-mapstruct-binding:0.2.0'
+}

@@ -1,0 +1,397 @@
+{
+	"info": {
+		"_postman_id": "76e330f4-5f4e-4f7c-a44d-52e697e88c03",
+		"name": "Notification Service",
+		"description": "API collection for Notification Service (FurniSight) updated to match current controllers",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Inbox Messages",
+			"item": [
+				{
+					"name": "Save Inbox Message",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"title\": \"Thông báo mới\",\n    \"body\": \"Bạn có một đơn hàng mới đang chờ xử lý\",\n    \"image\": \"https://example.com/image.png\",\n    \"actionUrl\": \"https://example.com/order/123\",\n    \"type\": \"ORDER\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/inbox-messages",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"inbox-messages"
+							]
+						}
+					}
+				},
+				{
+					"name": "Mark Message as Read",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/inbox-messages/{{message_id}}/read",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"inbox-messages",
+								"{{message_id}}",
+								"read"
+							]
+						}
+					}
+				},
+				{
+					"name": "Mark All Messages as Read",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{user_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/inbox-messages/read-all",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"inbox-messages",
+								"read-all"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Inbox Message",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/inbox-messages/{{message_id}}?isHardDelete=false",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"inbox-messages",
+								"{{message_id}}"
+							],
+							"query": [
+								{
+									"key": "isHardDelete",
+									"value": "false"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get All Messages",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/inbox-messages?startDate=2023-01-01T00:00:00&isRead=false&isDeleted=false&limit=20",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"inbox-messages"
+							],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2023-01-01T00:00:00"
+								},
+								{
+									"key": "isRead",
+									"value": "false"
+								},
+								{
+									"key": "isDeleted",
+									"value": "false"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notification Preferences",
+			"item": [
+				{
+					"name": "Create Default Preference",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"userEmail\": \"user@example.com\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-preferences/default",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-preferences",
+								"default"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Notification Preference",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"orderUpdatesEnabled\": true,\n    \"promotionsEnabled\": true,\n    \"walletUpdatesEnabled\": true,\n    \"socialUpdatesEnabled\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-preferences/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-preferences",
+								"{{user_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Notification Preference",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-preferences/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-preferences",
+								"{{user_id}}"
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "Notification Templates",
+			"item": [
+				{
+					"name": "Create Notification Template",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"code\": \"ORDER_SHIPPED\",\n    \"name\": \"Đơn hàng đã được giao cho đơn vị vận chuyển\",\n    \"titleTemplate\": \"Đơn hàng {{orderId}} đã được giao cho đơn vị vận chuyển\",\n    \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển và sẽ sớm đến tay bạn\",\n    \"type\": \"ORDER\",\n    \"channel\": \"INAPP\",\n    \"defaultImage\": \"https://example.com/order-shipped.png\",\n    \"defaultActionUrl\": \"https://example.com/order/{{orderId}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-templates",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-templates"
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Notification Template",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Đơn hàng đã giao cho vận chuyển (Cập nhật)\",\n    \"titleTemplate\": \"[Cập nhật] Đơn hàng {{orderId}} đang trên đường đến bạn\",\n    \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-templates/{{template_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-templates",
+								"{{template_id}}"
+							]
+						}
+					}
+				},
+				{
+					"name": "Filter Notification Templates",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-templates?name=ORDER&channel=INAPP&type=ORDER",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-templates"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "ORDER"
+								},
+								{
+									"key": "channel",
+									"value": "INAPP"
+								},
+								{
+									"key": "type",
+									"value": "ORDER"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Find Notification Template By Code",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-templates/code/ORDER_SHIPPED",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-templates",
+								"code",
+								"ORDER_SHIPPED"
+							]
+						}
+					}
+				},
+				{
+					"name": "Delete Notification Template",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/notifications/notification-templates/{{template_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"notifications",
+								"notification-templates",
+								"{{template_id}}"
+							]
+						}
+					}
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "user_id",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "message_id",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		},
+		{
+			"key": "template_id",
+			"value": "00000000-0000-0000-0000-000000000000",
+			"type": "string"
+		}
+	]
+}

@@ -1,6 +1,6 @@
-# Interior-3D Backend
+# FurniSight Backend
 
-Đây là repository chứa mã nguồn Backend cho dự án **Interior-3D** - một nền tảng web dành cho thiết kế và trang trí nội thất.
+Đây là repository chứa mã nguồn Backend cho dự án **FurniSight** - một nền tảng web dành cho thiết kế và trang trí nội thất.
 
 ## Công nghệ sử dụng
 
