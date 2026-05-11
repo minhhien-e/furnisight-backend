@@ -1,0 +1,84 @@
+server:
+  port: 8081
+  forward-headers-strategy: framework
+  servlet:
+    context-path: /api/v1
+    session:
+      cookie:
+        path: /
+        same-site: none
+        secure: true
+grpc:
+  client:
+    notification-service:
+      address: ${GRPC_NOTIFICATION_SERVICE_ADDRESS:static://localhost:9091}
+      negotiationType: plaintext
+spring:
+  application:
+    name: user-service
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+            scope: openid,profile,email
+            redirect-uri: ${OAUTH2_REDIRECT_URI:http://localhost:8081/api/v1/login/oauth2/code/google}
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/furnisight_user_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    open-in-view: false
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: user-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+jwt:
+  private-key: ${JWT_PRIVATE_KEY}
+  public-key: ${JWT_PUBLIC_KEY}
+  access-token-expiration-ms: 900000 # 15 minutes
+  refresh-token-expiration-ms: 604800000 # 7 days
+  verification-token-expiration-ms: 86400000 # 24 hours
+  reset-password-token-expiration-ms: 3600000 # 1 hour
+
+logging:
+  level:
+    com.furnisight.user: DEBUG
+    org.springframework.web: INFO
+
+app:
+  security:
+    auth-whitelist: ${AUTH_WHITELIST}
+    verify-url: ${VERIFY_URL:http://localhost:8080/users/auth/verify-email}
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
