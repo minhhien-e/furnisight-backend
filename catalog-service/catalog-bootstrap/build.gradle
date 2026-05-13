@@ -1,0 +1,24 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    dependencies {
+        // Kéo tất cả 4 module kia vào để build ra 1 file chạy duy nhất
+        implementation project(':catalog-domain')
+        implementation project(':catalog-application')
+        implementation project(':catalog-infrastructure')
+        implementation project(':catalog-presentation')
+
+        implementation 'org.springframework.boot:spring-boot-starter'
+        implementation 'org.springframework.boot:spring-boot-starter-web'
+    }
+}
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}

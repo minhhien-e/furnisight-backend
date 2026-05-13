@@ -1,0 +1,17 @@
+dependencies {
+    api project(':catalog-domain')
+
+    // Core Spring logic
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-tx'
+
+    // Jackson for JSON parsing
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+
+    // Lombok
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    // SLF4J for logging
+    compileOnly 'org.slf4j:slf4j-api'
+}

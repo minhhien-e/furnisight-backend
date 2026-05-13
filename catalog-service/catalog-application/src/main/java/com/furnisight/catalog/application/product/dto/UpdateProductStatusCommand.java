@@ -1,0 +1,19 @@
+package com.furnisight.catalog.application.product.dto;
+
+import com.furnisight.catalog.domain.enums.product.ProductStatus;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.util.UUID;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class UpdateProductStatusCommand {
+    private UUID shopId;
+    private UUID productId;
+    private ProductStatus status;
+}
