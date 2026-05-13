@@ -94,6 +94,7 @@ public class UserProfileLifecycleService {
         LocalDateTime otpExpiresAt = LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES);
         request.updateToStep2(newContact, otp, otpExpiresAt);
         request.requestOtp(newContact);
+        verificationRequestRepository.save(request);
     }
 
     public void applyContactChange(

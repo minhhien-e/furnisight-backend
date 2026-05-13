@@ -21,50 +21,48 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class LoginWithSocialAccountService implements LoginWithSocialAccountUseCase {
 
-    private final SocialAccountRepository socialAccountRepository;
-    private final AccountLifecycleService accountLifecycleService;
-    private final UserProfileLifecycleService userProfileLifecycleService;
-    private final TokenLifeCycleService tokenLifeCycleService;
-    private final NotificationService notificationService;
+        private final SocialAccountRepository socialAccountRepository;
+        private final AccountLifecycleService accountLifecycleService;
+        private final UserProfileLifecycleService userProfileLifecycleService;
+        private final TokenLifeCycleService tokenLifeCycleService;
+        private final NotificationService notificationService;
 
-    @Override
-    @Transactional
-    public AccountToken execute(LoginWithSocialAccountCommand command) {
-        Optional<SocialAccount> existingSocialAccount = socialAccountRepository
-                .findByProviderUserId(command.providerUserId(), command.provider());
+        @Override
+        @Transactional
+        public AccountToken execute(LoginWithSocialAccountCommand command) {
+                Optional<SocialAccount> existingSocialAccount = socialAccountRepository
+                                .findByProviderUserId(command.providerUserId(), command.provider());
 
-        Email emailVO = command.email() != null ? new Email(command.email()) : null;
+                Email emailVO = command.email() != null ? new Email(command.email()) : null;
 
+                Account account = accountLifecycleService.LoginWithSocialAccount(
+                                existingSocialAccount,
+                                command.provider(),
+                                command.providerUserId(),
+                                emailVO);
 
-        Account account = accountLifecycleService.LoginWithSocialAccount(
-                existingSocialAccount,
-                command.provider(),
-                command.providerUserId(),
-                emailVO
-        );
+                if (existingSocialAccount.isEmpty()) {
+                        String resolvedFirstName = command.firstName() != null
+                                        ? command.firstName()
+                                        : (command.fullName() != null ? command.fullName().split(" ")[0] : null);
+                        String resolvedLastName = command.lastName() != null
+                                        ? command.lastName()
+                                        : (command.fullName() != null && command.fullName().contains(" ")
+                                                        ? command.fullName()
+                                                                        .substring(command.fullName().indexOf(' ') + 1)
+                                                        : null);
 
-        if (existingSocialAccount.isEmpty()) {
-            String resolvedFirstName = command.firstName() != null
-                    ? command.firstName()
-                    : (command.fullName() != null ? command.fullName().split(" ")[0] : null);
-            String resolvedLastName = command.lastName() != null
-                    ? command.lastName()
-                    : (command.fullName() != null && command.fullName().contains(" ")
-                    ? command.fullName().substring(command.fullName().indexOf(' ') + 1)
-                    : null);
+                        userProfileLifecycleService.createProfile(
+                                        account.getId(),
+                                        resolvedFirstName,
+                                        resolvedLastName,
+                                        command.email());
 
-            userProfileLifecycleService.createProfile(
-                    account.getId(),
-                    resolvedFirstName,
-                    resolvedLastName,
-                    command.email()
-            );
+                        if (command.email() != null) {
+                                notificationService.createNotificationProfile(account.getId().toString());
+                        }
+                }
 
-            if (command.email() != null) {
-                notificationService.createNotificationProfile(account.getId().toString(), command.email());
-            }
+                return tokenLifeCycleService.generateAccountToken(account);
         }
-
-        return tokenLifeCycleService.generateAccountToken(account);
-    }
 }

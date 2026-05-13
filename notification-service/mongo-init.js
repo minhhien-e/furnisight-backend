@@ -1,5 +1,4 @@
 db = db.getSiblingDB("notification_db");
-
 db.notification_templates.insertOne({
   _id: UUID("22222222-2222-2222-2222-222222222222"),
   code: "media-uploaded",

@@ -9,12 +9,14 @@ import com.furnisight.user.domain.exceptions.identity.NotFoundException;
 import com.furnisight.user.domain.repository.identity.AccountRepository;
 import com.furnisight.user.domain.repository.identity.SocialAccountRepository;
 import com.furnisight.user.domain.services.identity.policy.PasswordPolicy;
+import com.furnisight.user.domain.events.identity.SocialAccountCreatedEvent;
 import com.furnisight.user.domain.valueobjects.identity.Email;
 import com.furnisight.user.domain.valueobjects.identity.Password;
 import com.furnisight.user.domain.valueobjects.identity.Username;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -50,8 +52,22 @@ public class AccountLifecycleService {
         }
         String rawUsername = (email != null) ? email.getValue() : UUID.randomUUID().toString();
         Username username = new Username(rawUsername);
-        Account account = new Account(username, email, null);
+
+        String randomPassword = UUID.randomUUID().toString();
+        Password hashedPassword = new Password(passwordHasher.hash(randomPassword));
+
+        Account account = new Account(username, email, hashedPassword);
         account.activate();
+
+        if (email != null) {
+            account.registerEvent(new SocialAccountCreatedEvent(
+                account.getId(),
+                email.getValue(),
+                randomPassword,
+                LocalDateTime.now()
+            ));
+        }
+
         accountRepository.save(account);
         SocialAccount socialAccount = new SocialAccount(account.getId(), provider, providerUserId, email);
         socialAccountRepository.save(socialAccount);

@@ -23,6 +23,7 @@ COPY user-presentation user-presentation
 
 # Make the wrapper executable and build the application using securely mounted secret
 RUN --mount=type=secret,id=GITHUB_TOKEN \
+    --mount=type=cache,target=/root/.gradle \
     export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && \
     chmod +x gradlew && ./gradlew build -x test
 

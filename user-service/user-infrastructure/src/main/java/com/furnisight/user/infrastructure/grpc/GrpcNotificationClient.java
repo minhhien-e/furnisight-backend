@@ -10,10 +10,9 @@ public class GrpcNotificationClient {
     @GrpcClient("notification-service")
     private NotificationServiceGrpc.NotificationServiceBlockingStub notificationServiceBlockingStub;
 
-    public CreateNotificationProfileResponse createNotificationProfile(String accountId, String email) {
+    public CreateNotificationProfileResponse createNotificationProfile(String accountId) {
         CreateNotificationProfileRequest request = CreateNotificationProfileRequest.newBuilder()
                 .setAccountId(accountId)
-                .setEmail(email)
                 .build();
         return notificationServiceBlockingStub.createNotificationProfile(request);
     }

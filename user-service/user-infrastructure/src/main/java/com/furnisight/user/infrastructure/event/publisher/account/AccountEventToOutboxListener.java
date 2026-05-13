@@ -121,4 +121,16 @@ public class AccountEventToOutboxListener {
             payload
         ));
     }
+
+    @SneakyThrows
+    @EventListener
+    public void handle(SocialAccountCreatedEvent event) {
+        String payload = objectMapper.writeValueAsString(event);
+        outboxMessageRepository.save(new OutboxMessage(
+            AGGREGATE_TYPE,
+            event.accountId().toString(),
+            "social-account-created",
+            payload
+        ));
+    }
 }

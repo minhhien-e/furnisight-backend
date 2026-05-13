@@ -33,9 +33,8 @@ public class RegisterAccountService implements RegisterAccountUseCase {
                 account.getId(),
                 command.firstName(),
                 command.lastName(),
-                command.email()
-        );
-        notificationService.createNotificationProfile(account.getId().toString(), email.getValue());
+                command.email());
+        notificationService.createNotificationProfile(account.getId().toString());
         return tokenLifeCycleService.generateAccountToken(account);
     }
 }

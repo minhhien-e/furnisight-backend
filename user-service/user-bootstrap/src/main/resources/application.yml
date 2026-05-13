@@ -72,11 +72,6 @@ jwt:
   verification-token-expiration-ms: 86400000 # 24 hours
   reset-password-token-expiration-ms: 3600000 # 1 hour
 
-logging:
-  level:
-    com.furnisight.user: DEBUG
-    org.springframework.web: INFO
-
 app:
   security:
     auth-whitelist: ${AUTH_WHITELIST}

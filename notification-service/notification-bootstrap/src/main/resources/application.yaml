@@ -53,8 +53,3 @@ app:
   notification:
     email:
       from: ${EMAIL_HOST}
-logging:
-  level:
-    root: INFO
-    org.springframework.data.mongodb: DEBUG
-    org.mongodb.driver: INFO

@@ -32,10 +32,10 @@ public class JwtConfig {
 
     private String privateKey;
     private String publicKey;
-    private long accessTokenExpirationMs = 15 * 60 * 1000L;            // 15 minutes
-    private long refreshTokenExpirationMs = 7 * 24 * 60 * 60 * 1000L;  // 7 days
+    private long accessTokenExpirationMs = 15 * 60 * 1000L; // 15 minutes
+    private long refreshTokenExpirationMs = 7 * 24 * 60 * 60 * 1000L; // 7 days
     private long verificationTokenExpirationMs = 24 * 60 * 60 * 1000L; // 24 hours
-    private long resetPasswordTokenExpirationMs = 60 * 60 * 1000L;     // 1 hour
+    private long resetPasswordTokenExpirationMs = 60 * 60 * 1000L; // 1 hour
 
     @Bean
     public RSAPrivateKey rsaPrivateKey() throws Exception {
@@ -62,11 +62,11 @@ public class JwtConfig {
     @Bean
     public RSAKey rsaKey(RSAPublicKey rsaPublicKey, RSAPrivateKey rsaPrivateKey) {
         return new RSAKey.Builder(rsaPublicKey)
-            .privateKey(rsaPrivateKey)
-            .keyID("furnisight-key")
-            .algorithm(com.nimbusds.jose.JWSAlgorithm.RS256)
-            .keyUse(com.nimbusds.jose.jwk.KeyUse.SIGNATURE)
-            .build();
+                .privateKey(rsaPrivateKey)
+                .keyID("furnisight-key")
+                .algorithm(com.nimbusds.jose.JWSAlgorithm.RS256)
+                .keyUse(com.nimbusds.jose.jwk.KeyUse.SIGNATURE)
+                .build();
     }
 
     @Bean

@@ -12,7 +12,8 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 # Make the wrapper executable and build the application
-RUN chmod +x gradlew && ./gradlew build -x test
+RUN --mount=type=cache,target=/root/.gradle \
+    chmod +x gradlew && ./gradlew build -x test
 
 # Stage 2: Run
 FROM eclipse-temurin:17-jre-alpine

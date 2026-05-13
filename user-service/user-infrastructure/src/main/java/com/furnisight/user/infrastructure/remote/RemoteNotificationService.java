@@ -11,17 +11,11 @@ public class RemoteNotificationService implements NotificationService {
     private final GrpcNotificationClient grpcNotificationClient;
 
     @Override
-    public void createNotificationProfile(String accountId, String email) {
-        grpcNotificationClient.createNotificationProfile(accountId, email);
-    }
-
-    @Override
-    public void updateNotificationProfile(String accountId, String email) {
-        grpcNotificationClient.updateNotificationProfile(accountId, email);
+    public void createNotificationProfile(String accountId) {
+        grpcNotificationClient.createNotificationProfile(accountId);
     }
 
     @Override
     public void deleteNotificationProfile(String accountId) {
-        grpcNotificationClient.deleteNotificationProfile(accountId);
     }
 }
