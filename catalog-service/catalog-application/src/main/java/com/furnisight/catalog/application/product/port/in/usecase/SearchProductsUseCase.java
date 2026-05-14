@@ -4,5 +4,5 @@ import com.furnisight.catalog.application.product.dto.projection.SearchProductsP
 import java.util.UUID;
 
 public interface SearchProductsUseCase {
-    SearchProductsProjection execute(String query, UUID categoryId, String status, int page, int size);
+    SearchProductsProjection execute(String query, String category, String status, int page, int size);
 }

@@ -108,12 +108,12 @@ public class ProductController {
     @GetMapping
     public ResponseEntity<SearchProductsProjection> searchProducts(
             @RequestParam(name = "query", required = false) String query,
-            @RequestParam(name = "categoryId", required = false) UUID categoryId,
+            @RequestParam(name = "category", required = false) String category,
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
         
-        SearchProductsProjection results = searchProductsUseCase.execute(query, categoryId, status, page, size);
+        SearchProductsProjection results = searchProductsUseCase.execute(query, category, status, page, size);
         return ResponseEntity.ok(results);
     }
 

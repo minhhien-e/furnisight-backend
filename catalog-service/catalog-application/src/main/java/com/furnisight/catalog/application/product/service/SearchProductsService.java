@@ -15,7 +15,7 @@ public class SearchProductsService implements SearchProductsUseCase {
     private final ProductReadRepository productReadRepository;
 
     @Override
-    public SearchProductsProjection execute(String query, UUID categoryId, String status, int page, int size) {
-        return productReadRepository.searchProducts(query, categoryId, status, page, size);
+    public SearchProductsProjection execute(String query, String category, String status, int page, int size) {
+        return productReadRepository.searchProducts(query, category, status, page, size);
     }
 }

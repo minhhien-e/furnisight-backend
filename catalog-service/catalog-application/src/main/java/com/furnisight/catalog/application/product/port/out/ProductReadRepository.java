@@ -8,6 +8,6 @@ import java.util.UUID;
 
 public interface ProductReadRepository {
     Optional<ProductDetailProjection> findProductDetailById(UUID productId);
-    SearchProductsProjection searchProducts(String query, UUID categoryId, String status, int page, int size);
+    SearchProductsProjection searchProducts(String query, String category, String status, int page, int size);
     List<ProductDetailProjection> findTopProducts(int limit);
 }

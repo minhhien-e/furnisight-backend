@@ -44,7 +44,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
-    public SearchProductsProjection searchProducts(String query, UUID categoryId, String status, int page, int size) {
+    public SearchProductsProjection searchProducts(String query, String category, String status, int page, int size) {
         StringBuilder sqlBase = new StringBuilder("""
             FROM products p
             LEFT JOIN categories c ON p.category_id = c.id
@@ -58,9 +58,15 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
             params.put("query", "%" + query + "%");
         }
         
-        if (categoryId != null) {
-            sqlBase.append(" AND p.category_id = :categoryId");
-            params.put("categoryId", categoryId);
+        if (category != null && !category.isBlank()) {
+            // Ho tro tim kiem theo slug hoac name cua category cha (hierarchical)
+            sqlBase.append("""
+                 AND p.category_id IN (
+                    SELECT sub.id FROM categories sub 
+                    WHERE sub.path LIKE (SELECT concat(path, '%') FROM categories WHERE slug = :category OR name = :category LIMIT 1)
+                 )
+                """);
+            params.put("category", category);
         }
         
         if (status != null) {
@@ -87,11 +93,65 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 product.setPrice(variants.get(0).getPrice());
             }
         }
+
+        // --- CALCULATE FACETS ---
         
+        // 1. Subcategories Facets
+        String catFacetSql = "SELECT c.id, c.name, COUNT(p.id) as product_count " + 
+                             sqlBase.toString() + 
+                             " GROUP BY c.id, c.name";
+        List<SearchProductsProjection.CategoryFacet> categoryFacets = jdbcTemplate.query(catFacetSql, params, (rs, rowNum) -> 
+            SearchProductsProjection.CategoryFacet.builder()
+                .id(rs.getString("id"))
+                .label(rs.getString("name"))
+                .count(rs.getLong("product_count"))
+                .build()
+        );
+
+        // 2. Material Facets (aggregated from attributes JSONB)
+        String materialFacetSql = "SELECT DISTINCT p.attributes->>'material' as material " + 
+                                  sqlBase.toString() + 
+                                  " AND p.attributes->>'material' IS NOT NULL";
+        List<SearchProductsProjection.MaterialFacet> materialFacets = jdbcTemplate.query(materialFacetSql, params, (rs, rowNum) -> 
+            SearchProductsProjection.MaterialFacet.builder()
+                .id(rs.getString("material").toLowerCase().replace(" ", "-"))
+                .label(rs.getString("material"))
+                .build()
+        );
+
+        // 3. Color Facets (aggregated from attributes JSONB)
+        String colorFacetSql = "SELECT DISTINCT p.attributes->>'color' as color " + 
+                               sqlBase.toString() + 
+                               " AND p.attributes->>'color' IS NOT NULL";
+        List<SearchProductsProjection.ColorFacet> colorFacets = jdbcTemplate.query(colorFacetSql, params, (rs, rowNum) -> 
+            SearchProductsProjection.ColorFacet.builder()
+                .id(rs.getString("color").toLowerCase().replace(" ", "-"))
+                .label(rs.getString("color"))
+                .hex(getColorHex(rs.getString("color")))
+                .build()
+        );
+
         return SearchProductsProjection.builder()
                 .products(products)
                 .total(total != null ? total : 0)
+                .facets(SearchProductsProjection.Facets.builder()
+                        .categories(categoryFacets)
+                        .materials(materialFacets)
+                        .colors(colorFacets)
+                        .build())
                 .build();
+    }
+
+    private String getColorHex(String color) {
+        if (color == null) return "#000000";
+        return switch (color.toLowerCase()) {
+            case "brown" -> "#8B4513";
+            case "natural" -> "#F5DEB3";
+            case "white" -> "#FFFFFF";
+            case "black" -> "#000000";
+            case "grey", "gray" -> "#808080";
+            default -> "#CCCCCC";
+        };
     }
 
     private ProductDetailProjection mapRowToProductDto(java.sql.ResultSet rs) throws java.sql.SQLException {
