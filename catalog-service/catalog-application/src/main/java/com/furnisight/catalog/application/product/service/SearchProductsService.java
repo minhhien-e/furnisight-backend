@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
+import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
+
 @Service
 @RequiredArgsConstructor
 public class SearchProductsService implements SearchProductsUseCase {
@@ -15,7 +17,7 @@ public class SearchProductsService implements SearchProductsUseCase {
     private final ProductReadRepository productReadRepository;
 
     @Override
-    public SearchProductsProjection execute(String query, String category, String status, int page, int size) {
-        return productReadRepository.searchProducts(query, category, status, page, size);
+    public SearchProductsProjection execute(SearchProductsQuery query) {
+        return productReadRepository.searchProducts(query);
     }
 }

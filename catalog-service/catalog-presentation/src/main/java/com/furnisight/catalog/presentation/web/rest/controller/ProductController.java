@@ -15,6 +15,8 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
+
 @RestController
 @RequestMapping("/products")
 @RequiredArgsConstructor
@@ -107,13 +109,39 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<SearchProductsProjection> searchProducts(
-            @RequestParam(name = "query", required = false) String query,
+            @RequestParam(name = "q", required = false) String q,
             @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "sort", required = false) String sort,
+            @RequestParam(name = "priceBands", required = false) List<String> priceBands,
+            @RequestParam(name = "priceSliderPct", required = false) List<Double> priceSliderPct,
+            @RequestParam(name = "materials", required = false) List<String> materials,
+            @RequestParam(name = "colors", required = false) List<String> colors,
+            @RequestParam(name = "minStar", required = false) Integer minStar,
+            @RequestParam(name = "saleOnly", required = false) Boolean saleOnly,
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size) {
+            @RequestParam(name = "size", defaultValue = "24") int size) {
         
-        SearchProductsProjection results = searchProductsUseCase.execute(query, category, status, page, size);
+        // Map FE page (1-based usually) to Backend offset (0-based) if needed, 
+        // assuming FE sends page=1 for the first page. If FE sends 1-based:
+        int backendPage = Math.max(0, page > 0 ? page - 1 : 0);
+
+        SearchProductsQuery queryParam = SearchProductsQuery.builder()
+                .q(q)
+                .category(category)
+                .sort(sort)
+                .priceBands(priceBands)
+                .priceSliderPct(priceSliderPct)
+                .materials(materials)
+                .colors(colors)
+                .minStar(minStar)
+                .saleOnly(saleOnly)
+                .status(status)
+                .page(backendPage)
+                .size(size)
+                .build();
+                
+        SearchProductsProjection results = searchProductsUseCase.execute(queryParam);
         return ResponseEntity.ok(results);
     }
 

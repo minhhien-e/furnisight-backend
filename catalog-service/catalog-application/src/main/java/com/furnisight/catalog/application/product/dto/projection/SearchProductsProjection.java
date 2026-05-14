@@ -14,6 +14,8 @@ import java.util.List;
 public class SearchProductsProjection {
     private List<ProductDetailProjection> products;
     private long total;
+    private int page;
+    private int pageSize;
     private Facets facets;
 
     @Data
@@ -31,7 +33,8 @@ public class SearchProductsProjection {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class CategoryFacet {
-        private String id;
+        private String id;    // UUID
+        private String slug;  // e.g. "sofa", "dining-table"
         private String label;
         private long count;
     }

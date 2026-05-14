@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
+
 public interface ProductReadRepository {
     Optional<ProductDetailProjection> findProductDetailById(UUID productId);
-    SearchProductsProjection searchProducts(String query, String category, String status, int page, int size);
+    SearchProductsProjection searchProducts(SearchProductsQuery query);
     List<ProductDetailProjection> findTopProducts(int limit);
 }
