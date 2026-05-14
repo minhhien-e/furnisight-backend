@@ -1,25 +1,26 @@
 package com.furnisight.catalog.domain.valueobjects.product;
 
 import com.furnisight.catalog.domain.seedwork.ValueObject;
-import lombok.Getter;
-import com.furnisight.catalog.domain.exceptions.InvalidSKUException;
+import lombok.*;
+import com.furnisight.catalog.domain.exceptions.*;
 
 import java.util.List;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SKU extends ValueObject {
-    private final String value;
+    private String value;
 
     public SKU(String value) {
         if (value == null || value.trim().isEmpty()) {
-            throw new InvalidSKUException("SKU cannot be null or empty");
+            throw new ValidationException(ErrorCode.INVALID_SKU, "SKU cannot be null or empty");
         }
         if (value.length() > 50) {
-            throw new InvalidSKUException("SKU cannot exceed 50 characters");
+            throw new ValidationException(ErrorCode.INVALID_SKU, "SKU cannot exceed 50 characters");
         }
         // Basic pattern matching: Alphanumeric and hyphens only
         if (!value.matches("^[a-zA-Z0-9-]+$")) {
-            throw new InvalidSKUException("SKU can only contain alphanumeric characters and hyphens");
+            throw new ValidationException(ErrorCode.INVALID_SKU, "SKU can only contain alphanumeric characters and hyphens");
         }
         this.value = value.trim().toUpperCase();
     }

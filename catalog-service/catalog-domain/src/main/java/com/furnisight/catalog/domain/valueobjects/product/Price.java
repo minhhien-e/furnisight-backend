@@ -1,22 +1,23 @@
 package com.furnisight.catalog.domain.valueobjects.product;
 
-import com.furnisight.catalog.domain.exceptions.InvalidPriceException;
 import com.furnisight.catalog.domain.seedwork.ValueObject;
-import lombok.Getter;
+import com.furnisight.catalog.domain.exceptions.*;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Price extends ValueObject {
-    private final BigDecimal value;
+    private BigDecimal value;
 
     public Price(BigDecimal value) {
         if (value == null) {
-            throw new InvalidPriceException("Price cannot be null");
+            throw new ValidationException(ErrorCode.INVALID_PRICE, "Price cannot be null");
         }
         if (value.compareTo(BigDecimal.ZERO) < 0) {
-            throw new InvalidPriceException("Price cannot be negative");
+            throw new ValidationException(ErrorCode.INVALID_PRICE, "Price cannot be negative");
         }
         this.value = value;
     }
@@ -36,7 +37,7 @@ public class Price extends ValueObject {
 
     public Price multiply(int quantity) {
         if (quantity < 0) {
-            throw new InvalidPriceException("Quantity for multiplication cannot be negative");
+            throw new ValidationException(ErrorCode.INVALID_PRICE, "Quantity for multiplication cannot be negative");
         }
         return new Price(this.value.multiply(BigDecimal.valueOf(quantity)));
     }

@@ -2,7 +2,7 @@ package com.furnisight.catalog.infrastructure.database.repository.impl.product;
 
 import com.furnisight.catalog.infrastructure.database.repository.jpa.product.ProductJpaRepository;
 
-import com.furnisight.catalog.domain.repository.product.ProductRepository;
+import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.entities.product.Product;
 import lombok.RequiredArgsConstructor;
 import com.furnisight.catalog.domain.enums.product.ProductStatus;

@@ -1,10 +1,7 @@
 package com.furnisight.catalog.domain.valueobjects.product;
 
 import com.furnisight.catalog.domain.seedwork.ValueObject;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.Arrays;
 import java.util.List;
@@ -12,11 +9,11 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-@NoArgsConstructor(force = true)
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class SeoInfo extends ValueObject {
-    private final String metaTitle;
-    private final String metaDescription;
-    private final String metaKeywords;
+    private String metaTitle;
+    private String metaDescription;
+    private String metaKeywords;
 
     @Override
     protected List<Object> getEqualityComponents() {

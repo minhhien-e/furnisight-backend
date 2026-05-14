@@ -21,10 +21,5 @@ public class ProductStatusUpdatedEvent implements DomainEvent {
     private UUID productId;
     private ProductStatus newStatus;
     private LocalDateTime occurredAt;
-
-    @Override
-    public String getType() {
-        return "PRODUCT_STATUS_UPDATED";
-    }
 }
 

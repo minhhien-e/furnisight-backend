@@ -1,13 +1,14 @@
 package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
 
 import java.util.Map;
 import java.util.UUID;
 
-@Getter
+@Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class UpdateProductInfoRequest {
     private UUID shopId;
     private String name;

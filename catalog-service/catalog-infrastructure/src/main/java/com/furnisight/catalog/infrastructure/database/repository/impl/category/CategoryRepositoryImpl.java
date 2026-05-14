@@ -2,7 +2,7 @@ package com.furnisight.catalog.infrastructure.database.repository.impl.category;
 
 import com.furnisight.catalog.infrastructure.database.repository.jpa.category.CategoryJpaRepository;
 
-import com.furnisight.catalog.domain.repository.category.CategoryRepository;
+import com.furnisight.catalog.domain.repository.CategoryRepository;
 import com.furnisight.catalog.domain.entities.category.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

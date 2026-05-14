@@ -36,6 +36,23 @@ public class Category extends AggregateRoot {
 
     private String path; // He thong tu tinh toan, khong de nguoi dung nhap
 
+    @Column(name = "product_count")
+    @Builder.Default
+    private Integer productCount = 0;
+
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "icon_url")
+    private String iconUrl;
+
+    public void incrementProductCount() {
+        if (this.productCount == null) {
+            this.productCount = 0;
+        }
+        this.productCount++;
+    }
+
     public static Category create(CategoryName name, CategorySlug slug, UUID parentId, String path) {
         Category category = Category.builder()
             .name(name)

@@ -1,21 +1,23 @@
 package com.furnisight.catalog.domain.entities.product;
 
-import java.time.LocalDateTime;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import com.furnisight.catalog.domain.valueobjects.product.*;
-import com.furnisight.catalog.domain.exceptions.MissingProductVariantException;
-import com.furnisight.catalog.domain.seedwork.AggregateRoot;
+import com.furnisight.catalog.domain.enums.product.ProductStatus;
 import com.furnisight.catalog.domain.events.product.ProductCreatedEvent;
 import com.furnisight.catalog.domain.events.product.ProductStatusUpdatedEvent;
 import com.furnisight.catalog.domain.events.product.ProductUpdatedEvent;
+import com.furnisight.catalog.domain.exceptions.ErrorCode;
+import com.furnisight.catalog.domain.exceptions.ForbiddenException;
+import com.furnisight.catalog.domain.exceptions.InvalidOperationException;
+import com.furnisight.catalog.domain.exceptions.ValidationException;
+import com.furnisight.catalog.domain.seedwork.AggregateRoot;
+import com.furnisight.catalog.domain.valueobjects.product.*;
 import jakarta.persistence.*;
+import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
-import com.furnisight.catalog.domain.exceptions.InvalidProductStateException;
-import com.furnisight.catalog.domain.exceptions.ProductOwnershipException;
-import lombok.*;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -26,17 +28,19 @@ import lombok.*;
 @Table(name = "products")
 public class Product extends AggregateRoot {
     @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
+    @Builder.Default
+    private UUID id = UUID.randomUUID();
 
     private UUID shopId;
 
     private UUID categoryId; // Tham chieu den Category bang ID (DDD: Aggregate reference by ID)
 
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "name", nullable = false, length = 120))
     private ProductName name;
 
     @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "description", columnDefinition = "text"))
     private ProductDescription description;
 
     @Enumerated(EnumType.STRING)
@@ -54,6 +58,10 @@ public class Product extends AggregateRoot {
 
     @Embedded
     private SeoInfo seoInfo;
+
+    @Column(name = "view_count")
+    @Builder.Default
+    private Integer viewCount = 0;
 
     @Data
     @AllArgsConstructor
@@ -78,8 +86,7 @@ public class Product extends AggregateRoot {
             .build();
 
         if (variantDataList == null || variantDataList.isEmpty()) {
-            throw new MissingProductVariantException(
-                "A product must have at least one variant for pricing and stock information");
+            throw new ValidationException(ErrorCode.MISSING_PRODUCT_VARIANT);
         }
         for (VariantData data : variantDataList) {
             product.addVariants(data.getSku(), data.getPrice(), data.getStockQuantity());
@@ -116,7 +123,7 @@ public class Product extends AggregateRoot {
 
     public void activate() {
         if (this.productStatus == ProductStatus.SUSPENDED) {
-            throw new InvalidProductStateException("Cannot activate a suspended product.");
+            throw new InvalidOperationException(ErrorCode.INVALID_PRODUCT_STATE);
         }
         this.productStatus = ProductStatus.ACTIVE;
 
@@ -144,8 +151,7 @@ public class Product extends AggregateRoot {
 
     public void updateVariants(List<VariantData> variantDataList) {
         if (variantDataList == null || variantDataList.isEmpty()) {
-            throw new MissingProductVariantException(
-                "A product must have at least one variant for pricing and stock information");
+            throw new ValidationException(ErrorCode.MISSING_PRODUCT_VARIANT);
         }
 
         this.variants.removeIf(existing -> variantDataList.stream()
@@ -191,7 +197,7 @@ public class Product extends AggregateRoot {
 
     public void verifyOwnership(UUID currentShopId) {
         if (!this.shopId.equals(currentShopId)) {
-            throw new ProductOwnershipException(currentShopId, this.id);
+            throw new ForbiddenException(ErrorCode.PRODUCT_OWNERSHIP_DENIED);
         }
     }
 
@@ -218,5 +224,12 @@ public class Product extends AggregateRoot {
             .stockQuantity(stockQuantity)
             .build();
         this.variants.add(variant);
+    }
+
+    public void incrementViewCount() {
+        if (this.viewCount == null) {
+            this.viewCount = 0;
+        }
+        this.viewCount++;
     }
 }

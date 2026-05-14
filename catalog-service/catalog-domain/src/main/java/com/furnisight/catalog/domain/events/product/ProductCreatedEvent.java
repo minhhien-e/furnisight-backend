@@ -40,10 +40,4 @@ public class ProductCreatedEvent implements DomainEvent {
         private Double price;
         private Integer stockQuantity;
     }
-
-
-    @Override
-    public String getType() {
-        return "PRODUCT_CREATED";
-    }
 }

@@ -5,13 +5,13 @@ services:
     container_name: furnisight_user_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: furnisight_user_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres -d furnisight_user_db"]
       interval: 10s
@@ -111,10 +111,14 @@ services:
       - "8080:8080"
     env_file:
       - ./gateway/.env
+    environment:
+      - USER_SERVICE_URL=http://user-service:8081
+      - CATALOG_SERVICE_URL=http://catalog-service:8083
     depends_on:
       - redis
       - zipkin
       - user-service
+      - catalog-service
     restart: always
 
   user-service:
@@ -131,6 +135,27 @@ services:
       - "8081:8081"
     env_file:
       - ./user-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    restart: always
+
+  catalog-service:
+    image: furnisight-catalog-service:latest
+    build:
+      context: ./catalog-service
+      dockerfile: Dockerfile
+      args:
+        - GITHUB_ACTOR=${GITHUB_ACTOR}
+      secrets:
+        - GITHUB_TOKEN
+    container_name: furnisight_catalog_service
+    ports:
+      - "8083:8083"
+    env_file:
+      - ./catalog-service/.env
     depends_on:
       postgres:
         condition: service_healthy

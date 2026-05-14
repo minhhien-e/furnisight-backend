@@ -17,9 +17,4 @@ public class CategoryCreateEvent implements DomainEvent {
     private String slug;
     private UUID parentId;
     private LocalDateTime occurredAt;
-
-    @Override
-    public String getType() {
-        return "CATEGORY_CREATED";
-    }
 }

@@ -39,8 +39,4 @@ public class ProductUpdatedEvent implements DomainEvent {
         private Double price;
         private Integer stockQuantity;
     }
-    @Override
-    public String getType() {
-        return "PRODUCT_UPDATED";
-    }
 }

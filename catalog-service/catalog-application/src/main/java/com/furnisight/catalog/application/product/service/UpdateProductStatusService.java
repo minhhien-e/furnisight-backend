@@ -1,10 +1,10 @@
 package com.furnisight.catalog.application.product.service;
 
-import com.furnisight.catalog.application.product.dto.UpdateProductStatusCommand;
+import com.furnisight.catalog.application.product.dto.command.UpdateProductStatusCommand;
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductStatusUseCase;
-import com.furnisight.catalog.domain.repository.product.ProductRepository;
+import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.entities.product.Product;
-import com.furnisight.catalog.domain.exceptions.ProductNotFoundException;
+import com.furnisight.catalog.domain.exceptions.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,7 +18,7 @@ public class UpdateProductStatusService implements UpdateProductStatusUseCase {
     @Transactional
     public void execute(UpdateProductStatusCommand command) {
         Product product = productRepository.findById(command.getProductId())
-                .orElseThrow(() -> new ProductNotFoundException(command.getProductId()));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
         product.verifyOwnership(command.getShopId());
 

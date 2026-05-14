@@ -1,8 +1,8 @@
 package com.furnisight.catalog.domain.services.product;
 
 import com.furnisight.catalog.domain.entities.product.Product;
-import com.furnisight.catalog.domain.exceptions.DuplicatedProductNameException;
-import com.furnisight.catalog.domain.repository.product.ProductRepository;
+import com.furnisight.catalog.domain.exceptions.*;
+import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.valueobjects.product.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -32,7 +32,7 @@ public class ProductLifecycleService {
                                  List<VariantRequest> variantRequests) {
         
         if (productRepository.existsByShopIdAndNameValue(shopId, name.getValue())) {
-            throw new DuplicatedProductNameException("Product name is already exist");
+            throw new AlreadyExistsException(ErrorCode.DUPLICATE_PRODUCT_NAME);
         }
 
         List<Product.VariantData> variantDataList = new ArrayList<>();
