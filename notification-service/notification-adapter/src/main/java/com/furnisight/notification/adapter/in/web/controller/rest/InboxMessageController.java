@@ -13,6 +13,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -67,11 +68,15 @@ public class InboxMessageController {
 
     @GetMapping
     public ResponseEntity<List<InboxMessageProjection>> getAllMessages(
-        @RequestParam("startDate") LocalDateTime startDate,
+        @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
         @RequestParam(value = "isDeleted", defaultValue = "false") boolean isDeleted,
         @RequestParam(value = "limit", defaultValue = "20") int limit
     ) {
         UUID userId = currentUserProvider.getCurrentUserId();
+
+        if (startDate == null) {
+            startDate = LocalDateTime.now().minusYears(5);
+        }
 
         var request = GetInboxMessageQuery.builder()
             .userId(userId)

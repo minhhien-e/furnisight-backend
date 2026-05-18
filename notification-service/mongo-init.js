@@ -311,3 +311,94 @@ db.notification_templates.insertOne({
   updatedAt: new Date(),
   version: NumberLong(0)
 });
+
+// ─── MOCK NOTIFICATIONS FOR DEVELOPMENT ────────────────────────────────────
+const devUserIds = [
+  "52379d96-5238-4fd9-8383-bae82736bb3b", // minhhien7840@gmail.com
+  "f85b5fd8-d60e-4c7e-87ae-5912796d668e", // admin
+  "4b33e5c1-cae1-458d-b4b1-e568ddd766f6"  // 22130080@st.hcmuaf.edu.vn
+];
+
+devUserIds.forEach(userIdStr => {
+  const userId = UUID(userIdStr);
+  
+  // 1. Order Status (Unread)
+  db.inbox_messages.insertOne({
+    _id: UUID(),
+    _class: "com.furnisight.notification.domain.model.entity.InboxMessage",
+    userId: userId,
+    title: "Đơn hàng đã đặt thành công 🛒",
+    body: "Đơn hàng #FS-98402 của bạn đã được xác nhận thành công và đang được chuẩn bị đóng gói.",
+    image: "https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=200&auto=format&fit=crop",
+    actionUrl: "",
+    type: "ORDER",
+    read: false,
+    deleted: false,
+    readAt: null,
+    deletedAt: null,
+    expireAt: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(new Date().getTime() - 2 * 60 * 60 * 1000),
+    updatedAt: new Date(new Date().getTime() - 2 * 60 * 60 * 1000),
+    version: NumberLong(0)
+  });
+
+  // 2. Promotion (Unread)
+  db.inbox_messages.insertOne({
+    _id: UUID(),
+    _class: "com.furnisight.notification.domain.model.entity.InboxMessage",
+    userId: userId,
+    title: "Mã giảm giá 20% đặc biệt dành cho bạn! 🎁",
+    body: "Chào mừng bạn đến với FurniSight! Nhập mã 'WELCOME20' để được giảm giá 20% cho đơn hàng tiếp theo.",
+    image: "https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=200&auto=format&fit=crop",
+    actionUrl: "",
+    type: "PROMOTION",
+    read: false,
+    deleted: false,
+    readAt: null,
+    deletedAt: null,
+    expireAt: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+    updatedAt: new Date(new Date().getTime() - 24 * 60 * 60 * 1000),
+    version: NumberLong(0)
+  });
+
+  // 3. System Verification (Read)
+  db.inbox_messages.insertOne({
+    _id: UUID(),
+    _class: "com.furnisight.notification.domain.model.entity.InboxMessage",
+    userId: userId,
+    title: "Xác thực tài khoản thành công! 🛡️",
+    body: "Tài khoản của bạn đã được xác thực thành công. Bắt đầu trải nghiệm thiết kế phòng 3D tuyệt vời ngay hôm nay!",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=200&auto=format&fit=crop",
+    actionUrl: "",
+    type: "SYSTEM",
+    read: true,
+    deleted: false,
+    readAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000 + 1 * 60 * 60 * 1000),
+    deletedAt: null,
+    expireAt: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000),
+    updatedAt: new Date(new Date().getTime() - 2 * 24 * 60 * 60 * 1000),
+    version: NumberLong(0)
+  });
+
+  // 4. Social Like (Unread)
+  db.inbox_messages.insertOne({
+    _id: UUID(),
+    _class: "com.furnisight.notification.domain.model.entity.InboxMessage",
+    userId: userId,
+    title: "Bản thiết kế của bạn được yêu thích! ❤️",
+    body: "Thiết kế 'Phòng khách Bắc Âu tối giản' của bạn đã nhận được hơn 50 lượt thích từ cộng đồng.",
+    image: "https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?q=80&w=200&auto=format&fit=crop",
+    actionUrl: "",
+    type: "SOCIAL",
+    read: false,
+    deleted: false,
+    readAt: null,
+    deletedAt: null,
+    expireAt: new Date(new Date().getTime() + 30 * 24 * 60 * 60 * 1000),
+    createdAt: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000),
+    updatedAt: new Date(new Date().getTime() - 3 * 24 * 60 * 60 * 1000),
+    version: NumberLong(0)
+  });
+});
