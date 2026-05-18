@@ -1,0 +1,13 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':media-api')
+
+    implementation 'org.springframework.boot:spring-boot-starter'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    // Hỗ trợ nạp file .env vào System Properties cho Spring Boot
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+}

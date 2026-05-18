@@ -1,0 +1,37 @@
+version: '3.8'
+
+# File này dánh riêng cho môi trường DEV (Lập trình viên viết code hàng ngày)
+# CHỈ chạy các dịch vụ phụ trợ (Database, ClamAV)
+# Để lập trình viên có thể chạy Source Code Spring Boot trực tiếp trên máy tính / IDE của họ
+
+services:
+  postgres.media.local:
+    image: postgres:14-alpine
+    container_name: postgres-media-dev
+    environment:
+      - POSTGRES_DB=media_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+
+  clamav.media.local:
+    image: clamav/clamav:latest 
+    container_name: clamav-media-dev
+    ports:
+      - "3310:3310"
+    restart: unless-stopped
+    volumes:
+      - clamav_data_dev:/var/lib/clamav
+
+  redis.media.local:
+    image: redis:7-alpine
+    container_name: redis-media-dev
+    ports:
+      - "6379:6379"
+
+volumes:
+  pgdata_dev:
+  clamav_data_dev:

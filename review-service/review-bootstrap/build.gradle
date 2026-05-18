@@ -1,0 +1,15 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':review-api')
+    implementation project(':review-infrastructure')
+    implementation 'org.springframework.boot:spring-boot-starter'
+}
+
+springBoot {
+    mainClass = 'com.furnisight.review.bootstrap.ReviewApplication'
+}
+
+

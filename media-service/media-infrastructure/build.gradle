@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+
+dependencies {
+    implementation project(":media-core")
+    // Flyway
+    api 'org.flywaydb:flyway-core'
+    api 'org.flywaydb:flyway-database-postgresql'
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
+    runtimeOnly 'org.postgresql:postgresql'
+    // Mime type
+    implementation 'org.apache.tika:tika-core:2.9.0'
+    implementation 'org.springframework.kafka:spring-kafka'
+}

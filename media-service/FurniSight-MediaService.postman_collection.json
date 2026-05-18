@@ -1,0 +1,192 @@
+{
+	"info": {
+		"_postman_id": "media-service-collection",
+		"name": "FurniSight Clone - Media Service",
+		"description": "Collection cho toàn bộ API của Media Service trong dự án FurniSight Clone. Bao gồm các API quản lý upload (init, complete, status) và các API đóng vai trò Mock Storage cho local (upload, download trực tiếp).",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "123456"
+	},
+	"item": [
+		{
+			"name": "Media Management",
+			"description": "API dành cho việc quản lý vòng đời của Media Asset (Quy trình upload gồm: Init Upload -> Upload file lên Storage -> Complete Upload).",
+			"item": [
+				{
+					"name": "1. Init Upload",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileName\": \"product-image.jpg\",\n  \"sizeBytes\": 1048576,\n  \"ownerType\": \"USER\",\n  \"ownerId\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/v1/media/init-upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"media",
+								"init-upload"
+							]
+						},
+						"description": "API khởi tạo quá trình upload. Trả về thông tin Asset và một Pre-signed URL để client có thể upload file trực tiếp lên Storage Provider (ví dụ S3, hoặc Local Storage Mock)."
+					},
+					"response": []
+				},
+				{
+					"name": "2. Complete Upload",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/media/{{media_id}}/complete-upload",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"media",
+								"{{media_id}}",
+								"complete-upload"
+							]
+						},
+						"description": "API được client gọi sau khi đã upload file thành công lên Storage Provider bằng Pre-signed URL. System sẽ đánh dấu Asset là PROCESSING và bắt đầu các job xử lý background (Background Job)."
+					},
+					"response": []
+				},
+				{
+					"name": "3. Get Media Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/v1/media/{{media_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"v1",
+								"media",
+								"{{media_id}}"
+							]
+						},
+						"description": "API kiểm tra trạng thái hiện tại của một Media Asset (ví dụ: PENDING, PROCESSING, READY, FAILED)."
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Local Storage Mock",
+			"description": "Các API này đóng vai trò như một Storage Provider (mock S3) khi chạy ở môi trường local. Endpoint Upload được gọi bởi client khi có Pre-signed URL. Endpoint Download dùng để trả luồng byte ảnh hiển thị lên UI.",
+			"item": [
+				{
+					"name": "Upload File (Mock S3)",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/octet-stream"
+							}
+						],
+						"body": {
+							"mode": "file",
+							"file": {}
+						},
+						"url": {
+							"raw": "{{base_url}}/media/upload/{{object_key}}?expires={{expires}}&signature={{signature}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"upload",
+								"{{object_key}}"
+							],
+							"query": [
+								{
+									"key": "expires",
+									"value": "{{expires}}"
+								},
+								{
+									"key": "signature",
+									"value": "{{signature}}"
+								}
+							]
+						},
+						"description": "API giả lập việc Upload file lên S3. Client sử dụng URL được trả về từ Init Upload API để đẩy binary data (file vật lý) lên."
+					},
+					"response": []
+				},
+				{
+					"name": "Download File (Mock S3)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/media/download/{{object_key}}?expires={{expires}}&signature={{signature}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"media",
+								"download",
+								"{{object_key}}"
+							],
+							"query": [
+								{
+									"key": "expires",
+									"value": "{{expires}}"
+								},
+								{
+									"key": "signature",
+									"value": "{{signature}}"
+								}
+							]
+						},
+						"description": "API giả lập việc Download / View file từ S3. Dùng để lấy nội dung file hiển thị lên trình duyệt dựa vào pre-signed view url."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string"
+		},
+		{
+			"key": "media_id",
+			"value": "uuid-cua-media-asset-o-buoc-1",
+			"type": "string"
+		},
+		{
+			"key": "object_key",
+			"value": "object-key-o-buoc-1",
+			"type": "string"
+		},
+		{
+			"key": "expires",
+			"value": "thoi-gian-het-han-o-buoc-1",
+			"type": "string"
+		},
+		{
+			"key": "signature",
+			"value": "chu-ky-o-buoc-1",
+			"type": "string"
+		}
+	]
+}
