@@ -28,28 +28,25 @@ public class SecurityConfig {
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
 
         return http
-            .csrf(ServerHttpSecurity.CsrfSpec::disable)
-            .cors(Customizer.withDefaults())
+                .csrf(ServerHttpSecurity.CsrfSpec::disable)
+                .cors(Customizer.withDefaults())
 
-            .exceptionHandling(ex -> ex
-                .authenticationEntryPoint(authenticationEntryPoint)
-                .accessDeniedHandler(accessDeniedHandler)
-            )
+                .exceptionHandling(ex -> ex
+                        .authenticationEntryPoint(authenticationEntryPoint)
+                        .accessDeniedHandler(accessDeniedHandler))
 
-            .authorizeExchange(exchange -> exchange
-                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .pathMatchers(securityProperties.getAuthWhitelist()).permitAll()
-                .anyExchange().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
-            .build();
+                .authorizeExchange(exchange -> exchange
+                        .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        .pathMatchers(securityProperties.getAuthWhitelist()).permitAll()
+                        .anyExchange().authenticated())
+                .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
+                .build();
     }
 
     @Bean
     public org.springframework.web.cors.reactive.CorsConfigurationSource corsConfigurationSource(
-        @Value("${CORS_ALLOWED_ORIGINS}") String allowedOrigins,
-        @Value("${CORS_ALLOWED_HEADERS}") String allowedHeaders
-    ) {
+            @Value("${CORS_ALLOWED_ORIGINS}") String allowedOrigins,
+            @Value("${CORS_ALLOWED_HEADERS}") String allowedHeaders) {
         org.springframework.web.cors.CorsConfiguration configuration = new org.springframework.web.cors.CorsConfiguration();
         configuration.setAllowedOrigins(java.util.Arrays.asList(allowedOrigins.split(",")));
         configuration.setAllowedMethods(java.util.Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
