@@ -1,20 +1,19 @@
-package com.furnisight.review.infrastructure.repository.persistence.write.jpa.impl;
+package com.furnisight.review.infrastructure.database.repository.impl;
 
 import com.furnisight.review.core.model.entity.Review;
-
 import com.furnisight.review.core.repository.ReviewWritePort;
-import com.furnisight.review.infrastructure.repository.persistence.write.jpa.JpaReviewRepository;
+import com.furnisight.review.infrastructure.database.repository.jpa.ReviewJpaRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
+@Repository
 @RequiredArgsConstructor
-public class ReviewRepositoryAdapter implements ReviewWritePort {
+public class ReviewRepositoryImpl implements ReviewWritePort {
 
-    private final JpaReviewRepository jpaRepository;
+    private final ReviewJpaRepository jpaRepository;
 
     @Override
     public void save(Review review) {

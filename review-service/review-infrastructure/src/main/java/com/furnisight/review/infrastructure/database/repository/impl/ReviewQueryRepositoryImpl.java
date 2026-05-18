@@ -1,4 +1,4 @@
-package com.furnisight.review.infrastructure.repository.persistence.read.jpa.impl;
+package com.furnisight.review.infrastructure.database.repository.impl;
 
 import com.furnisight.review.core.dto.ReviewResponse;
 import com.furnisight.review.core.repository.ReviewQueryRepository;
@@ -12,10 +12,10 @@ import java.util.UUID;
 
 import static com.furnisight.review.infrastructure.repository.jooq.tables.Reviews.REVIEWS;
 
-@Repository("jooqReviewQueryAdapter")
+@Repository("reviewQueryRepositoryImpl")
 @Primary
 @RequiredArgsConstructor
-public class JooqReviewQueryAdapter implements ReviewQueryRepository {
+public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 
     private final DSLContext dsl;
 

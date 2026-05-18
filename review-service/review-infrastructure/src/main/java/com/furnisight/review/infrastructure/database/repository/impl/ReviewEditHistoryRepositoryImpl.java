@@ -1,22 +1,19 @@
-package com.furnisight.review.infrastructure.repository.persistence.write.jpa.impl;
+package com.furnisight.review.infrastructure.database.repository.impl;
 
 import com.furnisight.review.core.repository.ReviewEditHistoryRepository;
 import com.furnisight.review.core.model.entity.ReviewEditHistory;
-import com.furnisight.review.infrastructure.repository.persistence.write.jpa.SpringDataReviewEditHistoryRepository;
+import com.furnisight.review.infrastructure.database.repository.jpa.ReviewEditHistoryJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
-
 @Repository
 @RequiredArgsConstructor
-public class ReviewEditHistoryAdapter implements ReviewEditHistoryRepository {
+public class ReviewEditHistoryRepositoryImpl implements ReviewEditHistoryRepository {
 
-    private final SpringDataReviewEditHistoryRepository jpaRepository;
+    private final ReviewEditHistoryJpaRepository jpaRepository;
 
     @Override
     public void save(ReviewEditHistory history) {
         jpaRepository.save(history);
     }
-
-
 }

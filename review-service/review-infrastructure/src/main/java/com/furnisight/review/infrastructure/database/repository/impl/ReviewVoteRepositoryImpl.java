@@ -1,9 +1,9 @@
-package com.furnisight.review.infrastructure.repository.persistence.write.jpa.impl;
+package com.furnisight.review.infrastructure.database.repository.impl;
 
 import com.furnisight.review.core.repository.ReviewVoteRepository;
 import com.furnisight.review.core.model.entity.ReviewVote;
 import com.furnisight.review.core.model.valueobject.ReviewVoteId;
-import com.furnisight.review.infrastructure.repository.persistence.write.jpa.SpringDataReviewVoteRepository;
+import com.furnisight.review.infrastructure.database.repository.jpa.ReviewVoteJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
@@ -12,9 +12,9 @@ import java.util.UUID;
 
 @Repository
 @RequiredArgsConstructor
-public class ReviewVoteAdapter implements ReviewVoteRepository {
+public class ReviewVoteRepositoryImpl implements ReviewVoteRepository {
 
-    private final SpringDataReviewVoteRepository jpaRepository;
+    private final ReviewVoteJpaRepository jpaRepository;
 
     @Override
     public void save(ReviewVote vote) {
@@ -28,7 +28,7 @@ public class ReviewVoteAdapter implements ReviewVoteRepository {
 
     @Override
     public Optional<ReviewVote> findByReviewIdAndUserId(UUID reviewId, UUID userId) {
-        ReviewVoteId id = new ReviewVoteId(reviewId, userId);
+        ReviewVoteId id = new ReviewVoteId(userId, reviewId);
         return jpaRepository.findById(id);
     }
 }

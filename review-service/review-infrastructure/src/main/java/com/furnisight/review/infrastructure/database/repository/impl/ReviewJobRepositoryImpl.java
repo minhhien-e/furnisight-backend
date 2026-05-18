@@ -1,16 +1,16 @@
-package com.furnisight.review.infrastructure.repository.persistence.write.jpa.impl;
+package com.furnisight.review.infrastructure.database.repository.impl;
 
 import com.furnisight.review.core.model.entity.ReviewProcessingJob;
 import com.furnisight.review.core.repository.ReviewJobWritePort;
-import com.furnisight.review.infrastructure.repository.persistence.write.jpa.SpringDataJobRepository;
+import com.furnisight.review.infrastructure.database.repository.jpa.ReviewJobJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 @Repository
 @RequiredArgsConstructor
-public class JpaJobAdapter implements ReviewJobWritePort {
+public class ReviewJobRepositoryImpl implements ReviewJobWritePort {
 
-    private final SpringDataJobRepository jpaRepository;
+    private final ReviewJobJpaRepository jpaRepository;
 
     @Override
     public void save(ReviewProcessingJob job) {
