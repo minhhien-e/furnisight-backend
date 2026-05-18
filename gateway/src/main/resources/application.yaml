@@ -20,24 +20,33 @@ spring:
     gateway:
       server:
         webflux:
-          routes:
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URL}
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 5 # 5 request / giây
+                redis-rate-limiter.burstCapacity: 10 # tối đa burst
+            - name: RewritePath
+              args:
+                regexp: /users/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
 
-            - id: user-service
-              uri: ${USER_SERVICE_URL}
-              predicates:
-                - Path=/users/**
-              filters:
-                - name: RequestRateLimiter
-                  args:
-                    key-resolver: "#{@ipKeyResolver}"
-                    redis-rate-limiter.replenishRate: 5 # 5 request / giây
-                    redis-rate-limiter.burstCapacity: 10 # tối đa burst
-                - name: RewritePath
-                  args:
-                    regexp: /users/(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
-          forwarded:
-            enabled: true
+        - id: catalog-service
+          uri: ${CATALOG_SERVICE_URL}
+          predicates:
+            - Path=/catalog/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /catalog/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+      forwarded:
+        enabled: true
 
 management:
   tracing:
