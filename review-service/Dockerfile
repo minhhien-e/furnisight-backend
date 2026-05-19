@@ -31,8 +31,14 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copy the built jar from the builder stage
-COPY --from=builder /app/review-bootstrap/build/libs/review-bootstrap-1.0-SNAPSHOT.jar app.jar
+# Create a non-root system group and user for security compliance
+RUN addgroup -S spring && adduser -S spring -G spring
+
+# Copy the built jar from the builder stage and assign ownership to the spring user
+COPY --from=builder --chown=spring:spring /app/review-bootstrap/build/libs/review-bootstrap-1.0-SNAPSHOT.jar app.jar
+
+# Run the container as the non-root user
+USER spring:spring
 
 # Expose port based on application.yml (server.port=8080)
 EXPOSE 8080

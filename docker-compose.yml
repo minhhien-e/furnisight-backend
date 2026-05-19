@@ -112,9 +112,9 @@ services:
     env_file:
       - ./gateway/.env
     environment:
-      - USER_SERVICE_URL=http://user-service:8081
-      - CATALOG_SERVICE_URL=http://catalog-service:8083
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8082
+      - USER_SERVICE_URL=http://user-service:8080
+      - CATALOG_SERVICE_URL=http://catalog-service:8080
+      - NOTIFICATION_SERVICE_URL=http://notification-service:8080
     depends_on:
       - redis
       - zipkin
@@ -134,9 +134,11 @@ services:
         - GITHUB_TOKEN
     container_name: furnisight_user_service
     ports:
-      - "8081:8081"
+      - "8081:8080"
     env_file:
       - ./user-service/.env
+    environment:
+      - SERVER_PORT=8080
     depends_on:
       postgres:
         condition: service_healthy
@@ -155,9 +157,11 @@ services:
         - GITHUB_TOKEN
     container_name: furnisight_catalog_service
     ports:
-      - "8083:8083"
+      - "8083:8080"
     env_file:
       - ./catalog-service/.env
+    environment:
+      - SERVER_PORT=8080
     depends_on:
       postgres:
         condition: service_healthy
@@ -176,10 +180,12 @@ services:
         - GITHUB_TOKEN
     container_name: furnisight_notification_service
     ports:
-      - "8082:8082"
+      - "8082:8080"
       - "9091:9091"
     env_file:
       - ./notification-service/.env
+    environment:
+      - SERVER_PORT=8080
     depends_on:
       - mongo
       - kafka
@@ -192,14 +198,75 @@ services:
       dockerfile: Dockerfile
     container_name: furnisight_ai_classifier
     ports:
-      - "8000:8000"
+      - "8000:8080"
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
     restart: always
+
+  media-service:
+    image: furnisight-media-service:latest
+    build:
+      context: ./media-service
+      dockerfile: Dockerfile
+      args:
+        - GITHUB_ACTOR=${GITHUB_ACTOR}
+      secrets:
+        - GITHUB_TOKEN
+    container_name: furnisight_media_service
+    ports:
+      - "8084:8080"
+    env_file:
+      - ./media-service/.env
+    volumes:
+      - media_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      clamav:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+
+  review-service:
+    image: furnisight-review-service:latest
+    build:
+      context: ./review-service
+      dockerfile: Dockerfile
+      args:
+        - GITHUB_ACTOR=${GITHUB_ACTOR}
+      secrets:
+        - GITHUB_TOKEN
+    container_name: furnisight_review_service
+    ports:
+      - "8085:8080"
+    env_file:
+      - ./review-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: always
+
+  clamav:
+    image: clamav/clamav:latest
+    container_name: furnisight_clamav
+    restart: unless-stopped
+    ports:
+      - "3310:3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --version || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
 
 volumes:
   postgres_data:
   mongo_data:
   redis_data:
   kafka_data:
+  media_storage:
+  clamav_data:
 
 secrets:
   GITHUB_TOKEN:

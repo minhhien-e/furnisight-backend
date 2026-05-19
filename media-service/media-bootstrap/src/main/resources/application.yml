@@ -1,7 +1,7 @@
 spring:
   datasource:
     driver-class-name: org.postgresql.Driver
-    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/media_db}
+    url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/furnisight_media_db}
     username: ${DATASOURCE_USERNAME}
     password: ${DATASOURCE_PASSWORD}
   flyway:

@@ -31,11 +31,17 @@ FROM eclipse-temurin:17-jre-alpine
 
 WORKDIR /app
 
-# Copy the built jar from the builder stage
-COPY --from=builder /app/media-bootstrap/build/libs/media-bootstrap-1.0-SNAPSHOT.jar app.jar
+# Create a non-root system group and user for security compliance
+RUN addgroup -S spring && adduser -S spring -G spring
 
-# Tạo thư mục storage cho local
-RUN mkdir -p /app/storage
+# Copy the built jar from the builder stage and assign ownership to the spring user
+COPY --from=builder --chown=spring:spring /app/media-bootstrap/build/libs/media-bootstrap-1.0-SNAPSHOT.jar app.jar
+
+# Pre-create the local storage directory and assign ownership to the spring user
+RUN mkdir -p /app/storage && chown -R spring:spring /app/storage
+
+# Run the container as the non-root user
+USER spring:spring
 
 # Expose port based on application.yml (server.port=8080)
 EXPOSE 8080

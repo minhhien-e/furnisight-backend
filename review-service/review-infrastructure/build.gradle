@@ -23,7 +23,7 @@ jooq {
                 logging = org.jooq.meta.jaxb.Logging.WARN
                 jdbc {
                     driver = 'org.postgresql.Driver'
-                    url = System.getenv("JOOQ_DB_URL") ?: 'jdbc:postgresql://localhost:5433/review_db'
+                    url = System.getenv("JOOQ_DB_URL") ?: 'jdbc:postgresql://localhost:5433/furnisight_review_db'
                     user = System.getenv("JOOQ_DB_USER") ?: 'postgres'
                     password = System.getenv("JOOQ_DB_PASSWORD") ?: 'postgres'
                 }
