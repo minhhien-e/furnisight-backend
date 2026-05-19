@@ -6,7 +6,7 @@ dependencies {
     implementation project(':media-core')
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
-    implementation 'com.furnisight:proto-lib:1.0.1774078439649'
+    implementation 'com.furnisight:proto-lib:1.0.1778486394705'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 }

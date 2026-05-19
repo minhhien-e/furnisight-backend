@@ -28,6 +28,10 @@ spring:
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
       retries: 3
 
+  elasticsearch:
+    uris: ${ELASTICSEARCH_URIS:http://localhost:9200}
+
+
 logging:
   level:
     root: ${LOGGING_LEVEL_ROOT:INFO}

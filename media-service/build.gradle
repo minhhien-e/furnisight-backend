@@ -13,7 +13,7 @@ allprojects {
         mavenCentral()
 
         maven {
-            url = uri("https://maven.pkg.github.com/minhhien-e/furnisight-be")
+            url = uri("https://maven.pkg.github.com/minhhien-e/furnisight-backend")
             credentials {
                 username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("GITHUB_ACTOR")
                 password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("GITHUB_TOKEN")

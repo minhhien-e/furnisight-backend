@@ -100,6 +100,38 @@ services:
       - "9411:9411"
     restart: always
 
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: furnisight_elasticsearch
+    restart: unless-stopped
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - cluster.name=furnisight-cluster
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.13.4
+    container_name: furnisight_kibana
+    restart: unless-stopped
+    ports:
+      - "5601:5601"
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
   # --- Microservices ---
   gateway:
     image: furnisight-gateway:latest
@@ -166,6 +198,8 @@ services:
       postgres:
         condition: service_healthy
       kafka:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     restart: always
 
@@ -244,6 +278,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
     restart: always
 
   clamav:
@@ -267,6 +303,7 @@ volumes:
   kafka_data:
   media_storage:
   clamav_data:
+  elasticsearch_data:
 
 secrets:
   GITHUB_TOKEN:
