@@ -23,19 +23,22 @@ jooq {
                 logging = org.jooq.meta.jaxb.Logging.WARN
                 jdbc {
                     driver = 'org.postgresql.Driver'
-                    url = 'jdbc:postgresql://localhost:5432/review_db'
-                    user = 'postgres'
-                    password = '123456'
+                    url = System.getenv("JOOQ_DB_URL") ?: 'jdbc:postgresql://localhost:5433/review_db'
+                    user = System.getenv("JOOQ_DB_USER") ?: 'postgres'
+                    password = System.getenv("JOOQ_DB_PASSWORD") ?: 'postgres'
                 }
                 generator {
                     name = 'org.jooq.codegen.DefaultGenerator'
                     database {
                         name = 'org.jooq.meta.postgres.PostgresDatabase'
                         inputSchema = 'public'
-                        includes = 'reviews|review_processing_job|review_edit_history|review_votes'
+                        includes = 'reviews'
+                    }
+                    generate {
+                        deprecationOnUnknownTypes = false
                     }
                     target {
-                        packageName = 'com.furnisight.review.infrastructure.repository.jooq'
+                        packageName = 'com.furnisight.review.infrastructure.database.repository.jooq'
                         directory = 'build/generated-sources/jooq'
                     }
                 }

@@ -7,10 +7,5 @@ public record UpdateReviewRequest(
     @NotNull UUID reviewId,
     String title,
     String content,
-    Integer rating,
-    String ipAddress
-) {
-    public String ipAddress() {
-        return ipAddress;
-    }
-}
+    Integer rating
+) {}

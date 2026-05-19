@@ -10,10 +10,9 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 import java.util.UUID;
 
-import static com.furnisight.review.infrastructure.repository.jooq.tables.Reviews.REVIEWS;
+import static com.furnisight.review.infrastructure.database.repository.jooq.tables.Reviews.REVIEWS;
 
-@Repository("reviewQueryRepositoryImpl")
-@Primary
+@Repository
 @RequiredArgsConstructor
 public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
 
@@ -32,14 +31,13 @@ public class ReviewQueryRepositoryImpl implements ReviewQueryRepository {
                 REVIEWS.CONTENT_TEXT.as("content"),
                 REVIEWS.RATING,
                 REVIEWS.STATUS.cast(String.class).as("status"),
-                REVIEWS.CREATED_AT.as("createdAt")
-            )
-            .from(REVIEWS)
-            .where(REVIEWS.PRODUCT_ID.eq(productId))
-            .and(REVIEWS.STATUS.cast(String.class).in("PENDING", "VISIBLE"))
-            .orderBy(REVIEWS.CREATED_AT.desc())
-            .limit(limit)
-            .offset(offset)
-            .fetchInto(ReviewResponse.class);
+                REVIEWS.CREATED_AT.as("createdAt"))
+                .from(REVIEWS)
+                .where(REVIEWS.PRODUCT_ID.eq(productId))
+                .and(REVIEWS.STATUS.cast(String.class).in("PENDING", "VISIBLE"))
+                .orderBy(REVIEWS.CREATED_AT.desc())
+                .limit(limit)
+                .offset(offset)
+                .fetchInto(ReviewResponse.class);
     }
 }

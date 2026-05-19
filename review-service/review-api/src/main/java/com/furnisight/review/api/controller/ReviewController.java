@@ -1,12 +1,10 @@
 package com.furnisight.review.api.controller;
 
-import com.furnisight.review.api.dto.request.GetReviewsRequest;
-import com.furnisight.review.api.dto.request.ToggleVoteRequest;
 import com.furnisight.review.api.dto.request.UpdateReviewRequest;
 import com.furnisight.review.core.dto.ReviewResponse;
 import com.furnisight.review.core.service.Review.ReviewService;
 import com.furnisight.review.api.dto.request.CreateReviewRequest;
-import com.furnisight.review.core.service.ReviewVote.ReviewVoteService;
+import com.furnisight.review.core.security.CurrentUserProvider;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,12 +20,12 @@ import java.util.UUID;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final ReviewVoteService reviewVoteService;
+    private final CurrentUserProvider currentUserProvider;
 
     @PostMapping
     public ResponseEntity<Void> create(@Valid @RequestBody CreateReviewRequest req) {
         reviewService.createReview(
-            req.userId(),
+            currentUserProvider.getCurrentUserId(),
             req.productId(),
             req.orderItemId(),
             req.title(),
@@ -43,17 +41,13 @@ public class ReviewController {
         return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/search")
-    public ResponseEntity<List<ReviewResponse>> getByReviewId(
-        @Valid @ModelAttribute GetReviewsRequest req
+    @GetMapping
+    public ResponseEntity<List<ReviewResponse>> getByProductId(
+        @RequestParam UUID productId,
+        @RequestParam(defaultValue = "0") int page,
+        @RequestParam(defaultValue = "10") int size
     ) {
-        System.out.println(">>> Request ProductId: " + req.productId());
-
-        return ResponseEntity.ok(reviewService.getReviewsByProduct(
-            req.productId(),
-            req.page(),
-            req.size()
-        ));
+        return ResponseEntity.ok(reviewService.getReviewsByProduct(productId, page, size));
     }
 
     @PatchMapping("/update")
@@ -64,18 +58,7 @@ public class ReviewController {
             req.reviewId(),
             req.title(),
             req.content(),
-            req.rating(),
-            req.ipAddress()
-        );
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/toggle-vote")
-    public ResponseEntity<Void> toggleVote(@Valid @RequestBody ToggleVoteRequest req) {
-        reviewVoteService.toggleVote(
-            req.reviewId(),
-            req.userId(),
-            req.voteType()
+            req.rating()
         );
         return ResponseEntity.ok().build();
     }

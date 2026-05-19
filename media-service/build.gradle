@@ -29,9 +29,8 @@ subprojects {
         imports { mavenBom "org.springframework.boot:spring-boot-dependencies:3.4.1" }
     }
     java {
-        toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
-        }
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
     }
 
     dependencies {

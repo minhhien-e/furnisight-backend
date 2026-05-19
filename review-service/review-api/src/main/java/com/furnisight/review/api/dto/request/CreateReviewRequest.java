@@ -4,7 +4,6 @@ import jakarta.validation.constraints.*;
 
 public record CreateReviewRequest(
     @NotBlank String title,
-    @NotBlank String userId,
     @NotBlank String productId,
     @NotBlank String orderItemId,
     @NotBlank String content,
