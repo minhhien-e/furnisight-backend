@@ -1,6 +1,8 @@
 package com.furnisight.catalog.domain.entities;
 
 import com.furnisight.catalog.domain.enums.ProductStatus;
+import com.furnisight.catalog.domain.exceptions.ErrorCode;
+import com.furnisight.catalog.domain.exceptions.ValidationException;
 import com.furnisight.catalog.domain.seedwork.AggregateRoot;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDescription;
 import com.furnisight.catalog.domain.valueobjects.product.ProductName;
@@ -208,8 +210,8 @@ public class Product extends AggregateRoot {
 
     public void changeCategory(UUID categoryId) {
         if (categoryId == null) {
-            throw new com.furnisight.catalog.domain.exceptions.ValidationException(
-                    com.furnisight.catalog.domain.exceptions.ErrorCode.INVALID_CATEGORY_NAME,
+            throw new ValidationException(
+                   ErrorCode.INVALID_CATEGORY_NAME,
                     "Category ID cannot be null"
             );
         }
@@ -218,8 +220,8 @@ public class Product extends AggregateRoot {
 
     public void assignToCollection(UUID collectionId) {
         if (collectionId == null) {
-            throw new com.furnisight.catalog.domain.exceptions.ValidationException(
-                    com.furnisight.catalog.domain.exceptions.ErrorCode.INVALID_PRODUCT_STATE,
+            throw new ValidationException(
+                    ErrorCode.INVALID_PRODUCT_STATE,
                     "Collection ID cannot be null"
             );
         }

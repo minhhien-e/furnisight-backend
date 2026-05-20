@@ -59,6 +59,9 @@ public class UserProfileLifecycleService {
         UserProfile profile,
         VerificationType type,
         VerificationMethod verifyBy) {
+        if (type == VerificationType.EMAIL_CHANGE) {
+            throw new ValidationException(ErrorCode.EMAIL_CHANGE_NOT_SUPPORTED);
+        }
         // Vô hiệu hóa các otp trước đó
         verificationRequestRepository.deleteByAccountIdAndType(account.getId(), type);
 
@@ -125,7 +128,9 @@ public class UserProfileLifecycleService {
         Account account,
         VerificationType type,
         String newContact) {
-        
+        if (type == VerificationType.EMAIL_LINK) {
+            throw new ValidationException(ErrorCode.EMAIL_CHANGE_NOT_SUPPORTED);
+        }
         // Vô hiệu hóa các otp trước đó
         verificationRequestRepository.deleteByAccountIdAndType(account.getId(), type);
 

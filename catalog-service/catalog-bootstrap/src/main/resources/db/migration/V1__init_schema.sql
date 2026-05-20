@@ -72,3 +72,22 @@ CREATE TABLE IF NOT EXISTS outbox_messages (
     next_retry_at TIMESTAMP WITHOUT TIME ZONE,
     failed BOOLEAN NOT NULL DEFAULT FALSE
 );
+
+CREATE TYPE review_status AS ENUM ('PENDING', 'VISIBLE', 'HIDDEN', 'SHADOW_BANNED', 'ARCHIVED');
+
+CREATE TABLE IF NOT EXISTS reviews (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
+    order_item_id UUID NOT NULL UNIQUE,
+    title VARCHAR(255) NOT NULL,
+    content_text TEXT NOT NULL,
+    content_hash VARCHAR(255) NOT NULL,
+    rating INTEGER NOT NULL,
+    status review_status NOT NULL DEFAULT 'PENDING',
+    trust_score NUMERIC(3, 2) DEFAULT 0.50,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_product_id ON reviews(product_id);

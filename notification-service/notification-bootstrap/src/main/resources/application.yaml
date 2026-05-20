@@ -13,7 +13,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          jwk-set-uri: ${AUTH_SERVER_URL}/.well-known/jwks.json
+          jwk-set-uri: ${JWK_SET_URI}/.well-known/jwks.json
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
