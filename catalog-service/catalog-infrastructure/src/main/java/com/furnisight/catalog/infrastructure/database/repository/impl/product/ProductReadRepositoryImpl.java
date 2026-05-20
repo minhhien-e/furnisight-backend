@@ -86,6 +86,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     galleryList = List.of(dto.getThumbnailUrl(), dto.getThumbnailUrl());
                 }
                 dto.setGallery(galleryList);
+                
                 return Optional.of(dto);
             }
             return Optional.empty();
@@ -147,6 +148,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     galleryList = List.of(dto.getThumbnailUrl(), dto.getThumbnailUrl());
                 }
                 dto.setGallery(galleryList);
+
                 return Optional.of(dto);
             }
             return Optional.empty();

@@ -45,7 +45,7 @@ public class ProductDetailProjection {
     private List<QA> qa;
     private String modelUrl;
     private String roomTypeHint;
-    
+
     private List<VariantDto> variants;
 
     @Data
@@ -54,7 +54,7 @@ public class ProductDetailProjection {
         private String id;
         private String label;
     }
-    
+
     @Data
     @Builder
     public static class Breadcrumb {
