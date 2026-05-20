@@ -18,9 +18,9 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public Optional<CategoryDetailProjection> findCategoryDetailById(UUID categoryId) {
-        String sql = "SELECT * FROM categories WHERE id = :id";
-        return jdbcTemplate.query(sql, Map.of("id", categoryId), rs -> {
+    public Optional<CategoryDetailProjection> findCategoryDetailBySlug(String slug) {
+        String sql = "SELECT * FROM categories WHERE slug = :slug";
+        return jdbcTemplate.query(sql, Map.of("slug", slug), rs -> {
             if (rs.next()) {
                 return Optional.of(mapRowToDto(rs));
             }

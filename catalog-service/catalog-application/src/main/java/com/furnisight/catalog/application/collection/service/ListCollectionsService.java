@@ -2,29 +2,21 @@ package com.furnisight.catalog.application.collection.service;
 
 import com.furnisight.catalog.application.collection.dto.projection.CollectionDetailProjection;
 import com.furnisight.catalog.application.collection.port.in.usecase.ListCollectionsUseCase;
-import com.furnisight.catalog.domain.repository.CollectionRepository;
+import com.furnisight.catalog.application.collection.port.out.CollectionReadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class ListCollectionsService implements ListCollectionsUseCase {
-    private final CollectionRepository collectionRepository;
+    private final CollectionReadRepository collectionReadRepository;
 
     @Override
     @Transactional(readOnly = true)
     public List<CollectionDetailProjection> execute() {
-        return collectionRepository.findAll().stream()
-                .map(collection -> CollectionDetailProjection.builder()
-                        .id(collection.getId())
-                        .name(collection.getName())
-                        .description(collection.getDescription())
-                        .slug(collection.getSlug())
-                        .build())
-                .collect(Collectors.toList());
+        return collectionReadRepository.findAllCollections();
     }
 }

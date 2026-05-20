@@ -1,34 +1,26 @@
 package com.furnisight.catalog.infrastructure.database.repository.impl.product;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
+import org.springframework.stereotype.Repository;
+
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
+import com.furnisight.catalog.application.product.dto.projection.ProductSummaryProjection;
 import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
-import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
-import com.furnisight.catalog.application.product.dto.projection.ProductEsProjection;
-import com.furnisight.catalog.infrastructure.elasticsearch.mapper.ProductEsMapper;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
-import com.furnisight.catalog.infrastructure.elasticsearch.document.ProductDocument;
+import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.query.Criteria;
-import org.springframework.data.elasticsearch.core.query.CriteriaQuery;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.stereotype.Repository;
-import com.furnisight.catalog.infrastructure.database.repository.jpa.product.ProductJpaRepository;
-import com.furnisight.catalog.infrastructure.database.repository.jpa.category.CategoryJpaRepository;
-import com.furnisight.catalog.infrastructure.database.repository.jpa.collection.CollectionJpaRepository;
-
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -37,84 +29,201 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
-    private final ElasticsearchOperations elasticsearchOperations;
-    private final ProductJpaRepository productJpaRepository;
-    private final CategoryJpaRepository categoryJpaRepository;
-    private final CollectionJpaRepository collectionJpaRepository;
+
+    @Override
+    public Optional<ProductDetailProjection> findProductDetailBySlug(String slug) {
+        String sql = "SELECT " +
+                " p.id as product_id, p.category_id, p.shop_id, p.name as product_name, p.slug as product_slug, " +
+                " p.description as product_description, p.product_status, p.attributes as product_attributes, " +
+                " p.metadata as product_metadata, p.specs as product_specs, p.collection_id, p.view_count, " +
+                " p.created_at, p.updated_at, " +
+                " c.name as category_name, c.slug as category_slug, " +
+                " pc.name as parent_category_name, pc.slug as parent_category_slug, " +
+                " col.name as collection_name " +
+                " FROM products p " +
+                " LEFT JOIN categories c ON p.category_id = c.id " +
+                " LEFT JOIN categories pc ON c.parent_id = pc.id " +
+                " LEFT JOIN collections col ON p.collection_id = col.id " +
+                " WHERE p.slug = :slug";
+
+        return jdbcTemplate.query(sql, Map.of("slug", slug), rs -> {
+            if (rs.next()) {
+                ProductDetailProjection dto = mapRowToProductDto(rs);
+                UUID productId = dto.getId();
+                List<ProductDetailProjection.VariantDto> variants = fetchVariants(productId);
+                dto.setVariants(variants);
+                if (!variants.isEmpty()) {
+                    dto.setPrice(variants.get(0).getPrice());
+
+                    // Aggregate distinct materials
+                    dto.setMaterials(variants.stream()
+                            .map(ProductDetailProjection.VariantDto::getMaterial)
+                            .filter(m -> m != null && !m.isBlank())
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+                    // Aggregate distinct colors
+                    dto.setColors(variants.stream()
+                            .map(ProductDetailProjection.VariantDto::getColor)
+                            .filter(c -> c != null && !c.isBlank())
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+                    // Aggregate distinct sizes
+                    dto.setSizes(variants.stream()
+                            .map(ProductDetailProjection.VariantDto::getSize)
+                            .filter(s -> s != null && !s.isBlank())
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+                    // Aggregate total stock
+                    dto.setStock(variants.stream()
+                            .mapToInt(v -> v.getStockQuantity() != null ? v.getStockQuantity() : 0)
+                            .sum());
+                }
+                List<String> galleryList = fetchGallery(productId);
+                if (galleryList.isEmpty() && dto.getThumbnailUrl() != null) {
+                    galleryList = List.of(dto.getThumbnailUrl(), dto.getThumbnailUrl());
+                }
+                dto.setGallery(galleryList);
+                return Optional.of(dto);
+            }
+            return Optional.empty();
+        });
+    }
 
     @Override
     public Optional<ProductDetailProjection> findProductDetailById(UUID productId) {
-        return productJpaRepository.findById(productId).map(product -> {
-            ProductDetailProjection dto = mapProductToDto(product);
-            List<ProductDetailProjection.VariantDto> variants = fetchVariants(productId);
-            dto.setVariants(variants);
-            if (!variants.isEmpty()) {
-                dto.setPrice(variants.get(0).getPrice());
+        String sql = "SELECT " +
+                " p.id as product_id, p.category_id, p.shop_id, p.name as product_name, p.slug as product_slug, " +
+                " p.description as product_description, p.product_status, p.attributes as product_attributes, " +
+                " p.metadata as product_metadata, p.specs as product_specs, p.collection_id, p.view_count, " +
+                " p.created_at, p.updated_at, " +
+                " c.name as category_name, c.slug as category_slug, " +
+                " pc.name as parent_category_name, pc.slug as parent_category_slug, " +
+                " col.name as collection_name " +
+                " FROM products p " +
+                " LEFT JOIN categories c ON p.category_id = c.id " +
+                " LEFT JOIN categories pc ON c.parent_id = pc.id " +
+                " LEFT JOIN collections col ON p.collection_id = col.id " +
+                " WHERE p.id = :productId";
+
+        return jdbcTemplate.query(sql, Map.of("productId", productId), rs -> {
+            if (rs.next()) {
+                ProductDetailProjection dto = mapRowToProductDto(rs);
+                List<ProductDetailProjection.VariantDto> variants = fetchVariants(productId);
+                dto.setVariants(variants);
+                if (!variants.isEmpty()) {
+                    dto.setPrice(variants.get(0).getPrice());
+
+                    // Aggregate distinct materials
+                    dto.setMaterials(variants.stream()
+                            .map(ProductDetailProjection.VariantDto::getMaterial)
+                            .filter(m -> m != null && !m.isBlank())
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+                    // Aggregate distinct colors
+                    dto.setColors(variants.stream()
+                            .map(ProductDetailProjection.VariantDto::getColor)
+                            .filter(c -> c != null && !c.isBlank())
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+                    // Aggregate distinct sizes
+                    dto.setSizes(variants.stream()
+                            .map(ProductDetailProjection.VariantDto::getSize)
+                            .filter(s -> s != null && !s.isBlank())
+                            .distinct()
+                            .collect(Collectors.toList()));
+
+                    // Aggregate total stock
+                    dto.setStock(variants.stream()
+                            .mapToInt(v -> v.getStockQuantity() != null ? v.getStockQuantity() : 0)
+                            .sum());
+                }
+                List<String> galleryList = fetchGallery(productId);
+                if (galleryList.isEmpty() && dto.getThumbnailUrl() != null) {
+                    galleryList = List.of(dto.getThumbnailUrl(), dto.getThumbnailUrl());
+                }
+                dto.setGallery(galleryList);
+                return Optional.of(dto);
             }
-            return dto;
+            return Optional.empty();
         });
     }
 
     @Override
     public SearchProductsProjection searchProducts(SearchProductsQuery queryParam) {
-        try {
-            log.debug("Executing searchProducts with query: {} in Elasticsearch", queryParam.getQ());
-            return searchProductsFromEs(queryParam);
-        } catch (Exception e) {
-            log.error("Elasticsearch search failed or index not found. Falling back to PostgreSQL database.", e);
-            return searchProductsFromDb(queryParam);
-        }
-    }
-
-    public SearchProductsProjection searchProductsFromEs(SearchProductsQuery queryParam) {
-        Criteria criteria = new Criteria();
+        StringBuilder whereClause = new StringBuilder(" WHERE 1=1");
+        Map<String, Object> params = new HashMap<>();
 
         // 1. Full-text search
         if (queryParam.getQ() != null && !queryParam.getQ().isBlank()) {
-            criteria = criteria.and(new Criteria("name").contains(queryParam.getQ())
-                    .or(new Criteria("description").contains(queryParam.getQ())));
+            whereClause.append(" AND (LOWER(p.name) LIKE LOWER(:q) OR LOWER(p.description) LIKE LOWER(:q))");
+            params.put("q", "%" + queryParam.getQ().trim() + "%");
         }
 
         // 2. Status filter
         String status = queryParam.getStatus() != null ? queryParam.getStatus().toUpperCase() : "ACTIVE";
-        criteria = criteria.and(new Criteria("status").is(status));
+        whereClause.append(" AND p.product_status = :status");
+        params.put("status", status);
 
         // 3. Category filter
         if (queryParam.getCategory() != null && !queryParam.getCategory().isBlank()) {
-            criteria = criteria.and(new Criteria("categorySlug").is(queryParam.getCategory())
-                    .or(new Criteria("categoryId").is(queryParam.getCategory())));
+            UUID categoryId = null;
+            try {
+                categoryId = UUID.fromString(queryParam.getCategory());
+            } catch (IllegalArgumentException e) {
+                String catSql = "SELECT id FROM categories WHERE slug = :slug LIMIT 1";
+                List<UUID> catIds = jdbcTemplate.query(catSql, Map.of("slug", queryParam.getCategory()),
+                        (rs, rowNum) -> (UUID) rs.getObject("id"));
+                if (!catIds.isEmpty()) {
+                    categoryId = catIds.get(0);
+                }
+            }
+            if (categoryId != null) {
+                whereClause.append(" AND p.category_id = :categoryId");
+                params.put("categoryId", categoryId);
+            } else {
+                whereClause.append(" AND 1=0");
+            }
         }
 
         // 4. Colors filter
         if (queryParam.getColors() != null && !queryParam.getColors().isEmpty()) {
-            criteria = criteria.and(new Criteria("colors").in(queryParam.getColors()));
+            whereClause.append(
+                    " AND EXISTS (SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.attributes->>'color' IN (:colors))");
+            params.put("colors", queryParam.getColors());
         }
 
         // 5. Materials filter
         if (queryParam.getMaterials() != null && !queryParam.getMaterials().isEmpty()) {
-            criteria = criteria.and(new Criteria("materials").in(queryParam.getMaterials()));
+            whereClause.append(
+                    " AND EXISTS (SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.attributes->>'material' IN (:materials))");
+            params.put("materials", queryParam.getMaterials());
         }
 
         // 6. Price filter (Bands)
         if (queryParam.getPriceBands() != null && !queryParam.getPriceBands().isEmpty()) {
-            Criteria priceBandCriteria = new Criteria();
+            StringBuilder bandSql = new StringBuilder(
+                    " AND EXISTS (SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND (");
             boolean first = true;
             for (String band : queryParam.getPriceBands()) {
-                Criteria sub = new Criteria("minPrice");
-                switch (band) {
-                    case "lt5m" -> sub = sub.lessThan(5000000.0);
-                    case "5-15m" -> sub = sub.greaterThanEqual(5000000.0).lessThanEqual(15000000.0);
-                    case "15-30m" -> sub = sub.greaterThanEqual(15000000.0).lessThanEqual(30000000.0);
-                    case "gt30m" -> sub = sub.greaterThan(30000000.0);
+                if (!first) {
+                    bandSql.append(" OR ");
                 }
-                if (first) {
-                    priceBandCriteria = sub;
-                    first = false;
-                } else {
-                    priceBandCriteria = priceBandCriteria.or(sub);
+                first = false;
+                switch (band) {
+                    case "lt5m" -> bandSql.append("pv.price < 5000000.0");
+                    case "5-15m" -> bandSql.append("(pv.price >= 5000000.0 AND pv.price <= 15000000.0)");
+                    case "15-30m" -> bandSql.append("(pv.price >= 15000000.0 AND pv.price <= 30000000.0)");
+                    case "gt30m" -> bandSql.append("pv.price > 30000000.0");
+                    default -> bandSql.append("1=1");
                 }
             }
-            criteria = criteria.and(priceBandCriteria);
+            bandSql.append("))");
+            whereClause.append(bandSql);
         }
 
         // 7. Price slider filter (maxPrice <= maxPriceSlider)
@@ -122,71 +231,82 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
             Double pct = queryParam.getPriceSliderPct().get(0);
             if (pct < 100) {
                 double maxPrice = (pct / 100.0) * 50000000.0;
-                criteria = criteria.and(new Criteria("minPrice").lessThanEqual(maxPrice));
+                whereClause.append(
+                        " AND EXISTS (SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.price <= :maxPrice)");
+                params.put("maxPrice", maxPrice);
             }
         }
 
-        // 8. Sorting
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+        String countSql = "SELECT COUNT(*) FROM products p" + whereClause.toString();
+        Long total = jdbcTemplate.queryForObject(countSql, params, Long.class);
+        if (total == null) {
+            total = 0L;
+        }
+
+        String orderBy = " ORDER BY p.created_at DESC";
         if (queryParam.getSort() != null) {
             switch (queryParam.getSort().toLowerCase()) {
-                case "popular" -> sort = Sort.by(Sort.Direction.DESC, "viewCount");
-                case "rating" -> sort = Sort.by(Sort.Direction.DESC, "rating");
-                case "newest" -> sort = Sort.by(Sort.Direction.DESC, "createdAt");
+                case "popular" -> orderBy = " ORDER BY p.view_count DESC";
+                case "rating" -> orderBy = " ORDER BY p.created_at DESC";
+                case "newest" -> orderBy = " ORDER BY p.created_at DESC";
             }
         }
 
-        // 9. Pagination
         int page = queryParam.getPage() > 0 ? queryParam.getPage() : 0;
         int size = queryParam.getSize() > 0 ? queryParam.getSize() : 24;
-        PageRequest pageRequest = PageRequest.of(page, size, sort);
+        int offset = page * size;
 
-        CriteriaQuery criteriaQuery = new CriteriaQuery(criteria);
-        criteriaQuery.setPageable(pageRequest);
+        params.put("limit", size);
+        params.put("offset", offset);
 
-        SearchHits<ProductDocument> searchHits = elasticsearchOperations.search(criteriaQuery, ProductDocument.class);
+        String mainSql = "SELECT " +
+                " p.id as product_id, p.category_id, p.shop_id, p.name as product_name, p.slug as product_slug, " +
+                " p.description as product_description, p.product_status, p.attributes as product_attributes, " +
+                " p.metadata as product_metadata, p.specs as product_specs, p.collection_id, p.view_count, " +
+                " p.created_at, p.updated_at, " +
+                " c.name as category_name, c.slug as category_slug, " +
+                " pc.name as parent_category_name, pc.slug as parent_category_slug, " +
+                " col.name as collection_name, " +
+                " (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) as product_price " +
+                " FROM products p " +
+                " LEFT JOIN categories c ON p.category_id = c.id " +
+                " LEFT JOIN categories pc ON c.parent_id = pc.id " +
+                " LEFT JOIN collections col ON p.collection_id = col.id " +
+                whereClause.toString() +
+                orderBy +
+                " LIMIT :limit OFFSET :offset";
 
-        List<ProductDetailProjection> products = searchHits.getSearchHits().stream()
-                .map(hit -> ProductEsMapper.toDetailProjection(hit.getContent()))
-                .collect(Collectors.toList());
+        List<ProductSummaryProjection> products = jdbcTemplate.query(mainSql, params,
+                (rs, rowNum) -> mapRowToProductSummary(rs));
 
-        long total = searchHits.getTotalHits();
-
-        // Build in-memory facets based on returned results (high performance)
-        Map<String, Long> catCounts = searchHits.getSearchHits().stream()
-                .map(SearchHit::getContent)
-                .filter(doc -> doc.getCategoryId() != null)
-                .collect(Collectors.groupingBy(ProductDocument::getCategoryId, Collectors.counting()));
+        // Build in-memory facets based on the returned page results (extremely fast and
+        // clean)
+        Map<String, Long> catCounts = products.stream()
+                .filter(p -> p.getCategoryName() != null)
+                .collect(Collectors.groupingBy(ProductSummaryProjection::getCategoryName, Collectors.counting()));
 
         List<SearchProductsProjection.CategoryFacet> categoryFacets = catCounts.entrySet().stream()
-                .map(entry -> {
-                    ProductDocument doc = searchHits.getSearchHits().stream()
-                            .map(SearchHit::getContent)
-                            .filter(d -> entry.getKey().equals(d.getCategoryId()))
-                            .findFirst().orElse(null);
-                    return SearchProductsProjection.CategoryFacet.builder()
-                            .id(entry.getKey())
-                            .slug(doc != null ? doc.getCategorySlug() : entry.getKey())
-                            .label(doc != null ? doc.getCategoryName() : "Sản phẩm")
-                            .count(entry.getValue())
-                            .build();
-                }).collect(Collectors.toList());
+                .map(entry -> SearchProductsProjection.CategoryFacet.builder()
+                        .id(entry.getKey())
+                        .slug(entry.getKey().toLowerCase().replace(" ", "-"))
+                        .label(entry.getKey())
+                        .count(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
 
-        List<SearchProductsProjection.MaterialFacet> materialFacets = searchHits.getSearchHits().stream()
-                .map(SearchHit::getContent)
-                .flatMap(doc -> doc.getMaterials() != null ? doc.getMaterials().stream()
-                        : java.util.stream.Stream.empty())
-                .filter(Objects::nonNull).distinct()
+        String materialsSql = "SELECT DISTINCT pv.attributes->>'material' as mat FROM product_variants pv WHERE pv.attributes->>'material' IS NOT NULL";
+        List<String> distinctMaterials = jdbcTemplate.query(materialsSql, Map.of(),
+                (rs, rowNum) -> rs.getString("mat"));
+        List<SearchProductsProjection.MaterialFacet> materialFacets = distinctMaterials.stream()
                 .map(mat -> SearchProductsProjection.MaterialFacet.builder()
                         .id(mat)
                         .label(mat.substring(0, 1).toUpperCase() + mat.substring(1))
                         .build())
                 .collect(Collectors.toList());
 
-        List<SearchProductsProjection.ColorFacet> colorFacets = searchHits.getSearchHits().stream()
-                .map(SearchHit::getContent)
-                .flatMap(doc -> doc.getColors() != null ? doc.getColors().stream() : java.util.stream.Stream.empty())
-                .filter(Objects::nonNull).distinct()
+        String colorsSql = "SELECT DISTINCT pv.attributes->>'color' as col FROM product_variants pv WHERE pv.attributes->>'color' IS NOT NULL";
+        List<String> distinctColors = jdbcTemplate.query(colorsSql, Map.of(), (rs, rowNum) -> rs.getString("col"));
+        List<SearchProductsProjection.ColorFacet> colorFacets = distinctColors.stream()
                 .map(col -> SearchProductsProjection.ColorFacet.builder()
                         .id(col)
                         .label(col.substring(0, 1).toUpperCase() + col.substring(1))
@@ -209,235 +329,66 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .build();
     }
 
-    public SearchProductsProjection searchProductsFromDb(SearchProductsQuery queryParam) {
-        log.info("Executing searchProducts fallback via JPA and mapping to Projection. Query: {}", queryParam.getQ());
-        
-        // 1. Resolve Category ID by slug or ID string if provided
-        UUID categoryId = null;
-        if (queryParam.getCategory() != null && !queryParam.getCategory().isBlank()) {
-            try {
-                categoryId = UUID.fromString(queryParam.getCategory());
-            } catch (IllegalArgumentException e) {
-                categoryId = categoryJpaRepository.findBySlug(queryParam.getCategory())
-                        .map(com.furnisight.catalog.domain.entities.category.Category::getId)
-                        .orElse(null);
-            }
-        }
+    @Override
+    public List<ProductSummaryProjection> findTopProducts(int limit) {
+        String mainSql = "SELECT " +
+                " p.id as product_id, p.category_id, p.shop_id, p.name as product_name, p.slug as product_slug, " +
+                " p.description as product_description, p.product_status, p.attributes as product_attributes, " +
+                " p.metadata as product_metadata, p.specs as product_specs, p.collection_id, p.view_count, " +
+                " p.created_at, p.updated_at, " +
+                " c.name as category_name, c.slug as category_slug, " +
+                " pc.name as parent_category_name, pc.slug as parent_category_slug, " +
+                " col.name as collection_name, " +
+                " (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) as product_price " +
+                " FROM products p " +
+                " LEFT JOIN categories c ON p.category_id = c.id " +
+                " LEFT JOIN categories pc ON c.parent_id = pc.id " +
+                " LEFT JOIN collections col ON p.collection_id = col.id " +
+                " WHERE p.product_status = 'ACTIVE' " +
+                " ORDER BY p.view_count DESC " +
+                " LIMIT :limit";
 
-        // 2. Resolve ProductStatus
-        com.furnisight.catalog.domain.enums.product.ProductStatus status = com.furnisight.catalog.domain.enums.product.ProductStatus.ACTIVE;
-        if (queryParam.getStatus() != null && !queryParam.getStatus().isBlank()) {
-            try {
-                status = com.furnisight.catalog.domain.enums.product.ProductStatus.valueOf(queryParam.getStatus().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                // Fallback to ACTIVE
-            }
-        }
-
-        // 3. Setup Pagination and Sorting
-        int page = queryParam.getPage() > 0 ? queryParam.getPage() : 0;
-        int size = queryParam.getSize() > 0 ? queryParam.getSize() : 24;
-        Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-        if (queryParam.getSort() != null) {
-            switch (queryParam.getSort().toLowerCase()) {
-                case "popular" -> sort = Sort.by(Sort.Direction.DESC, "viewCount");
-                case "rating" -> sort = Sort.by(Sort.Direction.DESC, "rating");
-                case "newest" -> sort = Sort.by(Sort.Direction.DESC, "createdAt");
-            }
-        }
-        Pageable pageable = PageRequest.of(page, size, sort);
-
-        // 4. Query from database using JPA
-        org.springframework.data.domain.Page<com.furnisight.catalog.domain.entities.product.Product> productPage = 
-                productJpaRepository.searchProducts(queryParam.getQ(), categoryId, status, pageable);
-
-        // 5. Map JPA Products to ProductDetailProjections
-        List<ProductDetailProjection> products = productPage.getContent().stream()
-                .map(this::mapProductToDto)
-                .collect(Collectors.toList());
-
-        // 6. Populate variants and aggregates (materials, colors, sizes, stock, price, etc.)
-        populateProductVariantsAndAggregates(products);
-
-        // 7. Build in-memory facets based on the returned page results (extremely fast and clean)
-        Map<String, Long> catCounts = products.stream()
-                .filter(p -> p.getCategoryId() != null)
-                .collect(Collectors.groupingBy(p -> p.getCategoryId().toString(), Collectors.counting()));
-
-        List<SearchProductsProjection.CategoryFacet> categoryFacets = catCounts.entrySet().stream()
-                .map(entry -> {
-                    ProductDetailProjection p = products.stream()
-                            .filter(prod -> prod.getCategoryId() != null && entry.getKey().equals(prod.getCategoryId().toString()))
-                            .findFirst().orElse(null);
-                    return SearchProductsProjection.CategoryFacet.builder()
-                            .id(entry.getKey())
-                            .slug(p != null && p.getCategory() != null ? p.getCategory().getId() : entry.getKey())
-                            .label(p != null ? p.getCategoryName() : "Sản phẩm")
-                            .count(entry.getValue())
-                            .build();
-                }).collect(Collectors.toList());
-
-        List<SearchProductsProjection.MaterialFacet> materialFacets = products.stream()
-                .flatMap(p -> p.getMaterials() != null ? p.getMaterials().stream() : java.util.stream.Stream.empty())
-                .filter(Objects::nonNull).distinct()
-                .map(mat -> SearchProductsProjection.MaterialFacet.builder()
-                        .id(mat)
-                        .label(mat.substring(0, 1).toUpperCase() + mat.substring(1))
-                        .build())
-                .collect(Collectors.toList());
-
-        List<SearchProductsProjection.ColorFacet> colorFacets = products.stream()
-                .flatMap(p -> p.getColors() != null ? p.getColors().stream() : java.util.stream.Stream.empty())
-                .filter(Objects::nonNull).distinct()
-                .map(col -> SearchProductsProjection.ColorFacet.builder()
-                        .id(col)
-                        .label(col.substring(0, 1).toUpperCase() + col.substring(1))
-                        .hex(getColorHex(col))
-                        .build())
-                .collect(Collectors.toList());
-
-        SearchProductsProjection.Facets facets = SearchProductsProjection.Facets.builder()
-                .categories(categoryFacets)
-                .materials(materialFacets)
-                .colors(colorFacets)
-                .build();
-
-        return SearchProductsProjection.builder()
-                .products(products)
-                .total(productPage.getTotalElements())
-                .page(page + 1)
-                .pageSize(size)
-                .facets(facets)
-                .build();
+        return jdbcTemplate.query(mainSql, Map.of("limit", limit), (rs, rowNum) -> mapRowToProductSummary(rs));
     }
 
-    private ProductDetailProjection mapProductToDto(com.furnisight.catalog.domain.entities.product.Product product) {
-        Map<String, String> attributesMap = new HashMap<>();
-        if (product.getAttributes() != null) {
-            product.getAttributes().forEach((k, v) -> attributesMap.put(k, v != null ? v.toString() : null));
+    private ProductSummaryProjection mapRowToProductSummary(java.sql.ResultSet rs) throws java.sql.SQLException {
+        UUID id = (UUID) rs.getObject("product_id");
+        String productName = rs.getString("product_name");
+        String productSlug = rs.getString("product_slug");
+        String categoryName = rs.getString("category_name");
+        if (categoryName == null) {
+            categoryName = "Sản phẩm";
+        }
+        Double price = rs.getDouble("product_price");
+        if (rs.wasNull()) {
+            price = 0.0;
         }
 
-        String imageUrl = attributesMap.get("image");
-
-        String categoryName = "Sản phẩm";
-        String categorySlug = null;
-        String parentCategoryName = null;
-        String parentCategorySlug = null;
-
-        if (product.getCategoryId() != null) {
-            Optional<com.furnisight.catalog.domain.entities.category.Category> catOpt = categoryJpaRepository.findById(product.getCategoryId());
-            if (catOpt.isPresent()) {
-                com.furnisight.catalog.domain.entities.category.Category category = catOpt.get();
-                categoryName = category.getName() != null ? category.getName().getValue() : "Sản phẩm";
-                categorySlug = category.getSlug() != null ? category.getSlug().getValue() : null;
-                if (category.getParentId() != null) {
-                    Optional<com.furnisight.catalog.domain.entities.category.Category> parentCatOpt = categoryJpaRepository.findById(category.getParentId());
-                    if (parentCatOpt.isPresent()) {
-                        com.furnisight.catalog.domain.entities.category.Category parentCategory = parentCatOpt.get();
-                        parentCategoryName = parentCategory.getName() != null ? parentCategory.getName().getValue() : null;
-                        parentCategorySlug = parentCategory.getSlug() != null ? parentCategory.getSlug().getValue() : null;
-                    }
-                }
-            }
+        Map<String, Object> attributes = parseJsonMapObject(rs.getString("product_attributes"));
+        String imageUrl = null;
+        if (attributes != null && attributes.get("image") != null) {
+            imageUrl = attributes.get("image").toString();
         }
 
-        String collectionStr = null;
-        if (product.getCollectionId() != null) {
-            collectionStr = collectionJpaRepository.findById(product.getCollectionId())
-                    .map(com.furnisight.catalog.domain.entities.collection.Collection::getName)
-                    .orElse(null);
+        Map<String, Object> metadata = parseJsonMapObject(rs.getString("product_metadata"));
+        List<String> tagsList = List.of("new");
+        if (metadata != null && metadata.get("tags") instanceof List<?> list) {
+            tagsList = list.stream().map(Object::toString).toList();
         }
 
-        List<String> tagsList = List.of("new", "sale");
-        List<String> featuresList = List.of("Thiết kế hiện đại", "Chất liệu cao cấp", "Bảo hành 12 tháng");
-        String modelUrlStr = "/models/sofa.glb";
-
-        if (product.getMetadata() != null) {
-            if (product.getMetadata().get("tags") instanceof List<?> list) {
-                tagsList = list.stream().map(Object::toString).toList();
-            }
-            if (product.getMetadata().get("features") instanceof List<?> list) {
-                featuresList = list.stream().map(Object::toString).toList();
-            }
-            if (product.getMetadata().get("model_url") != null) {
-                modelUrlStr = product.getMetadata().get("model_url").toString();
-            }
-            if (collectionStr == null && product.getMetadata().get("collection") != null) {
-                collectionStr = product.getMetadata().get("collection").toString();
-            }
-        }
-
-        List<String> galleryList = new ArrayList<>();
-        if (product.getGallery() != null) {
-            galleryList = product.getGallery().stream()
-                    .map(com.furnisight.catalog.domain.entities.product.ProductImage::getImageUrl)
-                    .collect(Collectors.toList());
-        }
-        if (galleryList.isEmpty() && imageUrl != null) {
-            galleryList = List.of(imageUrl, imageUrl);
-        }
-
-        List<ProductDetailProjection.Breadcrumb> breadcrumbList = new ArrayList<>();
-        breadcrumbList.add(ProductDetailProjection.Breadcrumb.builder().id("home").label("Trang chủ").build());
-        if (parentCategoryName != null && !parentCategoryName.isEmpty()) {
-            breadcrumbList.add(ProductDetailProjection.Breadcrumb.builder()
-                    .id(parentCategorySlug != null ? parentCategorySlug : "all")
-                    .label(parentCategoryName)
-                    .build());
-        }
-        breadcrumbList.add(ProductDetailProjection.Breadcrumb.builder()
-                .id(categorySlug != null ? categorySlug : (product.getCategoryId() != null ? product.getCategoryId().toString() : "all"))
-                .label(categoryName)
-                .build());
-
-        return ProductDetailProjection.builder()
-                .id(product.getId())
-                .slug(product.getId().toString())
-                .shopId(product.getShopId())
-                .categoryId(product.getCategoryId())
+        return ProductSummaryProjection.builder()
+                .id(id)
+                .slug(productSlug != null ? productSlug : id.toString())
+                .name(productName)
                 .categoryName(categoryName)
-                .category(ProductDetailProjection.CategoryInfo.builder()
-                        .id(categorySlug != null ? categorySlug : (product.getCategoryId() != null ? product.getCategoryId().toString() : null))
-                        .label(categoryName)
-                        .build())
-                .name(product.getName() != null ? product.getName().getValue() : null)
-                .description(product.getDescription() != null ? product.getDescription().getValue() : null)
-                .thumbnailUrl(imageUrl)
+                .price(price)
+                .oldPrice(price > 0 ? price * 1.2 : null)
                 .image(imageUrl)
-                .gallery(galleryList)
                 .rating(4.8)
                 .ratingCount(120)
-                .stock(0)
                 .tags(tagsList)
-                .materials(new ArrayList<>())
-                .colors(new ArrayList<>())
-                .sizes(new ArrayList<>())
-                .supports3d(true)
-                .collection(collectionStr)
-                .breadcrumb(breadcrumbList)
-                .features(featuresList)
-                .status(product.getProductStatus() != null ? product.getProductStatus().name() : null)
-                .price(0.0)
-                .modelUrl(modelUrlStr)
-                .roomTypeHint(categoryName)
                 .build();
     }
-
-    @Override
-    public List<ProductDetailProjection> findTopProducts(int limit) {
-        Pageable pageable = PageRequest.of(0, limit, Sort.by(Sort.Direction.DESC, "viewCount"));
-        List<com.furnisight.catalog.domain.entities.product.Product> content = productJpaRepository.searchProducts(
-                null, null, com.furnisight.catalog.domain.enums.product.ProductStatus.ACTIVE, pageable).getContent();
-
-        List<ProductDetailProjection> products = content.stream()
-                .map(this::mapProductToDto)
-                .collect(Collectors.toList());
-
-        populateProductVariantsAndAggregates(products);
-        return products;
-    }
-
-    // ─── HELPER METHODS FOR VARIANTS POPULATION & FACETS ────────────────────
 
     private void populateProductVariantsAndAggregates(List<ProductDetailProjection> products) {
         for (ProductDetailProjection product : products) {
@@ -472,10 +423,130 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .mapToInt(v -> v.getStockQuantity() != null ? v.getStockQuantity() : 0)
                         .sum());
             }
+            List<String> galleryList = fetchGallery(product.getId());
+            if (galleryList.isEmpty() && product.getThumbnailUrl() != null) {
+                galleryList = List.of(product.getThumbnailUrl(), product.getThumbnailUrl());
+            }
+            product.setGallery(galleryList);
         }
     }
 
+    private ProductDetailProjection mapRowToProductDto(java.sql.ResultSet rs) throws java.sql.SQLException {
+        UUID id = (UUID) rs.getObject("product_id");
+        UUID categoryId = (UUID) rs.getObject("category_id");
+        UUID shopId = (UUID) rs.getObject("shop_id");
+        UUID collectionId = (UUID) rs.getObject("collection_id");
 
+        String productName = rs.getString("product_name");
+        String productSlug = rs.getString("product_slug");
+        String productDescription = rs.getString("product_description");
+        String productStatus = rs.getString("product_status");
+
+        Map<String, Object> attributes = parseJsonMapObject(rs.getString("product_attributes"));
+        Map<String, Object> metadata = parseJsonMapObject(rs.getString("product_metadata"));
+
+        Map<String, String> attributesMap = new HashMap<>();
+        if (attributes != null) {
+            attributes.forEach((k, v) -> attributesMap.put(k, v != null ? v.toString() : null));
+        }
+
+        String imageUrl = attributesMap.get("image");
+
+        String categoryName = rs.getString("category_name");
+        if (categoryName == null) {
+            categoryName = "Sản phẩm";
+        }
+        String categorySlug = rs.getString("category_slug");
+        String parentCategoryName = rs.getString("parent_category_name");
+        String parentCategorySlug = rs.getString("parent_category_slug");
+
+        String collectionStr = rs.getString("collection_name");
+        if (collectionStr == null && metadata != null && metadata.get("collection") != null) {
+            collectionStr = metadata.get("collection").toString();
+        }
+
+        List<String> tagsList = List.of("new", "sale");
+        List<String> featuresList = List.of("Thiết kế hiện đại", "Chất liệu cao cấp", "Bảo hành 12 tháng");
+        String modelUrlStr = "/models/sofa.glb";
+
+        if (metadata != null) {
+            if (metadata.get("tags") instanceof List<?> list) {
+                tagsList = list.stream().map(Object::toString).toList();
+            }
+            if (metadata.get("features") instanceof List<?> list) {
+                featuresList = list.stream().map(Object::toString).toList();
+            }
+            if (metadata.get("model_url") != null) {
+                modelUrlStr = metadata.get("model_url").toString();
+            }
+        }
+
+        List<ProductDetailProjection.Breadcrumb> breadcrumbList = new ArrayList<>();
+        breadcrumbList.add(ProductDetailProjection.Breadcrumb.builder().id("home").label("Trang chủ").build());
+        if (parentCategoryName != null && !parentCategoryName.isEmpty()) {
+            breadcrumbList.add(ProductDetailProjection.Breadcrumb.builder()
+                    .id(parentCategorySlug != null ? parentCategorySlug : "all")
+                    .label(parentCategoryName)
+                    .build());
+        }
+        breadcrumbList.add(ProductDetailProjection.Breadcrumb.builder()
+                .id(categorySlug != null ? categorySlug : (categoryId != null ? categoryId.toString() : "all"))
+                .label(categoryName)
+                .build());
+
+        return ProductDetailProjection.builder()
+                .id(id)
+                .slug(id.toString())
+                .shopId(shopId)
+                .categoryId(categoryId)
+                .categoryName(categoryName)
+                .category(ProductDetailProjection.CategoryInfo.builder()
+                        .id(categorySlug != null ? categorySlug : (categoryId != null ? categoryId.toString() : null))
+                        .label(categoryName)
+                        .build())
+                .name(productName)
+                .description(productDescription)
+                .thumbnailUrl(imageUrl)
+                .image(imageUrl)
+                .rating(4.8)
+                .ratingCount(120)
+                .stock(0)
+                .tags(tagsList)
+                .materials(new ArrayList<>())
+                .colors(new ArrayList<>())
+                .sizes(new ArrayList<>())
+                .supports3d(true)
+                .collection(collectionStr)
+                .breadcrumb(breadcrumbList)
+                .features(featuresList)
+                .status(productStatus)
+                .price(0.0)
+                .modelUrl(modelUrlStr)
+                .roomTypeHint(categoryName)
+                .build();
+    }
+
+    private List<ProductDetailProjection.VariantDto> fetchVariants(UUID productId) {
+        String sql = "SELECT * FROM product_variants WHERE product_id = :productId ORDER BY price ASC";
+        return jdbcTemplate.query(sql, Map.of("productId", productId), (rs, rowNum) -> {
+            Map<String, String> variantAttrs = parseJsonMap(rs.getString("attributes"));
+            return ProductDetailProjection.VariantDto.builder()
+                    .id(UUID.fromString(rs.getString("id")))
+                    .price(rs.getDouble("price"))
+                    .stockQuantity(rs.getInt("stock_quantity"))
+                    .color(variantAttrs.get("color"))
+                    .colorLabel(variantAttrs.get("colorLabel"))
+                    .material(variantAttrs.get("material"))
+                    .materialLabel(variantAttrs.get("materialLabel"))
+                    .size(variantAttrs.get("size"))
+                    .build();
+        });
+    }
+
+    private List<String> fetchGallery(UUID productId) {
+        String sql = "SELECT image_url FROM product_images WHERE product_id = :productId ORDER BY sort_order ASC";
+        return jdbcTemplate.query(sql, Map.of("productId", productId), (rs, rowNum) -> rs.getString("image_url"));
+    }
 
     private String getColorHex(String color) {
         if (color == null)
@@ -494,27 +565,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         };
     }
 
-
-
-    private List<ProductDetailProjection.VariantDto> fetchVariants(UUID productId) {
-        String sql = "SELECT * FROM product_variants WHERE product_id = :productId ORDER BY price ASC";
-        return jdbcTemplate.query(sql, Map.of("productId", productId), (rs, rowNum) -> {
-            Map<String, String> variantAttrs = parseJsonMap(rs.getString("attributes"));
-            return ProductDetailProjection.VariantDto.builder()
-                    .sku(rs.getString("sku"))
-                    .price(rs.getDouble("price"))
-                    .stockQuantity(rs.getInt("stock_quantity"))
-                    .color(variantAttrs.get("color"))
-                    .colorLabel(variantAttrs.get("colorLabel"))
-                    .material(variantAttrs.get("material"))
-                    .materialLabel(variantAttrs.get("materialLabel"))
-                    .size(variantAttrs.get("size"))
-                    .build();
-        });
-    }
-
-    // ─── REUSABLE JSON PARSING UTILS ─────────────────────────────────────────
-
     private Map<String, String> parseJsonMap(String json) {
         if (json == null || json.isBlank())
             return new HashMap<>();
@@ -527,64 +577,15 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         }
     }
 
-
-
-    @Override
-    public Optional<ProductEsProjection> findProductDocumentById(UUID productId) {
-        return productJpaRepository.findById(productId).map(product -> {
-            List<ProductDetailProjection.VariantDto> variants = fetchVariants(productId);
-
-            double minPrice = variants.stream().mapToDouble(ProductDetailProjection.VariantDto::getPrice).min()
-                    .orElse(0.0);
-            double maxPrice = variants.stream().mapToDouble(ProductDetailProjection.VariantDto::getPrice).max()
-                    .orElse(0.0);
-            int totalStock = variants.stream()
-                    .mapToInt(v -> v.getStockQuantity() != null ? v.getStockQuantity() : 0).sum();
-
-            List<String> colors = variants.stream().map(ProductDetailProjection.VariantDto::getColor)
-                    .filter(c -> c != null && !c.isBlank()).distinct().collect(Collectors.toList());
-            List<String> materials = variants.stream().map(ProductDetailProjection.VariantDto::getMaterial)
-                    .filter(m -> m != null && !m.isBlank()).distinct().collect(Collectors.toList());
-            List<String> sizes = variants.stream().map(ProductDetailProjection.VariantDto::getSize)
-                    .filter(s -> s != null && !s.isBlank()).distinct().collect(Collectors.toList());
-
-            Map<String, String> attributesMap = new HashMap<>();
-            if (product.getAttributes() != null) {
-                product.getAttributes().forEach((k, v) -> attributesMap.put(k, v != null ? v.toString() : null));
-            }
-
-            String categoryName = "Sản phẩm";
-            String categorySlug = null;
-            if (product.getCategoryId() != null) {
-                Optional<com.furnisight.catalog.domain.entities.category.Category> catOpt = categoryJpaRepository.findById(product.getCategoryId());
-                if (catOpt.isPresent()) {
-                    categoryName = catOpt.get().getName() != null ? catOpt.get().getName().getValue() : "Sản phẩm";
-                    categorySlug = catOpt.get().getSlug() != null ? catOpt.get().getSlug().getValue() : null;
-                }
-            }
-
-            return ProductEsProjection.builder()
-                    .id(productId.toString())
-                    .name(product.getName() != null ? product.getName().getValue() : null)
-                    .description(product.getDescription() != null ? product.getDescription().getValue() : null)
-                    .status(product.getProductStatus() != null ? product.getProductStatus().name() : null)
-                    .categoryId(product.getCategoryId() != null ? product.getCategoryId().toString() : null)
-                    .categoryName(categoryName)
-                    .categorySlug(categorySlug)
-                    .shopId(product.getShopId() != null ? product.getShopId().toString() : null)
-                    .minPrice(minPrice)
-                    .maxPrice(maxPrice)
-                    .colors(colors)
-                    .materials(materials)
-                    .sizes(sizes)
-                    .totalStock(totalStock)
-                    .viewCount(product.getViewCount() != null ? product.getViewCount() : 0)
-                    .rating(4.8)
-                    .thumbnailUrl(attributesMap.get("image"))
-                    .attributes(product.getAttributes())
-                    .createdAt(product.getCreatedAt() != null ? product.getCreatedAt() : java.time.LocalDateTime.now())
-                    .updatedAt(product.getUpdatedAt() != null ? product.getUpdatedAt() : java.time.LocalDateTime.now())
-                    .build();
-        });
+    private Map<String, Object> parseJsonMapObject(String json) {
+        if (json == null || json.isBlank())
+            return new HashMap<>();
+        try {
+            return objectMapper.readValue(json, new TypeReference<Map<String, Object>>() {
+            });
+        } catch (Exception e) {
+            log.warn("Failed to parse JSON map object from value: {}", json, e);
+            return new HashMap<>();
+        }
     }
 }

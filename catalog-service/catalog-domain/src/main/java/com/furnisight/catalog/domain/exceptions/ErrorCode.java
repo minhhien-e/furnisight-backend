@@ -21,7 +21,7 @@ public enum ErrorCode {
     INVALID_PRODUCT_NAME("Invalid product name"),
     INVALID_PRODUCT_DESCRIPTION("Invalid product description"),
     INVALID_PRODUCT_DIMENSIONS("Invalid product dimensions"),
-    INVALID_SKU("Invalid SKU format"),
+    INVALID_PRODUCT_SLUG("Invalid product slug format"),
     INVALID_PRICE("Invalid product price"),
     INVALID_STOCK_QUANTITY("Invalid stock quantity"),
     INVALID_CATEGORY_NAME("Invalid category name"),

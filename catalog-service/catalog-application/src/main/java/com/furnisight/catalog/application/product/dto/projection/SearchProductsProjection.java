@@ -12,7 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SearchProductsProjection {
-    private List<ProductDetailProjection> products;
+    private List<ProductSummaryProjection> products;
     private long total;
     private int page;
     private int pageSize;

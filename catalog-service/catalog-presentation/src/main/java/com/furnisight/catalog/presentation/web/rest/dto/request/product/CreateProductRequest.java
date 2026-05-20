@@ -11,14 +11,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateProductRequest {
-    private UUID shopId;
     private UUID categoryId;
     private String name;
+    private String slug;
     private String description;
-    private Double weight;
-    private Double length;
-    private Double width;
-    private Double height;
     private Map<String, Object> attributes;
     private List<VariantRequest> variants;
 
@@ -27,8 +23,11 @@ public class CreateProductRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class VariantRequest {
-        private String sku;
         private Double price;
         private Integer stockQuantity;
+        private Double weight;
+        private Double length;
+        private Double width;
+        private Double height;
     }
 }

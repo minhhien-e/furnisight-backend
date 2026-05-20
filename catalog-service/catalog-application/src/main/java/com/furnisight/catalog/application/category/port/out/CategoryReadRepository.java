@@ -6,6 +6,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CategoryReadRepository {
-    Optional<CategoryDetailProjection> findCategoryDetailById(UUID categoryId);
+    Optional<CategoryDetailProjection> findCategoryDetailBySlug(String slug);
     List<CategoryDetailProjection> findAllCategories();
 }

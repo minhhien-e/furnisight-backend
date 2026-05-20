@@ -1,18 +1,27 @@
 package com.furnisight.catalog.application.product.service;
 
-import com.furnisight.catalog.application.product.dto.command.CreateProductCommand;
-import com.furnisight.catalog.application.product.port.in.usecase.CreateProductUseCase;
-import com.furnisight.catalog.domain.repository.ProductRepository;
-import com.furnisight.catalog.domain.entities.product.Product;
-import com.furnisight.catalog.domain.valueobjects.product.*;
-import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
 
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
+import com.furnisight.catalog.application.product.dto.command.CreateProductCommand;
+import com.furnisight.catalog.application.product.port.in.usecase.CreateProductUseCase;
+import com.furnisight.catalog.domain.entities.Product;
+import com.furnisight.catalog.domain.entities.ProductVariant;
+import com.furnisight.catalog.domain.repository.ProductRepository;
+import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
+import com.furnisight.catalog.domain.valueobjects.product.Price;
+import com.furnisight.catalog.domain.valueobjects.product.ProductDescription;
+import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
+import com.furnisight.catalog.domain.valueobjects.product.ProductName;
+import com.furnisight.catalog.domain.valueobjects.product.ProductSlug;
+import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
+
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -24,24 +33,34 @@ public class CreateProductService implements CreateProductUseCase {
     @Transactional
     public void execute(CreateProductCommand command) {
         ProductName name = new ProductName(command.getName());
+        ProductSlug slug = new ProductSlug(command.getSlug());
         ProductDescription description = new ProductDescription(command.getDescription());
-        ProductDimensions dimensions = new ProductDimensions(
-                command.getWeight(), command.getLength(), command.getWidth(), command.getHeight());
 
-        List<ProductLifecycleService.VariantRequest> variantRequests = new ArrayList<>();
+        List<ProductVariant> variants = new ArrayList<>();
         if (command.getVariants() != null) {
             for (CreateProductCommand.VariantCommand v : command.getVariants()) {
-                variantRequests.add(ProductLifecycleService.VariantRequest.builder()
-                        .sku(v.getSku())
-                        .price(v.getPrice())
-                        .stockQuantity(v.getStockQuantity())
+                ProductDimensions dims = new ProductDimensions(v.getWeight(), v.getLength(), v.getWidth(),
+                        v.getHeight());
+                variants.add(ProductVariant.builder()
+                        .id(UUID.randomUUID())
+                        .price(new Price(java.math.BigDecimal.valueOf(v.getPrice())))
+                        .stockQuantity(new StockQuantity(v.getStockQuantity()))
+                        .dimensions(dims)
                         .build());
             }
         }
 
         Product product = productLifecycleService.createProduct(
-                command.getShopId(), command.getCategoryId(), name, description, dimensions, 
-                command.getAttributes(), variantRequests);
+                command.getCategoryId(),
+                null, // collectionId
+                name,
+                slug,
+                description,
+                command.getAttributes(),
+                new HashMap<>(), // metadata
+                new HashMap<>(), // specs
+                new ArrayList<>(), // gallery
+                variants);
 
         productRepository.save(product);
     }

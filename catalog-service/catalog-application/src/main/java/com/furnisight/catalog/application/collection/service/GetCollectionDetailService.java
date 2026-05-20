@@ -4,7 +4,7 @@ import com.furnisight.catalog.application.collection.dto.projection.CollectionDe
 import com.furnisight.catalog.application.collection.dto.query.GetCollectionDetailQuery;
 import com.furnisight.catalog.application.collection.port.in.usecase.GetCollectionDetailUseCase;
 import com.furnisight.catalog.domain.repository.CollectionRepository;
-import com.furnisight.catalog.domain.entities.collection.Collection;
+import com.furnisight.catalog.domain.entities.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

@@ -39,7 +39,7 @@ public class CategoryController {
     }
 
     @PutMapping(name = "categoryId", value = "/{categoryId}")
-    public ResponseEntity<Void> updateCategory(@PathVariable(name = "categoryId") UUID categoryId, @RequestBody UpdateCategoryRequest request){
+    public ResponseEntity<Void> updateCategory(@PathVariable UUID categoryId, @RequestBody UpdateCategoryRequest request){
         UpdateCategoryCommand command = UpdateCategoryCommand.builder()
                 .categoryId(categoryId)
                 .name(request.getName())
@@ -58,9 +58,9 @@ public class CategoryController {
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping(name = "categoryId", value = "/{categoryId}")
-    public ResponseEntity<CategoryDetailProjection> getCategoryDetail(@PathVariable(name = "categoryId") UUID categoryId){
-        GetCategoryDetailQuery query = new GetCategoryDetailQuery(categoryId);
+    @GetMapping(name = "slug", value = "/{slug}")
+    public ResponseEntity<CategoryDetailProjection> getCategoryDetail(@PathVariable String slug){
+        GetCategoryDetailQuery query = new GetCategoryDetailQuery(slug);
         CategoryDetailProjection result = getCategoryDetailUseCase.execute(query);
         return ResponseEntity.ok(result);
     }

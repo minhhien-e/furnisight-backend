@@ -4,11 +4,16 @@ import com.furnisight.catalog.domain.seedwork.ValueObject;
 import lombok.*;
 import com.furnisight.catalog.domain.exceptions.*;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.util.List;
 
 @Getter
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class CategorySlug extends ValueObject {
+    
+    @Column(name = "slug", nullable = false, unique = true)
     private String value;
 
     public CategorySlug(String value){

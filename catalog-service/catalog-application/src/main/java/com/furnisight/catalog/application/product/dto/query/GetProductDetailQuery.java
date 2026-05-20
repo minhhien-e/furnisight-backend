@@ -8,5 +8,5 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class GetProductDetailQuery {
-    private UUID productId;
+    private String slug;
 }

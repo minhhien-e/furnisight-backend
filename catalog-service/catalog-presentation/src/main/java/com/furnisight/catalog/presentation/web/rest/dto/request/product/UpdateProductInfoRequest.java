@@ -10,12 +10,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateProductInfoRequest {
-    private UUID shopId;
     private String name;
+    private String slug;
     private String description;
-    private Double weight;
-    private Double length;
-    private Double width;
-    private Double height;
     private Map<String, Object> attributes;
+    private Map<String, Object> metadata;
+    private Map<String, String> specs;
 }

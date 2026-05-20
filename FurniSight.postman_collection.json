@@ -206,17 +206,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"title\": \"Thông báo mới\",\n    \"body\": \"Bạn có một đơn hàng mới đang chờ xử lý\",\n    \"image\": \"https://example.com/image.png\",\n    \"actionUrl\": \"https://example.com/order/123\",\n    \"type\": \"ORDER\"\n}"
+                  "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"title\": \"Đơn hàng đã xác nhận 🛒\",\n  \"body\": \"Đơn hàng #FS-98402 của bạn đã được xác nhận và đang được chuẩn bị.\",\n  \"image\": \"https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=200\",\n  \"actionUrl\": \"\",\n  \"type\": \"ORDER\"\n}"
                 },
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/inbox-messages",
+                  "raw": "{{notification_service_base_url}}/inbox-messages",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "inbox-messages"
                   ]
                 }
@@ -228,14 +225,11 @@
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/inbox-messages/{{message_id}}/read",
+                  "raw": "{{notification_service_base_url}}/inbox-messages/{{message_id}}/read",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "inbox-messages",
                     "{{message_id}}",
                     "read"
@@ -255,17 +249,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"userId\": \"{{user_id}}\"\n}"
+                  "raw": "{\n  \"userId\": \"{{user_id}}\"\n}"
                 },
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/inbox-messages/read-all",
+                  "raw": "{{notification_service_base_url}}/inbox-messages/read-all",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "inbox-messages",
                     "read-all"
                   ]
@@ -278,14 +269,11 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/inbox-messages/{{message_id}}?isHardDelete=false",
+                  "raw": "{{notification_service_base_url}}/inbox-messages/{{message_id}}?isHardDelete=false",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "inbox-messages",
                     "{{message_id}}"
                   ],
@@ -304,14 +292,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/inbox-messages?startDate=2023-01-01T00:00:00&isRead=false&isDeleted=false&limit=20",
+                  "raw": "{{notification_service_base_url}}/inbox-messages?startDate=2023-01-01T00:00:00&isRead=false&isDeleted=false&limit=20",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "inbox-messages"
                   ],
                   "query": [
@@ -352,17 +337,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"userId\": \"{{user_id}}\",\n    \"userEmail\": \"user@example.com\"\n}"
+                  "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"userEmail\": \"minhhien7840@gmail.com\"\n}"
                 },
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-preferences/default",
+                  "raw": "{{notification_service_base_url}}/notification-preferences/default",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-preferences",
                     "default"
                   ]
@@ -384,14 +366,11 @@
                   "raw": "{\n    \"orderUpdatesEnabled\": true,\n    \"promotionsEnabled\": true,\n    \"walletUpdatesEnabled\": true,\n    \"socialUpdatesEnabled\": false\n}"
                 },
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-preferences/{{user_id}}",
+                  "raw": "{{notification_service_base_url}}/notification-preferences/{{user_id}}",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-preferences",
                     "{{user_id}}"
                   ]
@@ -404,14 +383,11 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-preferences/{{user_id}}",
+                  "raw": "{{notification_service_base_url}}/notification-preferences/{{user_id}}",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-preferences",
                     "{{user_id}}"
                   ]
@@ -435,17 +411,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"code\": \"ORDER_SHIPPED\",\n    \"name\": \"Đơn hàng đã được giao cho đơn vị vận chuyển\",\n    \"titleTemplate\": \"Đơn hàng {{orderId}} đã được giao cho đơn vị vận chuyển\",\n    \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển và sẽ sớm đến tay bạn\",\n    \"type\": \"ORDER\",\n    \"channel\": \"INAPP\",\n    \"defaultImage\": \"https://example.com/order-shipped.png\",\n    \"defaultActionUrl\": \"https://example.com/order/{{orderId}}\"\n}"
+                  "raw": "{\n  \"code\": \"order-shipped\",\n  \"name\": \"Đơn hàng đã giao cho vận chuyển\",\n  \"titleTemplate\": \"Đơn hàng {{orderId}} đang trên đường đến bạn\",\n  \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển.\",\n  \"type\": \"ORDER\",\n  \"channel\": \"IN_APP\",\n  \"variables\": [\n    \"orderId\"\n  ]\n}"
                 },
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-templates",
+                  "raw": "{{notification_service_base_url}}/notification-templates",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-templates"
                   ]
                 }
@@ -466,14 +439,11 @@
                   "raw": "{\n    \"name\": \"Đơn hàng đã giao cho vận chuyển (Cập nhật)\",\n    \"titleTemplate\": \"[Cập nhật] Đơn hàng {{orderId}} đang trên đường đến bạn\",\n    \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển\"\n}"
                 },
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-templates/{{template_id}}",
+                  "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-templates",
                     "{{template_id}}"
                   ]
@@ -486,14 +456,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-templates?name=ORDER&channel=INAPP&type=ORDER",
+                  "raw": "{{notification_service_base_url}}/notification-templates?name=ORDER&channel=INAPP&type=ORDER",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-templates"
                   ],
                   "query": [
@@ -519,14 +486,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-templates/code/ORDER_SHIPPED",
+                  "raw": "{{notification_service_base_url}}/notification-templates/code/ORDER_SHIPPED",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-templates",
                     "code",
                     "ORDER_SHIPPED"
@@ -540,14 +504,11 @@
                 "method": "DELETE",
                 "header": [],
                 "url": {
-                  "raw": "{{notification_service_base_url}}/api/v1/notifications/notification-templates/{{template_id}}",
+                  "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
                   "host": [
                     "{{notification_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
-                    "notifications",
                     "notification-templates",
                     "{{template_id}}"
                   ]
@@ -576,20 +537,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/register",
+                  "raw": "{{user_service_base_url}}/auth/register",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "register"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"username\": \"john_doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"Password@123\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"phoneNumber\": \"+84901234567\",\n  \"dateOfBirth\": \"1995-06-15\"\n}"
+                  "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@furnisight.store\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
                 }
               },
               "event": [
@@ -615,20 +574,18 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/login",
+                  "raw": "{{user_service_base_url}}/auth/login",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "login"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"identifier\": \"john_doe\",\n  \"password\": \"Password@123\"\n}"
+                  "raw": "{\n  \"identifier\": \"minhhien\",\n  \"password\": \"Password123!\"\n}"
                 }
               },
               "event": [
@@ -655,13 +612,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/refresh-token",
+                  "raw": "{{user_service_base_url}}/auth/refresh-token",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "refresh-token"
                   ]
@@ -695,13 +650,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/verify",
+                  "raw": "{{user_service_base_url}}/auth/verify",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "verify"
                   ]
@@ -727,13 +680,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/verify/request",
+                  "raw": "{{user_service_base_url}}/auth/verify/request",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "verify",
                     "request"
@@ -741,7 +692,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"john.doe@example.com\"\n}"
+                  "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"minhhien7840@gmail.com\"\n}"
                 }
               }
             },
@@ -756,13 +707,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/logout",
+                  "raw": "{{user_service_base_url}}/auth/logout",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "logout"
                   ]
@@ -784,13 +733,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/logout-all",
+                  "raw": "{{user_service_base_url}}/auth/logout-all",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "logout-all"
                   ]
@@ -812,13 +759,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/password/change",
+                  "raw": "{{user_service_base_url}}/auth/password/change",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "password",
                     "change"
@@ -841,13 +786,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/password/forgot",
+                  "raw": "{{user_service_base_url}}/auth/password/forgot",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "password",
                     "forgot"
@@ -855,7 +798,7 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"john.doe@example.com\"\n}"
+                  "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"minhhien7840@gmail.com\"\n}"
                 }
               }
             },
@@ -870,13 +813,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/password/verify",
+                  "raw": "{{user_service_base_url}}/auth/password/verify",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "password",
                     "verify"
@@ -899,13 +840,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/password/reset",
+                  "raw": "{{user_service_base_url}}/auth/password/reset",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "password",
                     "reset"
@@ -923,13 +862,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth/login/google",
+                  "raw": "{{user_service_base_url}}/auth/login/google",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth",
                     "login",
                     "google"
@@ -948,13 +885,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/auth",
+                  "raw": "{{user_service_base_url}}/auth",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "auth"
                   ]
                 }
@@ -976,13 +911,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/profile",
+                  "raw": "{{user_service_base_url}}/profile",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "profile"
                   ]
                 }
@@ -1003,19 +936,17 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/profile",
+                  "raw": "{{user_service_base_url}}/profile",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "profile"
                   ]
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"displayName\": \"John Doe\",\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"avatarUrl\": \"https://example.com/avatar.jpg\",\n  \"dateOfBirth\": \"1995-06-15\",\n  \"gender\": \"MALE\"\n}"
+                  "raw": "{\n  \"displayName\": \"Minh Hiền\",\n  \"firstName\": \"Hiền\",\n  \"lastName\": \"Minh\",\n  \"avatarUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"gender\": \"MALE\"\n}"
                 }
               }
             },
@@ -1034,13 +965,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/profile/contact/change/request",
+                  "raw": "{{user_service_base_url}}/profile/contact/change/request",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "profile",
                     "contact",
                     "change",
@@ -1068,13 +997,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/profile/contact/change/verify-current",
+                  "raw": "{{user_service_base_url}}/profile/contact/change/verify-current",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "profile",
                     "contact",
                     "change",
@@ -1102,13 +1029,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/profile/contact/change/request-new",
+                  "raw": "{{user_service_base_url}}/profile/contact/change/request-new",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "profile",
                     "contact",
                     "change",
@@ -1136,13 +1061,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/profile/contact/change/confirm",
+                  "raw": "{{user_service_base_url}}/profile/contact/change/confirm",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "profile",
                     "contact",
                     "change",
@@ -1171,13 +1094,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/accounts/{{accountId}}/activate",
+                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/activate",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "accounts",
                     "{{accountId}}",
@@ -1201,13 +1122,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/accounts/{{accountId}}/ban",
+                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/ban",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "accounts",
                     "{{accountId}}",
@@ -1231,13 +1150,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/accounts/{{accountId}}/unban",
+                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/unban",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "accounts",
                     "{{accountId}}",
@@ -1257,13 +1174,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/accounts/{{accountId}}",
+                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "accounts",
                     "{{accountId}}"
@@ -1286,13 +1201,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/accounts/{{accountId}}/roles/assign",
+                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/roles/assign",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "accounts",
                     "{{accountId}}",
@@ -1321,13 +1234,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/accounts/{{accountId}}/roles/revoke",
+                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/roles/revoke",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "accounts",
                     "{{accountId}}",
@@ -1361,13 +1272,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/roles",
+                  "raw": "{{user_service_base_url}}/admin/roles",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "roles"
                   ]
@@ -1404,13 +1313,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/roles/{{roleId}}",
+                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "roles",
                     "{{roleId}}"
@@ -1433,13 +1340,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/roles/{{roleId}}",
+                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "roles",
                     "{{roleId}}"
@@ -1462,13 +1367,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/roles/{{roleId}}/permissions/assign",
+                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}/permissions/assign",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "roles",
                     "{{roleId}}",
@@ -1497,13 +1400,11 @@
                   }
                 ],
                 "url": {
-                  "raw": "{{user_service_base_url}}/api/v1/admin/roles/{{roleId}}/permissions/revoke",
+                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}/permissions/revoke",
                   "host": [
                     "{{user_service_base_url}}"
                   ],
                   "path": [
-                    "api",
-                    "v1",
                     "admin",
                     "roles",
                     "{{roleId}}",
@@ -1534,12 +1435,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/categories",
+                  "raw": "{{catalog_service_base_url}}/categories",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "categories"
                   ]
                 }
@@ -1552,12 +1452,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/categories/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                  "raw": "{{catalog_service_base_url}}/categories/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "categories",
                     "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
                   ]
@@ -1577,15 +1476,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Office Furniture\",\n    \"slug\": \"office-furniture\",\n    \"parentId\": null\n}"
+                  "raw": "{\n  \"name\": \"Outdoor Furniture\",\n  \"slug\": \"outdoor-furniture\",\n  \"parentId\": null\n}"
                 },
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/categories",
+                  "raw": "{{catalog_service_base_url}}/categories",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "categories"
                   ]
                 }
@@ -1603,12 +1501,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/products?size=8&page=0",
+                  "raw": "{{catalog_service_base_url}}/products?size=8&page=0",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "products"
                   ],
                   "query": [
@@ -1631,19 +1528,42 @@
               "response": []
             },
             {
-              "name": "Get Product Detail",
+              "name": "Get Product Detail by Slug",
               "request": {
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/products/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
+                  "raw": "{{catalog_service_base_url}}/products/modern-leather-sofa",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "products",
-                    "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
+                    "modern-leather-sofa"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "Get Weekly Favorite Products",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": {
+                  "raw": "{{catalog_service_base_url}}/products/favorite-weekly?limit=5",
+                  "host": [
+                    "{{catalog_service_base_url}}"
+                  ],
+                  "path": [
+                    "products",
+                    "favorite-weekly"
+                  ],
+                  "query": [
+                    {
+                      "key": "limit",
+                      "value": "5"
+                    }
                   ]
                 }
               },
@@ -1661,15 +1581,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"shopId\": \"c0eebc99-9c0b-4ef8-bb6d-6bb9bd380c11\",\n    \"categoryId\": \"a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a12\",\n    \"name\": \"Vintage Velvet Sofa\",\n    \"description\": \"A beautiful vintage velvet sofa for classic interiors.\",\n    \"weight\": 45000.0,\n    \"length\": 180.0,\n    \"width\": 85.0,\n    \"height\": 80.0,\n    \"attributes\": {\n        \"material\": \"Velvet\",\n        \"color\": \"Emerald Green\"\n    },\n    \"variants\": [\n        {\n            \"sku\": \"SOFA-VLT-GRN\",\n            \"price\": 950.00,\n            \"stockQuantity\": 5\n        }\n    ]\n}"
+                  "raw": "{\n  \"categoryId\": \"d0000000-0000-0000-0000-000000000001\",\n  \"name\": \"Vintage Velvet Sofa\",\n  \"description\": \"Ghế sofa nhung phong cách cổ điển sang trọng.\",\n  \"weight\": 45000.0,\n  \"length\": 180.0,\n  \"width\": 85.0,\n  \"height\": 80.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"new\",\n      \"classic\"\n    ],\n    \"features\": [\n      \"Nhung cao cấp\",\n      \"Khung gỗ tự nhiên\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Classic Collection 2026\"\n  },\n  \"specs\": {\n    \"Thương hiệu\": \"FurniSight\",\n    \"Xuất xứ\": \"Việt Nam\",\n    \"Bảo hành\": \"12 tháng\",\n    \"Chất liệu\": \"Nhung & Gỗ tự nhiên\"\n  }\n}"
                 },
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/products",
+                  "raw": "{{catalog_service_base_url}}/products",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "products"
                   ]
                 }
@@ -1688,15 +1607,14 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"shopId\": \"c0eebc99-9c0b-4ef8-bb6d-6bb9bd380c11\",\n    \"name\": \"Updated Modern Leather Sofa\",\n    \"description\": \"Premium leather sofa with updated features.\",\n    \"weight\": 52000.0,\n    \"length\": 210.0,\n    \"width\": 95.0,\n    \"height\": 90.0,\n    \"attributes\": {\n        \"material\": \"Leather\",\n        \"color\": \"Dark Brown\"\n    }\n}"
+                  "raw": "{\n  \"name\": \"Modern Leather Sofa (Updated)\",\n  \"description\": \"Ghế sofa da cao cấp phiên bản cập nhật với nhiều tính năng hơn.\",\n  \"weight\": 52000.0,\n  \"length\": 210.0,\n  \"width\": 95.0,\n  \"height\": 90.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"hot\",\n      \"new\",\n      \"living-room\"\n    ],\n    \"features\": [\n      \"Thiết kế sang trọng\",\n      \"Đệm mút cao cấp\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Luxury Collection 2026\"\n  },\n  \"specs\": {\n    \"Thương hiệu\": \"FurniSight\",\n    \"Chất liệu\": \"Da bò thật\",\n    \"Bảo hành\": \"24 tháng\"\n  }\n}"
                 },
                 "url": {
-                  "raw": "{{catalog_service_base_url}}/catalog/products/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
+                  "raw": "{{catalog_service_base_url}}/products/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
                   "host": [
                     "{{catalog_service_base_url}}"
                   ],
                   "path": [
-                    "catalog",
                     "products",
                     "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
                   ]
@@ -1728,17 +1646,15 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileName\": \"product-image.jpg\",\n  \"sizeBytes\": 1048576,\n  \"ownerType\": \"USER\",\n  \"ownerId\": \"123e4567-e89b-12d3-a456-426614174000\"\n}"
+                  "raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileName\": \"product-sofa.jpg\",\n  \"sizeBytes\": 1048576,\n  \"ownerType\": \"USER\",\n  \"ownerId\": \"52379d96-5238-4fd9-8383-bae82736bb3b\"\n}"
                 },
                 "url": {
-                  "raw": "{{media_service_base_url}}/api/v1/media/init-upload",
+                  "raw": "{{media_service_base_url}}/api/init-upload",
                   "host": [
                     "{{media_service_base_url}}"
                   ],
                   "path": [
                     "api",
-                    "v1",
-                    "media",
                     "init-upload"
                   ]
                 },
@@ -1752,14 +1668,12 @@
                 "method": "PUT",
                 "header": [],
                 "url": {
-                  "raw": "{{media_service_base_url}}/api/v1/media/{{media_id}}/complete-upload",
+                  "raw": "{{media_service_base_url}}/api/{{media_id}}/complete-upload",
                   "host": [
                     "{{media_service_base_url}}"
                   ],
                   "path": [
                     "api",
-                    "v1",
-                    "media",
                     "{{media_id}}",
                     "complete-upload"
                   ]
@@ -1774,14 +1688,12 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{media_service_base_url}}/api/v1/media/{{media_id}}",
+                  "raw": "{{media_service_base_url}}/api/{{media_id}}",
                   "host": [
                     "{{media_service_base_url}}"
                   ],
                   "path": [
                     "api",
-                    "v1",
-                    "media",
                     "{{media_id}}"
                   ]
                 },
@@ -1810,12 +1722,11 @@
                   "file": {}
                 },
                 "url": {
-                  "raw": "{{media_service_base_url}}/media/upload/{{object_key}}?expires={{expires}}&signature={{signature}}",
+                  "raw": "{{media_service_base_url}}/upload/{{object_key}}?expires={{expires}}&signature={{signature}}",
                   "host": [
                     "{{media_service_base_url}}"
                   ],
                   "path": [
-                    "media",
                     "upload",
                     "{{object_key}}"
                   ],
@@ -1840,12 +1751,11 @@
                 "method": "GET",
                 "header": [],
                 "url": {
-                  "raw": "{{media_service_base_url}}/media/download/{{object_key}}?expires={{expires}}&signature={{signature}}",
+                  "raw": "{{media_service_base_url}}/download/{{object_key}}?expires={{expires}}&signature={{signature}}",
                   "host": [
                     "{{media_service_base_url}}"
                   ],
                   "path": [
-                    "media",
                     "download",
                     "{{object_key}}"
                   ],
@@ -1867,22 +1777,149 @@
           ]
         }
       ]
+    },
+    {
+      "name": "Review Service",
+      "description": "Collection for testing Review Service endpoints through Gateway",
+      "item": [
+        {
+          "name": "Create Review",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"e0000000-0000-0000-0000-000000000009\",\n  \"orderItemId\": \"oi000099-0000-0000-0000-000000000001\",\n  \"title\": \"Bàn đứng thay đổi cuộc sống!\",\n  \"content\": \"Từ khi có bàn đứng điều chỉnh điện, lưng đỡ đau hẳn. Rất đáng tiền!\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{review_service_base_url}}",
+              "host": [
+                "{{review_service_base_url}}"
+              ],
+              "path": []
+            }
+          }
+        },
+        {
+          "name": "Get Reviews by Product",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{review_service_base_url}}?productId=b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11&page=0&size=10",
+              "host": [
+                "{{review_service_base_url}}"
+              ],
+              "query": [
+                {
+                  "key": "productId",
+                  "value": "e0000000-0000-0000-0000-000000000001"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Reviews by Product (JDBC Query)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{review_service_base_url}}/product/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
+              "host": [
+                "{{review_service_base_url}}"
+              ],
+              "path": [
+                "product",
+                "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update Review",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reviewId\": \"r0000001-0000-0000-0000-000000000001\",\n  \"title\": \"Sofa da rất xịn - cập nhật sau 1 tháng\",\n  \"content\": \"Dùng 1 tháng vẫn rất tốt, da không bị phai màu. Rất hài lòng!\",\n  \"rating\": 5\n}"
+            },
+            "url": {
+              "raw": "{{review_service_base_url}}/update",
+              "host": [
+                "{{review_service_base_url}}"
+              ],
+              "path": [
+                "update"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Review",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{accessToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{review_service_base_url}}/e0eebc99-9c0b-4ef8-bb6d-6bb9bd380e11",
+              "host": [
+                "{{review_service_base_url}}"
+              ],
+              "path": [
+                "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380e11"
+              ]
+            }
+          }
+        }
+      ]
     }
   ],
   "variable": [
     {
       "key": "ai_classifier_base_url",
-      "value": "http://localhost:8000",
+      "value": "{{gateway_url}}/ai-classifier",
       "type": "string"
     },
     {
       "key": "notification_service_base_url",
-      "value": "http://localhost:8080",
+      "value": "{{gateway_url}}/notifications",
       "type": "string"
     },
     {
       "key": "user_id",
-      "value": "00000000-0000-0000-0000-000000000000",
+      "value": "52379d96-5238-4fd9-8383-bae82736bb3b",
       "type": "string"
     },
     {
@@ -1892,17 +1929,17 @@
     },
     {
       "key": "template_id",
-      "value": "00000000-0000-0000-0000-000000000000",
+      "value": "7d9e4a3e-1f5b-48af-91cd-b2354cf1af91",
       "type": "string"
     },
     {
       "key": "user_service_base_url",
-      "value": "http://localhost:8080",
+      "value": "{{gateway_url}}/users",
       "type": "string"
     },
     {
       "key": "accountId",
-      "value": ""
+      "value": "52379d96-5238-4fd9-8383-bae82736bb3b"
     },
     {
       "key": "accessToken",
@@ -1918,36 +1955,71 @@
     },
     {
       "key": "roleId",
-      "value": ""
+      "value": "a0000000-0000-0000-0000-000000000002"
     },
     {
       "key": "catalog_service_base_url",
-      "value": "https://api.furnisight.store",
+      "value": "{{gateway_url}}/catalog",
       "type": "string"
     },
     {
       "key": "media_service_base_url",
-      "value": "http://localhost:8080",
+      "value": "{{gateway_url}}/media",
       "type": "string"
     },
     {
       "key": "media_id",
-      "value": "uuid-cua-media-asset-o-buoc-1",
+      "value": "00000000-0000-0000-0000-000000000000",
       "type": "string"
     },
     {
       "key": "object_key",
-      "value": "object-key-o-buoc-1",
+      "value": "products/sample-image.jpg",
       "type": "string"
     },
     {
       "key": "expires",
-      "value": "thoi-gian-het-han-o-buoc-1",
+      "value": "9999999999",
       "type": "string"
     },
     {
       "key": "signature",
-      "value": "chu-ky-o-buoc-1",
+      "value": "sample-signature",
+      "type": "string"
+    },
+    {
+      "key": "gateway_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "review_service_base_url",
+      "value": "{{gateway_url}}/reviews",
+      "type": "string"
+    },
+    {
+      "key": "product_id",
+      "value": "e0000000-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "category_id",
+      "value": "d0000000-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "variant_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "review_id",
+      "value": "r0000001-0000-0000-0000-000000000001",
+      "type": "string"
+    },
+    {
+      "key": "order_item_id",
+      "value": "oi000099-0000-0000-0000-000000000001",
       "type": "string"
     }
   ]

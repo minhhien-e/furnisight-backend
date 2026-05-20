@@ -86,7 +86,7 @@ public class ProductDetailProjection {
     @Data
     @Builder
     public static class VariantDto {
-        private String sku;
+        private UUID id;
         private Double price;
         private Integer stockQuantity;
         // Per-variant attributes

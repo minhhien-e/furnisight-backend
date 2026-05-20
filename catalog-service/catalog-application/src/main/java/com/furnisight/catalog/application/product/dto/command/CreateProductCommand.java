@@ -14,15 +14,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateProductCommand {
-    private UUID shopId;
     private UUID categoryId; // ID cua Category (DDD: tham chieu bang ID)
     private String name;
+    private String slug;
     private String description;
     private Map<String, Object> attributes;
-    private Double weight;
-    private Double length;
-    private Double height;
-    private Double width;
     private List<VariantCommand> variants;
 
     @Data
@@ -30,8 +26,11 @@ public class CreateProductCommand {
     @AllArgsConstructor
     @NoArgsConstructor
     public static class VariantCommand{
-        private String sku;
         private Double price;
         private Integer stockQuantity;
+        private Double weight;
+        private Double length;
+        private Double width;
+        private Double height;
     }
 }

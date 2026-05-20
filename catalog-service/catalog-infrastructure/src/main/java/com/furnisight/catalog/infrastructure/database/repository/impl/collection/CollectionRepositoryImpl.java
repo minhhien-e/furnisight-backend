@@ -1,12 +1,11 @@
 package com.furnisight.catalog.infrastructure.database.repository.impl.collection;
 
-import com.furnisight.catalog.infrastructure.database.repository.jpa.collection.CollectionJpaRepository;
+import com.furnisight.catalog.domain.entities.Collection;
 import com.furnisight.catalog.domain.repository.CollectionRepository;
-import com.furnisight.catalog.domain.entities.collection.Collection;
+import com.furnisight.catalog.infrastructure.database.repository.jpa.CollectionJpaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,10 +33,5 @@ public class CollectionRepositoryImpl implements CollectionRepository {
     @Override
     public void delete(Collection collection) {
         jpaCollectionRepository.delete(collection);
-    }
-
-    @Override
-    public List<Collection> findAll() {
-        return jpaCollectionRepository.findAll();
     }
 }

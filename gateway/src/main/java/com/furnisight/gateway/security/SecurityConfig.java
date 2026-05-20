@@ -1,8 +1,5 @@
 package com.furnisight.gateway.security;
 
-import com.furnisight.gateway.exception.JsonAccessDeniedHandler;
-import com.furnisight.gateway.exception.JsonAuthenticationEntryPoint;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,16 +8,20 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.reactive.EnableWebFluxSecurity;
 import org.springframework.security.config.web.server.ServerHttpSecurity;
 import org.springframework.security.web.server.SecurityWebFilterChain;
-import org.springframework.security.web.server.context.WebSessionServerSecurityContextRepository;
 import org.springframework.web.cors.reactive.CorsConfigurationSource;
 import org.springframework.web.cors.reactive.CorsWebFilter;
 import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
+
+import com.furnisight.gateway.exception.JsonAccessDeniedHandler;
+import com.furnisight.gateway.exception.JsonAuthenticationEntryPoint;
+
+import lombok.RequiredArgsConstructor;
 
 @EnableWebFluxSecurity
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final SecurityProperties securityProperties;
+    private final SecurityWhitelistProperties securityWhitelistProperties;
     private final JsonAuthenticationEntryPoint authenticationEntryPoint;
     private final JsonAccessDeniedHandler accessDeniedHandler;
 
@@ -37,7 +38,8 @@ public class SecurityConfig {
 
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers(securityProperties.getAuthWhitelist()).permitAll()
+                        .pathMatchers(securityWhitelistProperties.publicAllArray()).permitAll()
+                        .pathMatchers(HttpMethod.GET, securityWhitelistProperties.publicGetArray()).permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();

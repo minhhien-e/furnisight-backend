@@ -13,13 +13,11 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UpdateProductInfoCommand {
-    private UUID shopId;
     private UUID productId;
     private String name;
+    private String slug;
     private String description;
     private Map<String, Object> attributes;
-    private Double weight;
-    private Double length;
-    private Double height;
-    private Double width;
+    private Map<String, Object> metadata;
+    private Map<String, String> specs;
 }
