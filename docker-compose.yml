@@ -1,5 +1,29 @@
+x-common-service: &common-service
+  restart: always
+
+x-java-build: &java-build
+  dockerfile: Dockerfile
+  args:
+    - GITHUB_ACTOR=${GITHUB_ACTOR}
+  secrets:
+    - GITHUB_TOKEN
+
+x-java-service: &java-service
+  <<: *common-service
+  environment:
+    SERVER_PORT: 8080
+  expose:
+    - "8080"
+
+x-postgres-dep: &postgres-dep
+  postgres:
+    condition: service_healthy
+
+x-kafka-dep: &kafka-dep
+  kafka:
+    condition: service_healthy
+
 services:
-  # --- Databases & Infrastructure ---
   postgres:
     image: postgres:13.1-alpine
     container_name: furnisight_user_postgres
@@ -7,8 +31,8 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
+    expose:
+      - "5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
@@ -21,9 +45,9 @@ services:
   mongo:
     image: mongo:7
     container_name: mongo-rs
-    restart: always
-    ports:
-      - "27017:27017"
+    <<: *common-service
+    expose:
+      - "27017"
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongo_data:/data/db
@@ -37,46 +61,51 @@ services:
       - ./notification-service/mongo-init.js:/mongo-init.js
     entrypoint: >
       bash -c "
-        sleep 5
-        mongosh --host mongo:27017 --eval \"try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }); } catch(e) { print('Replica set already initialized'); }\"
-        sleep 5
+        sleep 5 &&
+        mongosh --host mongo:27017 --eval \"try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }); } catch(e) { print('Replica set already initialized'); }\" &&
+        sleep 5 &&
         mongosh --host mongo:27017 /mongo-init.js
       "
 
   redis:
     image: redis:7
     container_name: redis-server
-    restart: always
-    ports:
-      - "6379:6379"
+    <<: *common-service
+    expose:
+      - "6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
     container_name: furnisight_kafka
     restart: unless-stopped
-    ports:
-      - "9092:9092"
-      - "29092:29092"
+    expose:
+      - "29092"
+      - "29093"
     environment:
       KAFKA_NODE_ID: 1
-      KAFKA_PROCESS_ROLES: "broker,controller"
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
-      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093,PLAINTEXT_HOST://0.0.0.0:9092
-      KAFKA_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
-      KAFKA_CONTROLLER_QUORUM_VOTERS: "1@kafka:29093"
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENERS: PLAINTEXT://kafka:29092,CONTROLLER://kafka:29093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      CLUSTER_ID: "MkU3OEVBNTcwNTJENDM2Qk"
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
     volumes:
       - kafka_data:/var/lib/kafka/data
     healthcheck:
       test:
-        ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+        ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:29092 --list"]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -87,8 +116,8 @@ services:
     restart: unless-stopped
     depends_on:
       - kafka
-    ports:
-      - "8090:8080"
+    expose:
+      - "8080"
     environment:
       KAFKA_CLUSTERS_0_NAME: local
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
@@ -96,26 +125,27 @@ services:
   zipkin:
     image: openzipkin/zipkin:latest
     container_name: zipkin
-    ports:
-      - "9411:9411"
-    restart: always
+    <<: *common-service
+    expose:
+      - "9411"
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
     container_name: furnisight_elasticsearch
     restart: unless-stopped
     environment:
-      - discovery.type=single-node
-      - xpack.security.enabled=false
-      - ES_JAVA_OPTS=-Xms512m -Xmx512m
-      - cluster.name=furnisight-cluster
-    ports:
-      - "9200:9200"
-      - "9300:9300"
+      discovery.type: single-node
+      xpack.security.enabled: "false"
+      ES_JAVA_OPTS: -Xms512m -Xmx512m
+      cluster.name: furnisight-cluster
+    expose:
+      - "9200"
+      - "9300"
     volumes:
       - elasticsearch_data:/usr/share/elasticsearch/data
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      test:
+        ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
       interval: 20s
       timeout: 10s
       retries: 5
@@ -124,106 +154,100 @@ services:
     image: docker.elastic.co/kibana/kibana:8.13.4
     container_name: furnisight_kibana
     restart: unless-stopped
-    ports:
-      - "5601:5601"
+    expose:
+      - "5601"
     environment:
-      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
     depends_on:
       elasticsearch:
         condition: service_healthy
 
-  # --- Microservices ---
+  clamav:
+    image: clamav/clamav:latest
+    container_name: furnisight_clamav
+    restart: unless-stopped
+    expose:
+      - "3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+    healthcheck:
+      test: ["CMD-SHELL", "clamdscan --version || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+
   gateway:
     image: furnisight-gateway:latest
     build:
       context: ./gateway
       dockerfile: Dockerfile
     container_name: furnisight_gateway
+    <<: *common-service
     ports:
       - "8080:8080"
     env_file:
       - ./gateway/.env
     environment:
-      - USER_SERVICE_URL=http://user-service:8080
-      - CATALOG_SERVICE_URL=http://catalog-service:8080
-      - NOTIFICATION_SERVICE_URL=http://notification-service:8080
+      USER_SERVICE_URL: http://user-service:8080
+      CATALOG_SERVICE_URL: http://catalog-service:8080
+      NOTIFICATION_SERVICE_URL: http://notification-service:8080
+      MEDIA_SERVICE_URL: http://media-service:8080
+      REVIEW_SERVICE_URL: http://review-service:8080
+      AI_IMAGE_CLASSIFIER_URL: http://ai-image-classifier:8080
+      KAFKA_UI_URL: http://kafka-ui:8080
+      ZIPKIN_URL: http://zipkin:9411
+      KIBANA_URL: http://kibana:5601
     depends_on:
       - redis
       - zipkin
       - user-service
       - catalog-service
       - notification-service
-    restart: always
+      - media-service
+      - review-service
+      - ai-image-classifier
 
   user-service:
+    <<: *java-service
     image: furnisight-user-service:latest
+    container_name: furnisight_user_service
     build:
       context: ./user-service
-      dockerfile: Dockerfile
-      args:
-        - GITHUB_ACTOR=${GITHUB_ACTOR}
-      secrets:
-        - GITHUB_TOKEN
-    container_name: furnisight_user_service
-    ports:
-      - "8081:8080"
+      <<: *java-build
     env_file:
       - ./user-service/.env
-    environment:
-      - SERVER_PORT=8080
     depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
-    restart: always
+      <<: [*postgres-dep, *kafka-dep]
 
   catalog-service:
+    <<: *java-service
     image: furnisight-catalog-service:latest
+    container_name: furnisight_catalog_service
     build:
       context: ./catalog-service
-      dockerfile: Dockerfile
-      args:
-        - GITHUB_ACTOR=${GITHUB_ACTOR}
-      secrets:
-        - GITHUB_TOKEN
-    container_name: furnisight_catalog_service
-    ports:
-      - "8083:8080"
+      <<: *java-build
     env_file:
       - ./catalog-service/.env
-    environment:
-      - SERVER_PORT=8080
     depends_on:
-      postgres:
-        condition: service_healthy
-      kafka:
-        condition: service_healthy
+      <<: [*postgres-dep, *kafka-dep]
       elasticsearch:
         condition: service_healthy
-    restart: always
 
   notification-service:
+    <<: *java-service
     image: furnisight-notification-service:latest
+    container_name: furnisight_notification_service
     build:
       context: ./notification-service
-      dockerfile: Dockerfile
-      args:
-        - GITHUB_ACTOR=${GITHUB_ACTOR}
-      secrets:
-        - GITHUB_TOKEN
-    container_name: furnisight_notification_service
-    ports:
-      - "8082:8080"
-      - "9091:9091"
+      <<: *java-build
+    expose:
+      - "8080"
+      - "9091"
     env_file:
       - ./notification-service/.env
-    environment:
-      - SERVER_PORT=8080
     depends_on:
       - mongo
       - kafka
-    restart: always
 
   ai-image-classifier:
     image: furnisight-ai-image-classifier:latest
@@ -231,23 +255,18 @@ services:
       context: ./ai-image-classifier
       dockerfile: Dockerfile
     container_name: furnisight_ai_classifier
-    ports:
-      - "8000:8080"
+    <<: *common-service
+    expose:
+      - "8080"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
-    restart: always
 
   media-service:
+    <<: *java-service
     image: furnisight-media-service:latest
+    container_name: furnisight_media_service
     build:
       context: ./media-service
-      dockerfile: Dockerfile
-      args:
-        - GITHUB_ACTOR=${GITHUB_ACTOR}
-      secrets:
-        - GITHUB_TOKEN
-    container_name: furnisight_media_service
-    ports:
-      - "8084:8080"
+      <<: *java-build
     env_file:
       - ./media-service/.env
     volumes:
@@ -259,20 +278,14 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    restart: always
 
   review-service:
+    <<: *java-service
     image: furnisight-review-service:latest
+    container_name: furnisight_review_service
     build:
       context: ./review-service
-      dockerfile: Dockerfile
-      args:
-        - GITHUB_ACTOR=${GITHUB_ACTOR}
-      secrets:
-        - GITHUB_TOKEN
-    container_name: furnisight_review_service
-    ports:
-      - "8085:8080"
+      <<: *java-build
     env_file:
       - ./review-service/.env
     depends_on:
@@ -280,21 +293,6 @@ services:
         condition: service_healthy
       elasticsearch:
         condition: service_healthy
-    restart: always
-
-  clamav:
-    image: clamav/clamav:latest
-    container_name: furnisight_clamav
-    restart: unless-stopped
-    ports:
-      - "3310:3310"
-    volumes:
-      - clamav_data:/var/lib/clamav
-    healthcheck:
-      test: ["CMD-SHELL", "clamdscan --version || exit 1"]
-      interval: 20s
-      timeout: 10s
-      retries: 5
 
 volumes:
   postgres_data:
