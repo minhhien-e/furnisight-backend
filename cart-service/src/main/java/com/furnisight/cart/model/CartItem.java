@@ -6,6 +6,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Transient;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -41,4 +43,13 @@ public class CartItem {
 
     @Transient
     private String color;
+
+    @Transient
+    private String material;
+
+    @Transient
+    private String warranty;
+
+    @Transient
+    private List<CartItemVariant> variants;
 }

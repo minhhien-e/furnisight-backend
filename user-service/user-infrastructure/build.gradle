@@ -4,7 +4,7 @@ tasks.withType(JavaCompile) {
 dependencies {
     implementation project(':user-application')
     implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
-    implementation 'com.furnisight:proto-lib:1.0.1779346584297'
+    implementation 'com.furnisight:proto-lib:1.0.1779360197693'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'com.fasterxml.jackson.core:jackson-databind'

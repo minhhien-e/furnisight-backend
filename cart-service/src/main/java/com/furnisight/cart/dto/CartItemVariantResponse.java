@@ -3,19 +3,12 @@ package com.furnisight.cart.dto;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.List;
-
 @Data
 @Builder
-public class CartItemResponse {
-    private String productId;
-    private String variantId;
-    private String name;
-    private String slug;
+public class CartItemVariantResponse {
+    private String id;
     private Double price;
     private Double oldPrice;
-    private String imageUrl;
-    private Integer quantity;
     private Integer stockQuantity;
     private Double length;
     private Double width;
@@ -24,5 +17,4 @@ public class CartItemResponse {
     private String color;
     private String material;
     private String warranty;
-    private List<CartItemVariantResponse> variants;
 }
