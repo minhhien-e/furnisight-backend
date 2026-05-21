@@ -14,6 +14,15 @@ message GetProductSummariesResponse {
   repeated ProductSummary products = 1;
 }
 
+// Lightweight product display data for favorite lists and other simple tiles.
+message GetFavoriteProductSummariesRequest {
+  repeated string product_ids = 1;
+}
+
+message GetFavoriteProductSummariesResponse {
+  repeated FavoriteProductSummary products = 1;
+}
+
 message GetProductSummaryItem {
   string product_id = 1;
   string selected_variant_id = 2;
@@ -41,4 +50,15 @@ message ProductSummaryVariant {
   string color = 9;
   string material = 10;
   string warranty = 11;
+}
+
+message FavoriteProductSummary {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string image = 4;
+  string category_name = 5;
+  optional double price = 6;
+  optional double old_price = 7;
+  int32 sold_count = 8;
 }

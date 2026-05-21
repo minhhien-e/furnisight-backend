@@ -9,4 +9,5 @@ import "v1/catalog/catalog_message.proto";
 
 service CatalogService {
     rpc GetProductSummaries (GetProductSummariesRequest) returns (GetProductSummariesResponse);
+    rpc GetFavoriteProductSummaries (GetFavoriteProductSummariesRequest) returns (GetFavoriteProductSummariesResponse);
 }
