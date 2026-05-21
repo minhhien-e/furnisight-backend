@@ -6,11 +6,17 @@ option java_multiple_files = true;
 option java_package = "com.furnisight.catalog";
 
 message GetProductSummariesRequest {
-  repeated string product_ids = 1;
+  repeated GetProductSummaryItem items = 1;
+  repeated string product_ids = 2 [deprecated = true];
 }
 
 message GetProductSummariesResponse {
   repeated ProductSummary products = 1;
+}
+
+message GetProductSummaryItem {
+  string product_id = 1;
+  string selected_variant_id = 2;
 }
 
 message ProductSummary {
@@ -19,6 +25,8 @@ message ProductSummary {
   string name = 3;
   string image = 4;
   ProductSummaryVariant variant = 5;
+  string selected_variant_id = 6;
+  repeated ProductSummaryVariant variants = 7;
 }
 
 message ProductSummaryVariant {
@@ -31,4 +39,6 @@ message ProductSummaryVariant {
   optional double height = 7;
   optional double weight = 8;
   string color = 9;
+  string material = 10;
+  string warranty = 11;
 }
