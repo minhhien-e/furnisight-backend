@@ -119,9 +119,8 @@ services:
     image: openzipkin/zipkin:latest
     container_name: zipkin
     <<: *common-service
-    expose:
-      - "9411"
-
+    ports:
+      - "9411:9411"
 
   clamav:
     image: clamav/clamav:latest
@@ -155,7 +154,6 @@ services:
       - catalog-service
       - notification-service
       - media-service
-      - review-service
       - ai-image-classifier
 
   user-service:
@@ -226,19 +224,6 @@ services:
       clamav:
         condition: service_healthy
       redis:
-        condition: service_healthy
-
-  review-service:
-    <<: *java-service
-    image: furnisight-review-service:latest
-    container_name: furnisight_review_service
-    build:
-      context: ./review-service
-      <<: *java-build
-    env_file:
-      - ./review-service/.env
-    depends_on:
-      postgres:
         condition: service_healthy
 
 volumes:

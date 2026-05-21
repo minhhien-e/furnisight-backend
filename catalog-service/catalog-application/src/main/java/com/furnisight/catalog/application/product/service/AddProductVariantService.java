@@ -30,15 +30,20 @@ public class AddProductVariantService implements AddProductVariantUseCase {
         Product product = productRepository.findById(command.getProductId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        ProductDimensions dims = command.getWeight() != null
-                ? new ProductDimensions(command.getWeight(), command.getLength(), command.getWidth(), command.getHeight())
-                : null;
+        ProductDimensions dims = new ProductDimensions(
+                command.getWeight(),
+                command.getLength(),
+                command.getWidth(),
+                command.getHeight());
 
         ProductVariant variant = ProductVariant.builder()
                 .id(UUID.randomUUID())
                 .price(new Price(BigDecimal.valueOf(command.getPrice())))
                 .stockQuantity(new StockQuantity(command.getStockQuantity()))
                 .dimensions(dims)
+                .material(command.getMaterial())
+                .warranty(command.getWarranty())
+                .color(command.getColor())
                 .build();
 
         productLifecycleService.addVariant(product, variant);

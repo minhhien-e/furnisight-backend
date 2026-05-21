@@ -1,9 +1,7 @@
 package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 
 import lombok.*;
-
-import java.util.Map;
-import java.util.UUID;
+import java.util.List;
 
 @Data
 @Builder
@@ -13,7 +11,7 @@ public class UpdateProductInfoRequest {
     private String name;
     private String slug;
     private String description;
-    private Map<String, Object> attributes;
-    private Map<String, Object> metadata;
-    private Map<String, String> specs;
+    private List<String> features;
+    private Boolean supports3d;
+    private String modelUrl;
 }

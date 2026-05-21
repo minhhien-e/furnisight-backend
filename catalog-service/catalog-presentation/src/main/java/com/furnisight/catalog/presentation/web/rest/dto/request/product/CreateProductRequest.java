@@ -3,7 +3,6 @@ package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 import lombok.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -15,7 +14,9 @@ public class CreateProductRequest {
     private String name;
     private String slug;
     private String description;
-    private Map<String, Object> attributes;
+    private List<String> features;
+    private Boolean supports3d;
+    private String modelUrl;
     private List<VariantRequest> variants;
 
     @Data
@@ -29,5 +30,8 @@ public class CreateProductRequest {
         private Double length;
         private Double width;
         private Double height;
+        private String material;
+        private String color;
+        private String warranty;
     }
 }

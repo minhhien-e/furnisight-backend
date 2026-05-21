@@ -13,4 +13,7 @@ public class AddProductVariantRequest {
     private Double length;
     private Double width;
     private Double height;
+    private String material;
+    private String color;
+    private String warranty;
 }

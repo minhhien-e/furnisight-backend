@@ -39,19 +39,17 @@ public class Product extends AggregateRoot {
     @Enumerated(EnumType.STRING)
     private ProductStatus productStatus;
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String, Object> attributes;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String, Object> metadata;
-
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(columnDefinition = "jsonb")
-    private Map<String, String> specs;
-
     private UUID collectionId;
+
+    @Column(name = "model_url")
+    private String modelUrl;
+
+    @Column(name = "supports_3d", nullable = false)
+    private Boolean supports3d;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "features", columnDefinition = "jsonb")
+    private List<String> features;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductImage> gallery;
@@ -65,11 +63,12 @@ public class Product extends AggregateRoot {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
-            Map<String, Object> attributes,
-            Map<String, Object> metadata,
-            Map<String, String> specs,
+            String modelUrl,
+            Boolean supports3d,
+            List<String> features,
             List<ProductImage> gallery,
             List<ProductVariant> variants) {
+
         Product product = Product.builder()
                 .id(UUID.randomUUID())
                 .categoryId(categoryId)
@@ -77,9 +76,9 @@ public class Product extends AggregateRoot {
                 .name(name)
                 .slug(slug)
                 .description(description)
-                .attributes(attributes != null ? attributes : new HashMap<>())
-                .metadata(metadata != null ? metadata : new HashMap<>())
-                .specs(specs != null ? specs : new HashMap<>())
+                .modelUrl(modelUrl)
+                .supports3d(supports3d != null ? supports3d : false)
+                .features(features != null ? features : new ArrayList<>())
                 .gallery(new ArrayList<>())
                 .variants(new ArrayList<>())
                 .productStatus(ProductStatus.ACTIVE)
@@ -163,10 +162,11 @@ public class Product extends AggregateRoot {
 
         if (existingVariant.isPresent()) {
             ProductVariant existing = existingVariant.get();
-
             existing.setPrice(variant.getPrice());
             existing.setStockQuantity(variant.getStockQuantity());
             existing.setDimensions(variant.getDimensions());
+            existing.setMaterial(variant.getMaterial());
+            existing.setWarranty(variant.getWarranty());
         } else {
             this.variants.add(variant);
         }
@@ -191,29 +191,28 @@ public class Product extends AggregateRoot {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
-            Map<String, Object> attributes,
-            Map<String, Object> metadata,
-            Map<String, String> specs) {
+            String modelUrl,
+            Boolean supports3d,
+            List<String> features) {
         if (name != null)
             this.name = name;
         if (slug != null)
             this.slug = slug;
         if (description != null)
             this.description = description;
-        if (attributes != null)
-            this.attributes = attributes;
-        if (metadata != null)
-            this.metadata = metadata;
-        if (specs != null)
-            this.specs = specs;
+        if (modelUrl != null)
+            this.modelUrl = modelUrl;
+        if (supports3d != null)
+            this.supports3d = supports3d;
+        if (features != null)
+            this.features = features;
     }
 
     public void changeCategory(UUID categoryId) {
         if (categoryId == null) {
             throw new ValidationException(
-                   ErrorCode.INVALID_CATEGORY_NAME,
-                    "Category ID cannot be null"
-            );
+                    ErrorCode.INVALID_CATEGORY_NAME,
+                    "Category ID cannot be null");
         }
         this.categoryId = categoryId;
     }
@@ -222,8 +221,7 @@ public class Product extends AggregateRoot {
         if (collectionId == null) {
             throw new ValidationException(
                     ErrorCode.INVALID_PRODUCT_STATE,
-                    "Collection ID cannot be null"
-            );
+                    "Collection ID cannot be null");
         }
         this.collectionId = collectionId;
     }

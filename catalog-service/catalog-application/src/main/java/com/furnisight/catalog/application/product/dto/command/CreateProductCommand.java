@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -14,23 +13,29 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CreateProductCommand {
-    private UUID categoryId; // ID cua Category (DDD: tham chieu bang ID)
+    private UUID categoryId;
+    private UUID collectionId;
     private String name;
     private String slug;
     private String description;
-    private Map<String, Object> attributes;
+    private String modelUrl;
+    private Boolean supports3d;
+    private List<String> features;
     private List<VariantCommand> variants;
 
     @Data
     @Builder
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class VariantCommand{
+    public static class VariantCommand {
         private Double price;
         private Integer stockQuantity;
         private Double weight;
-        private Double length;
-        private Double width;
-        private Double height;
+        private Double length;   // cm, required
+        private Double width;    // cm, required
+        private Double height;   // cm, required
+        private String material; // required
+        private String warranty; // optional
+        private String color;
     }
 }

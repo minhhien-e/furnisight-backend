@@ -52,10 +52,86 @@ INSERT INTO user_profiles (id, account_id, display_name, first_name, last_name, 
 ON CONFLICT DO NOTHING;
 
 
+
 -- ============================================================
--- furnisight_review_db
+-- furnisight_catalog_db
 -- ============================================================
-\connect furnisight_review_db;
+\connect furnisight_catalog_db;
+
+-- Level 1: Rooms
+INSERT INTO categories (id, name, slug, parent_id, path, product_count, image_url, icon_url, created_at, updated_at) VALUES 
+('c0000000-0000-0000-0000-000000000001', 'Living Room', 'living-room', NULL, 'living-room', 3, 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80&w=800', '🛋️', NOW(), NOW()),
+('c0000000-0000-0000-0000-000000000002', 'Bedroom', 'bedroom', NULL, 'bedroom', 3, 'https://images.unsplash.com/photo-1505691938895-1758d7eaa511?auto=format&fit=crop&q=80&w=800', '🛏️', NOW(), NOW()),
+('c0000000-0000-0000-0000-000000000003', 'Dining Room', 'dining-room', NULL, 'dining-room', 2, 'https://images.unsplash.com/photo-1617806118233-18e1c0945594?auto=format&fit=crop&q=80&w=800', '🍽️', NOW(), NOW()),
+('c0000000-0000-0000-0000-000000000004', 'Workspace', 'workspace', NULL, 'workspace', 2, 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800', '💻', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Level 2: Subcategories
+INSERT INTO categories (id, name, slug, parent_id, path, product_count, image_url, icon_url, created_at, updated_at) VALUES 
+('d0000000-0000-0000-0000-000000000001', 'Sofa', 'sofa', 'c0000000-0000-0000-0000-000000000001', 'living-room/sofa', 2, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800', '🛋️', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000002', 'Coffee Table', 'coffee-table', 'c0000000-0000-0000-0000-000000000001', 'living-room/coffee-table', 1, 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=800', '☕', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000003', 'Bed', 'bed', 'c0000000-0000-0000-0000-000000000002', 'bedroom/bed', 2, 'https://images.unsplash.com/photo-1505693413171-293669746a57?auto=format&fit=crop&q=80&w=800', '🛏️', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000004', 'Wardrobe', 'wardrobe', 'c0000000-0000-0000-0000-000000000002', 'bedroom/wardrobe', 1, 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=800', '🚪', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000005', 'Dining Table', 'dining-table', 'c0000000-0000-0000-0000-000000000003', 'dining-room/dining-table', 1, 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=800', '🪑', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000006', 'Dining Chair', 'dining-chair', 'c0000000-0000-0000-0000-000000000003', 'dining-room/dining-chair', 1, 'https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800', '🪑', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000007', 'Desk', 'desk', 'c0000000-0000-0000-0000-000000000004', 'workspace/desk', 1, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=800', '🖥️', NOW(), NOW()),
+('d0000000-0000-0000-0000-000000000008', 'Office Chair', 'office-chair', 'c0000000-0000-0000-0000-000000000004', 'workspace/office-chair', 1, 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=800', '💺', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed data for Products
+INSERT INTO products (id, category_id, name, slug, description, product_status, features, created_at, updated_at) VALUES 
+('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'Modern Leather Sofa', 'modern-leather-sofa', 'Ghế sofa da cao cấp phong cách hiện đại cho phòng khách của bạn.', 'ACTIVE', '["Da thật", "Khung gỗ sồi", "Chống thấm nước"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'Fabric Sectional Sofa', 'fabric-sectional-sofa', 'Sofa vải hình chữ L thoải mái với nhiều màu sắc đa dạng.', 'ACTIVE', '["Vải nỉ cao cấp", "Thiết kế chữ L", "Đệm mút xốp 3 lớp"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000002', 'Minimalist Oak Coffee Table', 'minimalist-oak-coffee-table', 'Bàn cà phê gỗ sồi phong cách tối giản.', 'ACTIVE', '["Gỗ sồi nguyên khối", "Phong cách tối giản"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 'King Size Metal Bed', 'king-size-metal-bed', 'Khung giường kim loại king size chắc chắn và rộng rãi.', 'ACTIVE', '["Sơn tĩnh điện", "Khung thép chịu lực", "Dễ lắp ráp"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000003', 'Queen Size Wooden Bed', 'queen-size-wooden-bed', 'Giường queen size cổ điển làm từ gỗ thông.', 'ACTIVE', '["Gỗ thông tự nhiên", "Phong cách cổ điển"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000006', 'd0000000-0000-0000-0000-000000000004', 'Sliding Door Wardrobe', 'sliding-door-wardrobe', 'Tủ quần áo rộng rãi với cửa trượt có gương.', 'ACTIVE', '["Cửa trượt tiện lợi", "Tích hợp gương lớn", "Gỗ công nghiệp MDF"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000007', 'd0000000-0000-0000-0000-000000000005', 'Marble Top Dining Table', 'marble-top-dining-table', 'Bàn ăn sang trọng với mặt bàn đá cẩm thạch thật.', 'ACTIVE', '["Mặt đá cẩm thạch tự nhiên", "Chân bàn bọc đồng", "Phong cách châu Âu"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000008', 'd0000000-0000-0000-0000-000000000006', 'Velvet Dining Chair', 'velvet-dining-chair', 'Ghế ăn nhung mềm mại với chân vàng sang trọng.', 'ACTIVE', '["Bọc vải nhung", "Chân mạ vàng", "Nệm mút êm ái"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000009', 'd0000000-0000-0000-0000-000000000007', 'Ergonomic Standing Desk', 'ergonomic-standing-desk', 'Bàn đứng điều chỉnh chiều cao giúp làm việc thoải mái hơn.', 'ACTIVE', '["Điều chỉnh độ cao bằng điện", "Mặt bàn chống xước", "Ghi nhớ 3 vị trí"]', NOW(), NOW()),
+('e0000000-0000-0000-0000-000000000010', 'd0000000-0000-0000-0000-000000000008', 'Mesh Ergonomic Office Chair', 'mesh-ergonomic-office-chair', 'Ghế công thái học lưới thoáng khí với đệm thắt lưng.', 'ACTIVE', '["Lưới thoáng khí 3D", "Hỗ trợ cột sống", "Tựa đầu điều chỉnh"]', NOW(), NOW())
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed data for Product Images
+INSERT INTO product_images (id, product_id, image_url, position) VALUES
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000001', 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000002', 'https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000003', 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000004', 'https://images.unsplash.com/photo-1505691938895-1758d7eaa511?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000005', 'https://images.unsplash.com/photo-1505693413171-293669746a57?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000006', 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000007', 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000008', 'https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000009', 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=800', 1),
+(gen_random_uuid(), 'e0000000-0000-0000-0000-000000000010', 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=800', 1)
+ON CONFLICT DO NOTHING;
+
+-- Seed data for Product Variants
+INSERT INTO product_variants (id, product_id, price, stock_quantity, weight, length, width, height, material, warranty, color) VALUES 
+('a0000001-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 12000000.00, 10, 50.0, 200.0, 90.0, 85.0, 'Da bò tự nhiên', '2 năm', 'Nâu đỏ'),
+('a0000001-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 15000000.00, 5, 60.0, 220.0, 95.0, 90.0, 'Da bò cao cấp', '2 năm', 'Đen tuyền'),
+('a0000002-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 18000000.00, 8, 70.0, 250.0, 150.0, 85.0, 'Vải nỉ Hàn Quốc', '1 năm', 'Xám lông chuột'),
+('a0000003-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000003', 4500000.00, 15, 15.0, 100.0, 60.0, 45.0, 'Gỗ sồi trắng', '1 năm', 'Màu gỗ tự nhiên'),
+('a0000004-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000004', 9500000.00, 12, 40.0, 210.0, 190.0, 35.0, 'Thép không gỉ', '3 năm', 'Trắng tĩnh điện'),
+('a0000005-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000005', 8500000.00, 14, 35.0, 200.0, 160.0, 40.0, 'Gỗ thông New Zealand', '2 năm', 'Nâu đậm'),
+('a0000006-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000006', 13500000.00, 7, 80.0, 220.0, 180.0, 60.0, 'MDF phủ Melamine', '1 năm', 'Trắng ngà'),
+('a0000007-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000007', 24000000.00, 6, 60.0, 180.0, 90.0, 75.0, 'Đá cẩm thạch thật', '5 năm', 'Trắng vân mây'),
+('a0000008-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000008', 2500000.00, 20, 8.0, 50.0, 55.0, 90.0, 'Nhung / Chân sắt', '1 năm', 'Hồng nhạt'),
+('a0000009-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000009', 11500000.00, 18, 30.0, 120.0, 60.0, 70.0, 'Mặt gỗ MDF / Chân thép', '3 năm', 'Đen'),
+('a0000010-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000010', 5800000.00, 25, 12.0, 65.0, 65.0, 110.0, 'Lưới thoáng khí / Khung nhựa', '1 năm', 'Đen')
+ON CONFLICT (id) DO NOTHING;
+
+-- Seed data for Product Favorite Logs (User likes products this week)
+INSERT INTO product_favorite_logs (id, user_id, product_id, created_at) VALUES
+(gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 day'),
+(gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '2 days'),
+(gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '3 days'),
+(gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '4 days'),
+(gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '1 day'),
+(gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '2 days'),
+(gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '3 days'),
+(gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000010', NOW() - INTERVAL '2 days')
+ON CONFLICT (id) DO NOTHING;
 
 -- Reviews
 -- UUID prefix key: b00000{product_no}-... cho review, c00000{product_no}-... cho order_item
@@ -134,71 +210,3 @@ INSERT INTO review_votes (user_id, review_id, vote_type, created_at) VALUES
   ('52379d96-5238-4fd9-8383-bae82736bb3b', 'b0000009-0000-0000-0000-000000000002', 'DOWN', NOW()),
   ('7c22e6d3-1111-4aab-b999-aabbcc001122', 'b0000010-0000-0000-0000-000000000001', 'UP',   NOW())
 ON CONFLICT DO NOTHING;
-
-
--- ============================================================
--- furnisight_catalog_db
--- ============================================================
-\connect furnisight_catalog_db;
-
--- Level 1: Rooms
-INSERT INTO categories (id, name, slug, parent_id, path, product_count, image_url, icon_url, created_at, updated_at) VALUES 
-('c0000000-0000-0000-0000-000000000001', 'Living Room', 'living-room', NULL, 'living-room', 3, 'https://images.unsplash.com/photo-1583847268964-b28dc8f51f92?auto=format&fit=crop&q=80&w=800', '🛋️', NOW(), NOW()),
-('c0000000-0000-0000-0000-000000000002', 'Bedroom', 'bedroom', NULL, 'bedroom', 3, 'https://images.unsplash.com/photo-1505691938895-1758d7eaa511?auto=format&fit=crop&q=80&w=800', '🛏️', NOW(), NOW()),
-('c0000000-0000-0000-0000-000000000003', 'Dining Room', 'dining-room', NULL, 'dining-room', 2, 'https://images.unsplash.com/photo-1617806118233-18e1c0945594?auto=format&fit=crop&q=80&w=800', '🍽️', NOW(), NOW()),
-('c0000000-0000-0000-0000-000000000004', 'Workspace', 'workspace', NULL, 'workspace', 2, 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&q=80&w=800', '💻', NOW(), NOW())
-ON CONFLICT (id) DO NOTHING;
-
--- Level 2: Subcategories
-INSERT INTO categories (id, name, slug, parent_id, path, product_count, image_url, icon_url, created_at, updated_at) VALUES 
-('d0000000-0000-0000-0000-000000000001', 'Sofa', 'sofa', 'c0000000-0000-0000-0000-000000000001', 'living-room/sofa', 2, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800', '🛋️', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000002', 'Coffee Table', 'coffee-table', 'c0000000-0000-0000-0000-000000000001', 'living-room/coffee-table', 1, 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=800', '☕', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000003', 'Bed', 'bed', 'c0000000-0000-0000-0000-000000000002', 'bedroom/bed', 2, 'https://images.unsplash.com/photo-1505693413171-293669746a57?auto=format&fit=crop&q=80&w=800', '🛏️', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000004', 'Wardrobe', 'wardrobe', 'c0000000-0000-0000-0000-000000000002', 'bedroom/wardrobe', 1, 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=800', '🚪', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000005', 'Dining Table', 'dining-table', 'c0000000-0000-0000-0000-000000000003', 'dining-room/dining-table', 1, 'https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=800', '🪑', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000006', 'Dining Chair', 'dining-chair', 'c0000000-0000-0000-0000-000000000003', 'dining-room/dining-chair', 1, 'https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800', '🪑', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000007', 'Desk', 'desk', 'c0000000-0000-0000-0000-000000000004', 'workspace/desk', 1, 'https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=800', '🖥️', NOW(), NOW()),
-('d0000000-0000-0000-0000-000000000008', 'Office Chair', 'office-chair', 'c0000000-0000-0000-0000-000000000004', 'workspace/office-chair', 1, 'https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=800', '💺', NOW(), NOW())
-ON CONFLICT (id) DO NOTHING;
-
--- Seed data for Products
-INSERT INTO products (id, category_id, name, slug, description, product_status, attributes, created_at, updated_at) VALUES 
-('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'Modern Leather Sofa', 'modern-leather-sofa', 'Ghế sofa da cao cấp phong cách hiện đại cho phòng khách của bạn.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'Fabric Sectional Sofa', 'fabric-sectional-sofa', 'Sofa vải hình chữ L thoải mái với nhiều màu sắc đa dạng.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1493663284031-b7e3aefcae8e?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000002', 'Minimalist Oak Coffee Table', 'minimalist-oak-coffee-table', 'Bàn cà phê gỗ sồi phong cách tối giản.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 'King Size Metal Bed', 'king-size-metal-bed', 'Khung giường kim loại king size chắc chắn và rộng rãi.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1505691938895-1758d7eaa511?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000003', 'Queen Size Wooden Bed', 'queen-size-wooden-bed', 'Giường queen size cổ điển làm từ gỗ thông.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1505693413171-293669746a57?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000006', 'd0000000-0000-0000-0000-000000000004', 'Sliding Door Wardrobe', 'sliding-door-wardrobe', 'Tủ quần áo rộng rãi với cửa trượt có gương.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000007', 'd0000000-0000-0000-0000-000000000005', 'Marble Top Dining Table', 'marble-top-dining-table', 'Bàn ăn sang trọng với mặt bàn đá cẩm thạch thật.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1577140917170-285929fb55b7?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000008', 'd0000000-0000-0000-0000-000000000006', 'Velvet Dining Chair', 'velvet-dining-chair', 'Ghế ăn nhung mềm mại với chân vàng sang trọng.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1592078615290-033ee584e267?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000009', 'd0000000-0000-0000-0000-000000000007', 'Ergonomic Standing Desk', 'ergonomic-standing-desk', 'Bàn đứng điều chỉnh chiều cao giúp làm việc thoải mái hơn.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1518455027359-f3f8164ba6bd?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW()),
-('e0000000-0000-0000-0000-000000000010', 'd0000000-0000-0000-0000-000000000008', 'Mesh Ergonomic Office Chair', 'mesh-ergonomic-office-chair', 'Ghế công thái học lưới thoáng khí với đệm thắt lưng.', 'ACTIVE', '{"image": "https://images.unsplash.com/photo-1505843490538-5133c6c7d0e1?auto=format&fit=crop&q=80&w=800"}', NOW(), NOW())
-ON CONFLICT (id) DO NOTHING;
-
--- Seed data for Product Variants
-INSERT INTO product_variants (id, product_id, price, stock_quantity, weight, length, width, height) VALUES 
-('a0000001-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 12000000.00, 10, 50.0, 200.0, 90.0, 85.0),
-('a0000001-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 15000000.00, 5, 60.0, 220.0, 95.0, 90.0),
-('a0000002-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 18000000.00, 8, 70.0, 250.0, 150.0, 85.0),
-('a0000003-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000003', 4500000.00, 15, 15.0, 100.0, 60.0, 45.0),
-('a0000004-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000004', 9500000.00, 12, 40.0, 210.0, 190.0, 35.0),
-('a0000005-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000005', 8500000.00, 14, 35.0, 200.0, 160.0, 40.0),
-('a0000006-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000006', 13500000.00, 7, 80.0, 220.0, 180.0, 60.0),
-('a0000007-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000007', 24000000.00, 6, 60.0, 180.0, 90.0, 75.0),
-('a0000008-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000008', 2500000.00, 20, 8.0, 50.0, 55.0, 90.0),
-('a0000009-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000009', 11500000.00, 18, 30.0, 120.0, 60.0, 70.0),
-('a0000010-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000010', 5800000.00, 25, 12.0, 65.0, 65.0, 110.0)
-ON CONFLICT (id) DO NOTHING;
-
--- Seed data for Product Favorite Logs (User likes products this week)
-INSERT INTO product_favorite_logs (id, user_id, product_id, created_at) VALUES
-(gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 day'),
-(gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '2 days'),
-(gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '3 days'),
-(gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '4 days'),
-(gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '1 day'),
-(gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '2 days'),
-(gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '3 days'),
-(gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000010', NOW() - INTERVAL '2 days')
-ON CONFLICT (id) DO NOTHING;
-

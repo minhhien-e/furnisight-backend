@@ -35,17 +35,38 @@ public class ProductVariant extends BaseEntity {
     @Embedded
     private ProductDimensions dimensions;
 
-    public ProductVariant(Product product, Price price, StockQuantity stockQuantity, ProductDimensions dimensions) {
+    /** Chất liệu chính — required (TEXT) */
+    @Column(name = "material", nullable = false)
+    private String material;
+
+    /** Thông tin bảo hành — optional (TEXT), ví dụ: "12 tháng", "2 năm kết cấu" */
+    @Column(name = "warranty")
+    private String warranty;
+
+    @Column(name = "color")
+    private String color;
+
+    public ProductVariant(Product product, Price price, StockQuantity stockQuantity,
+                          ProductDimensions dimensions, String material, String warranty,
+                          String color) {
         this.id = UUID.randomUUID();
         this.stockQuantity = new StockQuantity(0);
-        update(product, price, stockQuantity, dimensions);
+        update(product, price, stockQuantity, dimensions, material, warranty, color);
     }
 
-    public void update(Product product, Price price, StockQuantity stockQuantity, ProductDimensions dimensions) {
+    public void update(Product product, Price price, StockQuantity stockQuantity,
+                       ProductDimensions dimensions, String material, String warranty,
+                       String color) {
+        if (material == null || material.isBlank()) {
+            throw new ValidationException(ErrorCode.INVALID_PRODUCT_DIMENSIONS, "Material cannot be blank");
+        }
         this.product = product;
         this.price = price;
         addStock(stockQuantity.getValue());
         this.dimensions = dimensions;
+        this.material = material;
+        this.warranty = warranty;
+        this.color = color;
     }
 
     public void decreaseStock(int quantity) {

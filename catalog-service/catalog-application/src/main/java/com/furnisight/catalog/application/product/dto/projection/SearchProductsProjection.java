@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
+import java.util.Map;
 
 @Data
 @Builder
@@ -26,6 +27,7 @@ public class SearchProductsProjection {
         private List<CategoryFacet> categories;
         private List<MaterialFacet> materials;
         private List<ColorFacet> colors;
+        private Map<Integer, Long> ratings;
     }
 
     @Data

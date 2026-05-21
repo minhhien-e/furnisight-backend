@@ -24,7 +24,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
 
         String sql = "SELECT id, user_id, product_id, title, content_text, rating, status, created_at " +
                 "FROM reviews " +
-                "WHERE product_id = :productId AND status IN (:statuses) " +
+                "WHERE product_id = :productId AND status::text IN (:statuses) " +
                 "ORDER BY created_at DESC " +
                 "LIMIT :limit OFFSET :offset";
 

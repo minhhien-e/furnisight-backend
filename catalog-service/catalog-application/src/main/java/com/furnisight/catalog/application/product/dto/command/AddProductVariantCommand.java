@@ -16,7 +16,10 @@ public class AddProductVariantCommand {
     private Double price;
     private Integer stockQuantity;
     private Double weight;
-    private Double length;
-    private Double width;
-    private Double height;
+    private Double length;   // cm, required
+    private Double width;    // cm, required
+    private Double height;   // cm, required
+    private String material; // required
+    private String warranty; // optional
+    private String color;
 }

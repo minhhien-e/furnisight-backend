@@ -1,5 +1,10 @@
 package com.furnisight.catalog.domain.services.product;
 
+import java.util.List;
+import java.util.UUID;
+
+import org.springframework.stereotype.Service;
+
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
@@ -9,12 +14,8 @@ import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDescription;
 import com.furnisight.catalog.domain.valueobjects.product.ProductName;
 import com.furnisight.catalog.domain.valueobjects.product.ProductSlug;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -28,28 +29,29 @@ public class ProductLifecycleService {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
-            Map<String, Object> attributes,
-            Map<String, Object> metadata,
-            Map<String, String> specs,
+            String modelUrl,
+            Boolean supports3d,
+            List<String> features,
             List<ProductImage> gallery,
             List<ProductVariant> variants) {
 
-        // Validate duplicate name
         if (productRepository.existsByNameValue(name.getValue())) {
             throw new AlreadyExistsException(ErrorCode.DUPLICATE_PRODUCT_NAME);
         }
 
-        return Product.create(
+        Product product = Product.create(
                 categoryId,
                 collectionId,
                 name,
                 slug,
                 description,
-                attributes,
-                metadata,
-                specs,
+                modelUrl,
+                supports3d,
+                features,
                 gallery,
                 variants);
+
+        return product;
     }
 
     public void updateProfile(
@@ -57,26 +59,22 @@ public class ProductLifecycleService {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
-            Map<String, Object> attributes,
-            Map<String, Object> metadata,
-            Map<String, String> specs) {
+            String modelUrl,
+            Boolean supports3d,
+            List<String> features) {
 
-        // If product name is changing, check duplication
         if (name != null && !name.equals(product.getName())) {
             if (productRepository.existsByNameValue(name.getValue())) {
                 throw new AlreadyExistsException(ErrorCode.DUPLICATE_PRODUCT_NAME);
             }
         }
 
-        product.updateProfile(
-                name,
-                slug,
-                description,
-                attributes,
-                metadata,
-                specs);
+        product.updateProfile(name, slug, description, modelUrl, supports3d, features);
     }
 
+    /**
+     * Khi sản phẩm đổi danh mục, tự động tính lại roomTypeHint.
+     */
     public void changeCategory(Product product, UUID categoryId) {
         product.changeCategory(categoryId);
     }

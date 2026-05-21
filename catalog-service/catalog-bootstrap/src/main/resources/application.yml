@@ -41,4 +41,6 @@ spring:
 
 app:
   security:
-    auth-whitelist: ${AUTH_WHITELIST}
+    whitelist:
+      public-all: ${APP_SECURITY_WHITELIST_PUBLIC_ALL:}
+      public-get: ${APP_SECURITY_WHITELIST_PUBLIC_GET:}

@@ -3,11 +3,10 @@ plugins {
 }
 
 dependencies {
-    dependencies {
-        implementation project(':catalog-infrastructure')
+    implementation project(':catalog-presentation')
+    implementation project(':catalog-infrastructure')
 
-        implementation 'org.springframework.boot:spring-boot-starter'
-    }
+    implementation 'org.springframework.boot:spring-boot-starter'
 }
 
 bootJar {

@@ -24,6 +24,8 @@ public class CategoryController {
     private final UpdateCategoryUseCase updateCategoryUseCase;
     private final GetCategoryDetailUseCase getCategoryDetailUseCase;
     private final ListCategoriesUseCase listCategoriesUseCase;
+    private final ListRootCategoriesUseCase listRootCategoriesUseCase;
+    private final ListSubcategoriesUseCase listSubcategoriesUseCase;
 
     // ─── COMMANDS ────────────────────────────────────────────────────────────
 
@@ -55,6 +57,18 @@ public class CategoryController {
     @GetMapping
     public ResponseEntity<List<CategoryDetailProjection>> listCategories() {
         List<CategoryDetailProjection> results = listCategoriesUseCase.execute();
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/roots")
+    public ResponseEntity<List<CategoryDetailProjection>> listRootCategories() {
+        List<CategoryDetailProjection> results = listRootCategoriesUseCase.execute();
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/{slug}/subcategories")
+    public ResponseEntity<List<CategoryDetailProjection>> listSubcategories(@PathVariable String slug) {
+        List<CategoryDetailProjection> results = listSubcategoriesUseCase.execute(slug);
         return ResponseEntity.ok(results);
     }
 

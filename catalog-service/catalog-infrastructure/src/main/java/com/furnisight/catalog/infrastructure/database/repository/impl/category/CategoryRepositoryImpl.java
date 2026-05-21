@@ -40,6 +40,6 @@ public class CategoryRepositoryImpl implements CategoryRepository {
 
     @Override
     public boolean existsSlug(CategorySlug slug) {
-        return jpaCategoryRepository.existsSlug(slug);
+        return jpaCategoryRepository.existsBySlug(slug);
     }
 }

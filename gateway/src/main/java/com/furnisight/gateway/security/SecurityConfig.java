@@ -38,8 +38,11 @@ public class SecurityConfig {
 
                 .authorizeExchange(exchange -> exchange
                         .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .pathMatchers(securityWhitelistProperties.publicAllArray()).permitAll()
-                        .pathMatchers(HttpMethod.GET, securityWhitelistProperties.publicGetArray()).permitAll()
+                        .pathMatchers(securityWhitelistProperties.getPublicAll()).permitAll()
+                        .pathMatchers(securityWhitelistProperties.getAuthAll()).permitAll()
+                        .pathMatchers(securityWhitelistProperties.getPasswordAll()).permitAll()
+                        .pathMatchers(securityWhitelistProperties.getOauthAll()).permitAll()
+                        .pathMatchers(HttpMethod.GET, securityWhitelistProperties.getPublicGet()).permitAll()
                         .anyExchange().authenticated())
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .build();

@@ -37,7 +37,7 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
                             .user(displayUser)
                             .avatar("https://i.pravatar.cc/150?u=" + userId)
                             .rating(r.rating())
-                            .date(r.createdAt().toString())
+                            .createdAt(r.createdAt().toString())
                             .comment(r.content())
                             .build();
                 }).toList();

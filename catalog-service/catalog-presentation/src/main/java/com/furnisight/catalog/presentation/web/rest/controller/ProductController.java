@@ -43,7 +43,9 @@ public class ProductController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .description(request.getDescription())
-                .attributes(request.getAttributes())
+                .features(request.getFeatures())
+                .supports3d(request.getSupports3d() != null ? request.getSupports3d() : false)
+                .modelUrl(request.getModelUrl())
                 .variants(request.getVariants().stream()
                         .map(v -> CreateProductCommand.VariantCommand.builder()
                                 .price(v.getPrice())
@@ -52,6 +54,9 @@ public class ProductController {
                                 .length(v.getLength())
                                 .width(v.getWidth())
                                 .height(v.getHeight())
+                                .material(v.getMaterial())
+                                .color(v.getColor())
+                                .warranty(v.getWarranty())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
@@ -61,15 +66,16 @@ public class ProductController {
     }
 
     @PutMapping(name = "productId", value = "/{productId}")
-    public ResponseEntity<Void> updateProductInfo(@PathVariable(name = "productId") UUID productId, @RequestBody UpdateProductInfoRequest request) {
+    public ResponseEntity<Void> updateProductInfo(@PathVariable(name = "productId") UUID productId,
+            @RequestBody UpdateProductInfoRequest request) {
         UpdateProductInfoCommand command = UpdateProductInfoCommand.builder()
                 .productId(productId)
                 .name(request.getName())
                 .slug(request.getSlug())
                 .description(request.getDescription())
-                .attributes(request.getAttributes())
-                .metadata(request.getMetadata())
-                .specs(request.getSpecs())
+                .features(request.getFeatures())
+                .supports3d(request.getSupports3d() != null ? request.getSupports3d() : false)
+                .modelUrl(request.getModelUrl())
                 .build();
 
         updateProductInfoUseCase.execute(command);
@@ -77,7 +83,8 @@ public class ProductController {
     }
 
     @PutMapping(name = "productId", value = "/{productId}/category")
-    public ResponseEntity<Void> changeCategory(@PathVariable(name = "productId") UUID productId, @RequestBody ChangeProductCategoryRequest request) {
+    public ResponseEntity<Void> changeCategory(@PathVariable(name = "productId") UUID productId,
+            @RequestBody ChangeProductCategoryRequest request) {
         ChangeProductCategoryCommand command = ChangeProductCategoryCommand.builder()
                 .productId(productId)
                 .categoryId(request.getCategoryId())
@@ -87,7 +94,8 @@ public class ProductController {
     }
 
     @PutMapping(name = "productId", value = "/{productId}/collection")
-    public ResponseEntity<Void> assignCollection(@PathVariable(name = "productId") UUID productId, @RequestBody AssignProductCollectionRequest request) {
+    public ResponseEntity<Void> assignCollection(@PathVariable(name = "productId") UUID productId,
+            @RequestBody AssignProductCollectionRequest request) {
         AssignProductCollectionCommand command = AssignProductCollectionCommand.builder()
                 .productId(productId)
                 .collectionId(request.getCollectionId())
@@ -106,7 +114,8 @@ public class ProductController {
     }
 
     @PostMapping(name = "productId", value = "/{productId}/variants")
-    public ResponseEntity<Void> addVariant(@PathVariable(name = "productId") UUID productId, @RequestBody AddProductVariantRequest request) {
+    public ResponseEntity<Void> addVariant(@PathVariable(name = "productId") UUID productId,
+            @RequestBody AddProductVariantRequest request) {
         AddProductVariantCommand command = AddProductVariantCommand.builder()
                 .productId(productId)
                 .price(request.getPrice())
@@ -115,13 +124,17 @@ public class ProductController {
                 .length(request.getLength())
                 .width(request.getWidth())
                 .height(request.getHeight())
+                .material(request.getMaterial())
+                .color(request.getColor())
+                .warranty(request.getWarranty())
                 .build();
         addProductVariantUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @DeleteMapping(name = "productId", value = "/{productId}/variants/{variantId}")
-    public ResponseEntity<Void> removeVariant(@PathVariable(name = "productId") UUID productId, @PathVariable(name = "variantId") UUID variantId) {
+    public ResponseEntity<Void> removeVariant(@PathVariable(name = "productId") UUID productId,
+            @PathVariable(name = "variantId") UUID variantId) {
         RemoveProductVariantCommand command = RemoveProductVariantCommand.builder()
                 .productId(productId)
                 .variantId(variantId)
@@ -131,7 +144,8 @@ public class ProductController {
     }
 
     @PatchMapping(name = "productId", value = "/{productId}/status")
-    public ResponseEntity<Void> updateProductStatus(@PathVariable(name = "productId") UUID productId, @RequestBody UpdateProductStatusRequest request) {
+    public ResponseEntity<Void> updateProductStatus(@PathVariable(name = "productId") UUID productId,
+            @RequestBody UpdateProductStatusRequest request) {
         UpdateProductStatusCommand command = UpdateProductStatusCommand.builder()
                 .productId(productId)
                 .status(request.getStatus())
@@ -157,9 +171,7 @@ public class ProductController {
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "24") int size) {
-        
-        // Map FE page (1-based usually) to Backend offset (0-based) if needed, 
-        // assuming FE sends page=1 for the first page. If FE sends 1-based:
+
         int backendPage = Math.max(0, page > 0 ? page - 1 : 0);
 
         SearchProductsQuery queryParam = SearchProductsQuery.builder()
@@ -176,13 +188,13 @@ public class ProductController {
                 .page(backendPage)
                 .size(size)
                 .build();
-                
+
         SearchProductsProjection results = searchProductsUseCase.execute(queryParam);
         return ResponseEntity.ok(results);
     }
 
     @GetMapping(name = "slug", value = "/{slug}")
-    public ResponseEntity<ProductDetailProjection> getProductDetail(@PathVariable(name = "slug") String slug){
+    public ResponseEntity<ProductDetailProjection> getProductDetail(@PathVariable(name = "slug") String slug) {
         GetProductDetailQuery query = new GetProductDetailQuery(slug);
         ProductDetailProjection result = getProductDetailQueryUseCase.execute(query);
         return ResponseEntity.ok(result);

@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS collections (
     id UUID PRIMARY KEY,
     name VARCHAR(120) NOT NULL,
     description TEXT,
-    slug VARCHAR(255) UNIQUE
+    slug VARCHAR(255) UNIQUE,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS products (
@@ -26,10 +28,9 @@ CREATE TABLE IF NOT EXISTS products (
     slug VARCHAR(255) UNIQUE,
     description TEXT,
     product_status VARCHAR(50) NOT NULL,
-    attributes TEXT,
-    metadata TEXT,
-    specs TEXT,
-    view_count INTEGER DEFAULT 0,
+    model_url TEXT,
+    supports_3d BOOLEAN NOT NULL DEFAULT FALSE,
+    features JSONB,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
@@ -38,7 +39,9 @@ CREATE TABLE IF NOT EXISTS product_images (
     id UUID PRIMARY KEY,
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
-    sort_order INTEGER DEFAULT 0
+    position INTEGER DEFAULT 0,
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_variants (
@@ -47,16 +50,22 @@ CREATE TABLE IF NOT EXISTS product_variants (
     price NUMERIC(19, 2) NOT NULL,
     stock_quantity INTEGER NOT NULL DEFAULT 0,
     weight DOUBLE PRECISION,
-    length DOUBLE PRECISION,
-    width DOUBLE PRECISION,
-    height DOUBLE PRECISION
+    length DOUBLE PRECISION NOT NULL,
+    width DOUBLE PRECISION NOT NULL,
+    height DOUBLE PRECISION NOT NULL,
+    material VARCHAR(255) NOT NULL,
+    warranty VARCHAR(255),
+    color VARCHAR(100),
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS product_favorite_logs (
     id UUID PRIMARY KEY,
     user_id UUID NOT NULL,
     product_id UUID NOT NULL REFERENCES products(id) ON DELETE CASCADE,
-    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
+    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS outbox_messages (
@@ -70,7 +79,8 @@ CREATE TABLE IF NOT EXISTS outbox_messages (
     error_message TEXT,
     retry_count INTEGER NOT NULL DEFAULT 0,
     next_retry_at TIMESTAMP WITHOUT TIME ZONE,
-    failed BOOLEAN NOT NULL DEFAULT FALSE
+    failed BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );
 
 CREATE TYPE review_status AS ENUM ('PENDING', 'VISIBLE', 'HIDDEN', 'SHADOW_BANNED', 'ARCHIVED');
