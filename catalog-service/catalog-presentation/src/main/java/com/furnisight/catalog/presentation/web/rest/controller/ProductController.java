@@ -2,8 +2,7 @@ package com.furnisight.catalog.presentation.web.rest.controller;
 
 import com.furnisight.catalog.application.product.dto.command.*;
 import com.furnisight.catalog.application.product.dto.query.GetProductDetailQuery;
-import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
-import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
+import com.furnisight.catalog.application.product.dto.projection.*;
 import com.furnisight.catalog.application.product.port.in.usecase.*;
 import com.furnisight.catalog.presentation.web.rest.dto.request.product.*;
 import lombok.RequiredArgsConstructor;
@@ -24,31 +23,40 @@ public class ProductController {
 
     private final CreateProductUseCase createProductUseCase;
     private final UpdateProductInfoUseCase updateProductInfoUseCase;
-    private final UpdateProductVariantsUseCase updateProductVariantsUseCase;
+    private final AddProductVariantUseCase addProductVariantUseCase;
+    private final RemoveProductVariantUseCase removeProductVariantUseCase;
     private final UpdateProductStatusUseCase updateProductStatusUseCase;
     private final GetProductDetailQueryUseCase getProductDetailQueryUseCase;
     private final SearchProductsUseCase searchProductsUseCase;
     private final GetTopProductsUseCase getTopProductsUseCase;
+    private final ChangeProductCategoryUseCase changeProductCategoryUseCase;
+    private final AssignProductCollectionUseCase assignProductCollectionUseCase;
+    private final RemoveProductCollectionUseCase removeProductCollectionUseCase;
+    private final GetWeeklyFavoriteProductsUseCase getWeeklyFavoriteProductsUseCase;
 
     // ─── COMMANDS ────────────────────────────────────────────────────────────
 
     @PostMapping
     public ResponseEntity<Void> createProduct(@RequestBody CreateProductRequest request) {
         CreateProductCommand command = CreateProductCommand.builder()
-                .shopId(request.getShopId())
                 .categoryId(request.getCategoryId())
                 .name(request.getName())
+                .slug(request.getSlug())
                 .description(request.getDescription())
-                .weight(request.getWeight())
-                .length(request.getLength())
-                .width(request.getWidth())
-                .height(request.getHeight())
-                .attributes(request.getAttributes())
+                .features(request.getFeatures())
+                .supports3d(request.getSupports3d() != null ? request.getSupports3d() : false)
+                .modelUrl(request.getModelUrl())
                 .variants(request.getVariants().stream()
                         .map(v -> CreateProductCommand.VariantCommand.builder()
-                                .sku(v.getSku())
                                 .price(v.getPrice())
                                 .stockQuantity(v.getStockQuantity())
+                                .weight(v.getWeight())
+                                .length(v.getLength())
+                                .width(v.getWidth())
+                                .height(v.getHeight())
+                                .material(v.getMaterial())
+                                .color(v.getColor())
+                                .warranty(v.getWarranty())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
@@ -58,46 +66,88 @@ public class ProductController {
     }
 
     @PutMapping(name = "productId", value = "/{productId}")
-    public ResponseEntity<Void> updateProductInfo(@PathVariable(name = "productId") UUID productId, @RequestBody UpdateProductInfoRequest request) {
+    public ResponseEntity<Void> updateProductInfo(@PathVariable(name = "productId") UUID productId,
+            @RequestBody UpdateProductInfoRequest request) {
         UpdateProductInfoCommand command = UpdateProductInfoCommand.builder()
                 .productId(productId)
-                .shopId(request.getShopId())
                 .name(request.getName())
+                .slug(request.getSlug())
                 .description(request.getDescription())
-                .weight(request.getWeight())
-                .length(request.getLength())
-                .width(request.getWidth())
-                .height(request.getHeight())
-                .attributes(request.getAttributes())
+                .features(request.getFeatures())
+                .supports3d(request.getSupports3d() != null ? request.getSupports3d() : false)
+                .modelUrl(request.getModelUrl())
                 .build();
 
         updateProductInfoUseCase.execute(command);
         return ResponseEntity.ok().build();
     }
 
-    @PutMapping(name = "productId", value = "/{productId}/variants")
-    public ResponseEntity<Void> updateProductVariants(@PathVariable(name = "productId") UUID productId, @RequestBody UpdateProductVariantsRequest request) {
-        UpdateProductVariantsCommand command = UpdateProductVariantsCommand.builder()
+    @PutMapping(name = "productId", value = "/{productId}/category")
+    public ResponseEntity<Void> changeCategory(@PathVariable(name = "productId") UUID productId,
+            @RequestBody ChangeProductCategoryRequest request) {
+        ChangeProductCategoryCommand command = ChangeProductCategoryCommand.builder()
                 .productId(productId)
-                .shopId(request.getShopId())
-                .variants(request.getVariants().stream()
-                        .map(v -> UpdateProductVariantsCommand.VariantCommand.builder()
-                                .sku(v.getSku())
-                                .price(v.getPrice())
-                                .stockQuantity(v.getStockQuantity())
-                                .build())
-                        .collect(Collectors.toList()))
+                .categoryId(request.getCategoryId())
                 .build();
+        changeProductCategoryUseCase.execute(command);
+        return ResponseEntity.ok().build();
+    }
 
-        updateProductVariantsUseCase.execute(command);
+    @PutMapping(name = "productId", value = "/{productId}/collection")
+    public ResponseEntity<Void> assignCollection(@PathVariable(name = "productId") UUID productId,
+            @RequestBody AssignProductCollectionRequest request) {
+        AssignProductCollectionCommand command = AssignProductCollectionCommand.builder()
+                .productId(productId)
+                .collectionId(request.getCollectionId())
+                .build();
+        assignProductCollectionUseCase.execute(command);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping(name = "productId", value = "/{productId}/collection")
+    public ResponseEntity<Void> removeCollection(@PathVariable(name = "productId") UUID productId) {
+        RemoveProductCollectionCommand command = RemoveProductCollectionCommand.builder()
+                .productId(productId)
+                .build();
+        removeProductCollectionUseCase.execute(command);
+        return ResponseEntity.ok().build();
+    }
+
+    @PostMapping(name = "productId", value = "/{productId}/variants")
+    public ResponseEntity<Void> addVariant(@PathVariable(name = "productId") UUID productId,
+            @RequestBody AddProductVariantRequest request) {
+        AddProductVariantCommand command = AddProductVariantCommand.builder()
+                .productId(productId)
+                .price(request.getPrice())
+                .stockQuantity(request.getStockQuantity())
+                .weight(request.getWeight())
+                .length(request.getLength())
+                .width(request.getWidth())
+                .height(request.getHeight())
+                .material(request.getMaterial())
+                .color(request.getColor())
+                .warranty(request.getWarranty())
+                .build();
+        addProductVariantUseCase.execute(command);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping(name = "productId", value = "/{productId}/variants/{variantId}")
+    public ResponseEntity<Void> removeVariant(@PathVariable(name = "productId") UUID productId,
+            @PathVariable(name = "variantId") UUID variantId) {
+        RemoveProductVariantCommand command = RemoveProductVariantCommand.builder()
+                .productId(productId)
+                .variantId(variantId)
+                .build();
+        removeProductVariantUseCase.execute(command);
         return ResponseEntity.ok().build();
     }
 
     @PatchMapping(name = "productId", value = "/{productId}/status")
-    public ResponseEntity<Void> updateProductStatus(@PathVariable(name = "productId") UUID productId, @RequestBody UpdateProductStatusRequest request) {
+    public ResponseEntity<Void> updateProductStatus(@PathVariable(name = "productId") UUID productId,
+            @RequestBody UpdateProductStatusRequest request) {
         UpdateProductStatusCommand command = UpdateProductStatusCommand.builder()
                 .productId(productId)
-                .shopId(request.getShopId())
                 .status(request.getStatus())
                 .build();
 
@@ -121,9 +171,7 @@ public class ProductController {
             @RequestParam(name = "status", required = false) String status,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "24") int size) {
-        
-        // Map FE page (1-based usually) to Backend offset (0-based) if needed, 
-        // assuming FE sends page=1 for the first page. If FE sends 1-based:
+
         int backendPage = Math.max(0, page > 0 ? page - 1 : 0);
 
         SearchProductsQuery queryParam = SearchProductsQuery.builder()
@@ -140,22 +188,29 @@ public class ProductController {
                 .page(backendPage)
                 .size(size)
                 .build();
-                
+
         SearchProductsProjection results = searchProductsUseCase.execute(queryParam);
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping(name = "productId", value = "/{productId}")
-    public ResponseEntity<ProductDetailProjection> getProductDetail(@PathVariable(name = "productId") UUID productId){
-        GetProductDetailQuery query = new GetProductDetailQuery(productId);
+    @GetMapping(name = "slug", value = "/{slug}")
+    public ResponseEntity<ProductDetailProjection> getProductDetail(@PathVariable(name = "slug") String slug) {
+        GetProductDetailQuery query = new GetProductDetailQuery(slug);
         ProductDetailProjection result = getProductDetailQueryUseCase.execute(query);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/top")
-    public ResponseEntity<List<ProductDetailProjection>> getTopProducts(
+    public ResponseEntity<List<ProductSummaryProjection>> getTopProducts(
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
-        List<ProductDetailProjection> results = getTopProductsUseCase.execute(limit);
+        List<ProductSummaryProjection> results = getTopProductsUseCase.execute(limit);
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/favorite-weekly")
+    public ResponseEntity<List<ProductSummaryProjection>> getWeeklyFavoriteProducts(
+            @RequestParam(name = "limit", defaultValue = "5") int limit) {
+        List<ProductSummaryProjection> results = getWeeklyFavoriteProductsUseCase.execute(limit);
         return ResponseEntity.ok(results);
     }
 }

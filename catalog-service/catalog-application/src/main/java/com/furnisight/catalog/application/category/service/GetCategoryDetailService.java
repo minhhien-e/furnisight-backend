@@ -17,7 +17,7 @@ public class GetCategoryDetailService implements GetCategoryDetailUseCase {
     @Override
     @Transactional(readOnly = true)
     public CategoryDetailProjection execute(GetCategoryDetailQuery query) {
-        return categoryReadRepository.findCategoryDetailById(query.getCategoryId())
+        return categoryReadRepository.findCategoryDetailBySlug(query.getSlug())
             .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
     }
 }

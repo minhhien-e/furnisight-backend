@@ -3,7 +3,7 @@ package com.furnisight.catalog.application.product.service;
 import com.furnisight.catalog.application.product.dto.command.UpdateProductStatusCommand;
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductStatusUseCase;
 import com.furnisight.catalog.domain.repository.ProductRepository;
-import com.furnisight.catalog.domain.entities.product.Product;
+import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.exceptions.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -20,20 +20,12 @@ public class UpdateProductStatusService implements UpdateProductStatusUseCase {
         Product product = productRepository.findById(command.getProductId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        product.verifyOwnership(command.getShopId());
-
         switch (command.getStatus()) {
-            case ACTIVE:
-                product.activate();
-                break;
-            case DELETED:
-                product.markAsDeleted();
-                break;
-            default:
-                product.setProductStatus(command.getStatus());
+            case ACTIVE -> product.activate();
+            case INACTIVE -> product.deactivate();
+            default -> throw new IllegalArgumentException("Invalid product status: " + command.getStatus());
         }
 
         productRepository.save(product);
     }
 }
-

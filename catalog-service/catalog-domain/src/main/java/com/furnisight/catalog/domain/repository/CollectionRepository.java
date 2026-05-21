@@ -1,6 +1,6 @@
 package com.furnisight.catalog.domain.repository;
 
-import com.furnisight.catalog.domain.entities.collection.Collection;
+import com.furnisight.catalog.domain.entities.Collection;
 
 import java.util.List;
 import java.util.Optional;
@@ -11,5 +11,4 @@ public interface CollectionRepository {
     Optional<Collection> findBySlug(String slug);
     Collection save(Collection collection);
     void delete(Collection collection);
-    List<Collection> findAll();
 }

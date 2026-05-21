@@ -1,6 +1,6 @@
 package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 
-import com.furnisight.catalog.domain.enums.product.ProductStatus;
+import com.furnisight.catalog.domain.enums.ProductStatus;
 import lombok.*;
 
 import java.util.UUID;
@@ -10,6 +10,5 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UpdateProductStatusRequest {
-    private UUID shopId;
     private ProductStatus status;
 }

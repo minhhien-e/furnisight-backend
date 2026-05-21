@@ -3,7 +3,6 @@ package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 import lombok.*;
 
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -11,15 +10,13 @@ import java.util.UUID;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreateProductRequest {
-    private UUID shopId;
     private UUID categoryId;
     private String name;
+    private String slug;
     private String description;
-    private Double weight;
-    private Double length;
-    private Double width;
-    private Double height;
-    private Map<String, Object> attributes;
+    private List<String> features;
+    private Boolean supports3d;
+    private String modelUrl;
     private List<VariantRequest> variants;
 
     @Data
@@ -27,8 +24,14 @@ public class CreateProductRequest {
     @NoArgsConstructor
     @AllArgsConstructor
     public static class VariantRequest {
-        private String sku;
         private Double price;
         private Integer stockQuantity;
+        private Double weight;
+        private Double length;
+        private Double width;
+        private Double height;
+        private String material;
+        private String color;
+        private String warranty;
     }
 }

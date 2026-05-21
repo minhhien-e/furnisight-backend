@@ -1,9 +1,10 @@
 package com.furnisight.catalog.infrastructure.database.repository.impl.category;
 
-import com.furnisight.catalog.infrastructure.database.repository.jpa.category.CategoryJpaRepository;
+import com.furnisight.catalog.domain.valueobjects.category.CategorySlug;
+import com.furnisight.catalog.infrastructure.database.repository.jpa.CategoryJpaRepository;
 
 import com.furnisight.catalog.domain.repository.CategoryRepository;
-import com.furnisight.catalog.domain.entities.category.Category;
+import com.furnisight.catalog.domain.entities.Category;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     private final CategoryJpaRepository jpaCategoryRepository;
 
     @Override
-    public Optional<Category> findBySlug(String slug) {
+    public Optional<Category> findBySlug(CategorySlug slug) {
         return jpaCategoryRepository.findBySlug(slug);
     }
 
@@ -38,12 +39,7 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     }
 
     @Override
-    public List<Category> findAll() {
-        return jpaCategoryRepository.findAll();
-    }
-
-    @Override
-    public List<Category> findAllByParentId(UUID parentId) {
-        return jpaCategoryRepository.findByParentId(parentId);
+    public boolean existsSlug(CategorySlug slug) {
+        return jpaCategoryRepository.existsBySlug(slug);
     }
 }

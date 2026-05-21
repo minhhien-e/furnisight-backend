@@ -24,6 +24,8 @@ public class CategoryController {
     private final UpdateCategoryUseCase updateCategoryUseCase;
     private final GetCategoryDetailUseCase getCategoryDetailUseCase;
     private final ListCategoriesUseCase listCategoriesUseCase;
+    private final ListRootCategoriesUseCase listRootCategoriesUseCase;
+    private final ListSubcategoriesUseCase listSubcategoriesUseCase;
 
     // ─── COMMANDS ────────────────────────────────────────────────────────────
 
@@ -39,7 +41,7 @@ public class CategoryController {
     }
 
     @PutMapping(name = "categoryId", value = "/{categoryId}")
-    public ResponseEntity<Void> updateCategory(@PathVariable(name = "categoryId") UUID categoryId, @RequestBody UpdateCategoryRequest request){
+    public ResponseEntity<Void> updateCategory(@PathVariable UUID categoryId, @RequestBody UpdateCategoryRequest request){
         UpdateCategoryCommand command = UpdateCategoryCommand.builder()
                 .categoryId(categoryId)
                 .name(request.getName())
@@ -58,9 +60,21 @@ public class CategoryController {
         return ResponseEntity.ok(results);
     }
 
-    @GetMapping(name = "categoryId", value = "/{categoryId}")
-    public ResponseEntity<CategoryDetailProjection> getCategoryDetail(@PathVariable(name = "categoryId") UUID categoryId){
-        GetCategoryDetailQuery query = new GetCategoryDetailQuery(categoryId);
+    @GetMapping("/roots")
+    public ResponseEntity<List<CategoryDetailProjection>> listRootCategories() {
+        List<CategoryDetailProjection> results = listRootCategoriesUseCase.execute();
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping("/{slug}/subcategories")
+    public ResponseEntity<List<CategoryDetailProjection>> listSubcategories(@PathVariable String slug) {
+        List<CategoryDetailProjection> results = listSubcategoriesUseCase.execute(slug);
+        return ResponseEntity.ok(results);
+    }
+
+    @GetMapping(name = "slug", value = "/{slug}")
+    public ResponseEntity<CategoryDetailProjection> getCategoryDetail(@PathVariable String slug){
+        GetCategoryDetailQuery query = new GetCategoryDetailQuery(slug);
         CategoryDetailProjection result = getCategoryDetailUseCase.execute(query);
         return ResponseEntity.ok(result);
     }

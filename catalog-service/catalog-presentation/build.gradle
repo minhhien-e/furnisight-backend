@@ -1,23 +1,9 @@
 plugins {
     id 'java'
 }
-
-group = 'com.furnisight'
-version = '1.0-SNAPSHOT'
-
-repositories {
-    mavenCentral()
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-parameters"]
 }
-
 dependencies {
-    implementation project(':catalog-application')
-
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    testImplementation platform('org.junit:junit-bom:5.10.0')
-    testImplementation 'org.junit.jupiter:junit-jupiter'
-    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
-}
-
-test {
-    useJUnitPlatform()
+    implementation project(':catalog-infrastructure')
 }

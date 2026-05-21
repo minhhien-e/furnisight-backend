@@ -8,5 +8,5 @@ import java.util.UUID;
 @Data
 @AllArgsConstructor
 public class GetCategoryDetailQuery {
-    private UUID categoryId;
+    private String slug;
 }

@@ -4,11 +4,16 @@ import com.furnisight.catalog.domain.seedwork.ValueObject;
 import lombok.*;
 import com.furnisight.catalog.domain.exceptions.*;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.util.List;
 
 @Getter
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StockQuantity extends ValueObject {
+    
+    @Column(name = "stock_quantity", nullable = false)
     private Integer value;
 
     public StockQuantity(Integer value) {

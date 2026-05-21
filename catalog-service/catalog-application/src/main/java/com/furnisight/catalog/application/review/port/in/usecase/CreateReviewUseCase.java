@@ -1,0 +1,7 @@
+package com.furnisight.catalog.application.review.port.in.usecase;
+
+import java.util.UUID;
+
+public interface CreateReviewUseCase {
+    void createReview(UUID userId, String productId, String orderItemId, String title, String content, Integer rating);
+}

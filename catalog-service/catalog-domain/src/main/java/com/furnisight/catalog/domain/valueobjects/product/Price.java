@@ -4,12 +4,17 @@ import com.furnisight.catalog.domain.seedwork.ValueObject;
 import com.furnisight.catalog.domain.exceptions.*;
 import lombok.*;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Embeddable;
 import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
+@Embeddable
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class Price extends ValueObject {
+
+    @Column(name = "price", nullable = false)
     private BigDecimal value;
 
     public Price(BigDecimal value) {

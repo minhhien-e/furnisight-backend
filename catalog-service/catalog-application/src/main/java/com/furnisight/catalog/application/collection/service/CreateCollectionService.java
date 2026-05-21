@@ -3,7 +3,7 @@ package com.furnisight.catalog.application.collection.service;
 import com.furnisight.catalog.application.collection.dto.command.CreateCollectionCommand;
 import com.furnisight.catalog.application.collection.port.in.usecase.CreateCollectionUseCase;
 import com.furnisight.catalog.domain.repository.CollectionRepository;
-import com.furnisight.catalog.domain.entities.collection.Collection;
+import com.furnisight.catalog.domain.entities.Collection;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
