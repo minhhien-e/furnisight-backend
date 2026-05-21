@@ -22,5 +22,6 @@ public class ProductSummaryProjection {
     private String image;
     private Double rating;
     private Integer ratingCount;
+    private Integer soldCount;
     private List<String> tags;
 }

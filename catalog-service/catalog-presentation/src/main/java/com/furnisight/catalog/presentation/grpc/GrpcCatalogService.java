@@ -1,6 +1,9 @@
 package com.furnisight.catalog.presentation.grpc;
 
 import com.furnisight.catalog.CatalogServiceGrpc;
+import com.furnisight.catalog.FavoriteProductSummary;
+import com.furnisight.catalog.GetFavoriteProductSummariesRequest;
+import com.furnisight.catalog.GetFavoriteProductSummariesResponse;
 import com.furnisight.catalog.GetProductSummaryItem;
 import com.furnisight.catalog.GetProductSummariesRequest;
 import com.furnisight.catalog.GetProductSummariesResponse;
@@ -37,6 +40,43 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
 
             responseObserver.onNext(
                     GetProductSummariesResponse.newBuilder()
+                            .addAllProducts(products)
+                            .build()
+            );
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException ex) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription(ex.getMessage())
+                            .withCause(ex)
+                            .asRuntimeException()
+            );
+        } catch (Exception ex) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription(ex.getMessage())
+                            .withCause(ex)
+                            .asRuntimeException()
+            );
+        }
+    }
+
+    @Override
+    public void getFavoriteProductSummaries(
+            GetFavoriteProductSummariesRequest request,
+            StreamObserver<GetFavoriteProductSummariesResponse> responseObserver
+    ) {
+        try {
+            List<FavoriteProductSummary> products = request.getProductIdsList().stream()
+                    .map(this::parseProductId)
+                    .distinct()
+                    .map(productId -> productReadRepository.findProductDetailById(productId)
+                            .map(this::toFavoriteProductSummary))
+                    .flatMap(java.util.Optional::stream)
+                    .toList();
+
+            responseObserver.onNext(
+                    GetFavoriteProductSummariesResponse.newBuilder()
                             .addAllProducts(products)
                             .build()
             );
@@ -104,6 +144,29 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
             builder.setSelectedVariantId(resolveSelectedVariantId(selectedVariantId, variants));
             builder.setVariant(variants.get(0));
             builder.addAllVariants(variants);
+        }
+
+        return builder.build();
+    }
+
+    private FavoriteProductSummary toFavoriteProductSummary(ProductDetailProjection detail) {
+        FavoriteProductSummary.Builder builder = FavoriteProductSummary.newBuilder()
+                .setId(detail.getId().toString())
+                .setSlug(defaultString(detail.getSlug()))
+                .setName(defaultString(detail.getName()))
+                .setSoldCount(detail.getSoldCount() != null ? detail.getSoldCount() : 0);
+
+        if (detail.getGallery() != null && !detail.getGallery().isEmpty()) {
+            builder.setImage(defaultString(detail.getGallery().get(0)));
+        }
+        if (detail.getCategory() != null) {
+            builder.setCategoryName(defaultString(detail.getCategory().getLabel()));
+        }
+        if (detail.getPrice() != null) {
+            builder.setPrice(detail.getPrice());
+        }
+        if (detail.getOldPrice() != null) {
+            builder.setOldPrice(detail.getOldPrice());
         }
 
         return builder.build();

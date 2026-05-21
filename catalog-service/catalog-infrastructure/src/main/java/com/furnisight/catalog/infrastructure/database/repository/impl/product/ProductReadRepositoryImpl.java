@@ -46,6 +46,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.features AS product_features,
                     p.model_url,
                     p.supports_3d,
+                    p.sold_count,
                     c.name AS category_name,
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
@@ -99,6 +100,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.features AS product_features,
                     p.model_url,
                     p.supports_3d,
+                    p.sold_count,
                     c.name AS category_name,
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
@@ -160,6 +162,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.id AS product_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
+                    p.sold_count AS product_sold_count,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
                     (
@@ -185,6 +188,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.id,
                     p.name,
                     p.slug,
+                    p.sold_count,
                     c.name,
                     p.created_at,
                     rv.avg_rating,
@@ -217,6 +221,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.id AS product_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
+                    p.sold_count AS product_sold_count,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
                     (
@@ -242,6 +247,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.id,
                     p.name,
                     p.slug,
+                    p.sold_count,
                     c.name,
                     p.created_at,
                     rv.avg_rating,
@@ -482,6 +488,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .image(imageUrl)
                 .rating(getNullableDouble(rs, "product_rating"))
                 .ratingCount(rs.getInt("product_rating_count"))
+                .soldCount(rs.getInt("product_sold_count"))
                 .tags(List.of("new"))
                 .build();
     }
@@ -513,6 +520,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
                 .rating(getNullableDouble(rs, "avg_rating"))
                 .ratingCount(rs.getInt("review_count"))
+                .soldCount(rs.getInt("sold_count"))
                 .tags(List.of("new", "sale"))
                 .supports3d(rs.getBoolean("supports_3d"))
                 .collection(normalizeText(rs.getString("collection_name"), null))
