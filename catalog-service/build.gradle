@@ -10,6 +10,13 @@ allprojects {
 
     repositories {
         mavenCentral()
+        maven {
+            url = uri("https://maven.pkg.github.com/minhhien-e/furnisight-backend")
+            credentials {
+                username = System.getenv("GITHUB_ACTOR") ?: project.findProperty("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN") ?: project.findProperty("GITHUB_TOKEN")
+            }
+        }
     }
 }
 
@@ -21,7 +28,6 @@ subprojects {
         sourceCompatibility = JavaVersion.VERSION_17 // Hoặc 21 tùy bạn chọn
     }
 
-    // Cái này giúp các module con khi gọi Spring không cần gõ lại version
     dependencyManagement {
         imports {
             mavenBom org.springframework.boot.gradle.plugin.SpringBootPlugin.BOM_COORDINATES

@@ -6,4 +6,7 @@ tasks.withType(JavaCompile) {
 }
 dependencies {
     implementation project(':catalog-infrastructure')
+    implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
+    implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
+    implementation 'com.furnisight:proto-lib:1.0.1779346584297'
 }

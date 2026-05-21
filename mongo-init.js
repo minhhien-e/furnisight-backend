@@ -1,5 +1,4 @@
 db = db.getSiblingDB("notification_db");
-
 // ─── TEMPLATES ────────────────────────────────────────────────────────────────
 
 db.notification_templates.insertMany([
@@ -211,5 +210,7 @@ devUserIds.forEach(uid => {
     });
   });
 });
+db = db.getSiblingDB("furnisight_cart");
 
+db.createCollection("carts");
 print("✅ mongo-init.js completed: templates + inbox messages inserted.");
