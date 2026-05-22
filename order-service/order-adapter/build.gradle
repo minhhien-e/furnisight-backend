@@ -1,0 +1,21 @@
+plugins {
+    id 'java-library'
+}
+dependencies {
+    api project(':order-application')
+    api project(':order-domain')
+
+    api 'org.springframework.boot:spring-boot-starter-web'
+    api 'org.springframework.boot:spring-boot-starter-validation'
+    implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
+    implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
+    implementation 'com.furnisight:proto-lib:1.0.1779378100999'
+    api 'org.springframework.kafka:spring-kafka'
+    implementation 'org.flywaydb:flyway-core'
+    implementation "org.flywaydb:flyway-database-postgresql"
+    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
+    testImplementation 'org.springframework.kafka:spring-kafka-test'
+    testImplementation 'org.springframework.security:spring-security-test'
+}
