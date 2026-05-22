@@ -17,7 +17,10 @@ public class UnfavoriteProductService implements UnfavoriteProductUseCase {
     public Void execute(FavoriteProductCommand command) {
         favoriteProductRepository
             .findByAccountIdAndProductId(command.accountId(), command.productId())
-            .ifPresent(favoriteProductRepository::delete);
+            .ifPresent(favorite -> {
+                favorite.unfavorite();
+                favoriteProductRepository.delete(favorite);
+            });
         return null;
     }
 }

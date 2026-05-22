@@ -5,4 +5,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.util.UUID;
 
 public interface ProductFavoriteLogJpaRepository extends JpaRepository<ProductFavoriteLog, UUID> {
+    void deleteByUserIdAndProductId(UUID userId, UUID productId);
 }

@@ -29,4 +29,16 @@ public class FavoriteProductEventToOutboxListener {
             payload
         ));
     }
+
+    @SneakyThrows
+    @EventListener
+    public void handle(com.furnisight.user.domain.events.favorite.ProductUnfavoritedEvent event) {
+        String payload = objectMapper.writeValueAsString(event);
+        outboxMessageRepository.save(new OutboxMessage(
+            AGGREGATE_TYPE,
+            event.id().toString(),
+            "product-unfavorited",
+            payload
+        ));
+    }
 }

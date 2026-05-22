@@ -41,4 +41,8 @@ public class FavoriteProduct extends AggregateRoot {
         this.productId = productId;
         registerEvent(new ProductFavoritedEvent(id, accountId, productId, LocalDateTime.now()));
     }
+
+    public void unfavorite() {
+        registerEvent(new com.furnisight.user.domain.events.favorite.ProductUnfavoritedEvent(id, accountId, productId, LocalDateTime.now()));
+    }
 }

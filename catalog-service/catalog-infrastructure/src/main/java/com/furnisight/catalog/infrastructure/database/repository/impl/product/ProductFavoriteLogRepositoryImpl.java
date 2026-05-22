@@ -16,4 +16,9 @@ public class ProductFavoriteLogRepositoryImpl implements ProductFavoriteLogRepos
     public void save(ProductFavoriteLog log) {
         jpaRepository.save(log);
     }
+
+    @Override
+    public void deleteByUserIdAndProductId(java.util.UUID userId, java.util.UUID productId) {
+        jpaRepository.deleteByUserIdAndProductId(userId, productId);
+    }
 }
