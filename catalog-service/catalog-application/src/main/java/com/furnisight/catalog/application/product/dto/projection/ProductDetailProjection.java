@@ -20,6 +20,7 @@ public class ProductDetailProjection {
     private Double oldPrice;
     private Double rating;
     private Integer ratingCount;
+    private Integer soldCount;
     private List<String> tags;
     private Boolean supports3d;
     private String collection;

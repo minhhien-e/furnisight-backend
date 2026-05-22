@@ -47,6 +47,9 @@ public class Product extends AggregateRoot {
     @Column(name = "supports_3d", nullable = false)
     private Boolean supports3d;
 
+    @Column(name = "sold_count", nullable = false)
+    private Integer soldCount;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "features", columnDefinition = "jsonb")
     private List<String> features;
@@ -78,6 +81,7 @@ public class Product extends AggregateRoot {
                 .description(description)
                 .modelUrl(modelUrl)
                 .supports3d(supports3d != null ? supports3d : false)
+                .soldCount(0)
                 .features(features != null ? features : new ArrayList<>())
                 .gallery(new ArrayList<>())
                 .variants(new ArrayList<>())

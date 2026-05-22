@@ -13,6 +13,9 @@ grpc:
     notification-service:
       address: ${GRPC_NOTIFICATION_SERVICE_ADDRESS:static://localhost:9091}
       negotiationType: plaintext
+    catalog-service:
+      address: ${GRPC_CATALOG_SERVICE_ADDRESS:static://localhost:9093}
+      negotiationType: plaintext
 spring:
   application:
     name: user-service

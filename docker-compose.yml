@@ -58,7 +58,7 @@ services:
       - mongo
     restart: "no"
     volumes:
-      - ./notification-service/mongo-init.js:/mongo-init.js
+      - ./mongo-init.js:/mongo-init.js
     entrypoint: >
       bash -c "
         sleep 5 &&
@@ -152,6 +152,7 @@ services:
       - zipkin
       - user-service
       - catalog-service
+      - cart-service
       - notification-service
       - media-service
       - ai-image-classifier
@@ -179,6 +180,21 @@ services:
       - ./catalog-service/.env
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+
+  cart-service:
+    <<: *java-service
+    image: furnisight-cart-service:latest
+    container_name: furnisight_cart_service
+    build:
+      context: ./cart-service
+      <<: *java-build
+    expose:
+      - "8080"
+      - "9094"
+    env_file:
+      - ./cart-service/.env
+    depends_on:
+      - mongo
 
   notification-service:
     <<: *java-service

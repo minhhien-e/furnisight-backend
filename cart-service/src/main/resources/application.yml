@@ -1,0 +1,31 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+grpc:
+  server:
+    port: ${GRPC_SERVER_PORT:9094}
+  client:
+    catalog-service:
+      address: ${CATALOG_GRPC_ADDRESS:static://localhost:9093}
+      negotiationType: plaintext
+
+spring:
+  application:
+    name: cart-service
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${JWK_SET_URI:http://localhost:8081/api/v1/auth/realms}/.well-known/jwks.json
+  mongodb:
+    uri: ${MONGODB_URI:mongodb://localhost:27017/furnisight_cart}
+    representation:
+      uuid: standard
+
+app:
+  security:
+    whitelist:
+      public-all: ${APP_SECURITY_WHITELIST_PUBLIC_ALL:}
+      public-get: ${APP_SECURITY_WHITELIST_PUBLIC_GET:}
