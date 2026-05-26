@@ -33,7 +33,8 @@ public class VNPayAdapter implements PaymentGatewayPort {
         vnp_Params.put("vnp_TmnCode", vnPayConfig.getTmnCode());
         vnp_Params.put("vnp_Amount", String.valueOf(amount));
         vnp_Params.put("vnp_CurrCode", "VND");
-        vnp_Params.put("vnp_TxnRef", order.getOrderCode());
+        String txnRef = order.getOrderCode() + "_" + System.currentTimeMillis();
+        vnp_Params.put("vnp_TxnRef", txnRef);
         vnp_Params.put("vnp_OrderInfo", "Thanh toan don hang: " + order.getOrderCode());
         vnp_Params.put("vnp_OrderType", "other");
         vnp_Params.put("vnp_Locale", "vn");
@@ -93,7 +94,11 @@ public class VNPayAdapter implements PaymentGatewayPort {
                     .build();
         }
 
-        String orderCode = callbackParams.get("vnp_TxnRef");
+        String txnRef = callbackParams.get("vnp_TxnRef");
+        String orderCode = txnRef;
+        if (orderCode != null && orderCode.contains("_")) {
+            orderCode = orderCode.substring(0, orderCode.lastIndexOf('_'));
+        }
         String responseCode = callbackParams.get("vnp_ResponseCode");
         String transactionStatus = callbackParams.get("vnp_TransactionStatus");
         String amountStr = callbackParams.get("vnp_Amount");

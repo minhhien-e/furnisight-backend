@@ -22,7 +22,8 @@ public class PaymentController {
     private final ClientIpProvider clientIpProvider;
 
     @PostMapping("/{paymentMethod}/create")
-    public ResponseEntity<String> createPayment(@PathVariable String paymentMethod, @RequestParam String orderCode, HttpServletRequest request) {
+    public ResponseEntity<String> createPayment(@PathVariable String paymentMethod, @RequestParam String orderCode,
+            HttpServletRequest request) {
         String clientIp = clientIpProvider.getClientIp(request);
         CreatePaymentCommand command = CreatePaymentCommand.builder()
                 .paymentMethod(paymentMethod)
@@ -34,13 +35,17 @@ public class PaymentController {
         return ResponseEntity.ok(paymentUrl);
     }
 
+    @org.springframework.beans.factory.annotation.Value("${frontend.url}")
+    private String frontendUrl;
+
     @GetMapping("/{paymentMethod}/callback")
-    public ResponseEntity<Void> processPaymentCallback(@PathVariable String paymentMethod, @RequestParam Map<String, String> params) {
+    public ResponseEntity<Void> processPaymentCallback(@PathVariable String paymentMethod,
+            @RequestParam Map<String, String> params) {
         boolean success = processPaymentCallbackUseCase.processCallback(paymentMethod, params);
         if (success) {
-            return ResponseEntity.status(302).location(URI.create("http://localhost:3000/payment/success")).build();
+            return ResponseEntity.status(302).location(URI.create(frontendUrl + "/payment/success")).build();
         } else {
-            return ResponseEntity.status(302).location(URI.create("http://localhost:3000/payment/failure")).build();
+            return ResponseEntity.status(302).location(URI.create(frontendUrl + "/payment/failure")).build();
         }
     }
 }

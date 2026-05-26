@@ -107,7 +107,7 @@ public class Order extends DomainEntity {
     }
 
     public void markPaymentInitiated(java.time.LocalDateTime initiatedAt) {
-        if (this.status != OrderStatus.UNPAID) {
+        if (this.status != OrderStatus.UNPAID && this.status != OrderStatus.PAYMENT_FAILED) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         if (this.paymentTimeline != null) {
@@ -122,7 +122,7 @@ public class Order extends DomainEntity {
     }
 
     public void markAsPaid(String paymentMethod, Double paidAmount, java.time.LocalDateTime paidAt) {
-        if (this.status != OrderStatus.UNPAID) {
+        if (this.status != OrderStatus.UNPAID && this.status != OrderStatus.PAYMENT_FAILED) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         this.status = OrderStatus.PAID;

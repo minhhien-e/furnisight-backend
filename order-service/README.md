@@ -58,3 +58,21 @@ order-service/
 
 **Vai trò**: Đóng vai trò làm Entrypoint lắp ráp chương trình với hàm `main()`. Phụ thuộc vào cả 3 module trên để wire chúng lại và khởi động Spring Application.
 **Tại sao cần tách riêng?**: Loại bỏ sự phụ thuộc chéo vòng vèo. Nếu cần biến app thành Serverless Function, chỉ cần viết lại module bootstrap này.
+
+## Hướng dẫn Test Thanh toán (VNPay Sandbox)
+
+Để test chức năng thanh toán qua VNPay trên môi trường Sandbox, bạn **KHÔNG ĐƯỢC** dùng app ngân hàng thật (như VCB, Techcombank, MoMo...) để quét mã QR vì app thật không thể nhận diện được mã 가맹 điểm (TmnCode) thử nghiệm.
+
+### Các bước test chuẩn:
+1. Khi giao diện thanh toán VNPay hiện ra, chọn phương thức: **Thẻ ATM và Tài khoản ngân hàng** (Thẻ nội địa).
+2. Chọn ngân hàng: **NCB** (Ngân hàng Quốc dân).
+3. Nhập thông tin thẻ test của VNPay:
+   - **Số thẻ**: `9704198526191432198`
+   - **Tên chủ thẻ**: `NGUYEN VAN A` (viết hoa không dấu)
+   - **Ngày phát hành**: `07/15`
+   - **Mật khẩu (nếu có)**: `123456`
+4. Bấm **Xác thực / Thanh toán**.
+5. Màn hình yêu cầu OTP hiện ra, nhập OTP là `123456` và bấm xác nhận.
+6. Hệ thống sẽ báo thanh toán thành công và tự động redirect về trang callback của frontend (`/payment/success`).
+
+_Lưu ý: Nếu giao dịch bị hủy, bạn vẫn có thể nhấn nút thử lại thanh toán ở frontend vì trạng thái đơn hàng sẽ được đánh dấu là `PAYMENT_FAILED` và hàng hóa vẫn được giữ chỗ._

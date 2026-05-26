@@ -53,41 +53,31 @@ public class PaymentService implements CreatePaymentUseCase, ProcessPaymentCallb
     @Transactional
     public boolean processCallback(String paymentMethod, Map<String, String> callbackParams) {
         PaymentGatewayPort gateway = getGateway(paymentMethod);
-        com.furnisight.order.application.payment.port.out.PaymentCallbackResult result = gateway.processCallback(callbackParams);
+        com.furnisight.order.application.payment.port.out.PaymentCallbackResult result = gateway
+                .processCallback(callbackParams);
 
         Order order = orderRepository.findByOrderCode(result.getOrderCode())
                 .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
 
+        // Idempotency check: if already processed, just return the appropriate result
+        if (order.getStatus() == com.furnisight.order.domain.enums.OrderStatus.PAID) {
+            return true;
+        }
+        if (order.getStatus() == com.furnisight.order.domain.enums.OrderStatus.PAYMENT_FAILED && !result.isSuccess()) {
+            return false;
+        }
+
         if (!result.isSuccess()) {
             order.markPaymentFailed(paymentMethod.toUpperCase(), LocalDateTime.now(), result.getErrorMessage());
             orderRepository.save(order);
-            
-            // Release stock
-            releaseStock(result.getOrderCode());
             return false;
         }
 
         order.markAsPaid(paymentMethod.toUpperCase(), result.getAmount(), result.getPaidAt());
         orderRepository.save(order);
-        
+
         // Delete stock reservation since it's paid
         stockReservationRepository.deleteByOrderCode(result.getOrderCode());
         return true;
-    }
-
-    private void releaseStock(String orderCode) {
-        java.util.List<StockReservation> reservations = stockReservationRepository.findByOrderCode(orderCode);
-        if (reservations != null && !reservations.isEmpty()) {
-            java.util.List<InventoryEventPublisherPort.StockItem> stockItems = new java.util.ArrayList<>();
-            for (StockReservation res : reservations) {
-                stockItems.add(InventoryEventPublisherPort.StockItem.builder()
-                        .productId(res.getProductId())
-                        .variantId(res.getProductVariantId())
-                        .quantity(res.getQuantity())
-                        .build());
-            }
-            inventoryEventPublisher.publishStockReleaseEvent(orderCode, stockItems);
-            stockReservationRepository.deleteByOrderCode(orderCode);
-        }
     }
 }
