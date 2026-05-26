@@ -5,8 +5,9 @@ import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase
 import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.services.OrderLifecycle;
-import com.furnisight.order.domain.valueobjects.order.ShippingDetail;
-import com.furnisight.order.domain.valueobjects.order.PaymentDetail;
+import com.furnisight.order.domain.services.dto.OrderItemParam;
+import com.furnisight.order.domain.valueobjects.ShippingDetail;
+import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,12 +27,11 @@ public class CreateOrderService implements CreateOrderUseCase {
     public UUID createOrder(CreateOrderCommand command) {
         // Map Application Command to Domain Parameter
         var itemParams = command.getItems() == null ? null : command.getItems().stream()
-                .map(item -> OrderLifecycle.OrderItemParam.builder()
+                .map(item -> OrderItemParam.builder()
                         .productId(item.getProductId())
                         .variantId(item.getVariantId())
                         .categoryName(item.getCategoryName())
                         .productName(item.getProductName())
-                        .variantDescription(item.getVariantDescription())
                         .price(item.getPrice())
                         .oldPrice(item.getOldPrice())
                         .quantity(item.getQuantity())

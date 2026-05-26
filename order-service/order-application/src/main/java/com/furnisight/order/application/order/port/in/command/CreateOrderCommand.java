@@ -25,7 +25,6 @@ public class CreateOrderCommand {
         private String variantId;
         private String categoryName;
         private String productName;
-        private String variantDescription;
         private Double price;
         private Double oldPrice;
         private Integer quantity;

@@ -1,32 +1,33 @@
 package com.furnisight.order.domain.entities.order;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.persistence.OneToMany;
-import jakarta.persistence.CascadeType;
-import lombok.*;
+import com.furnisight.order.domain.exceptions.ErrorCode;
+import com.furnisight.order.domain.exceptions.ValidationException;
 import com.furnisight.order.domain.seedwork.DomainEntity;
-import jakarta.persistence.Embedded;
-import com.furnisight.order.domain.valueobjects.order.OrderFee;
-import com.furnisight.order.domain.valueobjects.order.ShippingDetail;
-import com.furnisight.order.domain.valueobjects.order.PaymentDetail;
+import com.furnisight.order.domain.valueobjects.OrderFee;
+import com.furnisight.order.domain.enums.OrderStatus;
+import com.furnisight.order.domain.valueobjects.PaymentDetail;
+import com.furnisight.order.domain.valueobjects.ShippingDetail;
+import jakarta.persistence.*;
+import lombok.*;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "orders")
 @Data
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class Order extends DomainEntity{
+public class Order extends DomainEntity {
     @Id
     private UUID id;
     private UUID userId;
-    private String status;
+    private String orderCode;
+    private java.time.LocalDateTime createdAt;
+    private java.time.LocalDateTime updatedAt;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
     private Double subTotal;
     private Double totalAmount;
     @Embedded
@@ -45,16 +46,17 @@ public class Order extends DomainEntity{
     private List<OrderItem> items = new ArrayList<>();
 
     @Builder
-    public Order(UUID id, UUID userId, String status, OrderFee fee, String customerNote, 
+    public Order(UUID id, UUID userId, String orderCode, OrderStatus status, OrderFee fee, String customerNote,
                  ShippingDetail shippingDetail, PaymentDetail paymentDetail, List<OrderItem> items) {
-        
+
         if (items == null || items.isEmpty()) {
-            throw new com.furnisight.order.domain.exceptions.order.ValidationException(
-                    com.furnisight.order.domain.exceptions.order.ErrorCode.ORDER_ITEM_EMPTY);
+            throw new ValidationException(
+                    ErrorCode.ORDER_ITEM_EMPTY);
         }
 
         this.id = id;
         this.userId = userId;
+        this.orderCode = orderCode;
         this.status = status;
         this.fee = fee;
         this.customerNote = customerNote;

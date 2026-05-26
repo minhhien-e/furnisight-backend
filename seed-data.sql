@@ -329,4 +329,20 @@ INSERT INTO reviews (
 
 COMMIT;
 
-'
+-- ============================================================
+-- furnisight_order_db
+-- ============================================================
+\connect furnisight_order_db;
+
+BEGIN;
+
+-- Mock Orders cho minhhien7840@gmail.com
+INSERT INTO orders (id, order_code, user_id, status, sub_total, total_amount, shipping_fee, shipping_discount, discount_amount, insurance_fee, saved_amount, shipping_address_name, shipping_address_phone, shipping_address_detail, shipping_method, customer_note, payment_method, payment_status, paid_amount, created_at, updated_at) VALUES 
+('c5379d96-1111-4fd9-8383-bae82736bb11', 'ORD-A1B2C3D4', '52379d96-5238-4fd9-8383-bae82736bb3b', 'PENDING', 5000000, 5015000, 15000, 0, 0, 0, 0, 'Minh Hiền', '0123456789', '123 Đường A, Quận B, TP C', 'Giao hàng tận nơi', 'Giao sáng sớm', 'COD', 'PENDING', 0, NOW(), NOW()),
+('d5379d96-2222-4fd9-8383-bae82736bb22', 'ORD-X9Y8Z7W6', '52379d96-5238-4fd9-8383-bae82736bb3b', 'DELIVERED', 12000000, 12015000, 15000, 0, 0, 0, 0, 'Minh Hiền', '0123456789', '123 Đường A, Quận B, TP C', 'Giao hàng tận nơi', '', 'BANK_TRANSFER', 'PAID', 12015000, NOW() - INTERVAL '5 DAYS', NOW());
+
+INSERT INTO order_items (id, order_id, product_id, variant_id, category_name, product_name, color, material, warranty, weight, length, width, height, price, old_price, quantity, image_url, created_at, updated_at) VALUES 
+('e5379d96-3333-4fd9-8383-bae82736bb33', 'c5379d96-1111-4fd9-8383-bae82736bb11', 'prod-1', 'var-1', 'Sofa', 'Sofa Gỗ Xoan Đào', 'Nâu', 'Gỗ Xoan Đào', '12 tháng', 50000, 120, 60, 40, 5000000, 5500000, 1, 'https://example.com/sofa.jpg', NOW(), NOW()),
+('f5379d96-4444-4fd9-8383-bae82736bb44', 'd5379d96-2222-4fd9-8383-bae82736bb22', 'prod-2', 'var-2', 'Giường', 'Giường Thông Minh', 'Trắng', 'Gỗ Công Nghiệp', '24 tháng', 80000, 200, 160, 30, 12000000, 15000000, 1, 'https://example.com/bed.jpg', NOW() - INTERVAL '5 DAYS', NOW() - INTERVAL '5 DAYS');
+
+COMMIT;

@@ -1,17 +1,8 @@
-package com.furnisight.order.application.order.port.in.dto.projection;
+package com.furnisight.order.domain.services.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import java.util.UUID;
-
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class OrderItemProjection {
-    private UUID id;
+@lombok.Data
+@lombok.Builder
+public class OrderItemParam {
     private String productId;
     private String variantId;
     private String categoryName;
@@ -21,6 +12,7 @@ public class OrderItemProjection {
     private String warranty;
     private com.furnisight.order.domain.valueobjects.ProductDimensions dimensions;
     private Double price;
+    private Double oldPrice;
     private Integer quantity;
     private String imageUrl;
 }

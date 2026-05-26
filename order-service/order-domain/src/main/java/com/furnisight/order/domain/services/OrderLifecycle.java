@@ -2,11 +2,15 @@ package com.furnisight.order.domain.services;
 
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
-import com.furnisight.order.domain.valueobjects.order.OrderFee;
-import com.furnisight.order.domain.valueobjects.order.PaymentDetail;
-import com.furnisight.order.domain.valueobjects.order.ShippingDetail;
-import com.furnisight.order.domain.exceptions.DomainException;
-import com.furnisight.order.domain.exceptions.order.ErrorCode;
+import com.furnisight.order.domain.exceptions.ValidationException;
+import com.furnisight.order.domain.enums.OrderStatus;
+import com.furnisight.order.domain.services.dto.OrderItemParam;
+import com.furnisight.order.domain.valueobjects.ProductSnapshot;
+import com.furnisight.order.domain.valueobjects.OrderFee;
+import com.furnisight.order.domain.valueobjects.PaymentDetail;
+import com.furnisight.order.domain.valueobjects.ShippingDetail;
+import com.furnisight.order.domain.exceptions.ErrorCode;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -14,7 +18,10 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@RequiredArgsConstructor
 public class OrderLifecycle {
+
+    private final OrderCodeGenerator orderCodeGenerator;
 
     public Order createPendingOrder(
             UUID userId,
@@ -24,7 +31,7 @@ public class OrderLifecycle {
             List<OrderItemParam> itemParams) {
 
         if (itemParams == null || itemParams.isEmpty()) {
-            throw new com.furnisight.order.domain.exceptions.order.ValidationException(ErrorCode.ORDER_ITEM_EMPTY);
+            throw new ValidationException(ErrorCode.ORDER_ITEM_EMPTY);
         }
 
         // Assume default fees
@@ -36,22 +43,30 @@ public class OrderLifecycle {
         var items = itemParams.stream().map(param ->
                 OrderItem.builder()
                         .id(UUID.randomUUID())
-                        .productId(param.getProductId())
-                        .variantId(param.getVariantId())
-                        .categoryName(param.getCategoryName())
-                        .productName(param.getProductName())
-                        .variantDescription(param.getVariantDescription())
+                        .productSnapshot(ProductSnapshot.builder()
+                                .productId(param.getProductId())
+                                .variantId(param.getVariantId())
+                                .categoryName(param.getCategoryName())
+                                .productName(param.getProductName())
+                                .color(param.getColor())
+                                .material(param.getMaterial())
+                                .warranty(param.getWarranty())
+                                .dimensions(param.getDimensions())
+                                .imageUrl(param.getImageUrl())
+                                .build())
                         .price(param.getPrice())
                         .oldPrice(param.getOldPrice())
                         .quantity(param.getQuantity())
-                        .imageUrl(param.getImageUrl())
                         .build()
         ).collect(Collectors.toList());
 
-        Order order = Order.builder()
+        String orderCode = orderCodeGenerator.generate();
+
+        return Order.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
-                .status("PENDING")
+                .orderCode(orderCode)
+                .status(OrderStatus.PENDING)
                 .fee(OrderFee.builder()
                         .shippingFee(shippingFee)
                         .shippingDiscount(shippingDiscount)
@@ -63,21 +78,5 @@ public class OrderLifecycle {
                 .paymentDetail(paymentDetail)
                 .items(items)
                 .build();
-
-        return order;
-    }
-
-    @lombok.Data
-    @lombok.Builder
-    public static class OrderItemParam {
-        private String productId;
-        private String variantId;
-        private String categoryName;
-        private String productName;
-        private String variantDescription;
-        private Double price;
-        private Double oldPrice;
-        private Integer quantity;
-        private String imageUrl;
     }
 }

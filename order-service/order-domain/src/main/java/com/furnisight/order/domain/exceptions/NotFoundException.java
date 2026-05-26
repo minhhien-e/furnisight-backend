@@ -1,6 +1,4 @@
-package com.furnisight.order.domain.exceptions.order;
-
-import com.furnisight.order.domain.exceptions.DomainException;
+package com.furnisight.order.domain.exceptions;
 
 public class NotFoundException extends DomainException {
     public NotFoundException(ErrorCode errorCode) {

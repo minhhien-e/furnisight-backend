@@ -1,6 +1,4 @@
-package com.furnisight.order.domain.exceptions.order;
-
-import com.furnisight.order.domain.exceptions.DomainException;
+package com.furnisight.order.domain.exceptions;
 
 public class InvalidOperationException extends DomainException {
     public InvalidOperationException(ErrorCode errorCode) {

@@ -221,7 +221,7 @@ services:
       context: ./order-service
       <<: *java-build
     expose:
-      - "8085"
+      - "8080"
       - "9095"
     env_file:
       - ./order-service/.env

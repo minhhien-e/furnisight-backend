@@ -23,4 +23,24 @@ public class OrderRepositoryImpl implements OrderRepository {
     public Optional<Order> findById(UUID id) {
         return jpaRepository.findById(id);
     }
+
+    @Override
+    public java.util.List<Order> findAllByUserId(UUID userId) {
+        return jpaRepository.findAllByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    @Override
+    public Optional<Order> findByOrderCode(String orderCode) {
+        return jpaRepository.findByOrderCode(orderCode);
+    }
+
+    @Override
+    public java.util.List<Order> findAllByStatus(com.furnisight.order.domain.enums.OrderStatus status) {
+        return jpaRepository.findAllByStatusOrderByCreatedAtDesc(status);
+    }
+
+    @Override
+    public java.util.List<Order> findAll() {
+        return jpaRepository.findAllByOrderByCreatedAtDesc();
+    }
 }
