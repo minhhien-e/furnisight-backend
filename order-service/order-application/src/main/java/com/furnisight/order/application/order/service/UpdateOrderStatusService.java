@@ -15,16 +15,31 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     private final OrderRepository orderRepository;
 
     @Override
-    public void updateOrderStatus(UpdateOrderStatusCommand command) {
-        Order order = orderRepository.findByOrderCode(command.getOrderCode())
+    public void shipOrder(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
-        
-        try {
-            com.furnisight.order.domain.enums.OrderStatus newStatus = com.furnisight.order.domain.enums.OrderStatus.valueOf(command.getStatus().toUpperCase());
-            order.setStatus(newStatus);
-            orderRepository.save(order);
-        } catch (IllegalArgumentException e) {
-            throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
+        order.shipOrder();
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void deliverOrder(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
+        order.deliverOrder();
+        orderRepository.save(order);
+    }
+
+    @Override
+    public void cancelOrder(String orderCode, java.util.UUID userId) {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
+
+        if (!order.getUserId().equals(userId)) {
+            throw new ValidationException(ErrorCode.ORDER_NOT_FOUND);
         }
+
+        order.cancelOrder();
+        orderRepository.save(order);
     }
 }

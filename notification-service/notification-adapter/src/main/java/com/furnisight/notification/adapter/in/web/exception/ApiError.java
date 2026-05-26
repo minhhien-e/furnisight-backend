@@ -1,4 +1,4 @@
-package com.furnisight.catalog.presentation.web.exception;
+package com.furnisight.notification.adapter.in.web.exception;
 
 import lombok.Builder;
 import lombok.Getter;

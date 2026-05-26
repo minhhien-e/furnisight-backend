@@ -1,7 +1,6 @@
-package com.furnisight.catalog.presentation.web.exception;
+package com.furnisight.cart.exception;
 
-import com.furnisight.catalog.domain.exceptions.DomainException;
-import com.furnisight.catalog.domain.exceptions.*;
+
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -17,49 +16,6 @@ import java.util.stream.Collectors;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    @ExceptionHandler(DomainException.class)
-    public ResponseEntity<ApiError> handleDomainException(
-            DomainException ex,
-            HttpServletRequest request
-    ) {{
-        String code = "BAD_REQUEST";
-        if (ex.getErrorCode() != null) {{
-            code = ex.getErrorCode().name();
-        }}
-        log.warn("Domain exception occurred: code={{}}, message={{}}, path={{}}", code, ex.getMessage(), request.getRequestURI());
-        return buildResponse(HttpStatus.BAD_REQUEST, code, ex.getMessage(), request.getRequestURI());
-    }}
-
-    @ExceptionHandler(NotFoundException.class)
-    public ResponseEntity<ApiError> handleNotFoundException(NotFoundException ex, HttpServletRequest request) {{
-        String code = ex.getErrorCode() != null ? ex.getErrorCode().name() : "NOT_FOUND";
-        return buildResponse(HttpStatus.NOT_FOUND, code, ex.getMessage(), request.getRequestURI());
-    }}
-
-    @ExceptionHandler(AlreadyExistsException.class)
-    public ResponseEntity<ApiError> handleAlreadyExistsException(AlreadyExistsException ex, HttpServletRequest request) {{
-        String code = ex.getErrorCode() != null ? ex.getErrorCode().name() : "CONFLICT";
-        return buildResponse(HttpStatus.CONFLICT, code, ex.getMessage(), request.getRequestURI());
-    }}
-
-    @ExceptionHandler(ValidationException.class)
-    public ResponseEntity<ApiError> handleDomainValidationException(ValidationException ex, HttpServletRequest request) {{
-        String code = ex.getErrorCode() != null ? ex.getErrorCode().name() : "BAD_REQUEST";
-        return buildResponse(HttpStatus.BAD_REQUEST, code, ex.getMessage(), request.getRequestURI());
-    }}
-
-    @ExceptionHandler(InvalidOperationException.class)
-    public ResponseEntity<ApiError> handleInvalidOperationException(InvalidOperationException ex, HttpServletRequest request) {{
-        String code = ex.getErrorCode() != null ? ex.getErrorCode().name() : "BAD_REQUEST";
-        return buildResponse(HttpStatus.BAD_REQUEST, code, ex.getMessage(), request.getRequestURI());
-    }}
-
-    @ExceptionHandler(ForbiddenException.class)
-    public ResponseEntity<ApiError> handleForbiddenException(ForbiddenException ex, HttpServletRequest request) {{
-        String code = ex.getErrorCode() != null ? ex.getErrorCode().name() : "FORBIDDEN";
-        return buildResponse(HttpStatus.FORBIDDEN, code, ex.getMessage(), request.getRequestURI());
-    }}
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationException(

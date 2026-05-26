@@ -66,7 +66,7 @@ public class OrderLifecycle {
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .orderCode(orderCode)
-                .status(OrderStatus.PENDING)
+                .status(OrderStatus.UNPAID)
                 .fee(OrderFee.builder()
                         .shippingFee(shippingFee)
                         .shippingDiscount(shippingDiscount)

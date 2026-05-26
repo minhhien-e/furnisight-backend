@@ -1,7 +1,7 @@
-package com.furnisight.catalog.presentation.web.exception;
+package com.furnisight.order.adapter.in.web.exception;
 
-import com.furnisight.catalog.domain.exceptions.DomainException;
-import com.furnisight.catalog.domain.exceptions.*;
+import com.furnisight.order.domain.exceptions.DomainException;
+import com.furnisight.order.domain.exceptions.*;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;

@@ -1,11 +1,9 @@
-package com.furnisight.order.adapter.in.web;
+package com.furnisight.order.adapter.in.web.rest;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
 import com.furnisight.order.application.order.port.in.usecase.GetOrderQuery;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
-import com.furnisight.order.application.order.port.in.command.UpdateOrderStatusCommand;
-import com.furnisight.order.adapter.in.web.dto.request.UpdateOrderStatusRequest;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.adapter.in.web.dto.response.OrderListResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderDetailResponse;
@@ -25,15 +23,18 @@ public class OrderController {
     private final CreateOrderUseCase createOrderUseCase;
     private final GetOrderQuery getOrderQuery;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
+    private final com.furnisight.order.application.common.port.in.CurrentUserProvider currentUserProvider;
 
     @PostMapping
     public ResponseEntity<UUID> createOrder(@RequestBody CreateOrderCommand command) {
+        command.setUserId(currentUserProvider.getCurrentUserId());
         UUID orderId = createOrderUseCase.createOrder(command);
         return ResponseEntity.ok(orderId);
     }
 
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderListResponse>> getUserOrders(@PathVariable UUID userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<OrderListResponse>> getUserOrders() {
+        UUID userId = currentUserProvider.getCurrentUserId();
         List<Order> orders = getOrderQuery.getUserOrders(userId);
 
         List<OrderListResponse> response = orders.stream().map(order -> {
@@ -108,17 +109,22 @@ public class OrderController {
         return ResponseEntity.ok(response);
     }
 
-    @PatchMapping("/admin/{orderCode}/status")
-    public ResponseEntity<Void> updateOrderStatus(
-            @PathVariable String orderCode, 
-            @RequestBody UpdateOrderStatusRequest request) {
-        
-        UpdateOrderStatusCommand command = UpdateOrderStatusCommand.builder()
-                .orderCode(orderCode)
-                .status(request.getStatus())
-                .build();
-        
-        updateOrderStatusUseCase.updateOrderStatus(command);
+    @PostMapping("/admin/{orderCode}/ship")
+    public ResponseEntity<Void> shipOrder(@PathVariable String orderCode) {
+        updateOrderStatusUseCase.shipOrder(orderCode);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/admin/{orderCode}/deliver")
+    public ResponseEntity<Void> deliverOrder(@PathVariable String orderCode) {
+        updateOrderStatusUseCase.deliverOrder(orderCode);
+        return ResponseEntity.noContent().build();
+    }
+
+    @PostMapping("/{orderCode}/cancel")
+    public ResponseEntity<Void> cancelOrder(@PathVariable String orderCode) {
+        UUID userId = currentUserProvider.getCurrentUserId();
+        updateOrderStatusUseCase.cancelOrder(orderCode, userId);
         return ResponseEntity.noContent().build();
     }
 }

@@ -1,9 +1,10 @@
 package com.furnisight.order.domain.enums;
 
 public enum OrderStatus {
-    PENDING,
-    PROCESSING,
-    SHIPPED,
+    UNPAID,
+    PAID,
+    SHIPPING,
     DELIVERED,
-    CANCELLED
+    CANCELLED,
+    PAYMENT_FAILED
 }

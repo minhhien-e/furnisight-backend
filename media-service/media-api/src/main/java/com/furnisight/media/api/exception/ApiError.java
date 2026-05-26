@@ -1,4 +1,4 @@
-package com.furnisight.catalog.presentation.web.exception;
+package com.furnisight.media.api.exception;
 
 import lombok.Builder;
 import lombok.Getter;
