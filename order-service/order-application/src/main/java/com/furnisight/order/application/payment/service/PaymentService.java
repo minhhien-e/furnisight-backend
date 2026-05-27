@@ -5,12 +5,10 @@ import com.furnisight.order.application.payment.port.in.usecase.CreatePaymentUse
 import com.furnisight.order.application.payment.port.in.usecase.ProcessPaymentCallbackUseCase;
 import com.furnisight.order.application.payment.port.out.PaymentGatewayPort;
 import com.furnisight.order.domain.entities.order.Order;
-import com.furnisight.order.application.order.port.out.event.InventoryEventPublisherPort;
-import com.furnisight.order.domain.entities.reservation.StockReservation;
-import com.furnisight.order.domain.repository.reservation.StockReservationRepository;
 import com.furnisight.order.domain.exceptions.ErrorCode;
 import com.furnisight.order.domain.exceptions.ValidationException;
 import com.furnisight.order.domain.repository.order.OrderRepository;
+import com.furnisight.order.domain.repository.reservation.StockReservationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,7 +24,6 @@ public class PaymentService implements CreatePaymentUseCase, ProcessPaymentCallb
     private final OrderRepository orderRepository;
     private final java.util.List<PaymentGatewayPort> gateways;
     private final StockReservationRepository stockReservationRepository;
-    private final InventoryEventPublisherPort inventoryEventPublisher;
 
     private PaymentGatewayPort getGateway(String paymentMethod) {
         return gateways.stream()

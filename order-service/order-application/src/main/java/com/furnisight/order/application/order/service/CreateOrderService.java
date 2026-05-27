@@ -7,9 +7,6 @@ import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.services.OrderLifecycle;
 import com.furnisight.order.domain.services.dto.OrderItemParam;
 import com.furnisight.order.domain.valueobjects.ShippingDetail;
-import com.furnisight.order.application.order.port.out.event.InventoryEventPublisherPort;
-import com.furnisight.order.domain.entities.reservation.StockReservation;
-import com.furnisight.order.domain.repository.reservation.StockReservationRepository;
 import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -24,8 +21,6 @@ public class CreateOrderService implements CreateOrderUseCase {
 
     private final OrderRepository orderRepository;
     private final OrderLifecycle orderLifecycle;
-    private final StockReservationRepository stockReservationRepository;
-    private final InventoryEventPublisherPort inventoryEventPublisher;
 
     @Override
     @Transactional
@@ -68,26 +63,7 @@ public class CreateOrderService implements CreateOrderUseCase {
 
         Order savedOrder = orderRepository.save(order);
 
-        // Save reservations and emit events
-        if (savedOrder.getItems() != null && !savedOrder.getItems().isEmpty()) {
-            java.util.List<InventoryEventPublisherPort.StockItem> stockItems = new java.util.ArrayList<>();
-            for (var item : savedOrder.getItems()) {
-                StockReservation reservation = StockReservation.builder()
-                        .orderCode(savedOrder.getOrderCode())
-                        .productId(UUID.fromString(item.getProductSnapshot().getProductId()))
-                        .productVariantId(item.getProductSnapshot().getVariantId() != null ? UUID.fromString(item.getProductSnapshot().getVariantId()) : null)
-                        .quantity(item.getQuantity())
-                        .build();
-                stockReservationRepository.save(reservation);
 
-                stockItems.add(InventoryEventPublisherPort.StockItem.builder()
-                        .productId(UUID.fromString(item.getProductSnapshot().getProductId()))
-                        .variantId(item.getProductSnapshot().getVariantId() != null ? UUID.fromString(item.getProductSnapshot().getVariantId()) : null)
-                        .quantity(item.getQuantity())
-                        .build());
-            }
-            inventoryEventPublisher.publishStockReserveEvent(savedOrder.getOrderCode(), stockItems);
-        }
 
         return savedOrder.getId();
     }

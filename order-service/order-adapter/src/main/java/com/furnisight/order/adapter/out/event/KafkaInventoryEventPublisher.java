@@ -34,10 +34,9 @@ public class KafkaInventoryEventPublisher implements InventoryEventPublisherPort
             Map<String, Object> payload = new HashMap<>();
             payload.put("orderCode", orderCode);
             payload.put("items", items);
-            
+
             String jsonPayload = objectMapper.writeValueAsString(payload);
             kafkaTemplate.send(topic, orderCode, jsonPayload);
-            log.info("Published event to topic: {} for order: {}", topic, orderCode);
         } catch (Exception e) {
             log.error("Failed to publish event to topic: {}", topic, e);
         }

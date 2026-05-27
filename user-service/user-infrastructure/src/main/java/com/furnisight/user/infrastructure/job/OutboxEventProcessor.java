@@ -27,10 +27,10 @@ public class OutboxEventProcessor {
         for (var event : events) {
             try {
                 eventPublisher.publish(event.getPayload(), event.getType());
+                event.markAsProcessed();
             } catch (Exception e) {
                 event.markAsFailed(e.getMessage());
             }
-            event.markAsProcessed();
         }
     }
 }

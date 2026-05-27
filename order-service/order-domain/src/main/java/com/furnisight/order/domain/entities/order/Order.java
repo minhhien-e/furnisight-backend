@@ -74,6 +74,10 @@ public class Order extends DomainEntity {
         }
 
         calculateTotals();
+        
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderCreatedEvent.builder()
+                .orderCode(this.orderCode)
+                .build());
     }
 
     private void calculateTotals() {
@@ -165,8 +169,10 @@ public class Order extends DomainEntity {
                     .paymentFailedAt(failedAt)
                     .build();
         }
-        
         this.updatedAt = java.time.LocalDateTime.now();
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderPaymentFailedEvent.builder()
+                .orderCode(this.orderCode)
+                .build());
     }
 
     public void shipOrder() {
@@ -191,5 +197,8 @@ public class Order extends DomainEntity {
         }
         this.status = OrderStatus.CANCELLED;
         this.updatedAt = java.time.LocalDateTime.now();
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderCancelledEvent.builder()
+                .orderCode(this.orderCode)
+                .build());
     }
 }
