@@ -2,9 +2,13 @@ package com.furnisight.order.application.order.service;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
+import com.furnisight.order.application.promotion.port.in.dto.ValidateVoucherCommand;
+import com.furnisight.order.application.promotion.port.in.dto.ValidateVoucherResponse;
+import com.furnisight.order.application.promotion.port.in.usecase.VoucherUseCase;
 import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.services.OrderLifecycle;
+import com.furnisight.order.domain.services.PricingService;
 import com.furnisight.order.domain.services.dto.OrderItemParam;
 import com.furnisight.order.domain.valueobjects.ShippingDetail;
 import com.furnisight.order.domain.valueobjects.PaymentDetail;
@@ -21,6 +25,8 @@ public class CreateOrderService implements CreateOrderUseCase {
 
     private final OrderRepository orderRepository;
     private final OrderLifecycle orderLifecycle;
+    private final VoucherUseCase voucherUseCase;
+    private final PricingService pricingService;
 
     @Override
     @Transactional
@@ -52,13 +58,54 @@ public class CreateOrderService implements CreateOrderUseCase {
                 .paidAmount(0.0)
                 .build();
 
+        // Calculate subtotal for voucher validation using PricingService
+        double subTotal = pricingService.calculateSubTotal(itemParams);
+
+        // Validate Shop Voucher
+        double actualDiscountAmount = 0.0;
+        if (command.getShopVoucherCode() != null && !command.getShopVoucherCode().isEmpty()) {
+            ValidateVoucherResponse shopResp = voucherUseCase.validateVoucher(ValidateVoucherCommand.builder()
+                    .userId(command.getUserId())
+                    .code(command.getShopVoucherCode())
+                    .type("shop")
+                    .subtotal(subTotal)
+                    .build());
+            if (shopResp.isValid()) {
+                actualDiscountAmount = shopResp.getDiscount();
+            } else {
+                throw new IllegalArgumentException(shopResp.getMessage());
+            }
+        }
+
+        // Validate Shipping Voucher
+        double actualShippingDiscount = 0.0;
+        if (command.getShippingVoucherCode() != null && !command.getShippingVoucherCode().isEmpty()) {
+            ValidateVoucherResponse shipResp = voucherUseCase.validateVoucher(ValidateVoucherCommand.builder()
+                    .userId(command.getUserId())
+                    .code(command.getShippingVoucherCode())
+                    .type("ship")
+                    .subtotal(subTotal)
+                    .build());
+            if (shipResp.isValid()) {
+                actualShippingDiscount = shipResp.getDiscount();
+            } else {
+                throw new IllegalArgumentException(shipResp.getMessage());
+            }
+        }
+
         // Delegate core business logic to Domain Service
         Order order = orderLifecycle.createPendingOrder(
                 command.getUserId(),
                 command.getCustomerNote(),
                 shippingDetail,
                 paymentDetail,
-                itemParams
+                itemParams,
+                command.getShopVoucherCode(),
+                command.getShippingVoucherCode(),
+                actualDiscountAmount,
+                actualShippingDiscount,
+                command.getShippingFee(),
+                command.getInsuranceFee()
         );
 
         Order savedOrder = orderRepository.save(order);

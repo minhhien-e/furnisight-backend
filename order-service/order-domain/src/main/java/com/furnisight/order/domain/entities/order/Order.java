@@ -72,42 +72,10 @@ public class Order extends DomainEntity {
             item.setOrder(this);
             this.items.add(item);
         }
-
-        calculateTotals();
         
         this.addDomainEvent(com.furnisight.order.domain.events.OrderCreatedEvent.builder()
                 .orderCode(this.orderCode)
                 .build());
-    }
-
-    private void calculateTotals() {
-        // Calculate Subtotal
-        this.subTotal = this.items.stream()
-                .mapToDouble(item -> item.getPrice() * item.getQuantity())
-                .sum();
-
-        // Safe check for fees
-        double shipping = fee != null && fee.getShippingFee() != null ? fee.getShippingFee() : 0.0;
-        double shippingDisc = fee != null && fee.getShippingDiscount() != null ? fee.getShippingDiscount() : 0.0;
-        double discount = fee != null && fee.getDiscountAmount() != null ? fee.getDiscountAmount() : 0.0;
-        double insurance = fee != null && fee.getInsuranceFee() != null ? fee.getInsuranceFee() : 0.0;
-
-        // Calculate Total
-        this.totalAmount = this.subTotal + shipping + insurance - shippingDisc - discount;
-        if (this.totalAmount < 0) {
-            this.totalAmount = 0.0;
-        }
-
-        // Calculate Saved Amount (from old prices and discounts)
-        double itemSaved = this.items.stream()
-                .mapToDouble(item -> {
-                    if (item.getOldPrice() != null && item.getOldPrice() > item.getPrice()) {
-                        return (item.getOldPrice() - item.getPrice()) * item.getQuantity();
-                    }
-                    return 0.0;
-                })
-                .sum();
-        this.savedAmount = itemSaved + shippingDisc + discount;
     }
 
     public void markPaymentInitiated(java.time.LocalDateTime initiatedAt) {
@@ -145,8 +113,12 @@ public class Order extends DomainEntity {
                     .paymentCompletedAt(paidAt)
                     .build();
         }
-        
         this.updatedAt = java.time.LocalDateTime.now();
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderPaidEvent.builder()
+                .orderCode(this.orderCode)
+                .paidAmount(paidAmount)
+                .paymentMethod(paymentMethod)
+                .build());
     }
 
     public void markPaymentFailed(String paymentMethod, java.time.LocalDateTime failedAt, String reason) {

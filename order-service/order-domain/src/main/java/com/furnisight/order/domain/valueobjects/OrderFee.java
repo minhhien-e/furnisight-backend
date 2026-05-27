@@ -16,9 +16,11 @@ public class OrderFee {
     private Double shippingDiscount;
     private Double discountAmount;
     private Double insuranceFee;
+    private String shopVoucherCode;
+    private String shippingVoucherCode;
 
     @Builder
-    public OrderFee(Double shippingFee, Double shippingDiscount, Double discountAmount, Double insuranceFee) {
+    public OrderFee(Double shippingFee, Double shippingDiscount, Double discountAmount, Double insuranceFee, String shopVoucherCode, String shippingVoucherCode) {
         if (shippingFee != null && shippingFee < 0) throw new ValidationException(ErrorCode.INVALID_FEE);
         if (insuranceFee != null && insuranceFee < 0) throw new ValidationException(ErrorCode.INVALID_FEE);
         if (shippingDiscount != null && shippingDiscount < 0) throw new ValidationException(ErrorCode.INVALID_DISCOUNT);
@@ -28,6 +30,8 @@ public class OrderFee {
         this.shippingDiscount = shippingDiscount;
         this.discountAmount = discountAmount;
         this.insuranceFee = insuranceFee;
+        this.shopVoucherCode = shopVoucherCode;
+        this.shippingVoucherCode = shippingVoucherCode;
     }
 
     public Double calculateTotalFee() {

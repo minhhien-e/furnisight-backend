@@ -22,23 +22,30 @@ import java.util.stream.Collectors;
 public class OrderLifecycle {
 
     private final OrderCodeGenerator orderCodeGenerator;
+    private final PricingService pricingService;
 
     public Order createPendingOrder(
             UUID userId,
             String customerNote,
             ShippingDetail shippingDetail,
             PaymentDetail paymentDetail,
-            List<OrderItemParam> itemParams) {
+            List<OrderItemParam> itemParams,
+            String shopVoucherCode,
+            String shippingVoucherCode,
+            Double discountAmount,
+            Double shippingDiscount,
+            Double shippingFee,
+            Double insuranceFee) {
 
         if (itemParams == null || itemParams.isEmpty()) {
             throw new ValidationException(ErrorCode.ORDER_ITEM_EMPTY);
         }
 
-        // Assume default fees
-        double shippingFee = 15000.0;
-        double shippingDiscount = 0.0;
-        double discountAmount = 0.0;
-        double insuranceFee = 0.0;
+        // Use provided fees or default to 0
+        double actualShippingFee = shippingFee != null ? shippingFee : 0.0;
+        double actualInsuranceFee = insuranceFee != null ? insuranceFee : 0.0;
+        double actualShippingDiscount = shippingDiscount != null ? shippingDiscount : 0.0;
+        double actualDiscountAmount = discountAmount != null ? discountAmount : 0.0;
 
         var items = itemParams.stream().map(param ->
                 OrderItem.builder()
@@ -62,21 +69,27 @@ public class OrderLifecycle {
 
         String orderCode = orderCodeGenerator.generate();
 
-        return Order.builder()
+        Order order = Order.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
                 .orderCode(orderCode)
                 .status(OrderStatus.UNPAID)
                 .fee(OrderFee.builder()
-                        .shippingFee(shippingFee)
-                        .shippingDiscount(shippingDiscount)
-                        .discountAmount(discountAmount)
-                        .insuranceFee(insuranceFee)
+                        .shippingFee(actualShippingFee)
+                        .shippingDiscount(actualShippingDiscount)
+                        .discountAmount(actualDiscountAmount)
+                        .insuranceFee(actualInsuranceFee)
+                        .shopVoucherCode(shopVoucherCode)
+                        .shippingVoucherCode(shippingVoucherCode)
                         .build())
                 .customerNote(customerNote)
                 .shippingDetail(shippingDetail)
                 .paymentDetail(paymentDetail)
                 .items(items)
                 .build();
+                
+        pricingService.calculateOrderTotals(order);
+        
+        return order;
     }
 }

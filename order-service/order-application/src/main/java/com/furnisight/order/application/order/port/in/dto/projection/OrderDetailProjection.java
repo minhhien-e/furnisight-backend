@@ -40,6 +40,8 @@ public class OrderDetailProjection {
     private Double insuranceFee;
     private Double savedAmount;
     private Double totalAmount;
+    private String shopVoucherCode;
+    private String shippingVoucherCode;
     
     // Products Info
     private List<OrderDetailItemProjection> items;

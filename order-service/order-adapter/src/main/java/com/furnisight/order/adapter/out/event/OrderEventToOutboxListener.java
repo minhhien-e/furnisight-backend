@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.order.domain.entities.OutboxMessage;
 import com.furnisight.order.domain.events.OrderCancelledEvent;
 import com.furnisight.order.domain.events.OrderCreatedEvent;
+import com.furnisight.order.domain.events.OrderPaidEvent;
 import com.furnisight.order.domain.events.OrderPaymentFailedEvent;
 import com.furnisight.order.domain.repository.OutboxMessageRepository;
 import com.furnisight.order.domain.repository.reservation.StockReservationRepository;
@@ -84,6 +85,23 @@ public class OrderEventToOutboxListener {
     public void handle(OrderCancelledEvent event) {
         log.info("Handling OrderCancelledEvent to outbox for order: {}", event.getOrderCode());
         releaseStock(event.getOrderCode());
+    }
+
+    @SneakyThrows
+    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
+    public void handle(OrderPaidEvent event) {
+        
+        Map<String, Object> payload = new HashMap<>();
+        payload.put("orderCode", event.getOrderCode());
+        payload.put("paidAmount", event.getPaidAmount());
+        payload.put("paymentMethod", event.getPaymentMethod());
+
+        outboxMessageRepository.save(new OutboxMessage(
+                AGGREGATE_TYPE,
+                event.getOrderCode(),
+                "order-paid",
+                objectMapper.writeValueAsString(payload)
+        ));
     }
 
     private void releaseStock(String orderCode) throws Exception {

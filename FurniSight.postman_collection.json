@@ -1930,7 +1930,7 @@
             },
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"customerNote\": \"Giao h\\u00e0ng bu\\u1ed5i s\\u00e1ng\",\n  \"shippingAddressName\": \"Minh Hi\\u1ec1n\",\n  \"shippingAddressPhone\": \"0123456789\",\n  \"shippingAddressDetail\": \"123 \\u0110\\u01b0\\u1eddng A, Qu\\u1eadn B, TP C\",\n  \"shippingMethod\": \"Giao h\\u00e0ng t\\u1eadn n\\u01a1i\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"e0000000-0000-0000-0000-000000000001\",\n      \"variantId\": \"a0000001-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Sofa\",\n      \"productName\": \"Modern Leather Sofa\",\n      \"color\": \"N\\u00e2u\",\n      \"material\": \"Da th\\u1eadt\",\n      \"price\": 12000000,\n      \"quantity\": 1,\n      \"imageUrl\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc\"\n    }\n  ]\n}"
+              "raw": "{\n  \"customerNote\": \"Giao h\\u00e0ng bu\\u1ed5i s\\u00e1ng\",\n  \"shippingAddressName\": \"Minh Hi\\u1ec1n\",\n  \"shippingAddressPhone\": \"0123456789\",\n  \"shippingAddressDetail\": \"123 \\u0110\\u01b0\\u1eddng A, Qu\\u1eadn B, TP C\",\n  \"shippingMethod\": \"Giao h\\u00e0ng t\\u1eadn n\\u01a1i\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"e0000000-0000-0000-0000-000000000001\",\n      \"variantId\": \"a0000001-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Sofa\",\n      \"productName\": \"Modern Leather Sofa\",\n      \"color\": \"N\\u00e2u\",\n      \"material\": \"Da th\\u1eadt\",\n      \"price\": 12000000,\n      \"quantity\": 1,\n      \"imageUrl\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc\"\n    }\n  ],\n  \"shopVoucherCode\": \"DISCOUNT10\",\n  \"shippingVoucherCode\": \"FREESHIP\",\n  \"discountAmount\": 15000.0,\n  \"shippingDiscount\": 15000.0\n}"
             }
           }
         },
@@ -2071,6 +2071,114 @@
               "query": []
             }
           }
+        },
+        {
+          "name": "Get User Vouchers",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/vouchers/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "vouchers",
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Voucher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUMMER_SALE_2026\",\n  \"type\": \"shop\",\n  \"subtotal\": 1000000.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/vouchers/validate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "vouchers",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Voucher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/vouchers/SUMMER_SALE_2026/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "vouchers",
+                "SUMMER_SALE_2026",
+                "save"
+              ]
+            }
+          },
+          "response": []
         }
       ],
       "auth": {
