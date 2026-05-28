@@ -154,6 +154,7 @@ services:
       - catalog-service
       - cart-service
       - notification-service
+      - message-service
       - order-service
       - media-service
       - ai-image-classifier
@@ -257,6 +258,18 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+  message-service:
+    <<: *java-service
+    image: furnisight-message-service:latest
+    container_name: furnisight_message_service
+    build:
+      context: ./message-service
+      <<: *java-build
+    env_file:
+      - ./message-service/.env
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
 
 volumes:
   postgres_data:

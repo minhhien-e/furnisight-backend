@@ -1,0 +1,380 @@
+{
+  "info": {
+    "_postman_id": "c9f1d9f6-3d33-4b5f-9fb5-4d6c4f7e2f10",
+    "name": "MessageService API Collection",
+    "description": "Collection để test REST API của MessageService, gồm conversation, message, notification và các API admin mới như inbox, status, priority, internal note. Dùng biến baseUrl và apiPrefix để chạy local hoặc qua gateway.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8085"
+    },
+    {
+      "key": "apiPrefix",
+      "value": ""
+    },
+    {
+      "key": "conversationId",
+      "value": "1"
+    },
+    {
+      "key": "messageId",
+      "value": "1"
+    },
+    {
+      "key": "notificationId",
+      "value": "1"
+    },
+    {
+      "key": "userId",
+      "value": "1001"
+    },
+    {
+      "key": "adminId",
+      "value": "12"
+    },
+    {
+      "key": "channel",
+      "value": "SUPPORT"
+    },
+    {
+      "key": "status",
+      "value": "OPEN"
+    },
+    {
+      "key": "priority",
+      "value": "HIGH"
+    }
+  ],
+  "item": [
+    {
+      "name": "Conversation",
+      "item": [
+        {
+          "name": "Create conversation",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"buyerId\": 1001,\n  \"staffId\": 12,\n  \"message\": \"Xin chào, tôi cần hỗ trợ\",\n  \"messageType\": \"TEXT\",\n  \"channel\": \"SUPPORT\",\n  \"fileId\": null\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/create",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "create"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get conversations by user",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/all/{{userId}}",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "all",
+                "{{userId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get conversation by id",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/{{conversationId}}",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "{{conversationId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get conversations by channel",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/channel/{{channel}}",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "channel",
+                "{{channel}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get admin inbox",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/admin/inbox?channel={{channel}}&status={{status}}&priority={{priority}}&assignedAdminId={{adminId}}&unreadOnly=false",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "admin",
+                "inbox"
+              ],
+              "query": [
+                {
+                  "key": "channel",
+                  "value": "{{channel}}"
+                },
+                {
+                  "key": "status",
+                  "value": "{{status}}"
+                },
+                {
+                  "key": "priority",
+                  "value": "{{priority}}"
+                },
+                {
+                  "key": "assignedAdminId",
+                  "value": "{{adminId}}"
+                },
+                {
+                  "key": "unreadOnly",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Assign conversation to admin",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/{{conversationId}}/assign/{{adminId}}",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "{{conversationId}}",
+                "assign",
+                "{{adminId}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Close conversation",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/{{conversationId}}/close",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "{{conversationId}}",
+                "close"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update conversation status",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/{{conversationId}}/status/{{status}}",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "{{conversationId}}",
+                "status",
+                "{{status}}"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Update conversation priority",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/conversation/{{conversationId}}/priority/{{priority}}",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "conversation",
+                "{{conversationId}}",
+                "priority",
+                "{{priority}}"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Message",
+      "item": [
+        {
+          "name": "Get messages by conversation",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/message?conversationID={{conversationId}}&page=0&size=20&includeInternal=false",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "message"
+              ],
+              "query": [
+                {
+                  "key": "conversationID",
+                  "value": "{{conversationId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "20"
+                },
+                {
+                  "key": "includeInternal",
+                  "value": "false"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark message as read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/message/{{messageId}}/read",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "message",
+                "{{messageId}}",
+                "read"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create internal note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"senderId\": 12,\n  \"content\": \"Ghi chú nội bộ: chờ xác minh thêm thông tin đơn hàng\",\n  \"messageType\": \"TEXT\",\n  \"isInternal\": true\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/message/{{conversationId}}/internal-note",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "message",
+                "{{conversationId}}",
+                "internal-note"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notification",
+      "item": [
+        {
+          "name": "Get notifications by user",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/notification?receiverID={{userId}}&page=0&size=10&sortBy=createdAt",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "notification"
+              ],
+              "query": [
+                {
+                  "key": "receiverID",
+                  "value": "{{userId}}"
+                },
+                {
+                  "key": "page",
+                  "value": "0"
+                },
+                {
+                  "key": "size",
+                  "value": "10"
+                },
+                {
+                  "key": "sortBy",
+                  "value": "createdAt"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mark notification as read",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{baseUrl}}{{apiPrefix}}/notification/{{notificationId}}/read",
+              "host": [
+                "{{baseUrl}}{{apiPrefix}}"
+              ],
+              "path": [
+                "notification",
+                "{{notificationId}}",
+                "read"
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
