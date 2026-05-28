@@ -66,6 +66,16 @@ spring:
                     regexp: /notifications/(?<segment>.*)
                     replacement: /api/v1/$\{segment}
 
+            - id: message-service
+              uri: ${MESSAGE_SERVICE_URL:http://message-service:8080}
+              predicates:
+                - Path=/messages/**
+              filters:
+                - name: RewritePath
+                  args:
+                    regexp: /messages/(?<segment>.*)
+                    replacement: /$\{segment}
+
             - id: ai-image-classifier
               uri: ${AI_IMAGE_CLASSIFIER_URL}
               predicates:
