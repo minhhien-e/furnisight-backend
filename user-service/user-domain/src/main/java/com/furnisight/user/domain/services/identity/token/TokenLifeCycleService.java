@@ -17,6 +17,7 @@ import com.furnisight.user.domain.valueobjects.identity.RefreshToken;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import com.furnisight.user.domain.repository.identity.RoleRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -33,6 +34,7 @@ public class TokenLifeCycleService {
     private final AccessTokenGenerator accessTokenGenerator;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final OtpCodeGenerator otpCodeGenerator;
+    private final RoleRepository roleRepository;
     @Value("${app.security.verify-url:http://localhost:8080/users/auth/verify-email}")
     private String verifyUrl;
 
@@ -41,7 +43,9 @@ public class TokenLifeCycleService {
     public AccountToken generateAccountToken(Account account) {
         AccessToken accessToken = accessTokenGenerator.generateToken(account);
         RefreshToken refreshToken = refreshTokenGenerator.generateToken();
-        var accountToken = new AccountToken(account.getId(), accessToken, refreshToken);
+        List<String> roles = roleRepository.findAllByAccountId(account.getId()).stream()
+                .map(role -> role.getName().getValue()).toList();
+        var accountToken = new AccountToken(account.getId(), accessToken, refreshToken, roles);
         return accountTokenRepository.save(accountToken);
     }
 
@@ -51,7 +55,9 @@ public class TokenLifeCycleService {
         accountToken.revoke();
         AccessToken newAccessToken = accessTokenGenerator.generateToken(account);
         RefreshToken refreshToken = refreshTokenGenerator.generateToken();
-        var newAccountToken = new AccountToken(account.getId(), newAccessToken, refreshToken);
+        List<String> roles = roleRepository.findAllByAccountId(account.getId()).stream()
+                .map(role -> role.getName().getValue()).toList();
+        var newAccountToken = new AccountToken(account.getId(), newAccessToken, refreshToken, roles);
         return accountTokenRepository.save(newAccountToken);
     }
 
@@ -70,25 +76,24 @@ public class TokenLifeCycleService {
     public void sendAccountVerificationOtp(Account account, String channel) {
         String otp = otpCodeGenerator.generateOtpCode();
         VerificationRequest request = new VerificationRequest(
-            account.getId(),
-            VerificationType.ACCOUNT_VERIFICATION,
-            channel, otp,
-            LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
-            LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES)
-        );
-        request.registerEvent(new AccountVerificationRequestedEvent(account.getId(), verifyUrl + request.getOtpCode(), LocalDateTime.now()));
+                account.getId(),
+                VerificationType.ACCOUNT_VERIFICATION,
+                channel, otp,
+                LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
+                LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES));
+        request.registerEvent(new AccountVerificationRequestedEvent(account.getId(), verifyUrl + request.getOtpCode(),
+                LocalDateTime.now()));
         verificationRequestRepository.save(request);
     }
 
     public void sendPasswordResetOtp(Account account, String channel) {
         String otp = otpCodeGenerator.generateOtpCode();
         VerificationRequest request = new VerificationRequest(
-            account.getId(),
-            VerificationType.PASSWORD_RESET,
-            channel, otp,
-            LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
-            LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES)
-        );
+                account.getId(),
+                VerificationType.PASSWORD_RESET,
+                channel, otp,
+                LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
+                LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES));
         request.requestOtp(channel); // fires AccountResetPasswordRequestedEvent
         verificationRequestRepository.save(request);
     }

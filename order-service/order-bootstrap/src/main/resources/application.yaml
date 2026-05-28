@@ -48,4 +48,4 @@ vnpay:
   api-url: ${VNPAY_API_URL:https://sandbox.vnpayment.vn/merchant_webapi/api/transaction}
 
 frontend:
-  url: ${FRONTEND_URL:http://localhost:3000}
+  url: ${FRONTEND_URL:http://localhost:5173}

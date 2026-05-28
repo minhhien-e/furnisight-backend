@@ -40,6 +40,7 @@ public class JwtAccessTokenGenerator implements AccessTokenGenerator {
 
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .subject(account.getId().toString())
+            .claim("roles", roles.stream().map(role -> role.getName().getValue()).toList())
             .claim("permissions", getPermissions(account, roles).stream().map(Permission::name).toList())
             .issuedAt(now)
             .expiresAt(expiresAt)

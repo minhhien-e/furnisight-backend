@@ -47,17 +47,7 @@ spring:
           time_zone: Asia/Ho_Chi_Minh
     show-sql: true
 
-  mail:
-    host: ${MAIL_HOST}
-    port: ${MAIL_PORT:587}
-    password: ${MAIL_PASSWORD}
-    username: ${MAIL_USERNAME}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
+
 
 server:
   forward-headers-strategy: framework
@@ -77,11 +67,3 @@ management:
   endpoint:
     health:
       show-details: always 
-
-springdoc:
-  api-docs:
-    path: /v3/api-docs
-  swagger-ui:
-    config-url: /api/v1/furniro/message-service/v3/api-docs/swagger-config
-    url: /api/v1/furniro/message-service/v3/api-docs
-    disable-swagger-default-url: true

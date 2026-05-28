@@ -10,7 +10,7 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -24,17 +24,21 @@ public class AccountToken extends AggregateRoot {
     private UUID accountId;
     private AccessToken accessToken;
     private RefreshToken refreshToken;
+    private List<String> roles;
 
-    public AccountToken(UUID accountId, AccessToken accessToken, RefreshToken refreshToken) {
+    public AccountToken(UUID accountId, AccessToken accessToken, RefreshToken refreshToken, List<String> roles) {
         this.id = UUID.randomUUID();
         this.accountId = accountId;
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+        this.roles = roles;
     }
+
     public void revoke() {
         accessToken.revoke();
         refreshToken.revoke();
     }
+
     public boolean refreshTokenIsExpired() {
         return refreshToken.isExpired();
     }
