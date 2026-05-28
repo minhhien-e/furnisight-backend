@@ -1,5 +1,8 @@
 package com.furnisight.order.domain.exceptions;
 
+import lombok.Getter;
+
+@Getter
 public class DomainException extends RuntimeException {
     private final ErrorCode errorCode;
 
@@ -8,7 +11,4 @@ public class DomainException extends RuntimeException {
         this.errorCode = errorCode;
     }
 
-    public ErrorCode getErrorCode() {
-        return errorCode;
-    }
 }

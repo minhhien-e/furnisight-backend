@@ -1,17 +1,23 @@
 package com.furnisight.order.adapter.in.web.rest;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
+import com.furnisight.order.application.order.service.ExpireUnpaidOrdersService;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
 import com.furnisight.order.application.order.port.in.usecase.GetOrderQuery;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
 import com.furnisight.order.domain.entities.order.Order;
+import com.furnisight.order.domain.entities.order.OrderItem;
+import com.furnisight.order.domain.enums.OrderStatus;
+import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.adapter.in.web.dto.response.OrderListResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderDetailResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderItemResponse;
+import com.furnisight.order.domain.valueobjects.ProductSnapshot;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,11 +31,11 @@ public class OrderController {
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
     private final com.furnisight.order.application.common.port.in.CurrentUserProvider currentUserProvider;
 
-    @PostMapping
-    public ResponseEntity<UUID> createOrder(@RequestBody CreateOrderCommand command) {
+    @PostMapping("/initiate")
+    public ResponseEntity<OrderCreateProjection> initiateOrder(@RequestBody CreateOrderCommand command) {
         command.setUserId(currentUserProvider.getCurrentUserId());
-        UUID orderId = createOrderUseCase.createOrder(command);
-        return ResponseEntity.ok(orderId);
+        OrderCreateProjection projection = createOrderUseCase.createOrder(command);
+        return ResponseEntity.ok(projection);
     }
 
     @GetMapping("/user")
@@ -38,16 +44,16 @@ public class OrderController {
         List<Order> orders = getOrderQuery.getUserOrders(userId);
 
         List<OrderListResponse> response = orders.stream().map(order -> {
-            String firstImage = null;
-            if (order.getItems() != null && !order.getItems().isEmpty()) {
-                firstImage = order.getItems().get(0).getProductSnapshot().getImageUrl();
-            }
+            String firstImage = resolveFirstProductImage(order);
             return OrderListResponse.builder()
                     .id(order.getId())
                     .orderCode(order.getOrderCode())
                     .status(order.getStatus().name())
                     .totalAmount(order.getTotalAmount())
                     .createdAt(order.getCreatedAt())
+                    .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
+                    .paymentMethod(resolvePaymentMethod(order))
+                    .canRetryPayment(canRetryPayment(order))
                     .firstProductImage(firstImage)
                     .build();
         }).collect(Collectors.toList());
@@ -82,6 +88,8 @@ public class OrderController {
                 .paymentDetail(order.getPaymentDetail())
                 .items(itemResponses)
                 .createdAt(order.getCreatedAt())
+                .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
+                .canRetryPayment(canRetryPayment(order))
                 .build();
 
         return ResponseEntity.ok(response);
@@ -92,16 +100,16 @@ public class OrderController {
         List<Order> orders = getOrderQuery.getAdminOrders(status);
 
         List<OrderListResponse> response = orders.stream().map(order -> {
-            String firstImage = null;
-            if (order.getItems() != null && !order.getItems().isEmpty()) {
-                firstImage = order.getItems().get(0).getProductSnapshot().getImageUrl();
-            }
+            String firstImage = resolveFirstProductImage(order);
             return OrderListResponse.builder()
                     .id(order.getId())
                     .orderCode(order.getOrderCode())
                     .status(order.getStatus().name())
                     .totalAmount(order.getTotalAmount())
                     .createdAt(order.getCreatedAt())
+                    .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
+                    .paymentMethod(resolvePaymentMethod(order))
+                    .canRetryPayment(canRetryPayment(order))
                     .firstProductImage(firstImage)
                     .build();
         }).collect(Collectors.toList());
@@ -126,5 +134,28 @@ public class OrderController {
         UUID userId = currentUserProvider.getCurrentUserId();
         updateOrderStatusUseCase.cancelOrder(orderCode, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    private String resolveFirstProductImage(Order order) {
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            return null;
+        }
+
+        OrderItem firstItem = order.getItems().get(0);
+        if (firstItem == null) {
+            return null;
+        }
+
+        ProductSnapshot productSnapshot = firstItem.getProductSnapshot();
+        return productSnapshot != null ? productSnapshot.getImageUrl() : null;
+    }
+
+    private boolean canRetryPayment(Order order) {
+        return (order.getStatus() == OrderStatus.UNPAID || order.getStatus() == OrderStatus.PAYMENT_FAILED)
+                && ExpireUnpaidOrdersService.isPaymentWindowOpen(order, LocalDateTime.now());
+    }
+
+    private String resolvePaymentMethod(Order order) {
+        return order.getPaymentDetail() != null ? order.getPaymentDetail().getPaymentMethod() : null;
     }
 }

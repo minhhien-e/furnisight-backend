@@ -4,7 +4,9 @@ import com.furnisight.order.application.payment.port.in.command.CreatePaymentCom
 import com.furnisight.order.application.payment.port.in.usecase.CreatePaymentUseCase;
 import com.furnisight.order.application.payment.port.in.usecase.ProcessPaymentCallbackUseCase;
 import com.furnisight.order.application.payment.port.out.PaymentGatewayPort;
+import com.furnisight.order.application.order.service.ExpireUnpaidOrdersService;
 import com.furnisight.order.domain.entities.order.Order;
+import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.exceptions.ErrorCode;
 import com.furnisight.order.domain.exceptions.ValidationException;
 import com.furnisight.order.domain.repository.order.OrderRepository;
@@ -14,7 +16,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Service
@@ -40,7 +41,14 @@ public class PaymentService implements CreatePaymentUseCase, ProcessPaymentCallb
         Order order = orderRepository.findByOrderCode(command.getOrderCode())
                 .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
 
-        order.markPaymentInitiated(LocalDateTime.now());
+        LocalDateTime now = LocalDateTime.now();
+        if (!ExpireUnpaidOrdersService.isPaymentWindowOpen(order, now)) {
+            order.cancelOrder();
+            orderRepository.save(order);
+            throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
+        }
+
+        order.markPaymentInitiated(now);
         orderRepository.save(order);
 
         return gateway.generatePaymentUrl(order, command.getClientIp());
@@ -56,16 +64,26 @@ public class PaymentService implements CreatePaymentUseCase, ProcessPaymentCallb
         Order order = orderRepository.findByOrderCode(result.getOrderCode())
                 .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
 
+        LocalDateTime now = LocalDateTime.now();
+
         // Idempotency check: if already processed, just return the appropriate result
-        if (order.getStatus() == com.furnisight.order.domain.enums.OrderStatus.PAID) {
+        if (order.getStatus() == OrderStatus.PAID) {
             return true;
         }
-        if (order.getStatus() == com.furnisight.order.domain.enums.OrderStatus.PAYMENT_FAILED && !result.isSuccess()) {
+        if (order.getStatus() == OrderStatus.CANCELLED) {
+            return false;
+        }
+        if (!ExpireUnpaidOrdersService.isPaymentWindowOpen(order, now)) {
+            order.cancelOrder();
+            orderRepository.save(order);
+            return false;
+        }
+        if (order.getStatus() == OrderStatus.PAYMENT_FAILED && !result.isSuccess()) {
             return false;
         }
 
         if (!result.isSuccess()) {
-            order.markPaymentFailed(paymentMethod.toUpperCase(), LocalDateTime.now(), result.getErrorMessage());
+            order.markPaymentFailed(paymentMethod.toUpperCase(), now, result.getErrorMessage());
             orderRepository.save(order);
             return false;
         }

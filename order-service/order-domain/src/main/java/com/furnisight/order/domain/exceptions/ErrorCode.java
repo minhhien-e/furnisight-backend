@@ -18,7 +18,8 @@ public enum ErrorCode {
     INVALID_PRODUCT_INFO("Product information cannot be empty"),
     INVALID_PRODUCT_DIMENSIONS("Product dimensions must be greater than zero"),
     PAYMENT_FAILED("Payment failed"),
-    INVALID_SIGNATURE("Invalid signature");
+    INVALID_SIGNATURE("Invalid signature"),
+    UNAUTHORIZED("User not authenticated");
 
     private final String description;
 

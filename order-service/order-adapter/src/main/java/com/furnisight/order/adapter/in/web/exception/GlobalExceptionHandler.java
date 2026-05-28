@@ -60,6 +60,12 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.FORBIDDEN, code, ex.getMessage(), request.getRequestURI());
     }}
 
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiError> handleUnauthorizedException(UnauthorizedException ex, HttpServletRequest request) {{
+        String code = ex.getErrorCode() != null ? ex.getErrorCode().name() : "UNAUTHORIZED";
+        return buildResponse(HttpStatus.UNAUTHORIZED, code, ex.getMessage(), request.getRequestURI());
+    }}
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidationException(
             MethodArgumentNotValidException ex,

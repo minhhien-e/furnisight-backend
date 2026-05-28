@@ -13,5 +13,8 @@ public class OrderListResponse {
     private String status;
     private Double totalAmount;
     private LocalDateTime createdAt;
+    private LocalDateTime paymentExpiresAt;
+    private String paymentMethod;
+    private Boolean canRetryPayment;
     private String firstProductImage;
 }

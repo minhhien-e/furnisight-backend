@@ -15,6 +15,7 @@ import java.util.UUID;
 @Entity
 @Table(name = "stock_reservations")
 @Data
+@lombok.EqualsAndHashCode(callSuper=false)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class StockReservation extends DomainEntity {
 

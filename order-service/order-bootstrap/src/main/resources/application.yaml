@@ -18,11 +18,8 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-    show-sql: true
+    show-sql: false
+    open-in-view: false
   flyway:
     enabled: true
     baseline-on-migrate: true
@@ -42,12 +39,6 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     listener:
       missing-topics-fatal: false
-
-logging:
-  level:
-    org.springframework.security: INFO
-    org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 vnpay:
   tmn-code: ${VNPAY_TMN_CODE:8ND6L7V9}

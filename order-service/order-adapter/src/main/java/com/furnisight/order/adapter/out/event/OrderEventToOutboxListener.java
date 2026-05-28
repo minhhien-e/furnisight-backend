@@ -5,7 +5,6 @@ import com.furnisight.order.domain.entities.OutboxMessage;
 import com.furnisight.order.domain.events.OrderCancelledEvent;
 import com.furnisight.order.domain.events.OrderCreatedEvent;
 import com.furnisight.order.domain.events.OrderPaidEvent;
-import com.furnisight.order.domain.events.OrderPaymentFailedEvent;
 import com.furnisight.order.domain.repository.OutboxMessageRepository;
 import com.furnisight.order.domain.repository.reservation.StockReservationRepository;
 import com.furnisight.order.domain.repository.order.OrderRepository;
@@ -71,13 +70,6 @@ public class OrderEventToOutboxListener {
                 "inventory-reserve",
                 objectMapper.writeValueAsString(payload)
         ));
-    }
-
-    @SneakyThrows
-    @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
-    public void handle(OrderPaymentFailedEvent event) {
-        log.info("Handling OrderPaymentFailedEvent to outbox for order: {}", event.getOrderCode());
-        releaseStock(event.getOrderCode());
     }
 
     @SneakyThrows

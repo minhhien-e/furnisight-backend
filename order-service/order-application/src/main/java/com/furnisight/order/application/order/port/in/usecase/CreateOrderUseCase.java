@@ -1,8 +1,8 @@
 package com.furnisight.order.application.order.port.in.usecase;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
-import java.util.UUID;
+import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 
 public interface CreateOrderUseCase {
-    UUID createOrder(CreateOrderCommand command);
+    OrderCreateProjection createOrder(CreateOrderCommand command);
 }

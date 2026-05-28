@@ -5,8 +5,13 @@ import lombok.Data;
 import java.util.UUID;
 import java.util.List;
 
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class CreateOrderCommand {
     private UUID userId;
     private String shippingAddressName;
@@ -26,6 +31,8 @@ public class CreateOrderCommand {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class OrderItemCommand {
         private String productId;
         private String variantId;

@@ -21,4 +21,6 @@ public class OrderDetailResponse {
     private Object paymentDetail;
     private List<?> items;
     private LocalDateTime createdAt;
+    private LocalDateTime paymentExpiresAt;
+    private Boolean canRetryPayment;
 }

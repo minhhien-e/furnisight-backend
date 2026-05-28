@@ -2,6 +2,7 @@ package com.furnisight.order.application.order.service;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
+import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.application.promotion.port.in.dto.ValidateVoucherCommand;
 import com.furnisight.order.application.promotion.port.in.dto.ValidateVoucherResponse;
 import com.furnisight.order.application.promotion.port.in.usecase.VoucherUseCase;
@@ -16,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,7 +30,7 @@ public class CreateOrderService implements CreateOrderUseCase {
 
     @Override
     @Transactional
-    public UUID createOrder(CreateOrderCommand command) {
+    public OrderCreateProjection createOrder(CreateOrderCommand command) {
         // Map Application Command to Domain Parameter
         var itemParams = command.getItems() == null ? null : command.getItems().stream()
                 .map(item -> OrderItemParam.builder()
@@ -110,8 +110,10 @@ public class CreateOrderService implements CreateOrderUseCase {
 
         Order savedOrder = orderRepository.save(order);
 
-
-
-        return savedOrder.getId();
+        return OrderCreateProjection.builder()
+                .orderId(savedOrder.getId())
+                .orderCode(savedOrder.getOrderCode())
+                .status(savedOrder.getStatus().name())
+                .build();
     }
 }
