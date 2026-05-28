@@ -14,69 +14,47 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
-    private final SecurityProperties securityProperties;
+        private final HeaderAuthenticationFilter headerAuthenticationFilter;
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http,
-                                                   CustomOAuth2UserService oauth2UserService,
-                                                   CustomOidcUserService oidcUserService,
-                                                   OAuth2SuccessHandler oauth2SuccessHandler,
-                                                   OAuth2FailureHandler oauth2FailureHandler) throws Exception {
+        @Bean
+        public SecurityFilterChain securityFilterChain(HttpSecurity http,
+                        CustomOAuth2UserService oauth2UserService,
+                        CustomOidcUserService oidcUserService,
+                        OAuth2SuccessHandler oauth2SuccessHandler,
+                        OAuth2FailureHandler oauth2FailureHandler) throws Exception {
 
-        var sessionRepo = new HttpSessionSecurityContextRepository();
+                var sessionRepo = new HttpSessionSecurityContextRepository();
 
-        var authRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
+                var authRequestRepository = new HttpSessionOAuth2AuthorizationRequestRepository();
 
-        http
-            .csrf(AbstractHttpConfigurer::disable)
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
-            )
-            .securityContext(ctx -> ctx.securityContextRepository(sessionRepo))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/actuator/**").permitAll()
-                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/v3/api-docs/**").permitAll()
-                .requestMatchers(securityProperties.getAuthWhitelist()).permitAll()
-                .anyRequest().authenticated()
-            )
-            .oauth2ResourceServer(oauth2 -> oauth2
-                .jwt(jwt -> jwt
-                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
-                )
-            )
-            .oauth2Login(oauth -> oauth
-                .authorizationEndpoint(auth -> auth
-                    .authorizationRequestRepository(authRequestRepository))
-                .loginProcessingUrl("/login/oauth2/code/*")
-                .userInfoEndpoint(userInfo -> userInfo
-                    .userService(oauth2UserService)
-                    .oidcUserService(oidcUserService))
-                .successHandler(oauth2SuccessHandler)
-                .failureHandler(oauth2FailureHandler)
-            );
-        return http.build();
-    }
-
-    public JwtAuthenticationConverter jwtAuthenticationConverter() {
-        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
-
-        converter.setJwtGrantedAuthoritiesConverter(jwt -> {
-            List<String> permissions = jwt.getClaimAsStringList("permissions");
-
-            if (permissions == null) return List.of();
-
-            return permissions.stream()
-                .map(SimpleGrantedAuthority::new).collect(Collectors.toSet());
-        });
-
-        return converter;
-    }
+                http
+                                .csrf(AbstractHttpConfigurer::disable)
+                                .sessionManagement(session -> session
+                                                .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED))
+                                .securityContext(ctx -> ctx.securityContextRepository(sessionRepo))
+                                .authorizeHttpRequests(auth -> auth
+                                                .anyRequest().permitAll())
+                                .addFilterBefore(headerAuthenticationFilter,
+                                                org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter.class)
+                                .oauth2Login(oauth -> oauth
+                                                .authorizationEndpoint(auth -> auth
+                                                                .authorizationRequestRepository(authRequestRepository))
+                                                .loginProcessingUrl("/login/oauth2/code/*")
+                                                .userInfoEndpoint(userInfo -> userInfo
+                                                                .userService(oauth2UserService)
+                                                                .oidcUserService(oidcUserService))
+                                                .successHandler(oauth2SuccessHandler)
+                                                .failureHandler(oauth2FailureHandler));
+                return http.build();
+        }
 }

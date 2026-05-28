@@ -27,7 +27,6 @@ public class GlobalExceptionHandler {
         if (ex.getErrorCode() != null) {{
             code = ex.getErrorCode().name();
         }}
-        log.warn("Domain exception occurred: code={{}}, message={{}}, path={{}}", code, ex.getMessage(), request.getRequestURI());
         return buildResponse(HttpStatus.BAD_REQUEST, code, ex.getMessage(), request.getRequestURI());
     }}
 
@@ -72,8 +71,6 @@ public class GlobalExceptionHandler {
                 .map(this::formatFieldError)
                 .collect(Collectors.joining(", "));
 
-        log.warn("Validation failed: message={}, path={}", message, request.getRequestURI());
-
         return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message, request.getRequestURI());
     }
 
@@ -82,7 +79,6 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex,
             HttpServletRequest request
     ) {
-        log.warn("Illegal argument: message={}, path={}", ex.getMessage(), request.getRequestURI());
         return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), request.getRequestURI());
     }
 

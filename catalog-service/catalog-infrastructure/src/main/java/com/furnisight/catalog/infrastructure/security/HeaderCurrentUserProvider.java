@@ -1,15 +1,14 @@
-package com.furnisight.order.adapter.out.provider;
+package com.furnisight.catalog.infrastructure.security;
 
-import com.furnisight.order.application.common.port.in.CurrentUserProvider;
+import com.furnisight.catalog.application.review.port.in.security.CurrentUserProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
 @Component
-public class JwtCurrentUserProvider implements CurrentUserProvider {
+public class HeaderCurrentUserProvider implements CurrentUserProvider {
 
     @Override
     public UUID getCurrentUserId() {
@@ -17,9 +16,7 @@ public class JwtCurrentUserProvider implements CurrentUserProvider {
         if (auth == null || !auth.isAuthenticated()) {
             throw new IllegalStateException("User not authenticated");
         }
-        if (auth.getPrincipal() instanceof Jwt jwt) {
-            return UUID.fromString(jwt.getSubject());
-        }
-        throw new IllegalStateException("Authentication principal is not JWT");
+
+        return UUID.fromString(auth.getPrincipal().toString());
     }
 }

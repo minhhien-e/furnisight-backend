@@ -9,11 +9,7 @@ grpc:
 spring:
   application:
     name: order-service
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${JWK_SET_URI}/.well-known/jwks.json
+
   datasource:
     url: ${SPRING_DATASOURCE_URL}
     username: ${SPRING_DATASOURCE_USERNAME}
