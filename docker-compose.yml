@@ -155,6 +155,7 @@ services:
       - cart-service
       - notification-service
       - message-service
+      - order-service
       - media-service
       - ai-image-classifier
 
@@ -212,6 +213,21 @@ services:
     depends_on:
       - mongo
       - kafka
+
+  order-service:
+    <<: *java-service
+    image: furnisight-order-service:latest
+    container_name: furnisight_order_service
+    build:
+      context: ./order-service
+      <<: *java-build
+    expose:
+      - "8080"
+      - "9095"
+    env_file:
+      - ./order-service/.env
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
 
   ai-image-classifier:
     image: furnisight-ai-image-classifier:latest

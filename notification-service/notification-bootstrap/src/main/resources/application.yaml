@@ -9,11 +9,7 @@ grpc:
 spring:
   application:
     name: notification-service
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${JWK_SET_URI}/.well-known/jwks.json
+
   mail:
     host: ${MAIL_HOST}
     port: ${MAIL_PORT}
