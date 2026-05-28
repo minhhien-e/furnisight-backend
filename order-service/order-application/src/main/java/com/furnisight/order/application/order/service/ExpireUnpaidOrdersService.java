@@ -53,7 +53,7 @@ public class ExpireUnpaidOrdersService {
     public static boolean isPaymentWindowOpen(Order order, LocalDateTime now) {
         LocalDateTime createdAt = order.getCreatedAt();
         if (createdAt == null) {
-            return true;
+            return false;
         }
 
         return createdAt.plus(PAYMENT_TIMEOUT).isAfter(now);

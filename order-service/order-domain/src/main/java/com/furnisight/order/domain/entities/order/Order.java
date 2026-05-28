@@ -65,7 +65,10 @@ public class Order extends DomainEntity {
         this.customerNote = customerNote;
         this.shippingDetail = shippingDetail;
         this.paymentDetail = paymentDetail;
-        this.paymentTimeline = paymentTimeline != null ? paymentTimeline : com.furnisight.order.domain.valueobjects.PaymentTimeline.builder().orderCreatedAt(java.time.LocalDateTime.now()).build();
+        java.time.LocalDateTime now = java.time.LocalDateTime.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+        this.paymentTimeline = paymentTimeline != null ? paymentTimeline : com.furnisight.order.domain.valueobjects.PaymentTimeline.builder().orderCreatedAt(now).build();
         this.items = new ArrayList<>();
 
         for (OrderItem item : items) {

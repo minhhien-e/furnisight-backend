@@ -1,9 +1,12 @@
 package com.furnisight.order.domain.entities.promotion;
 
 import com.furnisight.order.domain.seedwork.DomainEntity;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -14,6 +17,8 @@ import jakarta.persistence.*;
 @Data
 @EqualsAndHashCode(callSuper = true)
 @Builder
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserVoucher extends DomainEntity {
     @Id
     private UUID id;

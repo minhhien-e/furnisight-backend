@@ -39,13 +39,23 @@ public class PaymentController {
     private String frontendUrl;
 
     @GetMapping("/{paymentMethod}/callback")
-    public ResponseEntity<Void> processPaymentCallback(@PathVariable String paymentMethod,
-            @RequestParam Map<String, String> params) {
+    public ResponseEntity<?> processPaymentCallback(@PathVariable String paymentMethod,
+            @RequestParam Map<String, String> params,
+            HttpServletRequest request) {
         boolean success = processPaymentCallbackUseCase.processCallback(paymentMethod, params);
+        if (expectsJson(request)) {
+            return ResponseEntity.ok(Map.of("success", success));
+        }
+
         if (success) {
             return ResponseEntity.status(302).location(URI.create(frontendUrl + "/payment/success")).build();
         } else {
             return ResponseEntity.status(302).location(URI.create(frontendUrl + "/payment/failure")).build();
         }
+    }
+
+    private boolean expectsJson(HttpServletRequest request) {
+        String accept = request.getHeader("Accept");
+        return accept != null && accept.contains("application/json");
     }
 }
