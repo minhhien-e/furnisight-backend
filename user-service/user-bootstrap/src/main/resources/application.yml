@@ -76,7 +76,5 @@ jwt:
   reset-password-token-expiration-ms: 3600000 # 1 hour
 
 app:
-  security:
-    auth-whitelist: ${AUTH_WHITELIST}
-    verify-url: ${VERIFY_URL:http://localhost:8080/users/auth/verify-email}
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
+  verify-url: ${VERIFY_URL:http://localhost:8080/users/auth/verify-email}

@@ -20,18 +20,17 @@ public class OutboxEventProcessor {
     public void process() {
         var events = outboxMessageRepository.findPendingMessages();
         if (events.isEmpty()) {
-            log.info("No pending events found");
-        }
-        else {
-            log.info("Processing {} pending events", events.size());
+            log.debug("No pending events found");
+        } else {
+            log.debug("Processing {} pending events", events.size());
         }
         for (var event : events) {
             try {
                 eventPublisher.publish(event.getPayload(), event.getType());
+                event.markAsProcessed();
             } catch (Exception e) {
                 event.markAsFailed(e.getMessage());
             }
-            event.markAsProcessed();
         }
     }
 }

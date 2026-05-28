@@ -8,7 +8,7 @@
   "item": [
     {
       "name": "AI Image Classifier",
-      "description": "Collection for testing the AI Image Classification microservice.\n\nEndpoints:\n- GET  /health  — kiểm tra service đang chạy\n- POST /predict — phân loại ảnh (normal hoặc 360°)",
+      "description": "Collection for testing the AI Image Classification microservice.\n\nEndpoints:\n- GET  /health  \u2014 ki\u1ec3m tra service \u0111ang ch\u1ea1y\n- POST /predict \u2014 ph\u00e2n lo\u1ea1i \u1ea3nh (normal ho\u1eb7c 360\u00b0)",
       "item": [
         {
           "name": "Health Check",
@@ -24,11 +24,11 @@
                 "health"
               ]
             },
-            "description": "Kiểm tra service đang chạy và model đã được load thành công."
+            "description": "Ki\u1ec3m tra service \u0111ang ch\u1ea1y v\u00e0 model \u0111\u00e3 \u0111\u01b0\u1ee3c load th\u00e0nh c\u00f4ng."
           },
           "response": [
             {
-              "name": "200 OK — Service running",
+              "name": "200 OK \u2014 Service running",
               "status": "OK",
               "code": 200,
               "header": [
@@ -40,7 +40,7 @@
               "body": "{\n  \"status\": \"ok\"\n}"
             },
             {
-              "name": "503 — Model not loaded",
+              "name": "503 \u2014 Model not loaded",
               "status": "Service Unavailable",
               "code": 503,
               "header": [
@@ -54,7 +54,7 @@
           ]
         },
         {
-          "name": "Predict — Normal Image",
+          "name": "Predict \u2014 Normal Image",
           "request": {
             "method": "POST",
             "header": [],
@@ -65,13 +65,13 @@
                   "key": "file",
                   "type": "file",
                   "src": "",
-                  "description": "Ảnh cần phân loại (jpg, png, ...)"
+                  "description": "\u1ea2nh c\u1ea7n ph\u00e2n lo\u1ea1i (jpg, png, ...)"
                 },
                 {
                   "key": "image_type",
                   "value": "normal",
                   "type": "text",
-                  "description": "Loại ảnh: 'normal' hoặc '360'"
+                  "description": "Lo\u1ea1i \u1ea3nh: 'normal' ho\u1eb7c '360'"
                 }
               ]
             },
@@ -84,11 +84,11 @@
                 "predict"
               ]
             },
-            "description": "Phân loại ảnh thường (chụp thẳng). Model: resnet50_normal_best.pth\n\nKết quả trả về label thuộc 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
+            "description": "Ph\u00e2n lo\u1ea1i \u1ea3nh th\u01b0\u1eddng (ch\u1ee5p th\u1eb3ng). Model: resnet50_normal_best.pth\n\nK\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1 label thu\u1ed9c 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
           },
           "response": [
             {
-              "name": "200 OK — Prediction result",
+              "name": "200 OK \u2014 Prediction result",
               "status": "OK",
               "code": 200,
               "header": [
@@ -100,7 +100,7 @@
               "body": "{\n  \"label\": \"bedroom\",\n  \"confidence\": 0.9231\n}"
             },
             {
-              "name": "400 — Not an image",
+              "name": "400 \u2014 Not an image",
               "status": "Bad Request",
               "code": 400,
               "header": [
@@ -112,7 +112,7 @@
               "body": "{\n  \"detail\": \"File provided is not an image.\"\n}"
             },
             {
-              "name": "400 — Invalid image format",
+              "name": "400 \u2014 Invalid image format",
               "status": "Bad Request",
               "code": 400,
               "header": [
@@ -124,7 +124,7 @@
               "body": "{\n  \"detail\": \"Invalid image file format.\"\n}"
             },
             {
-              "name": "500 — Inference error",
+              "name": "500 \u2014 Inference error",
               "status": "Internal Server Error",
               "code": 500,
               "header": [
@@ -138,7 +138,7 @@
           ]
         },
         {
-          "name": "Predict — 360° Image",
+          "name": "Predict \u2014 360\u00b0 Image",
           "request": {
             "method": "POST",
             "header": [],
@@ -149,13 +149,13 @@
                   "key": "file",
                   "type": "file",
                   "src": "",
-                  "description": "Ảnh panorama 360° cần phân loại"
+                  "description": "\u1ea2nh panorama 360\u00b0 c\u1ea7n ph\u00e2n lo\u1ea1i"
                 },
                 {
                   "key": "image_type",
                   "value": "360",
                   "type": "text",
-                  "description": "Loại ảnh: '360'"
+                  "description": "Lo\u1ea1i \u1ea3nh: '360'"
                 }
               ]
             },
@@ -168,11 +168,11 @@
                 "predict"
               ]
             },
-            "description": "Phân loại ảnh panorama 360°. Model: resnet50_360_best.pth\n\nKết quả trả về label thuộc 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
+            "description": "Ph\u00e2n lo\u1ea1i \u1ea3nh panorama 360\u00b0. Model: resnet50_360_best.pth\n\nK\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1 label thu\u1ed9c 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
           },
           "response": [
             {
-              "name": "200 OK — Prediction result",
+              "name": "200 OK \u2014 Prediction result",
               "status": "OK",
               "code": 200,
               "header": [
@@ -206,7 +206,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"title\": \"Đơn hàng đã xác nhận 🛒\",\n  \"body\": \"Đơn hàng #FS-98402 của bạn đã được xác nhận và đang được chuẩn bị.\",\n  \"image\": \"https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=200\",\n  \"actionUrl\": \"\",\n  \"type\": \"ORDER\"\n}"
+                  "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"title\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 x\u00e1c nh\u1eadn \ud83d\uded2\",\n  \"body\": \"\u0110\u01a1n h\u00e0ng #FS-98402 c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c x\u00e1c nh\u1eadn v\u00e0 \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb.\",\n  \"image\": \"https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=200\",\n  \"actionUrl\": \"\",\n  \"type\": \"ORDER\"\n}"
                 },
                 "url": {
                   "raw": "{{notification_service_base_url}}/inbox-messages",
@@ -411,7 +411,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"code\": \"order-shipped\",\n  \"name\": \"Đơn hàng đã giao cho vận chuyển\",\n  \"titleTemplate\": \"Đơn hàng {{orderId}} đang trên đường đến bạn\",\n  \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển.\",\n  \"type\": \"ORDER\",\n  \"channel\": \"IN_APP\",\n  \"variables\": [\n    \"orderId\"\n  ]\n}"
+                  "raw": "{\n  \"code\": \"order-shipped\",\n  \"name\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 giao cho v\u1eadn chuy\u1ec3n\",\n  \"titleTemplate\": \"\u0110\u01a1n h\u00e0ng {{orderId}} \u0111ang tr\u00ean \u0111\u01b0\u1eddng \u0111\u1ebfn b\u1ea1n\",\n  \"bodyTemplate\": \"\u0110\u01a1n h\u00e0ng c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c giao cho \u0111\u01a1n v\u1ecb v\u1eadn chuy\u1ec3n.\",\n  \"type\": \"ORDER\",\n  \"channel\": \"IN_APP\",\n  \"variables\": [\n    \"orderId\"\n  ]\n}"
                 },
                 "url": {
                   "raw": "{{notification_service_base_url}}/notification-templates",
@@ -436,7 +436,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n    \"name\": \"Đơn hàng đã giao cho vận chuyển (Cập nhật)\",\n    \"titleTemplate\": \"[Cập nhật] Đơn hàng {{orderId}} đang trên đường đến bạn\",\n    \"bodyTemplate\": \"Đơn hàng của bạn đã được giao cho đơn vị vận chuyển\"\n}"
+                  "raw": "{\n    \"name\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 giao cho v\u1eadn chuy\u1ec3n (C\u1eadp nh\u1eadt)\",\n    \"titleTemplate\": \"[C\u1eadp nh\u1eadt] \u0110\u01a1n h\u00e0ng {{orderId}} \u0111ang tr\u00ean \u0111\u01b0\u1eddng \u0111\u1ebfn b\u1ea1n\",\n    \"bodyTemplate\": \"\u0110\u01a1n h\u00e0ng c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c giao cho \u0111\u01a1n v\u1ecb v\u1eadn chuy\u1ec3n\"\n}"
                 },
                 "url": {
                   "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
@@ -946,12 +946,12 @@
                 },
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"displayName\": \"Minh Hiền\",\n  \"firstName\": \"Hiền\",\n  \"lastName\": \"Minh\",\n  \"avatarUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"gender\": \"MALE\"\n}"
+                  "raw": "{\n  \"displayName\": \"Minh Hi\u1ec1n\",\n  \"firstName\": \"Hi\u1ec1n\",\n  \"lastName\": \"Minh\",\n  \"avatarUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"gender\": \"MALE\"\n}"
                 }
               }
             },
             {
-              "name": "Contact Change — Step 1a: Request OTP to current contact",
+              "name": "Contact Change \u2014 Step 1a: Request OTP to current contact",
               "request": {
                 "method": "POST",
                 "header": [
@@ -983,7 +983,7 @@
               }
             },
             {
-              "name": "Contact Change — Step 1b: Verify OTP at current contact",
+              "name": "Contact Change \u2014 Step 1b: Verify OTP at current contact",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1015,7 +1015,7 @@
               }
             },
             {
-              "name": "Contact Change — Step 2a: Submit new contact",
+              "name": "Contact Change \u2014 Step 2a: Submit new contact",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1047,7 +1047,7 @@
               }
             },
             {
-              "name": "Contact Change — Step 2b: Confirm OTP at new contact",
+              "name": "Contact Change \u2014 Step 2b: Confirm OTP at new contact",
               "request": {
                 "method": "POST",
                 "header": [
@@ -1081,7 +1081,7 @@
           ]
         },
         {
-          "name": "Admin – Account Management",
+          "name": "Admin \u2013 Account Management",
           "item": [
             {
               "name": "Activate Account",
@@ -1255,7 +1255,7 @@
           ]
         },
         {
-          "name": "Admin – Role Management",
+          "name": "Admin \u2013 Role Management",
           "item": [
             {
               "name": "Add Role",
@@ -1581,7 +1581,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"categoryId\": \"d0000000-0000-0000-0000-000000000001\",\n  \"name\": \"Vintage Velvet Sofa\",\n  \"description\": \"Ghế sofa nhung phong cách cổ điển sang trọng.\",\n  \"weight\": 45000.0,\n  \"length\": 180.0,\n  \"width\": 85.0,\n  \"height\": 80.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"new\",\n      \"classic\"\n    ],\n    \"features\": [\n      \"Nhung cao cấp\",\n      \"Khung gỗ tự nhiên\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Classic Collection 2026\"\n  },\n  \"specs\": {\n    \"Thương hiệu\": \"FurniSight\",\n    \"Xuất xứ\": \"Việt Nam\",\n    \"Bảo hành\": \"12 tháng\",\n    \"Chất liệu\": \"Nhung & Gỗ tự nhiên\"\n  }\n}"
+                  "raw": "{\n  \"categoryId\": \"d0000000-0000-0000-0000-000000000001\",\n  \"name\": \"Vintage Velvet Sofa\",\n  \"description\": \"Gh\u1ebf sofa nhung phong c\u00e1ch c\u1ed5 \u0111i\u1ec3n sang tr\u1ecdng.\",\n  \"weight\": 45000.0,\n  \"length\": 180.0,\n  \"width\": 85.0,\n  \"height\": 80.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"new\",\n      \"classic\"\n    ],\n    \"features\": [\n      \"Nhung cao c\u1ea5p\",\n      \"Khung g\u1ed7 t\u1ef1 nhi\u00ean\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Classic Collection 2026\"\n  },\n  \"specs\": {\n    \"Th\u01b0\u01a1ng hi\u1ec7u\": \"FurniSight\",\n    \"Xu\u1ea5t x\u1ee9\": \"Vi\u1ec7t Nam\",\n    \"B\u1ea3o h\u00e0nh\": \"12 th\u00e1ng\",\n    \"Ch\u1ea5t li\u1ec7u\": \"Nhung & G\u1ed7 t\u1ef1 nhi\u00ean\"\n  }\n}"
                 },
                 "url": {
                   "raw": "{{catalog_service_base_url}}/products",
@@ -1607,7 +1607,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"Modern Leather Sofa (Updated)\",\n  \"description\": \"Ghế sofa da cao cấp phiên bản cập nhật với nhiều tính năng hơn.\",\n  \"weight\": 52000.0,\n  \"length\": 210.0,\n  \"width\": 95.0,\n  \"height\": 90.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"hot\",\n      \"new\",\n      \"living-room\"\n    ],\n    \"features\": [\n      \"Thiết kế sang trọng\",\n      \"Đệm mút cao cấp\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Luxury Collection 2026\"\n  },\n  \"specs\": {\n    \"Thương hiệu\": \"FurniSight\",\n    \"Chất liệu\": \"Da bò thật\",\n    \"Bảo hành\": \"24 tháng\"\n  }\n}"
+                  "raw": "{\n  \"name\": \"Modern Leather Sofa (Updated)\",\n  \"description\": \"Gh\u1ebf sofa da cao c\u1ea5p phi\u00ean b\u1ea3n c\u1eadp nh\u1eadt v\u1edbi nhi\u1ec1u t\u00ednh n\u0103ng h\u01a1n.\",\n  \"weight\": 52000.0,\n  \"length\": 210.0,\n  \"width\": 95.0,\n  \"height\": 90.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"hot\",\n      \"new\",\n      \"living-room\"\n    ],\n    \"features\": [\n      \"Thi\u1ebft k\u1ebf sang tr\u1ecdng\",\n      \"\u0110\u1ec7m m\u00fat cao c\u1ea5p\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Luxury Collection 2026\"\n  },\n  \"specs\": {\n    \"Th\u01b0\u01a1ng hi\u1ec7u\": \"FurniSight\",\n    \"Ch\u1ea5t li\u1ec7u\": \"Da b\u00f2 th\u1eadt\",\n    \"B\u1ea3o h\u00e0nh\": \"24 th\u00e1ng\"\n  }\n}"
                 },
                 "url": {
                   "raw": "{{catalog_service_base_url}}/products/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
@@ -1628,11 +1628,11 @@
     },
     {
       "name": "Media Service",
-      "description": "Collection cho toàn bộ API của Media Service trong dự án FurniSight Clone. Bao gồm các API quản lý upload (init, complete, status) và các API đóng vai trò Mock Storage cho local (upload, download trực tiếp).",
+      "description": "Collection cho to\u00e0n b\u1ed9 API c\u1ee7a Media Service trong d\u1ef1 \u00e1n FurniSight Clone. Bao g\u1ed3m c\u00e1c API qu\u1ea3n l\u00fd upload (init, complete, status) v\u00e0 c\u00e1c API \u0111\u00f3ng vai tr\u00f2 Mock Storage cho local (upload, download tr\u1ef1c ti\u1ebfp).",
       "item": [
         {
           "name": "Media Management",
-          "description": "API dành cho việc quản lý vòng đời của Media Asset (Quy trình upload gồm: Init Upload -> Upload file lên Storage -> Complete Upload).",
+          "description": "API d\u00e0nh cho vi\u1ec7c qu\u1ea3n l\u00fd v\u00f2ng \u0111\u1eddi c\u1ee7a Media Asset (Quy tr\u00ecnh upload g\u1ed3m: Init Upload -> Upload file l\u00ean Storage -> Complete Upload).",
           "item": [
             {
               "name": "1. Init Upload",
@@ -1658,7 +1658,7 @@
                     "init-upload"
                   ]
                 },
-                "description": "API khởi tạo quá trình upload. Trả về thông tin Asset và một Pre-signed URL để client có thể upload file trực tiếp lên Storage Provider (ví dụ S3, hoặc Local Storage Mock)."
+                "description": "API kh\u1edfi t\u1ea1o qu\u00e1 tr\u00ecnh upload. Tr\u1ea3 v\u1ec1 th\u00f4ng tin Asset v\u00e0 m\u1ed9t Pre-signed URL \u0111\u1ec3 client c\u00f3 th\u1ec3 upload file tr\u1ef1c ti\u1ebfp l\u00ean Storage Provider (v\u00ed d\u1ee5 S3, ho\u1eb7c Local Storage Mock)."
               },
               "response": []
             },
@@ -1678,7 +1678,7 @@
                     "complete-upload"
                   ]
                 },
-                "description": "API được client gọi sau khi đã upload file thành công lên Storage Provider bằng Pre-signed URL. System sẽ đánh dấu Asset là PROCESSING và bắt đầu các job xử lý background (Background Job)."
+                "description": "API \u0111\u01b0\u1ee3c client g\u1ecdi sau khi \u0111\u00e3 upload file th\u00e0nh c\u00f4ng l\u00ean Storage Provider b\u1eb1ng Pre-signed URL. System s\u1ebd \u0111\u00e1nh d\u1ea5u Asset l\u00e0 PROCESSING v\u00e0 b\u1eaft \u0111\u1ea7u c\u00e1c job x\u1eed l\u00fd background (Background Job)."
               },
               "response": []
             },
@@ -1697,7 +1697,7 @@
                     "{{media_id}}"
                   ]
                 },
-                "description": "API kiểm tra trạng thái hiện tại của một Media Asset (ví dụ: PENDING, PROCESSING, READY, FAILED)."
+                "description": "API ki\u1ec3m tra tr\u1ea1ng th\u00e1i hi\u1ec7n t\u1ea1i c\u1ee7a m\u1ed9t Media Asset (v\u00ed d\u1ee5: PENDING, PROCESSING, READY, FAILED)."
               },
               "response": []
             }
@@ -1705,7 +1705,7 @@
         },
         {
           "name": "Local Storage Mock",
-          "description": "Các API này đóng vai trò như một Storage Provider (mock S3) khi chạy ở môi trường local. Endpoint Upload được gọi bởi client khi có Pre-signed URL. Endpoint Download dùng để trả luồng byte ảnh hiển thị lên UI.",
+          "description": "C\u00e1c API n\u00e0y \u0111\u00f3ng vai tr\u00f2 nh\u01b0 m\u1ed9t Storage Provider (mock S3) khi ch\u1ea1y \u1edf m\u00f4i tr\u01b0\u1eddng local. Endpoint Upload \u0111\u01b0\u1ee3c g\u1ecdi b\u1edfi client khi c\u00f3 Pre-signed URL. Endpoint Download d\u00f9ng \u0111\u1ec3 tr\u1ea3 lu\u1ed3ng byte \u1ea3nh hi\u1ec3n th\u1ecb l\u00ean UI.",
           "item": [
             {
               "name": "Upload File (Mock S3)",
@@ -1741,7 +1741,7 @@
                     }
                   ]
                 },
-                "description": "API giả lập việc Upload file lên S3. Client sử dụng URL được trả về từ Init Upload API để đẩy binary data (file vật lý) lên."
+                "description": "API gi\u1ea3 l\u1eadp vi\u1ec7c Upload file l\u00ean S3. Client s\u1eed d\u1ee5ng URL \u0111\u01b0\u1ee3c tr\u1ea3 v\u1ec1 t\u1eeb Init Upload API \u0111\u1ec3 \u0111\u1ea9y binary data (file v\u1eadt l\u00fd) l\u00ean."
               },
               "response": []
             },
@@ -1770,7 +1770,7 @@
                     }
                   ]
                 },
-                "description": "API giả lập việc Download / View file từ S3. Dùng để lấy nội dung file hiển thị lên trình duyệt dựa vào pre-signed view url."
+                "description": "API gi\u1ea3 l\u1eadp vi\u1ec7c Download / View file t\u1eeb S3. D\u00f9ng \u0111\u1ec3 l\u1ea5y n\u1ed9i dung file hi\u1ec3n th\u1ecb l\u00ean tr\u00ecnh duy\u1ec7t d\u1ef1a v\u00e0o pre-signed view url."
               },
               "response": []
             }
@@ -1798,7 +1798,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"productId\": \"e0000000-0000-0000-0000-000000000009\",\n  \"orderItemId\": \"oi000099-0000-0000-0000-000000000001\",\n  \"title\": \"Bàn đứng thay đổi cuộc sống!\",\n  \"content\": \"Từ khi có bàn đứng điều chỉnh điện, lưng đỡ đau hẳn. Rất đáng tiền!\",\n  \"rating\": 5\n}"
+              "raw": "{\n  \"productId\": \"e0000000-0000-0000-0000-000000000009\",\n  \"orderItemId\": \"oi000099-0000-0000-0000-000000000001\",\n  \"title\": \"B\u00e0n \u0111\u1ee9ng thay \u0111\u1ed5i cu\u1ed9c s\u1ed1ng!\",\n  \"content\": \"T\u1eeb khi c\u00f3 b\u00e0n \u0111\u1ee9ng \u0111i\u1ec1u ch\u1ec9nh \u0111i\u1ec7n, l\u01b0ng \u0111\u1ee1 \u0111au h\u1eb3n. R\u1ea5t \u0111\u00e1ng ti\u1ec1n!\",\n  \"rating\": 5\n}"
             },
             "url": {
               "raw": "{{review_service_base_url}}",
@@ -1869,7 +1869,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"reviewId\": \"r0000001-0000-0000-0000-000000000001\",\n  \"title\": \"Sofa da rất xịn - cập nhật sau 1 tháng\",\n  \"content\": \"Dùng 1 tháng vẫn rất tốt, da không bị phai màu. Rất hài lòng!\",\n  \"rating\": 5\n}"
+              "raw": "{\n  \"reviewId\": \"r0000001-0000-0000-0000-000000000001\",\n  \"title\": \"Sofa da r\u1ea5t x\u1ecbn - c\u1eadp nh\u1eadt sau 1 th\u00e1ng\",\n  \"content\": \"D\u00f9ng 1 th\u00e1ng v\u1eabn r\u1ea5t t\u1ed1t, da kh\u00f4ng b\u1ecb phai m\u00e0u. R\u1ea5t h\u00e0i l\u00f2ng!\",\n  \"rating\": 5\n}"
             },
             "url": {
               "raw": "{{review_service_base_url}}/update",
@@ -1904,6 +1904,293 @@
           }
         }
       ]
+    },
+    {
+      "name": "Order Service",
+      "description": "API collection for order-service",
+      "item": [
+        {
+          "name": "Create Order",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{gateway_url}}/orders",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerNote\": \"Giao h\\u00e0ng bu\\u1ed5i s\\u00e1ng\",\n  \"shippingAddressName\": \"Minh Hi\\u1ec1n\",\n  \"shippingAddressPhone\": \"0123456789\",\n  \"shippingAddressDetail\": \"123 \\u0110\\u01b0\\u1eddng A, Qu\\u1eadn B, TP C\",\n  \"shippingMethod\": \"Giao h\\u00e0ng t\\u1eadn n\\u01a1i\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"e0000000-0000-0000-0000-000000000001\",\n      \"variantId\": \"a0000001-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Sofa\",\n      \"productName\": \"Modern Leather Sofa\",\n      \"color\": \"N\\u00e2u\",\n      \"material\": \"Da th\\u1eadt\",\n      \"price\": 12000000,\n      \"quantity\": 1,\n      \"imageUrl\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc\"\n    }\n  ],\n  \"shopVoucherCode\": \"DISCOUNT10\",\n  \"shippingVoucherCode\": \"FREESHIP\",\n  \"discountAmount\": 15000.0,\n  \"shippingDiscount\": 15000.0\n}"
+            }
+          }
+        },
+        {
+          "name": "Get User Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/orders/user",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders",
+                "user"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Order Details",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/orders/ORD-A1B2C3D4",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders",
+                "ORD-A1B2C3D4"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Admin Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/orders/admin?status=UNPAID",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders",
+                "admin"
+              ],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "UNPAID"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Ship Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/orders/admin/ORD-A1B2C3D4/ship",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders",
+                "admin",
+                "ORD-A1B2C3D4",
+                "ship"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Deliver Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/orders/admin/ORD-A1B2C3D4/deliver",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders",
+                "admin",
+                "ORD-A1B2C3D4",
+                "deliver"
+              ]
+            }
+          }
+        },
+        {
+          "name": "Create VNPAY Payment",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/payment/vnpay/create?orderCode=ORD-A1B2C3D4",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "payment",
+                "vnpay",
+                "create"
+              ],
+              "query": [
+                {
+                  "key": "orderCode",
+                  "value": "ORD-A1B2C3D4"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Cancel Order",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{gateway_url}}/orders/ORD-A1B2C3D4/cancel",
+              "host": [
+                "{{gateway_url}}"
+              ],
+              "path": [
+                "orders",
+                "ORD-A1B2C3D4",
+                "cancel"
+              ],
+              "query": []
+            }
+          }
+        },
+        {
+          "name": "Get User Vouchers",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/vouchers/user",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "vouchers",
+                "user"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Validate Voucher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"SUMMER_SALE_2026\",\n  \"type\": \"shop\",\n  \"subtotal\": 1000000.0\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/vouchers/validate",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "vouchers",
+                "validate"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Save Voucher",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{user_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/v1/orders/vouchers/SUMMER_SALE_2026/save",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "v1",
+                "orders",
+                "vouchers",
+                "SUMMER_SALE_2026",
+                "save"
+              ]
+            }
+          },
+          "response": []
+        }
+      ],
+      "auth": {
+        "type": "bearer",
+        "bearer": [
+          {
+            "key": "token",
+            "value": "{{accessToken}}",
+            "type": "string"
+          }
+        ]
+      }
     }
   ],
   "variable": [

@@ -1,0 +1,6 @@
+rootProject.name = 'order-service'
+
+include 'order-domain'
+include 'order-application'
+include 'order-adapter'
+include 'order-bootstrap'

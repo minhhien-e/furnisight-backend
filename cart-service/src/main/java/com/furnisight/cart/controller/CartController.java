@@ -7,8 +7,7 @@ import com.furnisight.cart.service.CartService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.jwt.Jwt;
+
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -21,46 +20,42 @@ public class CartController {
     private final CartService cartService;
 
     @GetMapping
-    public ResponseEntity<CartResponse> getCart(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = extractUserId(jwt);
+    public ResponseEntity<CartResponse> getCart(@RequestHeader("x-user-id") String userIdStr) {
+        UUID userId = UUID.fromString(userIdStr);
         return ResponseEntity.ok(cartService.getCart(userId));
     }
 
     @PostMapping("/items")
     public ResponseEntity<CartResponse> addToCart(
-            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("x-user-id") String userIdStr,
             @Valid @RequestBody AddToCartRequest request) {
-        UUID userId = extractUserId(jwt);
+        UUID userId = UUID.fromString(userIdStr);
         return ResponseEntity.ok(cartService.addToCart(userId, request));
     }
 
     @PutMapping("/items/{productId}")
     public ResponseEntity<CartResponse> updateCartItem(
-            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("x-user-id") String userIdStr,
             @PathVariable String productId,
             @RequestParam(required = false) String variantId,
             @Valid @RequestBody UpdateCartItemRequest request) {
-        UUID userId = extractUserId(jwt);
+        UUID userId = UUID.fromString(userIdStr);
         return ResponseEntity.ok(cartService.updateCartItem(userId, productId, variantId, request));
     }
 
     @DeleteMapping("/items/{productId}")
     public ResponseEntity<CartResponse> removeCartItem(
-            @AuthenticationPrincipal Jwt jwt,
+            @RequestHeader("x-user-id") String userIdStr,
             @PathVariable String productId,
             @RequestParam(required = false) String variantId) {
-        UUID userId = extractUserId(jwt);
+        UUID userId = UUID.fromString(userIdStr);
         return ResponseEntity.ok(cartService.removeCartItem(userId, productId, variantId));
     }
 
     @DeleteMapping
-    public ResponseEntity<Void> clearCart(@AuthenticationPrincipal Jwt jwt) {
-        UUID userId = extractUserId(jwt);
+    public ResponseEntity<Void> clearCart(@RequestHeader("x-user-id") String userIdStr) {
+        UUID userId = UUID.fromString(userIdStr);
         cartService.clearCart(userId);
         return ResponseEntity.noContent().build();
-    }
-
-    private UUID extractUserId(Jwt jwt) {
-        return UUID.fromString(jwt.getSubject());
     }
 }

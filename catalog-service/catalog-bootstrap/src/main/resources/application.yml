@@ -10,11 +10,7 @@ grpc:
 spring:
   application:
     name: catalog-service
-  security:
-    oauth2:
-      resourceserver:
-        jwt:
-          jwk-set-uri: ${JWK_SET_URI}/.well-known/jwks.json
+
 
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5433/furnisight_catalog_db}
@@ -47,9 +43,3 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-
-app:
-  security:
-    whitelist:
-      public-all: ${APP_SECURITY_WHITELIST_PUBLIC_ALL:}
-      public-get: ${APP_SECURITY_WHITELIST_PUBLIC_GET:}
