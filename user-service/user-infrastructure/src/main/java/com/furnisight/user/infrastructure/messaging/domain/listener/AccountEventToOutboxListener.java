@@ -3,7 +3,6 @@ package com.furnisight.user.infrastructure.messaging.domain.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.user.domain.entities.OutboxMessage;
 import com.furnisight.user.domain.events.identity.*;
-import com.furnisight.user.domain.events.profile.*;
 import com.furnisight.user.domain.repository.OutboxMessageRepository;
 import com.furnisight.user.infrastructure.messaging.EventTopics;
 import lombok.RequiredArgsConstructor;
@@ -41,33 +40,6 @@ public class AccountEventToOutboxListener {
     @EventListener
     public void handle(AccountResetPasswordRequestedEvent event) {
         save(event.accountId().toString(), EventTopics.ACCOUNT_RESET_PASSWORD_REQUESTED, event);
-    }
-
-    /**
-     * Handles OTP delivery for PHONE_CHANGE flow (step 2).
-     */
-    @SneakyThrows
-    @EventListener
-    public void handle(PhoneChangeOtpRequestedEvent event) {
-        save(event.accountId().toString(), EventTopics.PHONE_CHANGE_OTP_REQUESTED, event);
-    }
-
-    @SneakyThrows
-    @EventListener
-    public void handle(PhoneLinkOtpRequestedEvent event) {
-        save(event.accountId().toString(), EventTopics.PHONE_LINK_OTP_REQUESTED, event);
-    }
-
-    @SneakyThrows
-    @EventListener
-    public void handle(VerifyCurrentEmailOtpRequestedEvent event) {
-        save(event.accountId().toString(), EventTopics.VERIFY_CURRENT_EMAIL_OTP_REQUESTED, event);
-    }
-
-    @SneakyThrows
-    @EventListener
-    public void handle(VerifyCurrentPhoneOtpRequestedEvent event) {
-        save(event.accountId().toString(), EventTopics.VERIFY_CURRENT_PHONE_OTP_REQUESTED, event);
     }
 
     @SneakyThrows

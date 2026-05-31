@@ -29,7 +29,7 @@ public class ForgotPasswordService implements ForgotPasswordUseCase {
             account = accountRepository.findByEmail(email)
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
         }
-        passwordService.requestResetPassword(account, command.channel());
+        passwordService.requestResetPassword(account, command.destination());
         return null;
     }
 }

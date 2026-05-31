@@ -30,6 +30,7 @@ public class UpdateProfileService implements UpdateProfileUseCase {
             command.firstName(),
             command.lastName(),
             command.avatarUrl(),
+            command.bio(),
             command.dateOfBirth(),
             command.gender());
     }

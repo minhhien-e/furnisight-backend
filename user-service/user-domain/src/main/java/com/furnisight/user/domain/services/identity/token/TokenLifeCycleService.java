@@ -2,24 +2,28 @@ package com.furnisight.user.domain.services.identity.token;
 
 import com.furnisight.user.domain.entities.identity.Account;
 import com.furnisight.user.domain.entities.identity.AccountToken;
-import com.furnisight.user.domain.entities.identity.VerificationRequest;
 import com.furnisight.user.domain.enums.identity.VerificationType;
+import com.furnisight.user.domain.events.identity.AccountResetPasswordRequestedEvent;
 import com.furnisight.user.domain.events.identity.AccountVerificationRequestedEvent;
 import com.furnisight.user.domain.exceptions.identity.ErrorCode;
 import com.furnisight.user.domain.exceptions.identity.UnauthorizedException;
 import com.furnisight.user.domain.repository.identity.AccountTokenRepository;
-import com.furnisight.user.domain.repository.identity.VerificationRequestRepository;
+import com.furnisight.user.domain.repository.identity.OtpVerificationRepository;
 import com.furnisight.user.domain.services.identity.generator.AccessTokenGenerator;
 import com.furnisight.user.domain.services.identity.generator.OtpCodeGenerator;
+import com.furnisight.user.domain.services.identity.generator.OtpHasher;
 import com.furnisight.user.domain.services.identity.generator.RefreshTokenGenerator;
 import com.furnisight.user.domain.valueobjects.identity.AccessToken;
 import com.furnisight.user.domain.valueobjects.identity.RefreshToken;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.furnisight.user.domain.repository.identity.RoleRepository;
 
-import java.time.LocalDateTime;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -27,14 +31,15 @@ import java.util.List;
 public class TokenLifeCycleService {
 
     private static final int OTP_TTL_MINUTES = 5;
-    private static final int SESSION_TTL_MINUTES = 30;
 
     private final AccountTokenRepository accountTokenRepository;
-    private final VerificationRequestRepository verificationRequestRepository;
+    private final OtpVerificationRepository otpVerificationRepository;
     private final AccessTokenGenerator accessTokenGenerator;
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final OtpCodeGenerator otpCodeGenerator;
+    private final OtpHasher otpHasher;
     private final RoleRepository roleRepository;
+    private final ApplicationEventPublisher eventPublisher;
     @Value("${app.verify-url:http://localhost:8080/users/auth/verify?otpCode=}")
     private String verifyUrl;
 
@@ -73,36 +78,38 @@ public class TokenLifeCycleService {
     }
 
     // ─── OTP / Verification requests ──────────────────────────────────────────
-    public void sendAccountVerificationOtp(Account account, String channel) {
+    public void sendAccountVerificationOtp(Account account, String email) {
         String otp = otpCodeGenerator.generateOtpCode();
-        VerificationRequest request = new VerificationRequest(
-                account.getId(),
-                VerificationType.ACCOUNT_VERIFICATION,
-                channel, otp,
-                LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
-                LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES));
-        request.registerEvent(new AccountVerificationRequestedEvent(account.getId(), channel, verifyUrl + request.getOtpCode(),
-                LocalDateTime.now()));
-        verificationRequestRepository.save(request);
+        otpVerificationRepository.save(
+            email,
+            VerificationType.ACCOUNT_VERIFICATION,
+            otpHasher.hash(otp),
+            Duration.ofMinutes(OTP_TTL_MINUTES)
+        );
+        eventPublisher.publishEvent(new AccountVerificationRequestedEvent(
+            account.getId(),
+            email,
+            verifyUrl + otp + "&email=" + URLEncoder.encode(email, StandardCharsets.UTF_8),
+            java.time.LocalDateTime.now()
+        ));
     }
 
-    public void sendPasswordResetOtp(Account account, String channel) {
+    public void sendPasswordResetOtp(Account account, String email) {
         String otp = otpCodeGenerator.generateOtpCode();
-        VerificationRequest request = new VerificationRequest(
-                account.getId(),
-                VerificationType.PASSWORD_RESET,
-                channel, otp,
-                LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
-                LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES));
-        request.requestOtp(channel); // fires AccountResetPasswordRequestedEvent
-        verificationRequestRepository.save(request);
+        otpVerificationRepository.save(
+            email,
+            VerificationType.PASSWORD_RESET,
+            otpHasher.hash(otp),
+            Duration.ofMinutes(OTP_TTL_MINUTES)
+        );
+        eventPublisher.publishEvent(new AccountResetPasswordRequestedEvent(account.getId(), otp, email, java.time.LocalDateTime.now()));
     }
 
     public void deleteAccountVerificationRequests(Account account) {
-        verificationRequestRepository.deleteByAccountIdAndType(account.getId(), VerificationType.ACCOUNT_VERIFICATION);
+        otpVerificationRepository.deleteByEmailAndType(account.getEmail().getValue(), VerificationType.ACCOUNT_VERIFICATION);
     }
 
     public void deletePasswordResetRequests(Account account) {
-        verificationRequestRepository.deleteByAccountIdAndType(account.getId(), VerificationType.PASSWORD_RESET);
+        otpVerificationRepository.deleteByEmailAndType(account.getEmail().getValue(), VerificationType.PASSWORD_RESET);
     }
 }

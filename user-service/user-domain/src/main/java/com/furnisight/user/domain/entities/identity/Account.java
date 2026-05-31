@@ -94,7 +94,4 @@ public class Account extends AggregateRoot {
         this.lockoutEnd = lockoutEnd;
     }
 
-    public void changeEmail(Email newEmail) {
-        this.email = newEmail;
-    }
 }

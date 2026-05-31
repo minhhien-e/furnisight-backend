@@ -9,6 +9,7 @@ public record UpdateProfileCommand(
         String firstName,
         String lastName,
         String avatarUrl,
+        String bio,
         LocalDate dateOfBirth,
         String gender) {
 }

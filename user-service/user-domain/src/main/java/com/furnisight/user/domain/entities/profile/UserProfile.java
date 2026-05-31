@@ -3,7 +3,6 @@ package com.furnisight.user.domain.entities.profile;
 import com.furnisight.user.domain.enums.profile.Gender;
 import com.furnisight.user.domain.seedwork.AggregateRoot;
 import com.furnisight.user.domain.valueobjects.identity.Email;
-import com.furnisight.user.domain.valueobjects.profile.PhoneNumber;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -44,11 +43,11 @@ public class UserProfile extends AggregateRoot {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "bio", length = 500)
+    private String bio;
+
     @Column(name = "email", length = 255)
     private Email email;
-
-    @Column(name = "phone_number")
-    private PhoneNumber phoneNumber;
 
     @Column(name = "date_of_birth")
     private LocalDate dateOfBirth;
@@ -57,23 +56,22 @@ public class UserProfile extends AggregateRoot {
     @Column(name = "gender", length = 10)
     private Gender gender;
 
-    public UserProfile(UUID accountId, String firstName, String lastName,
-                       Email email, PhoneNumber phoneNumber) {
+    public UserProfile(UUID accountId, String firstName, String lastName, Email email) {
         this.id = UUID.randomUUID();
         this.accountId = accountId;
         this.firstName = firstName;
         this.lastName = lastName;
         this.email = email;
-        this.phoneNumber = phoneNumber;
     }
 
     public void updateProfile(String displayName, String firstName, String lastName,
-                              String avatarUrl,
+                              String avatarUrl, String bio,
                               LocalDate dateOfBirth, Gender gender) {
         this.displayName = displayName;
         this.firstName = firstName;
         this.lastName = lastName;
         this.avatarUrl = avatarUrl;
+        this.bio = bio;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;
     }

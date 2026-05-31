@@ -86,23 +86,24 @@ public class AuthController {
 
     @PostMapping("/password/verify")
     public ResponseEntity<?> verifyResetPasswordCode(@RequestBody VerifyResetPasswordCodeRequest request) {
-        var command = new VerifyResetPasswordCodeCommand(request.code());
+        var command = new VerifyResetPasswordCodeCommand(request.email(), request.code());
         var result = verifyResetPasswordCodeUseCase.execute(command);
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/password/reset")
     public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordRequest request) {
-        var command = new ResetPasswordCommand(request.token(), request.newPassword());
+        var command = new ResetPasswordCommand(request.email(), request.token(), request.newPassword());
         var result = resetPasswordUseCase.execute(command);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/verify")
     public ResponseEntity<?> verify(
+        @RequestParam String email,
         @RequestParam String otpCode
     ) {
-        var command = new VerifyAccountCommand(otpCode);
+        var command = new VerifyAccountCommand(email, otpCode);
         var result = verifyAccountUseCase.execute(command);
         return ResponseEntity.ok(result);
     }

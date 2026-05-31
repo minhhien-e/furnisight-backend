@@ -40,11 +40,7 @@ public enum ErrorCode {
      * <h1>Profile</h1>
      */
     PROFILE_NOT_FOUND("User profile not found"),
-    DISPLAY_NAME_ALREADY_EXISTS("Display name already exists"),
-    PHONE_NUMBER_EMPTY("Phone number cannot be null or empty"),
-    PHONE_NUMBER_INVALID("Invalid phone number format"),
-    PHONE_NUMBER_ALREADY_EXISTS("Phone number already exists"),
-    EMAIL_CHANGE_NOT_SUPPORTED("Changing email address is not supported");
+    DISPLAY_NAME_ALREADY_EXISTS("Display name already exists");
 
     private final String description;
 

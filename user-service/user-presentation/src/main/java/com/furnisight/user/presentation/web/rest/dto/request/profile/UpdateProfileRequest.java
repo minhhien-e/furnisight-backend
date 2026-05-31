@@ -7,6 +7,7 @@ public record UpdateProfileRequest(
         String firstName,
         String lastName,
         String avatarUrl,
-        LocalDate dateOfBirth,
+        String bio,
+        LocalDate birthday,
         String gender) {
 }

@@ -1,6 +1,6 @@
 # Notification Service
 
-Service này được xây dựng theo kiến trúc **Multi-Module**, chịu trách nhiệm xử lý chuyển phát tin nhắn đa kênh (SMS/Email/Push) một cách tin cậy và minh bạch.
+Service này được xây dựng theo kiến trúc **Multi-Module**, chịu trách nhiệm xử lý chuyển phát tin nhắn qua Email/Push một cách tin cậy và minh bạch.
 
 ## Kiến Trúc (Architecture)
 

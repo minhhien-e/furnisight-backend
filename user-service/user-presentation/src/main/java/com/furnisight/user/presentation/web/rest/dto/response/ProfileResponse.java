@@ -13,8 +13,8 @@ public record ProfileResponse(
     String lastName,
     String avatarUrl,
     String email,
-    String phone,
-    LocalDate dateOfBirth,
+    String bio,
+    LocalDate birthday,
     String gender
 ) {
     public static ProfileResponse from(UserProfile profile) {
@@ -26,7 +26,7 @@ public record ProfileResponse(
             profile.getLastName(),
             profile.getAvatarUrl(),
             profile.getEmail() != null ? profile.getEmail().getValue() : null,
-            profile.getPhoneNumber() != null ? profile.getPhoneNumber().getValue() : null,
+            profile.getBio(),
             profile.getDateOfBirth(),
             profile.getGender() != null ? profile.getGender().name() : null
         );

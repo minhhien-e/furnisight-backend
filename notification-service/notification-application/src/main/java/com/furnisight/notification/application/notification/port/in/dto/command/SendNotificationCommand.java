@@ -13,7 +13,7 @@ import java.util.UUID;
 @Builder
 public class SendNotificationCommand {
     private UUID userId;
-    private String destination; // email address or phone number from the event
+    private String destination; // email address from the event
     private String title;
     private String body;
     private String image;

@@ -39,6 +39,12 @@ spring:
       minimum-idle: 2
       connection-timeout: 30000
 
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+
   jpa:
     hibernate:
       ddl-auto: validate

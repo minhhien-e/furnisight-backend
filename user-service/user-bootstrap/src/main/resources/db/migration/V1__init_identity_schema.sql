@@ -50,25 +50,9 @@ CREATE TABLE account_tokens
     refresh_token            VARCHAR(512) NOT NULL UNIQUE,
     refresh_token_expiration TIMESTAMP    NOT NULL,
     refresh_token_revoked    BOOLEAN      NOT NULL DEFAULT FALSE,
+    roles                    VARCHAR(255)[],
     created_at               TIMESTAMP,
     updated_at               TIMESTAMP
-);
-
--- verification_requests (unified table for all OTP-based flows:
---   ACCOUNT_VERIFICATION, PASSWORD_RESET, EMAIL_CHANGE, PHONE_CHANGE)
-CREATE TABLE verification_requests
-(
-    id              UUID        NOT NULL PRIMARY KEY,
-    account_id      UUID        NOT NULL REFERENCES accounts (id) ON DELETE CASCADE,
-    type            VARCHAR(30) NOT NULL,  -- VerificationType enum
-    step            VARCHAR(20) NOT NULL DEFAULT 'STEP_1_PENDING', -- VerificationStep enum
-    target_contact  VARCHAR(255),          -- current email/phone (step 1 destination)
-    new_contact     VARCHAR(255),          -- new email/phone (step 2, contact-change flows)
-    otp_code        VARCHAR(100),          -- OTP or token value
-    otp_expires_at  TIMESTAMP,             -- OTP-level TTL
-    expires_at      TIMESTAMP   NOT NULL,  -- overall session TTL
-    created_at      TIMESTAMP,
-    updated_at      TIMESTAMP
 );
 
 -- bans
@@ -124,8 +108,6 @@ CREATE TABLE outbox_messages
 
 -- indexes
 CREATE INDEX idx_account_tokens_account_id ON account_tokens (account_id);
-CREATE INDEX idx_verification_requests_account_type ON verification_requests (account_id, type);
-CREATE INDEX idx_verification_requests_otp ON verification_requests (otp_code, type);
 CREATE INDEX idx_bans_account_id ON bans (account_id);
 CREATE INDEX idx_social_accounts_account_id ON social_accounts (account_id);
 CREATE INDEX idx_account_roles_account_id ON account_roles (account_id);
