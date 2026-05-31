@@ -10,7 +10,7 @@ CREATE TABLE user_profiles
     display_name  VARCHAR(100),
     first_name    VARCHAR(100),
     last_name     VARCHAR(100),
-    avatar_url    VARCHAR(255),
+    avatar_media_id UUID,
     bio           VARCHAR(500),
     email         VARCHAR(255),
     date_of_birth DATE,

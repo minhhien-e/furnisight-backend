@@ -8,7 +8,7 @@ public record UpdateProfileCommand(
         String displayName,
         String firstName,
         String lastName,
-        String avatarUrl,
+        UUID avatarMediaId,
         String bio,
         LocalDate dateOfBirth,
         String gender) {

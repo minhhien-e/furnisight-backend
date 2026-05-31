@@ -13,6 +13,9 @@ grpc:
     catalog-service:
       address: ${GRPC_CATALOG_SERVICE_ADDRESS:static://localhost:9093}
       negotiationType: plaintext
+    media-service:
+      address: ${GRPC_MEDIA_SERVICE_ADDRESS:static://localhost:9094}
+      negotiationType: plaintext
 spring:
   application:
     name: user-service

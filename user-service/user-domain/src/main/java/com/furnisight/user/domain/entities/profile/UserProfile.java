@@ -40,7 +40,10 @@ public class UserProfile extends AggregateRoot {
     @Column(name = "last_name")
     private String lastName;
 
-    @Column(name = "avatar_url")
+    @Column(name = "avatar_media_id")
+    private UUID avatarMediaId;
+
+    @Column(name = "avatar_url", length = 2048)
     private String avatarUrl;
 
     @Column(name = "bio", length = 500)
@@ -64,13 +67,22 @@ public class UserProfile extends AggregateRoot {
         this.email = email;
     }
 
+    public UserProfile(UUID accountId, String firstName, String lastName, Email email, String avatarUrl) {
+        this.id = UUID.randomUUID();
+        this.accountId = accountId;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.email = email;
+        this.avatarUrl = avatarUrl;
+    }
+
     public void updateProfile(String displayName, String firstName, String lastName,
-                              String avatarUrl, String bio,
+                              UUID avatarMediaId, String bio,
                               LocalDate dateOfBirth, Gender gender) {
         this.displayName = displayName;
         this.firstName = firstName;
         this.lastName = lastName;
-        this.avatarUrl = avatarUrl;
+        this.avatarMediaId = avatarMediaId;
         this.bio = bio;
         this.dateOfBirth = dateOfBirth;
         this.gender = gender;

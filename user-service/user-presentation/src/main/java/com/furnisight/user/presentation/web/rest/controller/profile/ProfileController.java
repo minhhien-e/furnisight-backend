@@ -4,6 +4,7 @@ import com.furnisight.user.application.common.port.in.CurrentUserProvider;
 import com.furnisight.user.application.profile.dto.*;
 import com.furnisight.user.application.profile.port.in.usecase.*;
 import com.furnisight.user.presentation.web.rest.dto.request.profile.UpdateProfileRequest;
+import com.furnisight.user.presentation.web.rest.dto.response.ProfileResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -24,8 +25,8 @@ public class ProfileController {
     @GetMapping
     public ResponseEntity<?> getProfile() {
         UUID accountId = currentUserProvider.getCurrentUserId();
-        var profile = getProfileUseCase.execute(accountId);
-        return ResponseEntity.ok(com.furnisight.user.presentation.web.rest.dto.response.ProfileResponse.from(profile));
+        ProfileResult result = getProfileUseCase.execute(accountId);
+        return ResponseEntity.ok(ProfileResponse.from(result.profile(), result.avatarUrl()));
     }
 
     @PutMapping
@@ -36,13 +37,12 @@ public class ProfileController {
             request.displayName(),
             request.firstName(),
             request.lastName(),
-            request.avatarUrl(),
+            request.avatarMediaId(),
             request.bio(),
             request.birthday(),
             request.gender()
         );
-        var profile = updateProfileUseCase.execute(command);
-        return ResponseEntity.ok(com.furnisight.user.presentation.web.rest.dto.response.ProfileResponse.from(profile));
+        ProfileResult result = updateProfileUseCase.execute(command);
+        return ResponseEntity.ok(ProfileResponse.from(result.profile(), result.avatarUrl()));
     }
-
 }

@@ -1,38 +1,51 @@
 package com.furnisight.user.application.profile.service;
 
+import com.furnisight.user.application.profile.dto.ProfileResult;
+import com.furnisight.user.application.profile.dto.UpdateProfileCommand;
+import com.furnisight.user.application.profile.port.in.usecase.UpdateProfileUseCase;
+import com.furnisight.user.application.profile.port.out.ProfileMediaUrlResolver;
+import com.furnisight.user.domain.entities.profile.UserProfile;
 import com.furnisight.user.domain.exceptions.identity.ErrorCode;
 import com.furnisight.user.domain.exceptions.identity.NotFoundException;
 import com.furnisight.user.domain.repository.profile.UserProfileRepository;
+import com.furnisight.user.domain.services.profile.UserProfileLifecycleService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import com.furnisight.user.application.profile.dto.UpdateProfileCommand;
-import com.furnisight.user.application.profile.port.in.usecase.UpdateProfileUseCase;
-import com.furnisight.user.domain.entities.profile.UserProfile;
-import com.furnisight.user.domain.services.profile.UserProfileLifecycleService;
-
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class UpdateProfileService implements UpdateProfileUseCase {
+
     private final UserProfileLifecycleService userProfileLifecycleService;
     private final UserProfileRepository userProfileRepository;
+    private final ProfileMediaUrlResolver profileMediaUrlResolver;
 
     @Override
     @Transactional
-    public UserProfile execute(UpdateProfileCommand command) {
+    public ProfileResult execute(UpdateProfileCommand command) {
         UserProfile profile = userProfileRepository.findByAccountId(command.accountId())
             .orElseThrow(() -> new NotFoundException(ErrorCode.PROFILE_NOT_FOUND));
-        return userProfileLifecycleService.updateProfile(
+        UserProfile updated = userProfileLifecycleService.updateProfile(
             profile,
             command.displayName(),
             command.firstName(),
             command.lastName(),
-            command.avatarUrl(),
+            command.avatarMediaId(),
             command.bio(),
             command.dateOfBirth(),
             command.gender());
+        return new ProfileResult(updated, resolveAvatarUrl(updated));
     }
 
+    /**
+     * Priority: avatarMediaId (media-service via gRPC) → avatarUrl (OAuth2 provider URL).
+     */
+    private String resolveAvatarUrl(UserProfile profile) {
+        if (profile.getAvatarMediaId() != null) {
+            String url = profileMediaUrlResolver.resolveUrl(profile.getAvatarMediaId()).orElse(null);
+            if (url != null) return url;
+        }
+        return profile.getAvatarUrl();
+    }
 }

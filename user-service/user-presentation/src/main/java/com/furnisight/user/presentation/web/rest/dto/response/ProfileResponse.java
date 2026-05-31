@@ -17,14 +17,14 @@ public record ProfileResponse(
     LocalDate birthday,
     String gender
 ) {
-    public static ProfileResponse from(UserProfile profile) {
+    public static ProfileResponse from(UserProfile profile, String avatarUrl) {
         return new ProfileResponse(
             profile.getId(),
             profile.getAccountId(),
             profile.getDisplayName(),
             profile.getFirstName(),
             profile.getLastName(),
-            profile.getAvatarUrl(),
+            avatarUrl,
             profile.getEmail() != null ? profile.getEmail().getValue() : null,
             profile.getBio(),
             profile.getDateOfBirth(),

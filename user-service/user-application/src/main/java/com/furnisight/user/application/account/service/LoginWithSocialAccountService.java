@@ -54,7 +54,8 @@ public class LoginWithSocialAccountService implements LoginWithSocialAccountUseC
                                         account.getId(),
                                         resolvedFirstName,
                                         resolvedLastName,
-                                        command.email());
+                                        command.email(),
+                                        command.avatarUrl());
                 }
 
                 return tokenLifeCycleService.generateAccountToken(account);
