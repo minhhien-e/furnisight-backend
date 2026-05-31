@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package v1.media;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.media";
+
+message GetMediaUrlRequest {
+  string media_id = 1;
+  int64 ttl_seconds = 2;
+}
+
+message GetMediaUrlResponse {
+  string media_id = 1;
+  string url = 2;
+  string state = 3;
+  string mime_type = 4;
+  string original_filename = 5;
+}

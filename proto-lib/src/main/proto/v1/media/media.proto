@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package v1.media;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.media";
+
+import "v1/media/media_message.proto";
+
+service MediaService {
+  rpc GetMediaUrl (GetMediaUrlRequest) returns (GetMediaUrlResponse);
+}
