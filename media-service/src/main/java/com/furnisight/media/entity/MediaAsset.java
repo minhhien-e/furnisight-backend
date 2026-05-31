@@ -30,15 +30,15 @@ public class MediaAsset {
     private UUID id;
 
     /** Cloudinary public_id để delete / transform */
-    @Column(name = "cloudinary_public_id", nullable = false, unique = true)
+    @Column(name = "cloudinary_public_id", unique = true)
     private String cloudinaryPublicId;
 
     /** URL công khai trả về từ Cloudinary */
-    @Column(name = "url", nullable = false, length = 2048)
+    @Column(name = "url", length = 2048)
     private String url;
 
     /** Secure URL (https) */
-    @Column(name = "secure_url", nullable = false, length = 2048)
+    @Column(name = "secure_url", length = 2048)
     private String secureUrl;
 
     /** Ai sở hữu asset */

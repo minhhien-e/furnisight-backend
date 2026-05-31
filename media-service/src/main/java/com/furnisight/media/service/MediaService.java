@@ -1,7 +1,10 @@
 package com.furnisight.media.service;
 
 import com.cloudinary.Cloudinary;
-import com.furnisight.media.dto.request.UploadMediaRequest;
+import com.cloudinary.utils.ObjectUtils;
+import com.furnisight.media.dto.request.CompleteUploadRequest;
+import com.furnisight.media.dto.request.InitUploadRequest;
+import com.furnisight.media.dto.response.InitUploadResponse;
 import com.furnisight.media.dto.response.MediaResponse;
 import com.furnisight.media.entity.MediaAsset;
 import com.furnisight.media.enums.AssetState;
@@ -10,13 +13,12 @@ import com.furnisight.media.exception.MediaNotFoundException;
 import com.furnisight.media.repository.MediaAssetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.tika.Tika;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.util.HashMap;
+import java.time.Instant;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -27,48 +29,83 @@ public class MediaService {
 
     private final Cloudinary cloudinary;
     private final MediaAssetRepository mediaAssetRepository;
-    private final Tika tika = new Tika();
 
-    /**
-     * Upload file trực tiếp lên Cloudinary và lưu metadata vào DB.
-     */
     @Transactional
-    public MediaResponse upload(MultipartFile file, UploadMediaRequest request) {
-        String detectedMime = detectMimeType(file);
-        MediaType mediaType  = resolveMediaType(detectedMime, file.getOriginalFilename());
+    public InitUploadResponse initUpload(InitUploadRequest request) {
+        validateInitRequest(request);
 
-        Map<String, Object> params = new HashMap<>();
-        params.put("resource_type", toResourceType(mediaType));
-        if (request.getFolder() != null && !request.getFolder().isBlank()) {
-            params.put("folder", request.getFolder());
-        }
-
-        Map<?, ?> result;
-        try {
-            result = cloudinary.uploader().upload(file.getBytes(), params);
-        } catch (IOException e) {
-            log.error("Cloudinary upload failed for owner={}", request.getOwnerId(), e);
-            throw new RuntimeException("Failed to upload file to Cloudinary", e);
-        }
+        MediaType mediaType = resolveMediaType(request.getContentType(), request.getFileName());
+        String publicId = buildPublicId(request);
 
         MediaAsset asset = MediaAsset.builder()
-            .cloudinaryPublicId((String) result.get("public_id"))
-            .url((String) result.get("url"))
-            .secureUrl((String) result.get("secure_url"))
+            .cloudinaryPublicId(publicId)
             .ownerId(request.getOwnerId())
             .ownerType(request.getOwnerType())
             .mediaType(mediaType)
-            .state(AssetState.ACTIVE)
-            .originalFilename(file.getOriginalFilename())
-            .mimeType(detectedMime)
-            .sizeBytes(file.getSize())
-            .format(getStringOrNull(result, "format"))
-            .width(getIntOrNull(result, "width"))
-            .height(getIntOrNull(result, "height"))
+            .state(AssetState.UPLOADING)
+            .originalFilename(request.getFileName())
+            .mimeType(request.getContentType())
+            .sizeBytes(request.getSizeBytes())
             .build();
 
         mediaAssetRepository.save(asset);
-        log.info("Uploaded media id={} publicId={} owner={}", asset.getId(), asset.getCloudinaryPublicId(), asset.getOwnerId());
+
+        long timestamp = Instant.now().getEpochSecond();
+        Map<String, Object> fields = new LinkedHashMap<>();
+        fields.put("api_key", cloudinary.config.apiKey);
+        fields.put("timestamp", timestamp);
+        fields.put("public_id", publicId);
+
+        if (request.getFolder() != null && !request.getFolder().isBlank()) {
+            fields.put("folder", request.getFolder());
+        }
+
+        Map<String, Object> paramsToSign = new LinkedHashMap<>();
+        paramsToSign.put("public_id", publicId);
+        paramsToSign.put("timestamp", timestamp);
+        if (request.getFolder() != null && !request.getFolder().isBlank()) {
+            paramsToSign.put("folder", request.getFolder());
+        }
+        fields.put("signature", cloudinary.apiSignRequest(paramsToSign, cloudinary.config.apiSecret));
+
+        String uploadUrl = String.format(
+            "https://api.cloudinary.com/v1_1/%s/%s/upload",
+            cloudinary.config.cloudName,
+            toResourceType(mediaType)
+        );
+
+        return new InitUploadResponse(asset.getId(), uploadUrl, asset.getState().name(), fields);
+    }
+
+    @Transactional
+    public MediaResponse completeUpload(UUID mediaId, CompleteUploadRequest request) {
+        MediaAsset asset = mediaAssetRepository.findById(mediaId)
+            .orElseThrow(() -> new MediaNotFoundException(mediaId));
+
+        if (asset.getState() != AssetState.UPLOADING) {
+            throw new IllegalArgumentException("Media asset is not waiting for upload completion");
+        }
+
+        String publicId = request.getPublicId() != null ? request.getPublicId() : asset.getCloudinaryPublicId();
+        if (!cloudinarySignatureValid(request, publicId)) {
+            throw new IllegalArgumentException("Invalid Cloudinary upload signature");
+        }
+
+        asset.setCloudinaryPublicId(publicId);
+        asset.setUrl(request.getUrl());
+        asset.setSecureUrl(request.getSecureUrl() != null ? request.getSecureUrl() : request.getUrl());
+        asset.setFormat(request.getFormat());
+        asset.setWidth(request.getWidth());
+        asset.setHeight(request.getHeight());
+        if (request.getBytes() != null) {
+            asset.setSizeBytes(request.getBytes());
+        }
+        if (request.getOriginalFilename() != null && !request.getOriginalFilename().isBlank()) {
+            asset.setOriginalFilename(request.getOriginalFilename());
+        }
+        asset.setState(AssetState.ACTIVE);
+
+        mediaAssetRepository.save(asset);
         return MediaResponse.from(asset);
     }
 
@@ -102,14 +139,6 @@ public class MediaService {
 
     // ─── helpers ────────────────────────────────────────────────────────────
 
-    private String detectMimeType(MultipartFile file) {
-        try {
-            return tika.detect(file.getInputStream(), file.getOriginalFilename());
-        } catch (IOException e) {
-            return file.getContentType() != null ? file.getContentType() : "application/octet-stream";
-        }
-    }
-
     private MediaType resolveMediaType(String mimeType, String filename) {
         if (mimeType == null) return MediaType.DOCUMENT;
         String m = mimeType.toLowerCase();
@@ -128,13 +157,45 @@ public class MediaService {
         };
     }
 
-    private String getStringOrNull(Map<?, ?> map, String key) {
-        Object v = map.get(key);
-        return v != null ? v.toString() : null;
+
+    private void validateInitRequest(InitUploadRequest request) {
+        if (request.getOwnerId() == null) {
+            throw new IllegalArgumentException("ownerId is required");
+        }
+        if (request.getOwnerType() == null) {
+            throw new IllegalArgumentException("ownerType is required");
+        }
+        if (request.getFileName() == null || request.getFileName().isBlank()) {
+            throw new IllegalArgumentException("fileName is required");
+        }
+        if (request.getContentType() == null || request.getContentType().isBlank()) {
+            throw new IllegalArgumentException("contentType is required");
+        }
+        if (request.getSizeBytes() == null || request.getSizeBytes() <= 0) {
+            throw new IllegalArgumentException("sizeBytes must be greater than 0");
+        }
     }
 
-    private Integer getIntOrNull(Map<?, ?> map, String key) {
-        Object v = map.get(key);
-        return v instanceof Number n ? n.intValue() : null;
+    private String buildPublicId(InitUploadRequest request) {
+        String baseName = request.getFileName().replaceAll("\\.[^.]+$", "");
+        String safeName = baseName.toLowerCase().replaceAll("[^a-z0-9_-]+", "-").replaceAll("(^-|-$)", "");
+        if (safeName.isBlank()) {
+            safeName = "media";
+        }
+
+        return request.getOwnerId() + "/" + UUID.randomUUID() + "-" + safeName;
+    }
+
+    private boolean cloudinarySignatureValid(CompleteUploadRequest request, String publicId) {
+        if (request.getSignature() == null || request.getVersion() == null) {
+            return false;
+        }
+
+        Map<String, Object> params = ObjectUtils.asMap(
+            "public_id", publicId,
+            "version", request.getVersion()
+        );
+        String expectedSignature = cloudinary.apiSignRequest(params, cloudinary.config.apiSecret);
+        return expectedSignature.equals(request.getSignature());
     }
 }

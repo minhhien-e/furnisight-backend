@@ -122,20 +122,6 @@ services:
     ports:
       - "9411:9411"
 
-  clamav:
-    image: clamav/clamav:latest
-    container_name: furnisight_clamav
-    restart: unless-stopped
-    expose:
-      - "3310"
-    volumes:
-      - clamav_data:/var/lib/clamav
-    healthcheck:
-      test: ["CMD-SHELL", "clamdscan --version || exit 1"]
-      interval: 20s
-      timeout: 10s
-      retries: 5
-
   gateway:
     image: furnisight-gateway:latest
     build:
@@ -254,8 +240,6 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-      clamav:
-        condition: service_healthy
       redis:
         condition: service_healthy
 
@@ -277,7 +261,6 @@ volumes:
   redis_data:
   kafka_data:
   media_storage:
-  clamav_data:
 
 secrets:
   GITHUB_TOKEN:

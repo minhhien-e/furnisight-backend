@@ -102,7 +102,7 @@ spring:
               filters:
                 - name: RewritePath
                   args:
-                    regexp: /media/(?<segment>.*)
+                    regexp: /media/?(?<segment>.*)
                     replacement: /api/v1/$\{segment}
 
           forwarded:
