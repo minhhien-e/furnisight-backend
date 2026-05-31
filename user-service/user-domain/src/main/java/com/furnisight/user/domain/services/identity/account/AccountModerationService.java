@@ -5,6 +5,7 @@ import com.furnisight.user.domain.entities.identity.AccountRole;
 import com.furnisight.user.domain.entities.identity.Ban;
 import com.furnisight.user.domain.entities.identity.Role;
 import com.furnisight.user.domain.enums.identity.Permission;
+import com.furnisight.user.domain.events.identity.AccountDeletedEvent;
 import com.furnisight.user.domain.exceptions.identity.ErrorCode;
 import com.furnisight.user.domain.exceptions.identity.InvalidOperationException;
 import com.furnisight.user.domain.repository.identity.AccountRepository;
@@ -67,6 +68,12 @@ public class AccountModerationService {
 
     public void deleteAccount(Account admin, Account target) {
         ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_USERS);
+        target.registerEvent(new AccountDeletedEvent(
+            target.getId(),
+            target.getEmail() != null ? target.getEmail().getValue() : null,
+            LocalDateTime.now()
+        ));
+        accountRepository.save(target);
         accountRepository.delete(target);
 
     }

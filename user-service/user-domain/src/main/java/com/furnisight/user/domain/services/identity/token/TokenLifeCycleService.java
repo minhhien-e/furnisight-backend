@@ -35,7 +35,7 @@ public class TokenLifeCycleService {
     private final RefreshTokenGenerator refreshTokenGenerator;
     private final OtpCodeGenerator otpCodeGenerator;
     private final RoleRepository roleRepository;
-    @Value("${app.security.verify-url:http://localhost:8080/users/auth/verify-email}")
+    @Value("${app.verify-url:http://localhost:8080/users/auth/verify?otpCode=}")
     private String verifyUrl;
 
     // ─── JWT / Refresh tokens ──────────────────────────────────────────────────
@@ -81,7 +81,7 @@ public class TokenLifeCycleService {
                 channel, otp,
                 LocalDateTime.now().plusMinutes(OTP_TTL_MINUTES),
                 LocalDateTime.now().plusMinutes(SESSION_TTL_MINUTES));
-        request.registerEvent(new AccountVerificationRequestedEvent(account.getId(), verifyUrl + request.getOtpCode(),
+        request.registerEvent(new AccountVerificationRequestedEvent(account.getId(), channel, verifyUrl + request.getOtpCode(),
                 LocalDateTime.now()));
         verificationRequestRepository.save(request);
     }

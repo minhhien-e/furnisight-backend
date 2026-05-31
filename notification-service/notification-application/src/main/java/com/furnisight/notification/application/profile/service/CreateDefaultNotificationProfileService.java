@@ -4,12 +4,11 @@ import com.furnisight.notification.application.profile.port.in.command.CreateDef
 import com.furnisight.notification.application.profile.port.in.dto.projection.NotificationProfileProjection;
 import com.furnisight.notification.application.profile.port.in.usecase.CreateDefaultNotificationProfileUseCase;
 import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
+import com.furnisight.notification.domain.exception.NotificationProfileNotFoundException;
 import com.furnisight.notification.domain.model.entity.NotificationProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,8 +19,14 @@ public class CreateDefaultNotificationProfileService implements CreateDefaultNot
     @Override
     @Transactional
     public NotificationProfileProjection execute(CreateDefaultNotificationProfileCommand command) {
+        try {
+            return NotificationProfileProjection.from(notificationProfileRepository.findByUserId(command.getUserId()));
+        } catch (NotificationProfileNotFoundException ignored) {
+            // Create the default profile below.
+        }
+
         NotificationProfile preference = NotificationProfile.builder()
-            .id(UUID.randomUUID())
+            .id(command.getUserId())
             .userId(command.getUserId())
             .orderUpdatesEnabled(true)
             .promotionsEnabled(true)

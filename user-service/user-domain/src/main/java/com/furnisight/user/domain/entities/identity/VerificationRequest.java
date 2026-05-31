@@ -4,9 +4,7 @@ import com.furnisight.user.domain.enums.identity.VerificationStep;
 import com.furnisight.user.domain.enums.identity.VerificationType;
 import com.furnisight.user.domain.events.identity.AccountResetPasswordRequestedEvent;
 import com.furnisight.user.domain.events.identity.AccountVerificationRequestedEvent;
-import com.furnisight.user.domain.events.profile.EmailChangeOtpRequestedEvent;
 import com.furnisight.user.domain.events.profile.PhoneChangeOtpRequestedEvent;
-import com.furnisight.user.domain.events.profile.EmailLinkOtpRequestedEvent;
 import com.furnisight.user.domain.events.profile.PhoneLinkOtpRequestedEvent;
 import com.furnisight.user.domain.events.profile.VerifyCurrentEmailOtpRequestedEvent;
 import com.furnisight.user.domain.events.profile.VerifyCurrentPhoneOtpRequestedEvent;
@@ -118,27 +116,25 @@ public class VerificationRequest extends AggregateRoot {
     public void requestOtp(String destination) {
         switch (this.type) {
             case ACCOUNT_VERIFICATION -> registerEvent(new AccountVerificationRequestedEvent(
-                accountId, otpCode, LocalDateTime.now()
+                accountId, destination, otpCode, LocalDateTime.now()
             ));
             case PASSWORD_RESET -> registerEvent(new AccountResetPasswordRequestedEvent(
                 accountId, otpCode, destination, LocalDateTime.now()
             ));
             // Step 1: xác minh contact hiện tại
-            case EMAIL_CHANGE -> {
-                if (this.step == VerificationStep.STEP_1_PENDING) {
-                    registerEvent(new VerifyCurrentEmailOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
-                } else {
-                    registerEvent(new EmailChangeOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
-                }
-            }
+            case EMAIL_CHANGE -> throw new ValidationException(ErrorCode.EMAIL_CHANGE_NOT_SUPPORTED);
             case PHONE_CHANGE -> {
                 if (this.step == VerificationStep.STEP_1_PENDING) {
-                    registerEvent(new VerifyCurrentPhoneOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
+                    if (destination != null && destination.contains("@")) {
+                        registerEvent(new VerifyCurrentEmailOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
+                    } else {
+                        registerEvent(new VerifyCurrentPhoneOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
+                    }
                 } else {
                     registerEvent(new PhoneChangeOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
                 }
             }
-            case EMAIL_LINK -> registerEvent(new EmailLinkOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
+            case EMAIL_LINK -> throw new ValidationException(ErrorCode.EMAIL_CHANGE_NOT_SUPPORTED);
             case PHONE_LINK -> registerEvent(new PhoneLinkOtpRequestedEvent(accountId, destination, otpCode, LocalDateTime.now()));
         }
     }

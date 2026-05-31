@@ -1,5 +1,5 @@
 package com.furnisight.user.application.common.port.out;
 
 public interface EventPublisher {
-    void publish(String payload, String topic);
+    void publish(String payload, String topic, String eventId);
 }

@@ -34,6 +34,11 @@ public class AccountRequestVerifyCodeConsumer extends AbstractNotificationConsum
     }
 
     @Override
+    protected String getDestination(AccountVerificationRequestedEvent event) {
+        return event.destination();
+    }
+
+    @Override
     protected NotificationChannel getChannel(AccountVerificationRequestedEvent event) {
         return NotificationChannel.EMAIL;
     }

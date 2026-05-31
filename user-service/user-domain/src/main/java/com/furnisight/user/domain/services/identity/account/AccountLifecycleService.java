@@ -9,6 +9,8 @@ import com.furnisight.user.domain.exceptions.identity.NotFoundException;
 import com.furnisight.user.domain.repository.identity.AccountRepository;
 import com.furnisight.user.domain.repository.identity.SocialAccountRepository;
 import com.furnisight.user.domain.services.identity.policy.PasswordPolicy;
+import com.furnisight.user.domain.events.identity.AccountCreatedEvent;
+import com.furnisight.user.domain.events.identity.AccountDeletedEvent;
 import com.furnisight.user.domain.events.identity.SocialAccountCreatedEvent;
 import com.furnisight.user.domain.valueobjects.identity.Email;
 import com.furnisight.user.domain.valueobjects.identity.Password;
@@ -36,6 +38,7 @@ public class AccountLifecycleService {
         passwordPolicy.validate(password);
         Password hashedPassword = new Password(passwordHasher.hash(password));
         Account account = new Account(username, email, hashedPassword);
+        account.registerEvent(new AccountCreatedEvent(account.getId(), email.getValue(), LocalDateTime.now()));
         account = accountRepository.save(account);
         verificationService.requestVerification(account,account.getEmail().getValue());
         return account;
@@ -58,6 +61,11 @@ public class AccountLifecycleService {
 
         Account account = new Account(username, email, hashedPassword);
         account.activate();
+        account.registerEvent(new AccountCreatedEvent(
+            account.getId(),
+            email != null ? email.getValue() : null,
+            LocalDateTime.now()
+        ));
 
         if (email != null) {
             account.registerEvent(new SocialAccountCreatedEvent(
@@ -75,6 +83,12 @@ public class AccountLifecycleService {
     }
 
     public void deleteAccount(Account account) {
+        account.registerEvent(new AccountDeletedEvent(
+            account.getId(),
+            account.getEmail() != null ? account.getEmail().getValue() : null,
+            LocalDateTime.now()
+        ));
+        accountRepository.save(account);
         accountRepository.delete(account);
     }
 }

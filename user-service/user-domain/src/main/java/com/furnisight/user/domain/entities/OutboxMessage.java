@@ -64,6 +64,9 @@ public class OutboxMessage extends AggregateRoot {
 
     public void markAsProcessed() {
         this.processedAt = LocalDateTime.now();
+        this.errorMessage = null;
+        this.nextRetryAt = null;
+        this.failed = false;
     }
 
     public void markAsFailed(String errorMessage) {

@@ -5,6 +5,7 @@ import java.util.UUID;
 
 public record AccountVerificationRequestedEvent (
     UUID accountId,
+    String destination,
     String verifyUrl,
     LocalDateTime occurredAt
 ) {

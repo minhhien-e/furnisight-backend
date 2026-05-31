@@ -1,15 +1,17 @@
+plugins {
+    id 'java-library'
+}
 tasks.withType(JavaCompile) {
     options.compilerArgs += ["-parameters"]
 }
 dependencies {
-    implementation project(':user-application')
+    api project(':user-application')
+    api 'org.springframework.boot:spring-boot-starter-web'
     implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
     implementation 'com.furnisight:proto-lib:1.0.1779378100999'
     implementation 'org.springframework.boot:spring-boot-starter-security'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'com.fasterxml.jackson.core:jackson-databind'
-
     implementation 'org.springframework.kafka:spring-kafka'
+
     implementation 'org.flywaydb:flyway-core'
     implementation "org.flywaydb:flyway-database-postgresql"
     implementation 'org.springframework.boot:spring-boot-starter-oauth2-client'

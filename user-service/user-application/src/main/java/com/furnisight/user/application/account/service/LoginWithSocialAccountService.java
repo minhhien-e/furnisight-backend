@@ -2,7 +2,6 @@ package com.furnisight.user.application.account.service;
 
 import com.furnisight.user.application.account.dto.LoginWithSocialAccountCommand;
 import com.furnisight.user.application.account.port.in.usecase.LoginWithSocialAccountUseCase;
-import com.furnisight.user.application.common.port.out.NotificationService;
 import com.furnisight.user.domain.entities.identity.Account;
 import com.furnisight.user.domain.entities.identity.AccountToken;
 import com.furnisight.user.domain.entities.identity.SocialAccount;
@@ -25,7 +24,6 @@ public class LoginWithSocialAccountService implements LoginWithSocialAccountUseC
         private final AccountLifecycleService accountLifecycleService;
         private final UserProfileLifecycleService userProfileLifecycleService;
         private final TokenLifeCycleService tokenLifeCycleService;
-        private final NotificationService notificationService;
 
         @Override
         @Transactional
@@ -57,10 +55,6 @@ public class LoginWithSocialAccountService implements LoginWithSocialAccountUseC
                                         resolvedFirstName,
                                         resolvedLastName,
                                         command.email());
-
-                        if (command.email() != null) {
-                                notificationService.createNotificationProfile(account.getId().toString());
-                        }
                 }
 
                 return tokenLifeCycleService.generateAccountToken(account);

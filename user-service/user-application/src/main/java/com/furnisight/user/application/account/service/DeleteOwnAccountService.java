@@ -2,7 +2,6 @@ package com.furnisight.user.application.account.service;
 
 import com.furnisight.user.application.account.dto.DeleteOwnAccountCommand;
 import com.furnisight.user.application.account.port.in.usecase.DeleteOwnAccountUseCase;
-import com.furnisight.user.application.common.port.out.NotificationService;
 import com.furnisight.user.domain.entities.identity.Account;
 import com.furnisight.user.domain.exceptions.identity.ErrorCode;
 import com.furnisight.user.domain.exceptions.identity.NotFoundException;
@@ -18,7 +17,6 @@ public class DeleteOwnAccountService implements DeleteOwnAccountUseCase {
 
     private final AccountLifecycleService accountLifecycleService;
     private final AccountRepository accountRepository;
-    private final NotificationService notificationService;
 
     @Override
     @Transactional
@@ -26,7 +24,6 @@ public class DeleteOwnAccountService implements DeleteOwnAccountUseCase {
         Account account = accountRepository.findById(command.accountId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
         accountLifecycleService.deleteAccount(account);
-        notificationService.deleteNotificationProfile(account.getId().toString());
         return null;
     }
 }

@@ -1,11 +1,10 @@
 plugins {
     id 'org.springframework.boot'
+    id 'io.spring.dependency-management'
 }
 
 dependencies {
     implementation project(':user-presentation')
-    implementation project(':user-infrastructure')
-    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-actuator'
 }
