@@ -7,5 +7,6 @@ import java.util.UUID;
 public interface ReviewWritePort {
     void save(Review review);
     Optional<Review> findById(UUID id);
+    java.util.List<Review> findByUserId(UUID userId);
     void deleteById(UUID id);
 }

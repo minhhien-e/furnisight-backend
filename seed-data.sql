@@ -18,8 +18,8 @@ BEGIN;
 
 -- Roles
 INSERT INTO roles (id, name, permissions, position, created_at, updated_at) VALUES
-  ('9b6eca13-0b92-466a-bbf5-141e6676edab', 'ADMIN', -1, 100, NOW(), NOW()),
-  ('a0000000-0000-0000-0000-000000000002', 'USER', 0, 1, NOW(), NOW())
+  (gen_random_uuid(), 'ADMIN', -1, 100, NOW(), NOW()),
+  (gen_random_uuid(), 'USER', 0, 1, NOW(), NOW())
 ON CONFLICT (name) DO UPDATE SET
   permissions = EXCLUDED.permissions,
   position = EXCLUDED.position,
@@ -43,6 +43,16 @@ WHERE account_id IN (
   '7c22e6d3-1111-4aab-b999-aabbcc001122',
   '8d33f7e4-2222-4bbc-caaa-bbccdd002233'
 );
+
+DELETE FROM favorite_products
+WHERE account_id IN (
+  '52379d96-5238-4fd9-8383-bae82736bb3b',
+  'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
+  '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
+  '7c22e6d3-1111-4aab-b999-aabbcc001122',
+  '8d33f7e4-2222-4bbc-caaa-bbccdd002233'
+);
+
 
 DELETE FROM accounts
 WHERE username IN ('minhhien', 'admin', 'user01', 'user02', 'user03')
@@ -73,12 +83,12 @@ INSERT INTO accounts (
   ('8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'user03', 'user03@furnisight.store', '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a', 'ACTIVE', 0, NULL, NOW(), NOW());
 
 INSERT INTO account_roles (id, account_id, role_id, created_at, updated_at) VALUES
-  (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'a0000000-0000-0000-0000-000000000002', NOW(), NOW()),
-  (gen_random_uuid(), 'f85b5fd8-d60e-4c7e-87ae-5912796d668e', '9b6eca13-0b92-466a-bbf5-141e6676edab', NOW(), NOW()),
-  (gen_random_uuid(), 'f85b5fd8-d60e-4c7e-87ae-5912796d668e', 'a0000000-0000-0000-0000-000000000002', NOW(), NOW()),
-  (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'a0000000-0000-0000-0000-000000000002', NOW(), NOW()),
-  (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'a0000000-0000-0000-0000-000000000002', NOW(), NOW()),
-  (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'a0000000-0000-0000-0000-000000000002', NOW(), NOW());
+  (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', (SELECT id FROM roles WHERE name = 'USER'), NOW(), NOW()),
+  (gen_random_uuid(), 'f85b5fd8-d60e-4c7e-87ae-5912796d668e', (SELECT id FROM roles WHERE name = 'ADMIN'), NOW(), NOW()),
+  (gen_random_uuid(), 'f85b5fd8-d60e-4c7e-87ae-5912796d668e', (SELECT id FROM roles WHERE name = 'USER'), NOW(), NOW()),
+  (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', (SELECT id FROM roles WHERE name = 'USER'), NOW(), NOW()),
+  (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', (SELECT id FROM roles WHERE name = 'USER'), NOW(), NOW()),
+  (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', (SELECT id FROM roles WHERE name = 'USER'), NOW(), NOW());
 
 INSERT INTO user_profiles (
   id,
@@ -88,17 +98,26 @@ INSERT INTO user_profiles (
   last_name,
   avatar_url,
   email,
-  phone_number,
   date_of_birth,
   gender,
   created_at,
   updated_at
 ) VALUES
-  (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hien', 'Hien', 'Minh', 'https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien', 'minhhien7840@gmail.com', '0901234567', '2000-01-15', 'MALE', NOW(), NOW()),
-  (gen_random_uuid(), 'f85b5fd8-d60e-4c7e-87ae-5912796d668e', 'Admin', 'Admin', 'FurniSight', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', 'admin@furnisight.store', NULL, NULL, 'OTHER', NOW(), NOW()),
-  (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'User 01', 'Van', 'An', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user01', '22130080@st.hcmuaf.edu.vn', '0912345678', '1999-05-20', 'MALE', NOW(), NOW()),
-  (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'User 02', 'Thi', 'Binh', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user02', 'user02@furnisight.store', '0923456789', '2001-08-10', 'FEMALE', NOW(), NOW()),
-  (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'User 03', 'Quoc', 'Cuong', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user03', 'user03@furnisight.store', '0934567890', '1998-12-03', 'MALE', NOW(), NOW());
+  (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hien', 'Hien', 'Minh', 'https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien', 'minhhien7840@gmail.com', '2000-01-15', 'MALE', NOW(), NOW()),
+  (gen_random_uuid(), 'f85b5fd8-d60e-4c7e-87ae-5912796d668e', 'Admin', 'Admin', 'FurniSight', 'https://api.dicebear.com/7.x/avataaars/svg?seed=admin', 'admin@furnisight.store', NULL, 'OTHER', NOW(), NOW()),
+  (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'User 01', 'Van', 'An', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user01', '22130080@st.hcmuaf.edu.vn', '1999-05-20', 'MALE', NOW(), NOW()),
+  (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'User 02', 'Thi', 'Binh', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user02', 'user02@furnisight.store', '2001-08-10', 'FEMALE', NOW(), NOW()),
+  (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'User 03', 'Quoc', 'Cuong', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user03', 'user03@furnisight.store', '1998-12-03', 'MALE', NOW(), NOW());
+
+INSERT INTO favorite_products (id, account_id, product_id, created_at, updated_at) VALUES
+  (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+  (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+  (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+  (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'),
+  (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+  (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+  (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000009', NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+  (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000010', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days');
 
 COMMIT;
 
@@ -308,6 +327,7 @@ INSERT INTO reviews (
   id,
   title,
   user_id,
+  user_name,
   product_id,
   order_item_id,
   content_text,
@@ -318,14 +338,14 @@ INSERT INTO reviews (
   created_at,
   updated_at
 ) VALUES
-  ('b0000001-0000-0000-0000-000000000001', 'Sofa da rat xin!', '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', 'c0000001-0000-0000-0000-000000000001', 'Minh hai long voi chiec sofa nay. Chat da mem, mau sac dep, giao hang can than.', md5('Minh hai long voi chiec sofa nay.'), 5, 'VISIBLE', 0.90, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
-  ('b0000001-0000-0000-0000-000000000002', 'Chat luong on, gia hoi cao', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000001', 'c0000001-0000-0000-0000-000000000002', 'Sofa dep, ngoi thoai mai. Gia hoi cao nhung hoan thien tot.', md5('Sofa dep, ngoi thoai mai.'), 4, 'VISIBLE', 0.75, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
-  ('b0000002-0000-0000-0000-000000000001', 'Sofa vai sieu thoai mai', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000002', 'c0000002-0000-0000-0000-000000000001', 'Mua cho phong khach nha, gia dinh rat thich. Vai mem, dem day, de ve sinh.', md5('Mua cho phong khach nha, gia dinh rat thich.'), 5, 'VISIBLE', 0.85, NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days'),
-  ('b0000003-0000-0000-0000-000000000001', 'Ban tra dep, lap de', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000003', 'c0000003-0000-0000-0000-000000000001', 'Ban tra chac chan, huong dan lap rap ro rang, be mat dep.', md5('Ban tra chac chan, huong dan lap rap ro rang.'), 5, 'VISIBLE', 0.95, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
-  ('b0000004-0000-0000-0000-000000000001', 'Giuong king dinh, khong tieng keu', '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000004', 'c0000004-0000-0000-0000-000000000001', 'Dung duoc 2 thang, khung thep chac chan, son khong bi troc.', md5('Dung duoc 2 thang, khung thep chac chan.'), 5, 'VISIBLE', 0.88, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
-  ('b0000009-0000-0000-0000-000000000001', 'Ban dung thay doi cuoc song lam viec', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000009', 'c0000009-0000-0000-0000-000000000001', 'Motor em, dieu chinh muot, be mat rong, rat hop de 2 man hinh.', md5('Motor em, dieu chinh muot, be mat rong.'), 5, 'VISIBLE', 0.92, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
-  ('b0000009-0000-0000-0000-000000000002', 'Tot nhung giao hang cham', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'e0000000-0000-0000-0000-000000000009', 'c0000009-0000-0000-0000-000000000002', 'San pham chat luong tot, dung mo ta. Khau giao hang can cai thien.', md5('San pham chat luong tot, dung mo ta.'), 3, 'VISIBLE', 0.65, NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'),
-  ('b0000010-0000-0000-0000-000000000001', 'Ghe luoi cuc thoang, ngoi lau khong moi', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'e0000000-0000-0000-0000-000000000010', 'c0000010-0000-0000-0000-000000000001', 'Luoi thoang khi rat de chiu, dem that lung do dung diem, ngoi van thoai mai.', md5('Luoi thoang khi rat de chiu, dem that lung do dung diem.'), 5, 'VISIBLE', 0.87, NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days');
+  ('b0000001-0000-0000-0000-000000000001', 'Sofa da rat xin!', '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hien', 'e0000000-0000-0000-0000-000000000001', 'c0000001-0000-0000-0000-000000000001', 'Minh hai long voi chiec sofa nay. Chat da mem, mau sac dep, giao hang can than.', md5('Minh hai long voi chiec sofa nay.'), 5, 'VISIBLE', 0.90, NOW() - INTERVAL '5 days', NOW() - INTERVAL '5 days'),
+  ('b0000001-0000-0000-0000-000000000002', 'Chat luong on, gia hoi cao', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'User 01', 'e0000000-0000-0000-0000-000000000001', 'c0000001-0000-0000-0000-000000000002', 'Sofa dep, ngoi thoai mai. Gia hoi cao nhung hoan thien tot.', md5('Sofa dep, ngoi thoai mai.'), 4, 'VISIBLE', 0.75, NOW() - INTERVAL '3 days', NOW() - INTERVAL '3 days'),
+  ('b0000002-0000-0000-0000-000000000001', 'Sofa vai sieu thoai mai', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'User 02', 'e0000000-0000-0000-0000-000000000002', 'c0000002-0000-0000-0000-000000000001', 'Mua cho phong khach nha, gia dinh rat thich. Vai mem, dem day, de ve sinh.', md5('Mua cho phong khach nha, gia dinh rat thich.'), 5, 'VISIBLE', 0.85, NOW() - INTERVAL '7 days', NOW() - INTERVAL '7 days'),
+  ('b0000003-0000-0000-0000-000000000001', 'Ban tra dep, lap de', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'User 03', 'e0000000-0000-0000-0000-000000000003', 'c0000003-0000-0000-0000-000000000001', 'Ban tra chac chan, huong dan lap rap ro rang, be mat dep.', md5('Ban tra chac chan, huong dan lap rap ro rang.'), 5, 'VISIBLE', 0.95, NOW() - INTERVAL '10 days', NOW() - INTERVAL '10 days'),
+  ('b0000004-0000-0000-0000-000000000001', 'Giuong king dinh, khong tieng keu', '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hien', 'e0000000-0000-0000-0000-000000000004', 'c0000004-0000-0000-0000-000000000001', 'Dung duoc 2 thang, khung thep chac chan, son khong bi troc.', md5('Dung duoc 2 thang, khung thep chac chan.'), 5, 'VISIBLE', 0.88, NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
+  ('b0000009-0000-0000-0000-000000000001', 'Ban dung thay doi cuoc song lam viec', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'User 01', 'e0000000-0000-0000-0000-000000000009', 'c0000009-0000-0000-0000-000000000001', 'Motor em, dieu chinh muot, be mat rong, rat hop de 2 man hinh.', md5('Motor em, dieu chinh muot, be mat rong.'), 5, 'VISIBLE', 0.92, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
+  ('b0000009-0000-0000-0000-000000000002', 'Tot nhung giao hang cham', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'User 02', 'e0000000-0000-0000-0000-000000000009', 'c0000009-0000-0000-0000-000000000002', 'San pham chat luong tot, dung mo ta. Khau giao hang can cai thien.', md5('San pham chat luong tot, dung mo ta.'), 3, 'VISIBLE', 0.65, NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'),
+  ('b0000010-0000-0000-0000-000000000001', 'Ghe luoi cuc thoang, ngoi lau khong moi', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'User 03', 'e0000000-0000-0000-0000-000000000010', 'c0000010-0000-0000-0000-000000000001', 'Luoi thoang khi rat de chiu, dem that lung do dung diem, ngoi van thoai mai.', md5('Luoi thoang khi rat de chiu, dem that lung do dung diem.'), 5, 'VISIBLE', 0.87, NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days');
 
 COMMIT;
 

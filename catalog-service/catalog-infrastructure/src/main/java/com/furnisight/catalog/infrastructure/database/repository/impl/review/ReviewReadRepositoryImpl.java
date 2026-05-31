@@ -10,11 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import com.furnisight.catalog.infrastructure.integration.remote.RemoteMediaUrlResolver;
+
 @Repository("jdbcAdapter")
 @RequiredArgsConstructor
 public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final RemoteMediaUrlResolver mediaUrlResolver;
 
     @Override
     public List<ReviewProjection> findByProductId(UUID productId, Integer page, Integer size) {
@@ -22,7 +25,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
         int pageSize = (size != null) ? size : 10;
         int offset = pageNum * pageSize;
 
-        String sql = "SELECT id, user_id, product_id, title, content_text, rating, status, created_at " +
+        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, title, content_text, rating, status, created_at " +
                 "FROM reviews " +
                 "WHERE product_id = :productId AND status::text IN (:statuses) " +
                 "ORDER BY created_at DESC " +
@@ -35,15 +38,55 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
                 "offset", offset
         );
 
-        return jdbcTemplate.query(sql, params, (rs, rowNum) -> new ReviewProjection(
-                (UUID) rs.getObject("id"),
-                (UUID) rs.getObject("user_id"),
-                (UUID) rs.getObject("product_id"),
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            UUID mediaId = rs.getObject("user_avatar_media_id", UUID.class);
+            String avatarUrl = null;
+            if (mediaId != null) {
+                avatarUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+            }
+            return new ReviewProjection(
+                rs.getObject("id", UUID.class),
+                rs.getObject("user_id", UUID.class),
+                rs.getString("user_name"),
+                avatarUrl,
+                rs.getObject("product_id", UUID.class),
                 rs.getString("title"),
                 rs.getString("content_text"),
                 rs.getInt("rating"),
                 rs.getString("status"),
                 rs.getTimestamp("created_at").toLocalDateTime()
-        ));
+            );
+        });
+    }
+
+    @Override
+    public List<ReviewProjection> findTopRandomReviews(int limit) {
+        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, title, content_text, rating, status, created_at " +
+                "FROM reviews " +
+                "WHERE rating >= 4 AND status::text = 'VISIBLE' " +
+                "ORDER BY rating DESC, RANDOM() " +
+                "LIMIT :limit";
+
+        Map<String, Object> params = Map.of("limit", limit);
+
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            UUID mediaId = rs.getObject("user_avatar_media_id", UUID.class);
+            String avatarUrl = null;
+            if (mediaId != null) {
+                avatarUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+            }
+            return new ReviewProjection(
+                rs.getObject("id", UUID.class),
+                rs.getObject("user_id", UUID.class),
+                rs.getString("user_name"),
+                avatarUrl,
+                rs.getObject("product_id", UUID.class),
+                rs.getString("title"),
+                rs.getString("content_text"),
+                rs.getInt("rating"),
+                rs.getString("status"),
+                rs.getTimestamp("created_at").toLocalDateTime()
+            );
+        });
     }
 }

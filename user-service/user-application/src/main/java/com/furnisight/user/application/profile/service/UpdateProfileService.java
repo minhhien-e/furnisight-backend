@@ -12,6 +12,8 @@ import com.furnisight.user.domain.services.profile.UserProfileLifecycleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.context.ApplicationEventPublisher;
+import com.furnisight.user.domain.events.profile.UserProfileUpdatedEvent;
 
 @Service
 @RequiredArgsConstructor
@@ -20,6 +22,7 @@ public class UpdateProfileService implements UpdateProfileUseCase {
     private final UserProfileLifecycleService userProfileLifecycleService;
     private final UserProfileRepository userProfileRepository;
     private final ProfileMediaUrlResolver profileMediaUrlResolver;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -35,6 +38,14 @@ public class UpdateProfileService implements UpdateProfileUseCase {
             command.bio(),
             command.dateOfBirth(),
             command.gender());
+        
+        eventPublisher.publishEvent(new UserProfileUpdatedEvent(
+            updated.getAccountId(),
+            updated.getFirstName(),
+            updated.getLastName(),
+            updated.getAvatarMediaId()
+        ));
+
         return new ProfileResult(updated, resolveAvatarUrl(updated));
     }
 

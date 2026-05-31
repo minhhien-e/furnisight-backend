@@ -3,6 +3,7 @@ package com.furnisight.user.infrastructure.messaging.domain.listener;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.user.domain.entities.OutboxMessage;
 import com.furnisight.user.domain.events.identity.*;
+import com.furnisight.user.domain.events.profile.UserProfileUpdatedEvent;
 import com.furnisight.user.domain.repository.OutboxMessageRepository;
 import com.furnisight.user.infrastructure.messaging.EventTopics;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,12 @@ public class AccountEventToOutboxListener {
     @EventListener
     public void handle(SocialAccountCreatedEvent event) {
         save(event.accountId().toString(), EventTopics.SOCIAL_ACCOUNT_CREATED, event);
+    }
+
+    @SneakyThrows
+    @EventListener
+    public void handle(UserProfileUpdatedEvent event) {
+        save(event.getAccountId().toString(), EventTopics.USER_PROFILE_UPDATED, event);
     }
 
     private void save(String aggregateId, String topic, Object event) throws com.fasterxml.jackson.core.JsonProcessingException {

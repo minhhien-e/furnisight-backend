@@ -39,6 +39,12 @@ public class Review {
     @Column(nullable = false, updatable = false)
     private UUID userId;
 
+    @Column(name = "user_name")
+    private String userName;
+
+    @Column(name = "user_avatar_media_id")
+    private UUID userAvatarMediaId;
+
     @Column(nullable = false, updatable = false)
     private UUID productId;
 
@@ -192,5 +198,11 @@ public class Review {
         }
 
         return isChanged;
+    }
+
+    public void updateUserInfo(String userName, UUID userAvatarMediaId) {
+        this.userName = userName;
+        this.userAvatarMediaId = userAvatarMediaId;
+        this.updatedAt = LocalDateTime.now();
     }
 }

@@ -5,6 +5,7 @@ import com.furnisight.catalog.application.review.port.in.security.CurrentUserPro
 import com.furnisight.catalog.application.review.port.in.usecase.CreateReviewUseCase;
 import com.furnisight.catalog.application.review.port.in.usecase.DeleteReviewUseCase;
 import com.furnisight.catalog.application.review.port.in.usecase.GetReviewsByProductUseCase;
+import com.furnisight.catalog.application.review.port.in.usecase.GetTopRandomReviewsUseCase;
 import com.furnisight.catalog.application.review.port.in.usecase.UpdateReviewUseCase;
 import com.furnisight.catalog.presentation.web.rest.dto.request.review.CreateReviewRequest;
 import com.furnisight.catalog.presentation.web.rest.dto.request.review.UpdateReviewRequest;
@@ -25,6 +26,7 @@ public class ReviewController {
     private final UpdateReviewUseCase updateReviewUseCase;
     private final DeleteReviewUseCase deleteReviewUseCase;
     private final GetReviewsByProductUseCase getReviewsByProductUseCase;
+    private final GetTopRandomReviewsUseCase getTopRandomReviewsUseCase;
     private final CurrentUserProvider currentUserProvider;
 
     @PostMapping
@@ -53,6 +55,13 @@ public class ReviewController {
         @RequestParam(defaultValue = "10") int size
     ) {
         return ResponseEntity.ok(getReviewsByProductUseCase.getReviewsByProduct(productId, page, size));
+    }
+
+    @GetMapping("/top-random")
+    public ResponseEntity<List<ReviewProjection>> getTopRandomReviews(
+        @RequestParam(defaultValue = "3") int limit
+    ) {
+        return ResponseEntity.ok(getTopRandomReviewsUseCase.getTopRandomReviews(limit));
     }
 
     @PatchMapping("/update")

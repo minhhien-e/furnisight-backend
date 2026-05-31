@@ -6,4 +6,5 @@ import java.util.UUID;
 
 public interface ReviewQueryRepository {
     List<ReviewProjection> findByProductId(UUID productId, Integer page, Integer size);
+    List<ReviewProjection> findTopRandomReviews(int limit);
 }

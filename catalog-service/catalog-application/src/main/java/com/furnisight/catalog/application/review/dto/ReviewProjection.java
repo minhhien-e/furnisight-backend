@@ -6,6 +6,8 @@ import java.util.UUID;
 public record ReviewProjection(
     UUID id, 
     UUID userId, 
+    String userName,
+    String userAvatarUrl,
     UUID productId, 
     String title, 
     String content, 

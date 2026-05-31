@@ -25,6 +25,11 @@ public class ReviewRepositoryImpl implements ReviewWritePort {
     }
 
     @Override
+    public java.util.List<Review> findByUserId(UUID userId) {
+        return jpaRepository.findByUserId(userId);
+    }
+
+    @Override
     public void deleteById(UUID id) {
         jpaRepository.deleteById(id);
     }
