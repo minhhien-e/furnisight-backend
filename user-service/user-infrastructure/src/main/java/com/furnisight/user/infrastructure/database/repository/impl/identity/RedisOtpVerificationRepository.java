@@ -19,20 +19,20 @@ public class RedisOtpVerificationRepository implements OtpVerificationRepository
 
     @Override
     public void save(String email, VerificationType type, String otpHash, Duration ttl) {
-        redisTemplate.opsForValue().set(keyOf(email, type), otpHash, ttl);
+        redisTemplate.opsForValue().set(keyOf(otpHash, type), email, ttl);
     }
 
     @Override
-    public Optional<String> findHashByEmailAndType(String email, VerificationType type) {
-        return Optional.ofNullable(redisTemplate.opsForValue().get(keyOf(email, type)));
+    public Optional<String> findEmailByHashAndType(String otpHash, VerificationType type) {
+        return Optional.ofNullable(redisTemplate.opsForValue().get(keyOf(otpHash, type)));
     }
 
     @Override
-    public void deleteByEmailAndType(String email, VerificationType type) {
-        redisTemplate.delete(keyOf(email, type));
+    public void deleteByHashAndType(String otpHash, VerificationType type) {
+        redisTemplate.delete(keyOf(otpHash, type));
     }
 
-    private String keyOf(String email, VerificationType type) {
-        return KEY_PREFIX + type.name().toLowerCase() + ":" + email.toLowerCase();
+    private String keyOf(String otpHash, VerificationType type) {
+        return KEY_PREFIX + otpHash + ":" + type.name().toLowerCase();
     }
 }

@@ -32,8 +32,6 @@ public class PasswordService {
 
     public void requestResetPassword(Account account, String channel) {
         accountGuard.ensureVerifiedAndActive(account);
-
-        tokenLifeCycleService.deletePasswordResetRequests(account);
         tokenLifeCycleService.sendPasswordResetOtp(account, channel);
     }
 
@@ -56,7 +54,7 @@ public class PasswordService {
         account.setPassword(hashedPassword);
 
         tokenLifeCycleService.revokeAllAccountTokens(account);
-        otpVerificationRepository.deleteByEmailAndType(account.getEmail().getValue(), VerificationType.PASSWORD_RESET);
+        otpVerificationRepository.deleteByHashAndType(otpHash, VerificationType.PASSWORD_RESET);
     }
 
     private void verifyOtpHash(String expectedHash, String inputCode) {

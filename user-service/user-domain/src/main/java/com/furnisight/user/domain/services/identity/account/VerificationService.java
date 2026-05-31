@@ -20,11 +20,10 @@ public class VerificationService {
     public void verifyAccount(Account account, String otpHash, String inputCode) {
         verifyOtpHash(otpHash, inputCode);
         account.activate();
-        otpVerificationRepository.deleteByEmailAndType(account.getEmail().getValue(), VerificationType.ACCOUNT_VERIFICATION);
+        otpVerificationRepository.deleteByHashAndType(otpHash, VerificationType.ACCOUNT_VERIFICATION);
     }
 
     public void requestVerification(Account account, String channel) {
-        tokenLifeCycleService.deleteAccountVerificationRequests(account);
         tokenLifeCycleService.sendAccountVerificationOtp(account, channel);
     }
 

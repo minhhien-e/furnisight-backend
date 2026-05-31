@@ -10,6 +10,9 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import jakarta.persistence.Column;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import java.util.List;
 import java.util.UUID;
 
@@ -24,6 +27,8 @@ public class AccountToken extends AggregateRoot {
     private UUID accountId;
     private AccessToken accessToken;
     private RefreshToken refreshToken;
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "roles", columnDefinition = "varchar(255)[]")
     private List<String> roles;
 
     public AccountToken(UUID accountId, AccessToken accessToken, RefreshToken refreshToken, List<String> roles) {

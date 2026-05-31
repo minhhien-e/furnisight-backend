@@ -100,10 +100,9 @@ public class AuthController {
 
     @GetMapping("/verify")
     public ResponseEntity<?> verify(
-        @RequestParam String email,
         @RequestParam String otpCode
     ) {
-        var command = new VerifyAccountCommand(email, otpCode);
+        var command = new VerifyAccountCommand(otpCode);
         var result = verifyAccountUseCase.execute(command);
         return ResponseEntity.ok(result);
     }

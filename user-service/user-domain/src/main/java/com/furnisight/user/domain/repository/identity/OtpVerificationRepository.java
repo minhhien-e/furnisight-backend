@@ -8,7 +8,7 @@ import java.util.Optional;
 public interface OtpVerificationRepository {
     void save(String email, VerificationType type, String otpHash, Duration ttl);
 
-    Optional<String> findHashByEmailAndType(String email, VerificationType type);
+    Optional<String> findEmailByHashAndType(String otpHash, VerificationType type);
 
-    void deleteByEmailAndType(String email, VerificationType type);
+    void deleteByHashAndType(String otpHash, VerificationType type);
 }

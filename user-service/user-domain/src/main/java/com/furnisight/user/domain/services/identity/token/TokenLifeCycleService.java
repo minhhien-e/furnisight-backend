@@ -21,8 +21,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import com.furnisight.user.domain.repository.identity.RoleRepository;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.List;
 
@@ -81,35 +79,26 @@ public class TokenLifeCycleService {
     public void sendAccountVerificationOtp(Account account, String email) {
         String otp = otpCodeGenerator.generateOtpCode();
         otpVerificationRepository.save(
-            email,
-            VerificationType.ACCOUNT_VERIFICATION,
-            otpHasher.hash(otp),
-            Duration.ofMinutes(OTP_TTL_MINUTES)
-        );
+                email,
+                VerificationType.ACCOUNT_VERIFICATION,
+                otpHasher.hash(otp),
+                Duration.ofMinutes(OTP_TTL_MINUTES));
         eventPublisher.publishEvent(new AccountVerificationRequestedEvent(
-            account.getId(),
-            email,
-            verifyUrl + otp + "&email=" + URLEncoder.encode(email, StandardCharsets.UTF_8),
-            java.time.LocalDateTime.now()
-        ));
+                account.getId(),
+                email,
+                verifyUrl + otp,
+                java.time.LocalDateTime.now()));
     }
 
     public void sendPasswordResetOtp(Account account, String email) {
         String otp = otpCodeGenerator.generateOtpCode();
         otpVerificationRepository.save(
-            email,
-            VerificationType.PASSWORD_RESET,
-            otpHasher.hash(otp),
-            Duration.ofMinutes(OTP_TTL_MINUTES)
-        );
-        eventPublisher.publishEvent(new AccountResetPasswordRequestedEvent(account.getId(), otp, email, java.time.LocalDateTime.now()));
+                email,
+                VerificationType.PASSWORD_RESET,
+                otpHasher.hash(otp),
+                Duration.ofMinutes(OTP_TTL_MINUTES));
+        eventPublisher.publishEvent(
+                new AccountResetPasswordRequestedEvent(account.getId(), otp, email, java.time.LocalDateTime.now()));
     }
 
-    public void deleteAccountVerificationRequests(Account account) {
-        otpVerificationRepository.deleteByEmailAndType(account.getEmail().getValue(), VerificationType.ACCOUNT_VERIFICATION);
-    }
-
-    public void deletePasswordResetRequests(Account account) {
-        otpVerificationRepository.deleteByEmailAndType(account.getEmail().getValue(), VerificationType.PASSWORD_RESET);
-    }
 }
