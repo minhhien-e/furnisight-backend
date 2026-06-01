@@ -1,0 +1,61 @@
+syntax = "proto3";
+
+package com.furnisight.admin.order;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.order";
+option java_outer_classname = "AdminOrderProto";
+
+import "google/protobuf/empty.proto";
+
+service AdminOrderService {
+    rpc GetAdminOrders (GetAdminOrdersRequest) returns (OrderPageResponse);
+    rpc GetOrderStats (google.protobuf.Empty) returns (OrderStatsResponse);
+    rpc ShipOrder (ShipOrderRequest) returns (AdminActionResponse);
+    rpc DeliverOrder (DeliverOrderRequest) returns (AdminActionResponse);
+}
+
+message AdminActionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetAdminOrdersRequest {
+    int32 page = 1;
+    int32 size = 2;
+    string status = 3;
+}
+
+message OrderPageResponse {
+    repeated OrderDto orders = 1;
+    int32 total_pages = 2;
+    int64 total_elements = 3;
+    int32 current_page = 4;
+}
+
+message OrderDto {
+    string id = 1;
+    string order_code = 2;
+    string status = 3;
+    double total_amount = 4;
+    string created_at = 5;
+    string payment_method = 6;
+    string first_product_image = 7;
+}
+
+message OrderStatsResponse {
+    double total_revenue = 1;
+    double revenue_this_month = 2;
+    int64 total_orders = 3;
+    map<string, int64> orders_by_status = 4;
+}
+
+message ShipOrderRequest {
+    string admin_id = 1;
+    string order_code = 2;
+}
+
+message DeliverOrderRequest {
+    string admin_id = 1;
+    string order_code = 2;
+}

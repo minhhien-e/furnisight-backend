@@ -1,0 +1,126 @@
+syntax = "proto3";
+
+package com.furnisight.admin.user;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.user";
+option java_outer_classname = "AdminUserProto";
+
+import "google/protobuf/empty.proto";
+
+service AdminUserService {
+    rpc GetAccounts (GetAccountsRequest) returns (AccountPageResponse);
+    rpc GetAccountById (GetAccountByIdRequest) returns (AccountDetailResponse);
+    rpc GetAccountStats (google.protobuf.Empty) returns (AccountStatsResponse);
+    rpc BanAccount (BanAccountRequest) returns (AdminActionResponse);
+    rpc UnbanAccount (UnbanAccountRequest) returns (AdminActionResponse);
+    rpc ActivateAccount (ActivateAccountRequest) returns (AdminActionResponse);
+    rpc DeleteAccount (DeleteAccountRequest) returns (AdminActionResponse);
+    rpc GetRoles (google.protobuf.Empty) returns (RoleListResponse);
+    rpc AssignRole (AssignRoleRequest) returns (AdminActionResponse);
+    rpc RevokeRole (RevokeRoleRequest) returns (AdminActionResponse);
+    rpc CreateAccount (CreateAccountRequest) returns (AdminActionResponse);
+}
+
+message CreateAccountRequest {
+    string admin_id = 1;
+    string email = 2;
+    string name = 3;
+    string phone = 4;
+    string password = 5;
+    string role_id = 6;
+}
+
+message AdminActionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetAccountsRequest {
+    int32 page = 1;
+    int32 size = 2;
+    string query = 3;
+    string status = 4;
+}
+
+message AccountPageResponse {
+    repeated AccountDto accounts = 1;
+    int32 total_pages = 2;
+    int64 total_elements = 3;
+    int32 current_page = 4;
+}
+
+message AccountDto {
+    string id = 1;
+    string email = 2;
+    string username = 3;
+    string status = 4;
+    string created_at = 5;
+}
+
+message GetAccountByIdRequest {
+    string id = 1;
+}
+
+message AccountDetailResponse {
+    string id = 1;
+    string email = 2;
+    string username = 3;
+    string status = 4;
+    string created_at = 5;
+    string first_name = 6;
+    string last_name = 7;
+    string avatar_url = 8;
+    repeated RoleDto roles = 9;
+}
+
+message RoleDto {
+    string id = 1;
+    string name = 2;
+    repeated string permissions = 3;
+}
+
+message AccountStatsResponse {
+    int64 total_users = 1;
+    int64 active_users = 2;
+    int64 banned_users = 3;
+    int64 new_users_this_month = 4;
+}
+
+message BanAccountRequest {
+    string admin_id = 1;
+    string account_id = 2;
+    string reason = 3;
+    string expires_at = 4;
+}
+
+message UnbanAccountRequest {
+    string admin_id = 1;
+    string account_id = 2;
+}
+
+message ActivateAccountRequest {
+    string admin_id = 1;
+    string account_id = 2;
+}
+
+message DeleteAccountRequest {
+    string admin_id = 1;
+    string account_id = 2;
+}
+
+message RoleListResponse {
+    repeated RoleDto roles = 1;
+}
+
+message AssignRoleRequest {
+    string admin_id = 1;
+    string account_id = 2;
+    string role_id = 3;
+}
+
+message RevokeRoleRequest {
+    string admin_id = 1;
+    string account_id = 2;
+    string role_id = 3;
+}
