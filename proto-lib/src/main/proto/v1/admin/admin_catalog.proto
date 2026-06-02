@@ -1,0 +1,176 @@
+syntax = "proto3";
+
+package com.furnisight.admin.catalog;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.catalog";
+option java_outer_classname = "AdminCatalogProto";
+
+import "google/protobuf/empty.proto";
+
+service AdminCatalogService {
+    rpc GetAdminProducts (GetAdminProductsRequest) returns (ProductPageResponse);
+    rpc GetProductDetail (GetProductDetailRequest) returns (ProductDto);
+    rpc GetProductStats (google.protobuf.Empty) returns (ProductStatsResponse);
+    rpc GetLowStockProducts (GetLowStockProductsRequest) returns (LowStockProductListResponse);
+    rpc CreateProduct (CreateProductRequest) returns (AdminActionResponse);
+    rpc UpdateProduct (UpdateProductRequest) returns (AdminActionResponse);
+    rpc DeleteProduct (DeleteProductRequest) returns (AdminActionResponse);
+    rpc GetAdminCategories (GetAdminCategoriesRequest) returns (CategoryListResponse);
+    rpc GetCategoryDetail (GetCategoryDetailRequest) returns (CategoryDto);
+    rpc GetCategoryStats (google.protobuf.Empty) returns (CategoryStatsResponse);
+    rpc CreateCategory (CreateCategoryRequest) returns (AdminActionResponse);
+    rpc UpdateCategory (UpdateCategoryRequest) returns (AdminActionResponse);
+    rpc DeleteCategory (DeleteCategoryRequest) returns (AdminActionResponse);
+}
+
+message AdminActionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetAdminProductsRequest {
+    int32 page = 1;
+    int32 size = 2;
+    string query = 3;
+    string status = 4;
+    string category = 5;
+}
+
+message ProductPageResponse {
+    repeated ProductDto products = 1;
+    int32 total_pages = 2;
+    int64 total_elements = 3;
+    int32 current_page = 4;
+}
+
+message ProductDto {
+    string id = 1;
+    string name = 2;
+    string sku = 3;
+    string category = 4;
+    double price = 5;
+    int32 stock = 6;
+    string status = 7;
+    string status_label = 8;
+    string model3d_url = 9;
+    string model3d_file_name = 10;
+    int64 model3d_size = 11;
+    string slug = 12;
+}
+
+message ProductStatsResponse {
+    int64 total_products = 1;
+    int64 active_products = 2;
+    int64 inactive_products = 3;
+    int64 low_stock_products = 4;
+    int64 out_of_stock_products = 5;
+}
+
+message GetLowStockProductsRequest {
+    int32 limit = 1;
+    int32 threshold = 2;
+}
+
+message LowStockProductListResponse {
+    repeated LowStockProductDto products = 1;
+}
+
+message LowStockProductDto {
+    string id = 1;
+    string name = 2;
+    string category = 3;
+    int32 stock = 4;
+    string level = 5;
+}
+
+message CreateProductRequest {
+    string name = 1;
+    string slug = 2;
+    string category_id = 3;
+    string category = 4;
+    double price = 5;
+    int32 stock = 6;
+    string sku = 7;
+    string status = 8;
+    string description = 9;
+    string model3d_url = 10;
+    string model3d_file_name = 11;
+    int64 model3d_size = 12;
+}
+
+message UpdateProductRequest {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+    string category_id = 4;
+    string category = 5;
+    double price = 6;
+    int32 stock = 7;
+    string sku = 8;
+    string status = 9;
+    string description = 10;
+    string model3d_url = 11;
+    string model3d_file_name = 12;
+    int64 model3d_size = 13;
+}
+
+message DeleteProductRequest {
+    string id = 1;
+}
+
+message GetProductDetailRequest {
+    string id = 1;
+}
+
+message GetAdminCategoriesRequest {
+    string query = 1;
+}
+
+message CategoryListResponse {
+    repeated CategoryDto categories = 1;
+}
+
+message CategoryDto {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+    int32 product_count = 4;
+    bool visible = 5;
+    string visible_label = 6;
+    string created_at = 7;
+    string icon_id = 8;
+    string description = 9;
+}
+
+message CategoryStatsResponse {
+    int64 total_categories = 1;
+    int64 visible_categories = 2;
+}
+
+message CreateCategoryRequest {
+    string name = 1;
+    string slug = 2;
+    string parent_id = 3;
+    string icon_id = 4;
+    bool visible = 5;
+    string description = 6;
+}
+
+message UpdateCategoryRequest {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+    string parent_id = 4;
+    string icon_id = 5;
+    bool visible = 6;
+    string description = 7;
+}
+
+message DeleteCategoryRequest {
+    string id = 1;
+}
+
+message GetCategoryDetailRequest {
+    string id = 1;
+}

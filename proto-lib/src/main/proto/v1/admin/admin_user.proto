@@ -75,6 +75,8 @@ message AccountDetailResponse {
     string last_name = 7;
     string avatar_url = 8;
     repeated RoleDto roles = 9;
+    string phone = 10;
+    string name = 11;
 }
 
 message RoleDto {
