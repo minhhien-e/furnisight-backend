@@ -13,6 +13,14 @@ public interface OrderRepository {
     Optional<Order> findByOrderCode(String orderCode);
     List<Order> findAllByUserId(UUID userId);
     List<Order> findAllByStatus(OrderStatus status);
+    List<Order> findAllByStatus(OrderStatus status, int page, int size);
     List<Order> findAllByStatusesAndCreatedAtBefore(List<OrderStatus> statuses, LocalDateTime cutoff);
     List<Order> findAll();
+    List<Order> findAll(int page, int size);
+    long countAll();
+    long countByStatus(OrderStatus status);
+    long countCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    long countByStatusCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
+    double sumTotalAmount();
+    double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end);
 }

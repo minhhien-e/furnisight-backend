@@ -9,6 +9,7 @@ allprojects {
     version = '1.0-SNAPSHOT'
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven {
             url = uri("https://maven.pkg.github.com/minhhien-e/furnisight-backend")
@@ -25,7 +26,9 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
 
     java {
-        sourceCompatibility = JavaVersion.VERSION_17 // Hoặc 21 tùy bạn chọn
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
     }
 
     dependencyManagement {
@@ -37,7 +40,6 @@ subprojects {
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
 
-        // Dành cho việc viết Unit Test sau này
         testCompileOnly 'org.projectlombok:lombok'
         testAnnotationProcessor 'org.projectlombok:lombok'
     }

@@ -144,6 +144,7 @@ services:
       - order-service
       - media-service
       - ai-image-classifier
+      - admin-service
 
   user-service:
     <<: *java-service
@@ -154,8 +155,23 @@ services:
       <<: *java-build
     env_file:
       - ./user-service/.env
+    expose:
+      - "8080"
+      - "9091"
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+
+  admin-service:
+    <<: *java-service
+    image: furnisight-admin-service:latest
+    container_name: furnisight_admin_service
+    build:
+      context: ./admin-service
+      <<: *java-build
+    env_file:
+      - ./admin-service/.env
+    depends_on:
+      - user-service
 
   catalog-service:
     <<: *java-service

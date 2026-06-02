@@ -3,6 +3,7 @@ package com.furnisight.catalog.application.product.service;
 import com.furnisight.catalog.application.product.dto.command.CreateProductCommand;
 import com.furnisight.catalog.application.product.port.in.usecase.CreateProductUseCase;
 import com.furnisight.catalog.domain.entities.Product;
+import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
@@ -51,6 +52,20 @@ public class CreateProductService implements CreateProductUseCase {
             }
         }
 
+        List<ProductImage> gallery = new ArrayList<>();
+        if (command.getImageUrls() != null) {
+            for (String imageUrl : command.getImageUrls()) {
+                if (imageUrl == null || imageUrl.isBlank()) {
+                    continue;
+                }
+                gallery.add(ProductImage.builder()
+                        .id(UUID.randomUUID())
+                        .imageUrl(imageUrl.trim())
+                        .position(gallery.size())
+                        .build());
+            }
+        }
+
         Product product = productLifecycleService.createProduct(
                 command.getCategoryId(),
                 command.getCollectionId(),
@@ -60,7 +75,7 @@ public class CreateProductService implements CreateProductUseCase {
                 command.getModelUrl(),
                 command.getSupports3d(),
                 command.getFeatures(),
-                new ArrayList<>(), // gallery — thêm riêng sau
+                gallery,
                 variants);
 
         productRepository.save(product);

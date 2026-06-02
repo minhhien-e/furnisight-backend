@@ -9,6 +9,8 @@ server:
         same-site: none
         secure: true
 grpc:
+  server:
+    port: 9091
   client:
     catalog-service:
       address: ${GRPC_CATALOG_SERVICE_ADDRESS:static://localhost:9093}

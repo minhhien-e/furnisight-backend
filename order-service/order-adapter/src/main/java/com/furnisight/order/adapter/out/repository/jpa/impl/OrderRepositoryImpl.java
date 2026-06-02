@@ -5,6 +5,7 @@ import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
@@ -43,6 +44,11 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
+    public List<Order> findAllByStatus(OrderStatus status, int page, int size) {
+        return jpaRepository.findAllByStatusOrderByCreatedAtDesc(status, PageRequest.of(Math.max(page, 0), Math.max(size, 1)));
+    }
+
+    @Override
     public List<Order> findAllByStatusesAndCreatedAtBefore(List<OrderStatus> statuses, LocalDateTime cutoff) {
         return jpaRepository.findAllByStatusInAndCreatedAtBefore(statuses, cutoff);
     }
@@ -50,5 +56,42 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Order> findAll() {
         return jpaRepository.findAllByOrderByCreatedAtDesc();
+    }
+
+    @Override
+    public List<Order> findAll(int page, int size) {
+        return jpaRepository.findAllByOrderByCreatedAtDesc(PageRequest.of(Math.max(page, 0), Math.max(size, 1)));
+    }
+
+    @Override
+    public long countAll() {
+        return jpaRepository.count();
+    }
+
+    @Override
+    public long countByStatus(OrderStatus status) {
+        return jpaRepository.countByStatus(status);
+    }
+
+    @Override
+    public long countCreatedAtBetween(LocalDateTime start, LocalDateTime end) {
+        return jpaRepository.countByCreatedAtBetween(start, end);
+    }
+
+    @Override
+    public long countByStatusCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end) {
+        return jpaRepository.countByStatusAndCreatedAtBetween(status, start, end);
+    }
+
+    @Override
+    public double sumTotalAmount() {
+        Double value = jpaRepository.sumTotalAmount();
+        return value == null ? 0D : value;
+    }
+
+    @Override
+    public double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end) {
+        Double value = jpaRepository.sumTotalAmountCreatedAtBetween(start, end);
+        return value == null ? 0D : value;
     }
 }

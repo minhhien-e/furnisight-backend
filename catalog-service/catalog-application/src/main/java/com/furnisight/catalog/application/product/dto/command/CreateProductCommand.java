@@ -21,6 +21,7 @@ public class CreateProductCommand {
     private String modelUrl;
     private Boolean supports3d;
     private List<String> features;
+    private List<String> imageUrls;
     private List<VariantCommand> variants;
 
     @Data

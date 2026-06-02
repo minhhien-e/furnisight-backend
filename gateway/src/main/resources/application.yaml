@@ -105,6 +105,11 @@ spring:
                     regexp: /media/?(?<segment>.*)
                     replacement: /api/v1/$\{segment}
 
+            - id: admin-service
+              uri: ${ADMIN_SERVICE_URL:http://localhost:8088}
+              predicates:
+                - Path=/admin/**
+
           forwarded:
             enabled: true
 

@@ -12,5 +12,10 @@ public interface ProductReadRepository {
     Optional<ProductDetailProjection> findProductDetailById(UUID productId);
     SearchProductsProjection searchProducts(SearchProductsQuery query);
     List<ProductSummaryProjection> findTopProducts(int limit);
+    List<AdminProductProjection> findAdminProducts(String query, String status, String category, int page, int size);
+    long countAdminProducts(String query, String status, String category);
+    long countProductsByStatus(String status);
+    long countLowStockProducts(int threshold);
+    long countOutOfStockProducts();
+    List<LowStockProductProjection> findLowStockProducts(int threshold, int limit);
 }
-

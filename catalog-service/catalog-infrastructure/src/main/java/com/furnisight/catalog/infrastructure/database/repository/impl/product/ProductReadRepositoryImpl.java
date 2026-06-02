@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
 import com.furnisight.catalog.application.product.dto.projection.ProductSummaryProjection;
+import com.furnisight.catalog.application.product.dto.projection.AdminProductProjection;
+import com.furnisight.catalog.application.product.dto.projection.LowStockProductProjection;
 import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
@@ -262,6 +264,120 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 this::mapRowToProductSummary);
     }
 
+    @Override
+    public List<AdminProductProjection> findAdminProducts(String query, String status, String category, int page, int size) {
+        Map<String, Object> params = new HashMap<>();
+        String whereClause = buildAdminProductWhereClause(query, status, category, params);
+        params.put("limit", Math.max(size, 1));
+        params.put("offset", Math.max(page, 0) * Math.max(size, 1));
+
+        String sql = """
+                SELECT
+                    p.id AS product_id,
+                    p.name AS product_name,
+                    p.slug AS product_slug,
+                    p.product_status,
+                    p.model_url,
+                    c.name AS category_name,
+                    MIN(pv.price) AS product_price,
+                    COALESCE(SUM(pv.stock_quantity), 0) AS product_stock
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN product_variants pv ON pv.product_id = p.id
+                """ + whereClause + """
+                GROUP BY p.id, p.name, p.slug, p.product_status, p.model_url, c.name, p.created_at
+                ORDER BY p.created_at DESC
+                LIMIT :limit OFFSET :offset
+                """;
+
+        return jdbcTemplate.query(sql, params, this::mapRowToAdminProduct);
+    }
+
+    @Override
+    public long countAdminProducts(String query, String status, String category) {
+        Map<String, Object> params = new HashMap<>();
+        String whereClause = buildAdminProductWhereClause(query, status, category, params);
+        Long total = jdbcTemplate.queryForObject(
+                "SELECT COUNT(DISTINCT p.id) FROM products p LEFT JOIN categories c ON p.category_id = c.id " + whereClause,
+                params,
+                Long.class);
+        return total == null ? 0L : total;
+    }
+
+    @Override
+    public long countProductsByStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return 0L;
+        }
+        Long total = jdbcTemplate.queryForObject(
+                "SELECT COUNT(*) FROM products WHERE product_status = :status",
+                Map.of("status", status.trim().toUpperCase()),
+                Long.class);
+        return total == null ? 0L : total;
+    }
+
+    @Override
+    public long countLowStockProducts(int threshold) {
+        Long total = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM (
+                    SELECT p.id, COALESCE(SUM(pv.stock_quantity), 0) AS stock
+                    FROM products p
+                    LEFT JOIN product_variants pv ON pv.product_id = p.id
+                    GROUP BY p.id
+                ) stock_view
+                WHERE stock > 0 AND stock <= :threshold
+                """,
+                Map.of("threshold", Math.max(threshold, 1)),
+                Long.class);
+        return total == null ? 0L : total;
+    }
+
+    @Override
+    public long countOutOfStockProducts() {
+        Long total = jdbcTemplate.queryForObject(
+                """
+                SELECT COUNT(*) FROM (
+                    SELECT p.id, COALESCE(SUM(pv.stock_quantity), 0) AS stock
+                    FROM products p
+                    LEFT JOIN product_variants pv ON pv.product_id = p.id
+                    GROUP BY p.id
+                ) stock_view
+                WHERE stock <= 0
+                """,
+                Map.of(),
+                Long.class);
+        return total == null ? 0L : total;
+    }
+
+    @Override
+    public List<LowStockProductProjection> findLowStockProducts(int threshold, int limit) {
+        String sql = """
+                SELECT
+                    p.id AS product_id,
+                    p.name AS product_name,
+                    c.name AS category_name,
+                    COALESCE(SUM(pv.stock_quantity), 0) AS product_stock
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN product_variants pv ON pv.product_id = p.id
+                GROUP BY p.id, p.name, c.name
+                HAVING COALESCE(SUM(pv.stock_quantity), 0) <= :threshold
+                ORDER BY product_stock ASC, p.name ASC
+                LIMIT :limit
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of("threshold", Math.max(threshold, 1), "limit", Math.max(limit, 1)),
+                (rs, rowNum) -> LowStockProductProjection.builder()
+                        .id((UUID) rs.getObject("product_id"))
+                        .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
+                        .categoryName(normalizeText(rs.getString("category_name"), "Sản phẩm"))
+                        .stock(rs.getInt("product_stock"))
+                        .build());
+    }
+
     private void appendSearchFilter(StringBuilder whereClause, Map<String, Object> params, SearchProductsQuery query) {
         if (query.getQ() == null || query.getQ().isBlank()) {
             return;
@@ -275,6 +391,40 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 """);
 
         params.put("q", "%" + query.getQ().trim().toLowerCase() + "%");
+    }
+
+    private String buildAdminProductWhereClause(String query, String status, String category, Map<String, Object> params) {
+        StringBuilder whereClause = new StringBuilder(" WHERE 1 = 1 ");
+        if (query != null && !query.isBlank()) {
+            whereClause.append(" AND (LOWER(p.name) LIKE :adminQuery OR LOWER(p.slug) LIKE :adminQuery) ");
+            params.put("adminQuery", "%" + query.trim().toLowerCase() + "%");
+        }
+        if (status != null && !status.isBlank()) {
+            whereClause.append(" AND p.product_status = :adminStatus ");
+            params.put("adminStatus", status.trim().toUpperCase());
+        }
+        if (category != null && !category.isBlank()) {
+            whereClause.append(" AND (LOWER(c.name) = :adminCategory OR LOWER(c.slug) = :adminCategory OR CAST(c.id AS text) = :adminCategory) ");
+            params.put("adminCategory", category.trim().toLowerCase());
+        }
+        return whereClause.toString();
+    }
+
+    private AdminProductProjection mapRowToAdminProduct(ResultSet rs, int rowNum) throws SQLException {
+        UUID id = (UUID) rs.getObject("product_id");
+        String slug = normalizeText(rs.getString("product_slug"), id.toString());
+        return AdminProductProjection.builder()
+                .id(id)
+                .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
+                .slug(slug)
+                .sku(slug)
+                .categoryName(normalizeText(rs.getString("category_name"), "Sản phẩm"))
+                .price(getNullableDouble(rs, "product_price") == null ? 0D : getNullableDouble(rs, "product_price"))
+                .stock(rs.getInt("product_stock"))
+                .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
+                .modelUrl(normalizeText(rs.getString("model_url"), ""))
+                .imageUrls(fetchGallery(id))
+                .build();
     }
 
     private void appendStatusFilter(StringBuilder whereClause, Map<String, Object> params, SearchProductsQuery query) {

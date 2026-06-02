@@ -12,4 +12,8 @@ public interface CategoryReadRepository {
     List<CategoryDetailProjection> findRootCategories();
 
     List<CategoryDetailProjection> findSubcategoriesByParentSlug(String parentSlug);
+
+    Optional<CategoryDetailProjection> findCategoryDetailById(java.util.UUID id);
+
+    long countCategories();
 }

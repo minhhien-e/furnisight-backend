@@ -9,6 +9,7 @@ allprojects {
     version = '1.0-SNAPSHOT'
 
     repositories {
+        mavenLocal()
         mavenCentral()
         maven {
             url = uri("https://maven.pkg.github.com/minhhien-e/furnisight-backend")
@@ -25,8 +26,9 @@ subprojects {
     apply plugin: 'io.spring.dependency-management'
 
     java {
-        sourceCompatibility = '17'
-        targetCompatibility = '17'
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
     }
     dependencyManagement {
         imports {

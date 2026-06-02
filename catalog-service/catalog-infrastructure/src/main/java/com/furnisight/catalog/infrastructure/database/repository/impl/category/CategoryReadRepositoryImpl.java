@@ -88,6 +88,36 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
                 (rs, rowNum) -> mapRowToDto(rs));
     }
 
+    @Override
+    public Optional<CategoryDetailProjection> findCategoryDetailById(UUID id) {
+        if (id == null) {
+            return Optional.empty();
+        }
+
+        String sql = """
+                SELECT *
+                FROM categories
+                WHERE id = :id
+                LIMIT 1
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of("id", id),
+                rs -> {
+                    if (rs.next()) {
+                        return Optional.of(mapRowToDto(rs));
+                    }
+                    return Optional.empty();
+                });
+    }
+
+    @Override
+    public long countCategories() {
+        Long total = jdbcTemplate.getJdbcTemplate().queryForObject("SELECT COUNT(*) FROM categories", Long.class);
+        return total == null ? 0L : total;
+    }
+
     private CategoryDetailProjection mapRowToDto(ResultSet rs) throws SQLException {
         return CategoryDetailProjection.builder()
                 .id((UUID) rs.getObject("id"))
