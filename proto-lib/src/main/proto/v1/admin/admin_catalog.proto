@@ -57,6 +57,7 @@ message ProductDto {
     string model3d_file_name = 10;
     int64 model3d_size = 11;
     string slug = 12;
+    repeated string image_urls = 13;
 }
 
 message ProductStatsResponse {
@@ -97,6 +98,7 @@ message CreateProductRequest {
     string model3d_url = 10;
     string model3d_file_name = 11;
     int64 model3d_size = 12;
+    repeated string image_urls = 13;
 }
 
 message UpdateProductRequest {
@@ -113,6 +115,7 @@ message UpdateProductRequest {
     string model3d_url = 11;
     string model3d_file_name = 12;
     int64 model3d_size = 13;
+    repeated string image_urls = 14;
 }
 
 message DeleteProductRequest {
