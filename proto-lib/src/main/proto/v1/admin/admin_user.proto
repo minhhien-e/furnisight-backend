@@ -56,6 +56,9 @@ message AccountDto {
     string username = 3;
     string status = 4;
     string created_at = 5;
+    string phone = 6;
+    repeated RoleDto roles = 7;
+    string name = 8;
 }
 
 message GetAccountByIdRequest {
