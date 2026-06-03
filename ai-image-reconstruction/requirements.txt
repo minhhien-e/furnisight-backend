@@ -1,0 +1,43 @@
+# =================================
+# Core Deep Learning
+# NOTE: Install PyTorch separately from https://pytorch.org/ or by setting TORCH_WHEEL in Docker build.
+# Example CPU wheel for Python 3.8:
+# pip install https://download.pytorch.org/whl/cpu/torch-1.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl torchvision==0.14.1%2Bcpu --extra-index-url https://download.pytorch.org/whl/cpu
+# Example CUDA 11.8 wheel for Python 3.8:
+# pip install https://download.pytorch.org/whl/cu118/torch-1.13.1%2Bcu118-cp38-cp38-linux_x86_64.whl torchvision==0.14.1%2Bcu118 --extra-index-url https://download.pytorch.org/whl/cu118
+# =================================
+numpy==1.23.5
+scipy==1.8.1
+einops==0.6.1
+
+# =================================
+# Computer Vision
+# =================================
+opencv-python==4.5.5.64
+pillow==9.5.0
+imageio==2.19.2
+pylsd-nova==1.2.0
+
+# =================================
+# 3D Processing
+# =================================
+open3d==0.15.2
+Shapely==1.8.2
+trimesh==4.4.9
+
+# =================================
+# Web / API
+# =================================
+fastapi==0.95.2
+uvicorn==0.22.0
+python-multipart==0.0.6
+
+# =================================
+# Utilities
+# =================================
+yacs==0.1.8
+PyYAML==6.0
+tqdm==4.64.0
+termcolor==1.1.0
+requests==2.31.0
+easydict==1.9

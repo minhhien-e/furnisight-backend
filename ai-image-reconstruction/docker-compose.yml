@@ -1,0 +1,15 @@
+version: '3.8'
+services:
+  ai-image-reconstruction:
+    build:
+      context: .
+      args:
+        TORCH_WHEEL: ${TORCH_WHEEL:-}
+    env_file:
+      - .env
+    ports:
+      - "${HOST_PORT:-8001}:${PORT:-8001}"
+    volumes:
+      - ./checkpoints:/app/checkpoints:ro
+      - ./outputs:/app/outputs
+    restart: unless-stopped
