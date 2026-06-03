@@ -20,7 +20,7 @@ COPY src src
 # Tiến hành cấp quyền thực thi và build JAR, sử dụng Cache Mount và Secret Mount
 RUN --mount=type=secret,id=GITHUB_TOKEN \
     --mount=type=cache,target=/root/.gradle \
-    export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && \
+    if [ -f /run/secrets/GITHUB_TOKEN ]; then export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN); fi && \
     chmod +x gradlew && ./gradlew build -x test
 
 # =========================================================================

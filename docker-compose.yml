@@ -144,6 +144,7 @@ services:
       - order-service
       - media-service
       - ai-image-classifier
+      - ai-image-reconstruction
       - admin-service
 
   user-service:
@@ -250,6 +251,25 @@ services:
     expose:
       - "8080"
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+  ai-image-reconstruction:
+    image: furnisight-ai-image-reconstruction:latest
+    build:
+      context: ./ai-image-reconstruction
+      dockerfile: Dockerfile
+      args:
+        TORCH_WHEEL: ${TORCH_WHEEL:-}
+    container_name: furnisight_ai_reconstruction
+    <<: *common-service
+    ports:
+      - "8001:8001"
+    env_file:
+      - ./ai-image-reconstruction/.env
+    volumes:
+      - ./ai-image-reconstruction/checkpoints:/app/checkpoints:ro
+      - ./ai-image-reconstruction/outputs:/app/outputs
+    expose:
+      - "8001"
 
   media-service:
     <<: *java-service
