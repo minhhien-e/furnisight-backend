@@ -37,6 +37,7 @@ import java.util.List;
 public class AdminCatalogService {
 
     private final GrpcAdminCatalogClient grpcAdminCatalogClient;
+    private final AdminInventorySettingsService inventorySettingsService;
 
     public AdminProductPageResponse getProducts(int page, int size, String query, String status, String category) {
         ProductPageResponse response = grpcAdminCatalogClient.getProducts(page, size, query, status, category);
@@ -215,7 +216,7 @@ public class AdminCatalogService {
 
     private AdminInventoryItemResponse toInventoryItem(ProductDto product, ProductVariantDto variant) {
         int stock = variant.getStock();
-        int threshold = 5;
+        int threshold = inventorySettingsService.thresholdForVariant(variant.getId());
         String status = stock <= 0 ? "cancel" : stock <= threshold ? "low" : "success";
         String statusLabel = stock <= 0 ? "Hết hàng" : stock <= threshold ? "Sắp hết" : "Đủ hàng";
         int stockPercent = Math.min(100, Math.max(0, stock * 100 / 50));

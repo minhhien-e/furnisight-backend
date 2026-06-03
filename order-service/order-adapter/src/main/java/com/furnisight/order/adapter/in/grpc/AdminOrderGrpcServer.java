@@ -19,11 +19,11 @@ import com.furnisight.admin.order.UpdateOrderStatusRequest;
 import com.furnisight.admin.order.UpdateVoucherRequest;
 import com.furnisight.admin.order.VoucherDto;
 import com.furnisight.admin.order.VoucherListResponse;
-import com.furnisight.order.adapter.out.repository.promotion.jpa.PromotionJpaRepository;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
-import com.furnisight.order.domain.entities.promotion.Promotion;
+import com.furnisight.order.application.promotion.port.out.repository.PromotionRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
+import com.furnisight.order.domain.entities.promotion.Promotion;
 import com.furnisight.order.domain.enums.DiscountType;
 import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.repository.order.OrderRepository;
@@ -37,7 +37,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Locale;
+import java.util.UUID;
 
 @Slf4j
 @GrpcService
@@ -48,8 +51,8 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     private static final int DEFAULT_PAGE_SIZE = 20;
 
     private final OrderRepository orderRepository;
+    private final PromotionRepository promotionRepository;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
-    private final PromotionJpaRepository promotionJpaRepository;
 
     @Override
     public void getAdminOrders(GetAdminOrdersRequest request, StreamObserver<OrderPageResponse> responseObserver) {
@@ -146,18 +149,17 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     @Override
     public void getAdminVouchers(GetAdminVouchersRequest request, StreamObserver<VoucherListResponse> responseObserver) {
         try {
-            String query = request.getQuery() == null ? "" : request.getQuery().trim().toLowerCase();
-            String status = request.getStatus() == null ? "" : request.getStatus().trim().toLowerCase();
-            List<VoucherDto> vouchers = promotionJpaRepository.findAll().stream()
-                    .filter(promotion -> query.isBlank()
-                            || safe(promotion.getCode()).toLowerCase().contains(query)
-                            || safe(promotion.getName()).toLowerCase().contains(query))
-                    .filter(promotion -> status.isBlank()
-                            || ("active".equals(status) && promotion.isActive())
-                            || ("inactive".equals(status) && !promotion.isActive()))
-                    .map(this::toVoucherDto)
-                    .toList();
-            responseObserver.onNext(VoucherListResponse.newBuilder().addAllVouchers(vouchers).build());
+            String query = normalizeText(request.getQuery());
+            String status = normalizeText(request.getStatus());
+            VoucherListResponse response = VoucherListResponse.newBuilder()
+                    .addAllVouchers(promotionRepository.findAll().stream()
+                            .filter(promotion -> matchesVoucherQuery(promotion, query))
+                            .filter(promotion -> matchesVoucherStatus(promotion, status))
+                            .sorted(Comparator.comparing(Promotion::getCode, Comparator.nullsLast(String::compareToIgnoreCase)))
+                            .map(this::toVoucherDto)
+                            .toList())
+                    .build();
+            responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get admin vouchers", ex);
@@ -168,48 +170,33 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     @Override
     public void createVoucher(CreateVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         completeAction(responseObserver, () -> {
-            Promotion promotion = Promotion.builder()
-                    .id(java.util.UUID.randomUUID())
-                    .code(normalizeCode(request.getCode()))
-                    .name(defaultText(request.getName(), normalizeCode(request.getCode())))
-                    .description(safe(request.getDescription()))
-                    .icon(safe(request.getIcon()))
-                    .discountType(parseDiscountType(request.getDiscountType()))
-                    .discountValue(Math.max(request.getDiscountValue(), 0D))
-                    .maxDiscount(optionalPositive(request.getMaxDiscount()))
-                    .minOrder(optionalPositive(request.getMinOrder()))
-                    .startDate(parseDateTime(request.getStartDate()))
-                    .endDate(parseDateTime(request.getEndDate()))
-                    .active(request.getActive())
-                    .build();
-            promotionJpaRepository.save(promotion);
+            String code = requireText(request.getCode(), "Thiếu mã voucher.").toUpperCase(Locale.ROOT);
+            if (promotionRepository.findByCode(code).isPresent()) {
+                throw new IllegalArgumentException("Mã voucher đã tồn tại.");
+            }
+            promotionRepository.save(applyVoucher(Promotion.builder().id(UUID.randomUUID()).code(code).build(), request, code));
         }, "Voucher created");
     }
 
     @Override
     public void updateVoucher(UpdateVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         completeAction(responseObserver, () -> {
-            Promotion promotion = promotionJpaRepository.findById(java.util.UUID.fromString(request.getId()))
-                    .orElseThrow(() -> new IllegalArgumentException("Voucher not found"));
-            promotion.setCode(normalizeCode(request.getCode()));
-            promotion.setName(defaultText(request.getName(), promotion.getCode()));
-            promotion.setDescription(safe(request.getDescription()));
-            promotion.setIcon(safe(request.getIcon()));
-            promotion.setDiscountType(parseDiscountType(request.getDiscountType()));
-            promotion.setDiscountValue(Math.max(request.getDiscountValue(), 0D));
-            promotion.setMaxDiscount(optionalPositive(request.getMaxDiscount()));
-            promotion.setMinOrder(optionalPositive(request.getMinOrder()));
-            promotion.setStartDate(parseDateTime(request.getStartDate()));
-            promotion.setEndDate(parseDateTime(request.getEndDate()));
-            promotion.setActive(request.getActive());
-            promotionJpaRepository.save(promotion);
+            UUID id = UUID.fromString(request.getId());
+            Promotion promotion = promotionRepository.findById(id)
+                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher."));
+            String code = requireText(request.getCode(), "Thiếu mã voucher.").toUpperCase(Locale.ROOT);
+            promotionRepository.findByCode(code)
+                    .filter(existing -> !existing.getId().equals(id))
+                    .ifPresent(existing -> {
+                        throw new IllegalArgumentException("Mã voucher đã tồn tại.");
+                    });
+            promotionRepository.save(applyVoucher(promotion, request, code));
         }, "Voucher updated");
     }
 
     @Override
     public void deleteVoucher(DeleteVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        completeAction(responseObserver, () -> promotionJpaRepository.deleteById(java.util.UUID.fromString(request.getId())),
-                "Voucher deleted");
+        completeAction(responseObserver, () -> promotionRepository.deleteById(UUID.fromString(request.getId())), "Voucher deleted");
     }
 
     @Override
@@ -327,6 +314,10 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         };
     }
 
+    private String safe(String value) {
+        return value == null ? "" : value;
+    }
+
     private VoucherDto toVoucherDto(Promotion promotion) {
         return VoucherDto.newBuilder()
                 .setId(promotion.getId() == null ? "" : promotion.getId().toString())
@@ -341,45 +332,115 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
                 .setStartDate(promotion.getStartDate() == null ? "" : promotion.getStartDate().toString())
                 .setEndDate(promotion.getEndDate() == null ? "" : promotion.getEndDate().toString())
                 .setActive(promotion.isActive())
-                .setStatusLabel(promotion.isActive() ? "Đang bật" : "Đã tắt")
+                .setStatusLabel(voucherStatusLabel(promotion))
                 .build();
     }
 
-    private DiscountType parseDiscountType(String raw) {
-        if (raw == null || raw.isBlank()) {
-            return DiscountType.FIXED;
-        }
-        String normalized = raw.trim().replace('-', '_').replace(' ', '_').toUpperCase();
-        if ("PERCENTAGE".equals(normalized)) {
-            return DiscountType.PERCENT;
-        }
-        return DiscountType.valueOf(normalized);
+    private Promotion applyVoucher(Promotion promotion, CreateVoucherRequest request, String code) {
+        promotion.setCode(code);
+        promotion.setName(requireText(request.getName(), "Thiếu tên voucher."));
+        promotion.setDescription(safe(request.getDescription()).trim());
+        promotion.setIcon(defaultText(request.getIcon(), "badgePercent"));
+        promotion.setDiscountType(toDiscountType(request.getDiscountType()));
+        promotion.setDiscountValue(nonNegative(request.getDiscountValue()));
+        promotion.setMaxDiscount(nonNegativeOrNull(request.getMaxDiscount()));
+        promotion.setMinOrder(nonNegativeOrNull(request.getMinOrder()));
+        promotion.setStartDate(parseDateTime(request.getStartDate()));
+        promotion.setEndDate(parseDateTime(request.getEndDate()));
+        promotion.setActive(request.getActive());
+        return promotion;
     }
 
-    private LocalDateTime parseDateTime(String raw) {
-        if (raw == null || raw.isBlank()) {
+    private Promotion applyVoucher(Promotion promotion, UpdateVoucherRequest request, String code) {
+        promotion.setCode(code);
+        promotion.setName(requireText(request.getName(), "Thiếu tên voucher."));
+        promotion.setDescription(safe(request.getDescription()).trim());
+        promotion.setIcon(defaultText(request.getIcon(), "badgePercent"));
+        promotion.setDiscountType(toDiscountType(request.getDiscountType()));
+        promotion.setDiscountValue(nonNegative(request.getDiscountValue()));
+        promotion.setMaxDiscount(nonNegativeOrNull(request.getMaxDiscount()));
+        promotion.setMinOrder(nonNegativeOrNull(request.getMinOrder()));
+        promotion.setStartDate(parseDateTime(request.getStartDate()));
+        promotion.setEndDate(parseDateTime(request.getEndDate()));
+        promotion.setActive(request.getActive());
+        return promotion;
+    }
+
+    private boolean matchesVoucherQuery(Promotion promotion, String query) {
+        return query == null
+                || normalizedText(promotion.getCode()).contains(query)
+                || normalizedText(promotion.getName()).contains(query);
+    }
+
+    private boolean matchesVoucherStatus(Promotion promotion, String status) {
+        if (status == null || status.isBlank()) {
+            return true;
+        }
+        return switch (status) {
+            case "active" -> promotion.isActive() && !isExpired(promotion);
+            case "inactive" -> !promotion.isActive();
+            case "expired" -> isExpired(promotion);
+            default -> true;
+        };
+    }
+
+    private String voucherStatusLabel(Promotion promotion) {
+        if (!promotion.isActive()) {
+            return "Đã tắt";
+        }
+        return isExpired(promotion) ? "Hết hạn" : "Đang bật";
+    }
+
+    private boolean isExpired(Promotion promotion) {
+        return promotion.getEndDate() != null && promotion.getEndDate().isBefore(LocalDateTime.now());
+    }
+
+    private DiscountType toDiscountType(String value) {
+        try {
+            return DiscountType.valueOf(defaultText(value, "PERCENT").toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Loại giảm giá không hợp lệ.");
+        }
+    }
+
+    private LocalDateTime parseDateTime(String value) {
+        if (value == null || value.isBlank()) {
             return null;
         }
-        try {
-            return LocalDateTime.parse(raw);
-        } catch (Exception ignored) {
-            return LocalDate.parse(raw).atStartOfDay();
+        return LocalDateTime.parse(value);
+    }
+
+    private String normalizeText(String value) {
+        return value == null || value.isBlank() ? null : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String normalizedText(String value) {
+        return value == null || value.isBlank() ? "" : value.trim().toLowerCase(Locale.ROOT);
+    }
+
+    private String requireText(String value, String message) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(message);
         }
-    }
-
-    private Double optionalPositive(double value) {
-        return value > 0 ? value : null;
-    }
-
-    private String normalizeCode(String raw) {
-        return safe(raw).trim().toUpperCase();
+        return value.trim();
     }
 
     private String defaultText(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
+        String text = safe(value).trim();
+        return text.isBlank() ? fallback : text;
     }
 
-    private String safe(String value) {
-        return value == null ? "" : value;
+    private double nonNegative(double value) {
+        if (value < 0) {
+            throw new IllegalArgumentException("Giá trị giảm không được âm.");
+        }
+        return value;
+    }
+
+    private Double nonNegativeOrNull(double value) {
+        if (value < 0) {
+            throw new IllegalArgumentException("Giá trị cấu hình không được âm.");
+        }
+        return value == 0D ? null : value;
     }
 }

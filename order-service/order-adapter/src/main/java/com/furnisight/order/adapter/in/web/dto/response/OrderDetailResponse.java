@@ -18,7 +18,8 @@ public class OrderDetailResponse {
     private String customerNote;
     private Object fee;
     private Object shippingDetail;
-    private Object paymentDetail;
+    private PaymentDetailResponse paymentDetail;
+    private PaymentTimelineResponse paymentTimeline;
     private List<?> items;
     private LocalDateTime createdAt;
     private LocalDateTime paymentExpiresAt;

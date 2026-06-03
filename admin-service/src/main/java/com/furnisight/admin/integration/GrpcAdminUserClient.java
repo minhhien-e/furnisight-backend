@@ -33,6 +33,36 @@ public class GrpcAdminUserClient {
         return adminUserServiceStub.getRoles(com.google.protobuf.Empty.getDefaultInstance());
     }
 
+    public AdminActionResponse createRole(String name, int position, java.util.List<String> permissions) {
+        return adminUserServiceStub.createRole(CreateRoleRequest.newBuilder()
+                .setName(name == null ? "" : name)
+                .setPosition(position)
+                .addAllPermissions(permissions == null ? java.util.List.of() : permissions)
+                .build());
+    }
+
+    public AdminActionResponse updateRole(String id, String name, int position, java.util.List<String> permissions) {
+        return adminUserServiceStub.updateRole(UpdateRoleRequest.newBuilder()
+                .setId(id == null ? "" : id)
+                .setName(name == null ? "" : name)
+                .setPosition(position)
+                .addAllPermissions(permissions == null ? java.util.List.of() : permissions)
+                .build());
+    }
+
+    public AdminActionResponse deleteRole(String id) {
+        return adminUserServiceStub.deleteRole(DeleteRoleRequest.newBuilder()
+                .setId(id == null ? "" : id)
+                .build());
+    }
+
+    public AdminActionResponse syncRolePermissions(String roleId, java.util.List<String> permissions) {
+        return adminUserServiceStub.syncRolePermissions(SyncRolePermissionsRequest.newBuilder()
+                .setRoleId(roleId == null ? "" : roleId)
+                .addAllPermissions(permissions == null ? java.util.List.of() : permissions)
+                .build());
+    }
+
     public AdminActionResponse banAccount(UUID adminId, UUID accountId, String reason) {
         BanAccountRequest request = BanAccountRequest.newBuilder()
                 .setAdminId(adminId.toString())
@@ -86,6 +116,15 @@ public class GrpcAdminUserClient {
                 .setRoleId(roleId == null ? "" : roleId.toString())
                 .build();
         return adminUserServiceStub.createAccount(request);
+    }
+
+    public AdminActionResponse updateAccountProfile(UUID accountId, String displayName, String firstName, String lastName) {
+        return adminUserServiceStub.updateAccountProfile(UpdateAccountProfileRequest.newBuilder()
+                .setAccountId(accountId == null ? "" : accountId.toString())
+                .setDisplayName(displayName == null ? "" : displayName)
+                .setFirstName(firstName == null ? "" : firstName)
+                .setLastName(lastName == null ? "" : lastName)
+                .build());
     }
 
     public AccountStatsResponse getAccountStats() {

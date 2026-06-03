@@ -51,15 +51,13 @@ public class AdminOrderService {
     }
 
     public AdminVoucherListResponse getVouchers(String query, String status) {
-        return new AdminVoucherListResponse(grpcAdminOrderClient.getVouchers(query, status)
-                .getVouchersList()
-                .stream()
+        return new AdminVoucherListResponse(grpcAdminOrderClient.getVouchers(query, status).getVouchersList().stream()
                 .map(this::toVoucherResponse)
                 .toList());
     }
 
     public AdminActionResultResponse createVoucher(SaveAdminVoucherRequest request) {
-        AdminActionResponse response = grpcAdminOrderClient.createVoucher(CreateVoucherRequest.newBuilder()
+        return toActionResult(grpcAdminOrderClient.createVoucher(CreateVoucherRequest.newBuilder()
                 .setCode(value(request.code()))
                 .setName(value(request.name()))
                 .setDescription(value(request.description()))
@@ -71,12 +69,11 @@ public class AdminOrderService {
                 .setStartDate(value(request.startDate()))
                 .setEndDate(value(request.endDate()))
                 .setActive(request.active())
-                .build());
-        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+                .build()));
     }
 
     public AdminActionResultResponse updateVoucher(String id, SaveAdminVoucherRequest request) {
-        AdminActionResponse response = grpcAdminOrderClient.updateVoucher(UpdateVoucherRequest.newBuilder()
+        return toActionResult(grpcAdminOrderClient.updateVoucher(UpdateVoucherRequest.newBuilder()
                 .setId(value(id))
                 .setCode(value(request.code()))
                 .setName(value(request.name()))
@@ -89,13 +86,11 @@ public class AdminOrderService {
                 .setStartDate(value(request.startDate()))
                 .setEndDate(value(request.endDate()))
                 .setActive(request.active())
-                .build());
-        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+                .build()));
     }
 
     public AdminActionResultResponse deleteVoucher(String id) {
-        AdminActionResponse response = grpcAdminOrderClient.deleteVoucher(id);
-        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+        return toActionResult(grpcAdminOrderClient.deleteVoucher(id));
     }
 
     private AdminOrderResponse toOrderResponse(OrderDto order) {
@@ -116,23 +111,6 @@ public class AdminOrderService {
                 formatCurrency(order.getTotalAmount()),
                 toOrderTone(order.getStatus()),
                 toOrderStatusLabel(order.getStatus()));
-    }
-
-    private AdminVoucherResponse toVoucherResponse(VoucherDto voucher) {
-        return new AdminVoucherResponse(
-                voucher.getId(),
-                voucher.getCode(),
-                voucher.getName(),
-                voucher.getDescription(),
-                voucher.getIcon(),
-                voucher.getDiscountType(),
-                voucher.getDiscountValue(),
-                voucher.getMaxDiscount(),
-                voucher.getMinOrder(),
-                voucher.getStartDate(),
-                voucher.getEndDate(),
-                voucher.getActive(),
-                voucher.getStatusLabel());
     }
 
     private String toOrderTone(String status) {
@@ -182,7 +160,45 @@ public class AdminOrderService {
         return value == null || value.isBlank() ? fallback : value;
     }
 
+    private AdminVoucherResponse toVoucherResponse(VoucherDto voucher) {
+        return new AdminVoucherResponse(
+                voucher.getId(),
+                voucher.getCode(),
+                voucher.getName(),
+                voucher.getDescription(),
+                voucher.getIcon(),
+                voucher.getDiscountType(),
+                voucher.getDiscountValue(),
+                voucher.getMaxDiscount(),
+                voucher.getMinOrder(),
+                voucher.getStartDate(),
+                voucher.getEndDate(),
+                voucher.getActive(),
+                voucher.getStatusLabel().isBlank() ? voucherStatusLabel(voucher.getActive(), voucher.getEndDate()) : voucher.getStatusLabel());
+    }
+
+    private String voucherStatusLabel(boolean active, String endDate) {
+        if (!active) {
+            return "Đã tắt";
+        }
+        if (endDate != null && !endDate.isBlank()) {
+            try {
+                if (LocalDateTime.parse(endDate).isBefore(LocalDateTime.now())) {
+                    return "Hết hạn";
+                }
+            } catch (Exception ignored) {
+                return "Đang bật";
+            }
+        }
+        return "Đang bật";
+    }
+
+    private AdminActionResultResponse toActionResult(AdminActionResponse response) {
+        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+    }
+
     private String value(String value) {
         return value == null ? "" : value;
     }
+
 }

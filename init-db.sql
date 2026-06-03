@@ -10,3 +10,5 @@ CREATE DATABASE furnisight_media_db;
 CREATE DATABASE furnisight_order_db;
 
 CREATE DATABASE furnisight_message_db;
+
+CREATE DATABASE furnisight_admin_db;

@@ -170,8 +170,17 @@ services:
       <<: *java-build
     env_file:
       - ./admin-service/.env
+    volumes:
+      - admin_data:/app/data
     depends_on:
-      - user-service
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
 
   catalog-service:
     <<: *java-service
@@ -277,6 +286,7 @@ volumes:
   redis_data:
   kafka_data:
   media_storage:
+  admin_data:
 
 secrets:
   GITHUB_TOKEN:

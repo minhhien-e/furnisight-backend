@@ -12,7 +12,11 @@ import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.adapter.in.web.dto.response.OrderListResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderDetailResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderItemResponse;
+import com.furnisight.order.adapter.in.web.dto.response.PaymentDetailResponse;
+import com.furnisight.order.adapter.in.web.dto.response.PaymentTimelineResponse;
 import com.furnisight.order.domain.valueobjects.ProductSnapshot;
+import com.furnisight.order.domain.valueobjects.PaymentDetail;
+import com.furnisight.order.domain.valueobjects.PaymentTimeline;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -85,7 +89,8 @@ public class OrderController {
                 .customerNote(order.getCustomerNote())
                 .fee(order.getFee())
                 .shippingDetail(order.getShippingDetail())
-                .paymentDetail(order.getPaymentDetail())
+                .paymentDetail(toPaymentDetailResponse(order))
+                .paymentTimeline(toPaymentTimelineResponse(order))
                 .items(itemResponses)
                 .createdAt(order.getCreatedAt())
                 .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
@@ -157,5 +162,37 @@ public class OrderController {
 
     private String resolvePaymentMethod(Order order) {
         return order.getPaymentDetail() != null ? order.getPaymentDetail().getPaymentMethod() : null;
+    }
+
+    private PaymentDetailResponse toPaymentDetailResponse(Order order) {
+        PaymentDetail paymentDetail = order.getPaymentDetail();
+        if (paymentDetail == null) {
+            return PaymentDetailResponse.builder()
+                    .paymentMethod(null)
+                    .paymentStatus(null)
+                    .paidAmount(0.0)
+                    .paidAt(null)
+                    .transactionCode(order.getOrderCode())
+                    .build();
+        }
+
+        return PaymentDetailResponse.builder()
+                .paymentMethod(paymentDetail.getPaymentMethod())
+                .paymentStatus(paymentDetail.getPaymentStatus())
+                .paidAmount(paymentDetail.getPaidAmount())
+                .paidAt(paymentDetail.getPaidAt())
+                .transactionCode(order.getOrderCode())
+                .build();
+    }
+
+    private PaymentTimelineResponse toPaymentTimelineResponse(Order order) {
+        PaymentTimeline timeline = order.getPaymentTimeline();
+        return PaymentTimelineResponse.builder()
+                .orderCreatedAt(timeline != null && timeline.getOrderCreatedAt() != null ? timeline.getOrderCreatedAt() : order.getCreatedAt())
+                .paymentInitiatedAt(timeline != null ? timeline.getPaymentInitiatedAt() : null)
+                .paymentCompletedAt(timeline != null ? timeline.getPaymentCompletedAt() : null)
+                .paymentFailedAt(timeline != null ? timeline.getPaymentFailedAt() : null)
+                .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
+                .build();
     }
 }

@@ -13,6 +13,11 @@ import com.furnisight.user.domain.repository.profile.UserProfileRepository;
 import com.furnisight.user.application.account.dto.*;
 import com.furnisight.user.application.account.dto.AssignRoleCommand;
 import com.furnisight.user.application.account.dto.RevokeRoleCommand;
+import com.furnisight.user.application.role.dto.command.AddRoleCommand;
+import com.furnisight.user.application.role.dto.command.AssignPermissionCommand;
+import com.furnisight.user.application.role.dto.command.DeleteRoleCommand;
+import com.furnisight.user.application.role.dto.command.RevokeRolePermissionCommand;
+import com.furnisight.user.application.role.dto.command.UpdateRoleCommand;
 import io.grpc.stub.StreamObserver;
 import net.devh.boot.grpc.server.service.GrpcService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,7 @@ import com.google.protobuf.Empty;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.List;
+import java.util.Set;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -48,6 +54,11 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     private final RegisterAccountUseCase registerAccountUseCase;
     private final AssignRoleUseCase assignRoleUseCase;
     private final RevokeRoleUseCase revokeRoleUseCase;
+    private final AddRoleUseCase addRoleUseCase;
+    private final UpdateRoleUseCase updateRoleUseCase;
+    private final DeleteRoleUseCase deleteRoleUseCase;
+    private final AssignPermissionUseCase assignPermissionUseCase;
+    private final RevokeRolePermissionUseCase revokeRolePermissionUseCase;
 
     @Override
     public void getAccountStats(Empty request, StreamObserver<AccountStatsResponse> responseObserver) {
@@ -244,6 +255,69 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     }
 
     @Override
+    public void createRole(CreateRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        try {
+            Role role = addRoleUseCase.execute(new AddRoleCommand(request.getName(), request.getPosition()));
+            syncRolePermissions(role.getId(), request.getPermissionsList());
+            responseObserver.onNext(AdminActionResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Role created successfully")
+                    .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error creating role", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void updateRole(UpdateRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        try {
+            UUID roleId = UUID.fromString(request.getId());
+            updateRoleUseCase.execute(new UpdateRoleCommand(roleId, request.getName(), request.getPosition()));
+            syncRolePermissions(roleId, request.getPermissionsList());
+            responseObserver.onNext(AdminActionResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Role updated successfully")
+                    .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error updating role", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void deleteRole(DeleteRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        try {
+            deleteRoleUseCase.execute(new DeleteRoleCommand(UUID.fromString(request.getId())));
+            responseObserver.onNext(AdminActionResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Role deleted successfully")
+                    .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error deleting role", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void syncRolePermissions(SyncRolePermissionsRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        try {
+            syncRolePermissions(UUID.fromString(request.getRoleId()), request.getPermissionsList());
+            responseObserver.onNext(AdminActionResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Role permissions synced successfully")
+                    .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error syncing role permissions", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
     public void assignRole(AssignRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         try {
             AssignRoleCommand command = new AssignRoleCommand(
@@ -309,6 +383,27 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
         }
     }
 
+    @Override
+    public void updateAccountProfile(UpdateAccountProfileRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        try {
+            UUID accountId = UUID.fromString(request.getAccountId());
+            UserProfile profile = userProfileRepository.findByAccountId(accountId)
+                    .orElseThrow(() -> new IllegalArgumentException("Profile not found"));
+            profile.setDisplayName(clean(request.getDisplayName()));
+            profile.setFirstName(clean(request.getFirstName()));
+            profile.setLastName(clean(request.getLastName()));
+            userProfileRepository.save(profile);
+            responseObserver.onNext(AdminActionResponse.newBuilder()
+                    .setSuccess(true)
+                    .setMessage("Profile updated successfully")
+                    .build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error updating account profile", e);
+            responseObserver.onError(e);
+        }
+    }
+
     private AccountStatus parseStatus(String rawStatus) {
         if (rawStatus == null || rawStatus.isBlank()) {
             return null;
@@ -321,6 +416,24 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             return AccountStatus.BANNED;
         }
         return AccountStatus.valueOf(status.toUpperCase());
+    }
+
+    private void syncRolePermissions(UUID roleId, List<String> requestedPermissions) {
+        Role role = roleRepository.findById(roleId)
+                .orElseThrow(() -> new IllegalArgumentException("Role not found"));
+        Set<String> currentPermissions = role.getPermissions().stream().map(Enum::name).collect(Collectors.toSet());
+        Set<String> desiredPermissions = requestedPermissions.stream()
+                .map(permission -> permission == null ? "" : permission.trim().toUpperCase())
+                .filter(permission -> !permission.isBlank())
+                .collect(Collectors.toSet());
+
+        desiredPermissions.stream()
+                .filter(permission -> !currentPermissions.contains(permission))
+                .forEach(permission -> assignPermissionUseCase.execute(new AssignPermissionCommand(roleId, permission)));
+
+        currentPermissions.stream()
+                .filter(permission -> !desiredPermissions.contains(permission))
+                .forEach(permission -> revokeRolePermissionUseCase.execute(new RevokeRolePermissionCommand(roleId, permission)));
     }
 
     private String resolveDisplayName(Account account, UserProfile profile) {
@@ -359,6 +472,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             base = base + UUID.randomUUID().toString().replace("-", "").substring(0, 3);
         }
         return base.length() > 100 ? base.substring(0, 100) : base;
+    }
+
+    private String clean(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private record NameParts(String firstName, String lastName) {

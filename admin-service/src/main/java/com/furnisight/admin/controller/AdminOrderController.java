@@ -4,7 +4,9 @@ import com.furnisight.admin.controller.dto.AdminActionResultResponse;
 import com.furnisight.admin.controller.dto.AdminOrderPageResponse;
 import com.furnisight.admin.controller.dto.UpdateAdminOrderRequest;
 import com.furnisight.admin.security.CurrentUserProvider;
+import com.furnisight.admin.service.AdminAuditLogService;
 import com.furnisight.admin.service.AdminOrderService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -25,6 +27,7 @@ public class AdminOrderController {
 
     private final AdminOrderService adminOrderService;
     private final CurrentUserProvider currentUserProvider;
+    private final AdminAuditLogService adminAuditLogService;
 
     @GetMapping
     @PreAuthorize("hasAuthority('ORDER_VIEW') or hasAuthority('order_view') or hasAuthority('MANAGE_ORDERS') or hasAuthority('MANAGE_USERS')")
@@ -39,9 +42,13 @@ public class AdminOrderController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('order_update') or hasAuthority('MANAGE_ORDERS') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<AdminActionResultResponse> updateOrder(@PathVariable String id,
-            @RequestBody UpdateAdminOrderRequest request) {
+            @RequestBody UpdateAdminOrderRequest request,
+            HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         String status = request.status() != null && !request.status().isBlank() ? request.status() : request.statusLabel();
-        return ResponseEntity.ok(adminOrderService.updateOrderStatus(adminId, id, status));
+        AdminActionResultResponse result = adminOrderService.updateOrderStatus(adminId, id, status);
+        adminAuditLogService.record(adminId, "update", "Cập nhật trạng thái đơn hàng", "ORDER", id, result,
+                "Trạng thái: " + status, httpRequest);
+        return ResponseEntity.ok(result);
     }
 }

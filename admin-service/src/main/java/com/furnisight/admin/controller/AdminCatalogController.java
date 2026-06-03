@@ -5,10 +5,16 @@ import com.furnisight.admin.controller.dto.AdminCategoryListResponse;
 import com.furnisight.admin.controller.dto.AdminInventoryResponse;
 import com.furnisight.admin.controller.dto.AdminProductPageResponse;
 import com.furnisight.admin.controller.dto.AdminProductResponse;
+import com.furnisight.admin.controller.dto.InventoryWarningSettingsResponse;
 import com.furnisight.admin.controller.dto.SaveAdminCategoryRequest;
+import com.furnisight.admin.controller.dto.SaveInventoryWarningSettingsRequest;
 import com.furnisight.admin.controller.dto.SaveAdminProductRequest;
 import com.furnisight.admin.controller.dto.StockInVariantRequest;
+import com.furnisight.admin.security.CurrentUserProvider;
+import com.furnisight.admin.service.AdminAuditLogService;
 import com.furnisight.admin.service.AdminCatalogService;
+import com.furnisight.admin.service.AdminInventorySettingsService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -28,6 +34,9 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminCatalogController {
 
     private final AdminCatalogService adminCatalogService;
+    private final AdminInventorySettingsService adminInventorySettingsService;
+    private final AdminAuditLogService adminAuditLogService;
+    private final CurrentUserProvider currentUserProvider;
 
     @GetMapping("/products")
     @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
@@ -48,21 +57,32 @@ public class AdminCatalogController {
 
     @PostMapping("/products")
     @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasAuthority('product_create') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<AdminActionResultResponse> createProduct(@RequestBody SaveAdminProductRequest request) {
-        return ResponseEntity.ok(adminCatalogService.createProduct(request));
+    public ResponseEntity<AdminActionResultResponse> createProduct(@RequestBody SaveAdminProductRequest request,
+            HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.createProduct(request);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo sản phẩm", "PRODUCT",
+                request.sku(), result, "Tên sản phẩm: " + request.name(), httpRequest);
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping("/products/{id}")
     @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<AdminActionResultResponse> updateProduct(@PathVariable String id,
-            @RequestBody SaveAdminProductRequest request) {
-        return ResponseEntity.ok(adminCatalogService.updateProduct(id, request));
+            @RequestBody SaveAdminProductRequest request,
+            HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.updateProduct(id, request);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật sản phẩm", "PRODUCT",
+                id, result, "Tên sản phẩm: " + request.name(), httpRequest);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/products/{id}")
     @PreAuthorize("hasAuthority('PRODUCT_DELETE') or hasAuthority('product_delete') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<AdminActionResultResponse> deleteProduct(@PathVariable String id) {
-        return ResponseEntity.ok(adminCatalogService.deleteProduct(id));
+    public ResponseEntity<AdminActionResultResponse> deleteProduct(@PathVariable String id, HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.deleteProduct(id);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa sản phẩm", "PRODUCT",
+                id, result, "Product id: " + id, httpRequest);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/inventory")
@@ -73,8 +93,29 @@ public class AdminCatalogController {
 
     @PostMapping("/inventory/stock-in")
     @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<AdminActionResultResponse> stockInVariant(@RequestBody StockInVariantRequest request) {
-        return ResponseEntity.ok(adminCatalogService.stockInVariant(request));
+    public ResponseEntity<AdminActionResultResponse> stockInVariant(@RequestBody StockInVariantRequest request,
+            HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.stockInVariant(request);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Nhập kho", "INVENTORY",
+                request.variantId(), result, "Số lượng: " + request.quantity() + ", sản phẩm: " + request.productId(), httpRequest);
+        return ResponseEntity.ok(result);
+    }
+
+    @GetMapping("/inventory/warning-settings")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<InventoryWarningSettingsResponse> getInventoryWarningSettings() {
+        return ResponseEntity.ok(adminInventorySettingsService.getSettings());
+    }
+
+    @PutMapping("/inventory/warning-settings")
+    @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<InventoryWarningSettingsResponse> updateInventoryWarningSettings(
+            @RequestBody SaveInventoryWarningSettingsRequest request,
+            HttpServletRequest httpRequest) {
+        InventoryWarningSettingsResponse response = adminInventorySettingsService.saveSettings(request);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật cảnh báo tồn kho",
+                "INVENTORY_SETTINGS", null, true, "Ngưỡng mặc định: " + response.defaultThreshold(), httpRequest);
+        return ResponseEntity.ok(response);
     }
 
     @GetMapping("/categories")
@@ -85,21 +126,32 @@ public class AdminCatalogController {
 
     @PostMapping("/categories")
     @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasAuthority('product_create') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<AdminActionResultResponse> createCategory(@RequestBody SaveAdminCategoryRequest request) {
-        return ResponseEntity.ok(adminCatalogService.createCategory(request));
+    public ResponseEntity<AdminActionResultResponse> createCategory(@RequestBody SaveAdminCategoryRequest request,
+            HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.createCategory(request);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo danh mục", "CATEGORY",
+                request.slug(), result, "Tên danh mục: " + request.name(), httpRequest);
+        return ResponseEntity.ok(result);
     }
 
     @PutMapping("/categories/{id}")
     @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<AdminActionResultResponse> updateCategory(@PathVariable String id,
-            @RequestBody SaveAdminCategoryRequest request) {
-        return ResponseEntity.ok(adminCatalogService.updateCategory(id, request));
+            @RequestBody SaveAdminCategoryRequest request,
+            HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.updateCategory(id, request);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật danh mục", "CATEGORY",
+                id, result, "Tên danh mục: " + request.name(), httpRequest);
+        return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/categories/{id}")
     @PreAuthorize("hasAuthority('PRODUCT_DELETE') or hasAuthority('product_delete') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<AdminActionResultResponse> deleteCategory(@PathVariable String id) {
-        return ResponseEntity.ok(adminCatalogService.deleteCategory(id));
+    public ResponseEntity<AdminActionResultResponse> deleteCategory(@PathVariable String id, HttpServletRequest httpRequest) {
+        AdminActionResultResponse result = adminCatalogService.deleteCategory(id);
+        adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa danh mục", "CATEGORY",
+                id, result, "Category id: " + id, httpRequest);
+        return ResponseEntity.ok(result);
     }
 
     @GetMapping("/categories/icon-options")
