@@ -12,6 +12,10 @@ service AdminOrderService {
     rpc GetAdminOrders (GetAdminOrdersRequest) returns (OrderPageResponse);
     rpc GetOrderStats (google.protobuf.Empty) returns (OrderStatsResponse);
     rpc GetRecentOrders (GetRecentOrdersRequest) returns (RecentOrderListResponse);
+    rpc GetAdminVouchers (GetAdminVouchersRequest) returns (VoucherListResponse);
+    rpc CreateVoucher (CreateVoucherRequest) returns (AdminActionResponse);
+    rpc UpdateVoucher (UpdateVoucherRequest) returns (AdminActionResponse);
+    rpc DeleteVoucher (DeleteVoucherRequest) returns (AdminActionResponse);
     rpc ShipOrder (ShipOrderRequest) returns (AdminActionResponse);
     rpc DeliverOrder (DeliverOrderRequest) returns (AdminActionResponse);
     rpc UpdateOrderStatus (UpdateOrderStatusRequest) returns (AdminActionResponse);
@@ -67,6 +71,64 @@ message OrderStatusCount {
 message ChartPoint {
     string label = 1;
     double value = 2;
+}
+
+message GetAdminVouchersRequest {
+    string query = 1;
+    string status = 2;
+}
+
+message VoucherListResponse {
+    repeated VoucherDto vouchers = 1;
+}
+
+message VoucherDto {
+    string id = 1;
+    string code = 2;
+    string name = 3;
+    string description = 4;
+    string icon = 5;
+    string discount_type = 6;
+    double discount_value = 7;
+    double max_discount = 8;
+    double min_order = 9;
+    string start_date = 10;
+    string end_date = 11;
+    bool active = 12;
+    string status_label = 13;
+}
+
+message CreateVoucherRequest {
+    string code = 1;
+    string name = 2;
+    string description = 3;
+    string icon = 4;
+    string discount_type = 5;
+    double discount_value = 6;
+    double max_discount = 7;
+    double min_order = 8;
+    string start_date = 9;
+    string end_date = 10;
+    bool active = 11;
+}
+
+message UpdateVoucherRequest {
+    string id = 1;
+    string code = 2;
+    string name = 3;
+    string description = 4;
+    string icon = 5;
+    string discount_type = 6;
+    double discount_value = 7;
+    double max_discount = 8;
+    double min_order = 9;
+    string start_date = 10;
+    string end_date = 11;
+    bool active = 12;
+}
+
+message DeleteVoucherRequest {
+    string id = 1;
 }
 
 message GetRecentOrdersRequest {

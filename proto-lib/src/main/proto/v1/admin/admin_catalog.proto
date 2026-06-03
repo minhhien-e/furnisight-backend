@@ -11,6 +11,7 @@ import "google/protobuf/empty.proto";
 service AdminCatalogService {
     rpc GetAdminProducts (GetAdminProductsRequest) returns (ProductPageResponse);
     rpc GetProductDetail (GetProductDetailRequest) returns (ProductDto);
+    rpc StockInVariant (StockInVariantRequest) returns (AdminActionResponse);
     rpc GetProductStats (google.protobuf.Empty) returns (ProductStatsResponse);
     rpc GetLowStockProducts (GetLowStockProductsRequest) returns (LowStockProductListResponse);
     rpc CreateProduct (CreateProductRequest) returns (AdminActionResponse);
@@ -58,6 +59,22 @@ message ProductDto {
     int64 model3d_size = 11;
     string slug = 12;
     repeated string image_urls = 13;
+    repeated ProductVariantDto variants = 14;
+}
+
+message ProductVariantDto {
+    string id = 1;
+    string sku = 2;
+    double price = 3;
+    int32 stock = 4;
+    string color = 5;
+    string material = 6;
+    string warranty = 7;
+    double weight = 8;
+    double length = 9;
+    double width = 10;
+    double height = 11;
+    string label = 12;
 }
 
 message ProductStatsResponse {
@@ -99,6 +116,7 @@ message CreateProductRequest {
     string model3d_file_name = 11;
     int64 model3d_size = 12;
     repeated string image_urls = 13;
+    repeated ProductVariantInput variants = 14;
 }
 
 message UpdateProductRequest {
@@ -116,6 +134,28 @@ message UpdateProductRequest {
     string model3d_file_name = 12;
     int64 model3d_size = 13;
     repeated string image_urls = 14;
+    repeated ProductVariantInput variants = 15;
+}
+
+message ProductVariantInput {
+    string id = 1;
+    string sku = 2;
+    double price = 3;
+    int32 stock = 4;
+    string color = 5;
+    string material = 6;
+    string warranty = 7;
+    double weight = 8;
+    double length = 9;
+    double width = 10;
+    double height = 11;
+}
+
+message StockInVariantRequest {
+    string product_id = 1;
+    string variant_id = 2;
+    int32 quantity = 3;
+    string note = 4;
 }
 
 message DeleteProductRequest {
@@ -144,6 +184,7 @@ message CategoryDto {
     string created_at = 7;
     string icon_id = 8;
     string description = 9;
+    string image_url = 10;
 }
 
 message CategoryStatsResponse {
@@ -158,6 +199,7 @@ message CreateCategoryRequest {
     string icon_id = 4;
     bool visible = 5;
     string description = 6;
+    string image_url = 7;
 }
 
 message UpdateCategoryRequest {
@@ -168,6 +210,7 @@ message UpdateCategoryRequest {
     string icon_id = 5;
     bool visible = 6;
     string description = 7;
+    string image_url = 8;
 }
 
 message DeleteCategoryRequest {
