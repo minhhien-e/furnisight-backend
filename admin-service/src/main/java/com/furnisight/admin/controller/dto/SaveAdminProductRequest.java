@@ -12,6 +12,7 @@ public record SaveAdminProductRequest(
         String model3dFileName,
         long model3dSize,
         String description,
-        java.util.List<String> imageUrls
+        java.util.List<String> imageUrls,
+        java.util.List<SaveAdminProductVariantRequest> variants
 ) {
 }

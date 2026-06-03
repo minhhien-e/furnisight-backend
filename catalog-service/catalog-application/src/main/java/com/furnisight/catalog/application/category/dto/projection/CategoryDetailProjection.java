@@ -14,6 +14,8 @@ public class CategoryDetailProjection {
     private UUID parentId;
     private String path;
     private Integer productCount;
+    private Boolean visible;
+    private String description;
     private String imageUrl;
     private String iconUrl;
 }

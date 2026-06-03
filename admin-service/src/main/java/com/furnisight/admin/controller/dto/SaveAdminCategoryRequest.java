@@ -5,6 +5,7 @@ public record SaveAdminCategoryRequest(
         String slug,
         String iconId,
         boolean visible,
-        String description
+        String description,
+        String imageUrl
 ) {
 }

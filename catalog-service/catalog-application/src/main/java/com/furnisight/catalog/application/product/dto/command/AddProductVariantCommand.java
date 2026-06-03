@@ -22,4 +22,5 @@ public class AddProductVariantCommand {
     private String material; // required
     private String warranty; // optional
     private String color;
+    private String sku;
 }

@@ -693,7 +693,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     height,
                     color,
                     material,
-                    warranty
+                    warranty,
+                    sku
                 FROM product_variants
                 WHERE product_id = :productId
                 ORDER BY price ASC
@@ -713,6 +714,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .color(normalizeText(rs.getString("color"), ""))
                         .material(normalizeText(rs.getString("material"), ""))
                         .warranty(normalizeText(rs.getString("warranty"), ""))
+                        .sku(normalizeText(rs.getString("sku"), ""))
                         .build());
     }
 

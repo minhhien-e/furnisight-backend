@@ -33,6 +33,13 @@ public class Category extends AggregateRoot {
     @Builder.Default
     private Integer productCount = 0;
 
+    @Column(name = "visible", nullable = false)
+    @Builder.Default
+    private Boolean visible = true;
+
+    @Column(name = "description")
+    private String description;
+
     @Column(name = "image_url")
     private String imageUrl;
 

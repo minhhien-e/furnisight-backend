@@ -104,6 +104,16 @@ public class MediaService {
         return MediaResponse.from(asset);
     }
 
+    @Transactional
+    public void cancelUpload(UUID mediaId) {
+        MediaAsset asset = mediaAssetRepository.findById(mediaId)
+                .orElseThrow(() -> new MediaNotFoundException(mediaId));
+
+        deleteFromCloudinary(asset);
+        mediaAssetRepository.delete(asset);
+        log.info("Cancelled media upload id={} publicId={}", mediaId, asset.getCloudinaryPublicId());
+    }
+
     /**
      * Lấy thông tin asset theo ID.
      */
@@ -121,6 +131,15 @@ public class MediaService {
     public void delete(UUID id) {
         MediaAsset asset = mediaAssetRepository.findById(id)
                 .orElseThrow(() -> new MediaNotFoundException(id));
+        deleteFromCloudinary(asset);
+        mediaAssetRepository.delete(asset);
+        log.info("Deleted media id={} publicId={}", id, asset.getCloudinaryPublicId());
+    }
+
+    private void deleteFromCloudinary(MediaAsset asset) {
+        if (asset.getCloudinaryPublicId() == null || asset.getCloudinaryPublicId().isBlank()) {
+            return;
+        }
         try {
             cloudinary.uploader().destroy(asset.getCloudinaryPublicId(),
                     Map.of("resource_type", toResourceType(asset.getMediaType())));
@@ -128,8 +147,6 @@ public class MediaService {
             log.error("Cloudinary delete failed for publicId={}", asset.getCloudinaryPublicId(), e);
             throw new RuntimeException("Failed to delete file from Cloudinary", e);
         }
-        mediaAssetRepository.delete(asset);
-        log.info("Deleted media id={} publicId={}", id, asset.getCloudinaryPublicId());
     }
 
     // ─── helpers ────────────────────────────────────────────────────────────

@@ -9,6 +9,7 @@ public record AdminCategoryResponse(
         String visibleLabel,
         String createdAt,
         String iconId,
-        String description
+        String description,
+        String imageUrl
 ) {
 }

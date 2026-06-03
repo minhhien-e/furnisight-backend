@@ -171,6 +171,8 @@ public class Product extends AggregateRoot {
             existing.setDimensions(variant.getDimensions());
             existing.setMaterial(variant.getMaterial());
             existing.setWarranty(variant.getWarranty());
+            existing.setColor(variant.getColor());
+            existing.setSku(variant.getSku());
         } else {
             this.variants.add(variant);
         }

@@ -4,6 +4,7 @@ public enum OwnerType {
     USER,
     SHOP,
     PRODUCT,
+    CATEGORY,
     REVIEW,
     CHAT,
     MARKETING

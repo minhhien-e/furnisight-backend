@@ -46,6 +46,9 @@ public class ProductVariant extends BaseEntity {
     @Column(name = "color")
     private String color;
 
+    @Column(name = "sku")
+    private String sku;
+
     public ProductVariant(Product product, Price price, StockQuantity stockQuantity,
                           ProductDimensions dimensions, String material, String warranty,
                           String color) {

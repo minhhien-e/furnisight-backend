@@ -40,6 +40,11 @@ public class RoleRepositoryImpl implements RoleRepository {
     }
 
     @Override
+    public List<Role> findAll() {
+        return roleJpaRepository.findAll();
+    }
+
+    @Override
     public List<Role> findAllByAccountId(UUID accountId) {
         List<AccountRole> accountRoles = accountRoleJpaRepository.findAllByAccountId(accountId);
         List<UUID> roleIds = accountRoles.stream().map(AccountRole::getRoleId).toList();

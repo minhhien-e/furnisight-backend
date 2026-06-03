@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS categories (
     parent_id UUID REFERENCES categories(id) ON DELETE SET NULL,
     path VARCHAR(255),
     product_count INTEGER DEFAULT 0,
+    visible BOOLEAN NOT NULL DEFAULT TRUE,
+    description TEXT,
     image_url TEXT,
     icon_url TEXT,
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
@@ -56,6 +58,7 @@ CREATE TABLE IF NOT EXISTS product_variants (
     material VARCHAR(255) NOT NULL,
     warranty VARCHAR(255),
     color VARCHAR(100),
+    sku VARCHAR(100),
     created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     updated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL
 );

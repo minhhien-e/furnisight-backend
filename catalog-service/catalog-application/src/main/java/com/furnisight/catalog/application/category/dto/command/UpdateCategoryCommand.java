@@ -16,4 +16,8 @@ public class UpdateCategoryCommand {
     private String name;
     private String slug;
     private UUID parentId;
+    private String iconId;
+    private Boolean visible;
+    private String description;
+    private String imageUrl;
 }

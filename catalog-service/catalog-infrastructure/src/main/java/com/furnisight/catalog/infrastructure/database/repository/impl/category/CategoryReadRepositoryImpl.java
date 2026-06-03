@@ -126,6 +126,8 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
                 .path(rs.getString("path"))
                 .parentId((UUID) rs.getObject("parent_id"))
                 .productCount(rs.getInt("product_count"))
+                .visible(rs.getBoolean("visible"))
+                .description(rs.getString("description"))
                 .imageUrl(rs.getString("image_url"))
                 .iconUrl(rs.getString("icon_url"))
                 .build();

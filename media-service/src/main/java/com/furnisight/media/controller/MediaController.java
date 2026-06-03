@@ -29,6 +29,12 @@ public class MediaController {
         return ResponseEntity.ok(mediaService.completeUpload(mediaId, request));
     }
 
+    @PostMapping("/{mediaId}/cancel-upload")
+    public ResponseEntity<Void> cancelUpload(@PathVariable UUID mediaId) {
+        mediaService.cancelUpload(mediaId);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<MediaResponse> getById(@PathVariable UUID id) {
         return ResponseEntity.ok(mediaService.getById(id));

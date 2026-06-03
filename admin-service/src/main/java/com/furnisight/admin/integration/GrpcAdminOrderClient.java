@@ -2,12 +2,17 @@ package com.furnisight.admin.integration;
 
 import com.furnisight.admin.order.AdminActionResponse;
 import com.furnisight.admin.order.AdminOrderServiceGrpc;
+import com.furnisight.admin.order.CreateVoucherRequest;
+import com.furnisight.admin.order.DeleteVoucherRequest;
 import com.furnisight.admin.order.GetAdminOrdersRequest;
+import com.furnisight.admin.order.GetAdminVouchersRequest;
 import com.furnisight.admin.order.GetRecentOrdersRequest;
 import com.furnisight.admin.order.OrderPageResponse;
 import com.furnisight.admin.order.OrderStatsResponse;
 import com.furnisight.admin.order.RecentOrderListResponse;
+import com.furnisight.admin.order.UpdateVoucherRequest;
 import com.furnisight.admin.order.UpdateOrderStatusRequest;
+import com.furnisight.admin.order.VoucherListResponse;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +40,27 @@ public class GrpcAdminOrderClient {
     public RecentOrderListResponse getRecentOrders(int limit) {
         return adminOrderServiceStub.getRecentOrders(GetRecentOrdersRequest.newBuilder()
                 .setLimit(limit)
+                .build());
+    }
+
+    public VoucherListResponse getVouchers(String query, String status) {
+        return adminOrderServiceStub.getAdminVouchers(GetAdminVouchersRequest.newBuilder()
+                .setQuery(query == null ? "" : query)
+                .setStatus(status == null ? "" : status)
+                .build());
+    }
+
+    public AdminActionResponse createVoucher(CreateVoucherRequest request) {
+        return adminOrderServiceStub.createVoucher(request);
+    }
+
+    public AdminActionResponse updateVoucher(UpdateVoucherRequest request) {
+        return adminOrderServiceStub.updateVoucher(request);
+    }
+
+    public AdminActionResponse deleteVoucher(String id) {
+        return adminOrderServiceStub.deleteVoucher(DeleteVoucherRequest.newBuilder()
+                .setId(id == null ? "" : id)
                 .build());
     }
 

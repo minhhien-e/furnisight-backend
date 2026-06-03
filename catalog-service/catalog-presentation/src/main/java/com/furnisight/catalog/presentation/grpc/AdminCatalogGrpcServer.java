@@ -19,6 +19,9 @@ import com.furnisight.admin.catalog.LowStockProductListResponse;
 import com.furnisight.admin.catalog.ProductDto;
 import com.furnisight.admin.catalog.ProductPageResponse;
 import com.furnisight.admin.catalog.ProductStatsResponse;
+import com.furnisight.admin.catalog.ProductVariantDto;
+import com.furnisight.admin.catalog.ProductVariantInput;
+import com.furnisight.admin.catalog.StockInVariantRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
 import com.furnisight.catalog.application.category.dto.command.CreateCategoryCommand;
@@ -29,6 +32,7 @@ import com.furnisight.catalog.application.category.port.in.usecase.UpdateCategor
 import com.furnisight.catalog.application.category.port.out.CategoryReadRepository;
 import com.furnisight.catalog.application.product.dto.command.ChangeProductCategoryCommand;
 import com.furnisight.catalog.application.product.dto.command.CreateProductCommand;
+import com.furnisight.catalog.application.product.dto.command.UpdateInventoryCommand;
 import com.furnisight.catalog.application.product.dto.command.UpdateProductInfoCommand;
 import com.furnisight.catalog.application.product.dto.command.UpdateProductStatusCommand;
 import com.furnisight.catalog.application.product.dto.projection.AdminProductProjection;
@@ -36,15 +40,19 @@ import com.furnisight.catalog.application.product.dto.projection.LowStockProduct
 import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
 import com.furnisight.catalog.application.product.port.in.usecase.ChangeProductCategoryUseCase;
 import com.furnisight.catalog.application.product.port.in.usecase.CreateProductUseCase;
+import com.furnisight.catalog.application.product.port.in.usecase.ReleaseInventoryUseCase;
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductInfoUseCase;
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductStatusUseCase;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import com.furnisight.catalog.domain.entities.ProductImage;
+import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.enums.ProductStatus;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
+import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
 import io.grpc.stub.StreamObserver;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
@@ -70,6 +78,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     private final UpdateProductInfoUseCase updateProductInfoUseCase;
     private final UpdateProductStatusUseCase updateProductStatusUseCase;
     private final ChangeProductCategoryUseCase changeProductCategoryUseCase;
+    private final ReleaseInventoryUseCase releaseInventoryUseCase;
     private final CreateCategoryUseCase createCategoryUseCase;
     private final UpdateCategoryUseCase updateCategoryUseCase;
 
@@ -163,21 +172,12 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .modelUrl(request.getModel3DUrl())
                 .supports3d(!request.getModel3DUrl().isBlank())
                 .imageUrls(request.getImageUrlsList())
-                .variants(List.of(CreateProductCommand.VariantCommand.builder()
-                        .price(request.getPrice())
-                        .stockQuantity(request.getStock())
-                        .weight(1D)
-                        .length(1D)
-                        .width(1D)
-                        .height(1D)
-                        .material("N/A")
-                        .color("")
-                        .warranty("")
-                        .build()))
+                .variants(resolveCreateVariants(request.getVariantsList(), request.getPrice(), request.getStock()))
                 .build()), "Product created");
     }
 
     @Override
+    @Transactional
     public void updateProduct(UpdateProductRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         complete(responseObserver, () -> {
             UUID productId = UUID.fromString(request.getId());
@@ -206,9 +206,21 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                         .build());
             }
 
-            updatePrimaryVariant(productId, request.getPrice(), request.getStock());
+            replaceVariants(productId, request.getVariantsList(), request.getPrice(), request.getStock());
             replaceGallery(productId, request.getImageUrlsList());
         }, "Product updated");
+    }
+
+    @Override
+    public void stockInVariant(StockInVariantRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        complete(responseObserver, () -> releaseInventoryUseCase.execute(UpdateInventoryCommand.builder()
+                .orderCode(defaultText(request.getNote(), "ADMIN_STOCK_IN"))
+                .items(List.of(UpdateInventoryCommand.StockItem.builder()
+                        .productId(UUID.fromString(request.getProductId()))
+                        .variantId(UUID.fromString(request.getVariantId()))
+                        .quantity(Math.max(request.getQuantity(), 0))
+                        .build()))
+                .build()), "Variant stock updated");
     }
 
     @Override
@@ -271,6 +283,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .name(request.getName())
                 .slug(resolveSlug(request.getSlug(), request.getName()))
                 .parentId(parseOptionalUuid(request.getParentId()))
+                .iconId(emptyToNull(request.getIconId()))
+                .visible(request.getVisible())
+                .description(emptyToNull(request.getDescription()))
+                .imageUrl(emptyToNull(request.getImageUrl()))
                 .build()), "Category created");
     }
 
@@ -281,6 +297,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .name(request.getName())
                 .slug(resolveSlug(request.getSlug(), request.getName()))
                 .parentId(parseOptionalUuid(request.getParentId()))
+                .iconId(emptyToNull(request.getIconId()))
+                .visible(request.getVisible())
+                .description(emptyToNull(request.getDescription()))
+                .imageUrl(emptyToNull(request.getImageUrl()))
                 .build()), "Category updated");
     }
 
@@ -306,22 +326,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setStatusLabel(toProductStatusLabel(product.getStatus(), product.getStock()))
                 .setModel3DUrl(safe(product.getModelUrl()))
                 .addAllImageUrls(product.getImageUrls() == null ? List.of() : product.getImageUrls())
+                .addAllVariants(fetchAdminVariantDtos(product.getId()))
                 .build();
-    }
-
-    private void updatePrimaryVariant(UUID productId, double price, int stock) {
-        if (price < 0 || stock < 0) {
-            return;
-        }
-        productRepository.findById(productId).ifPresent(product -> {
-            if (product.getVariants() == null || product.getVariants().isEmpty()) {
-                return;
-            }
-            var primaryVariant = product.getVariants().get(0);
-            primaryVariant.setPrice(new Price(BigDecimal.valueOf(price)));
-            primaryVariant.setStockQuantity(new StockQuantity(stock));
-            productRepository.save(product);
-        });
     }
 
     private ProductDto toProductDto(ProductDetailProjection product) {
@@ -342,7 +348,122 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setStatusLabel(toProductStatusLabel(product.getStatus(), stock))
                 .setModel3DUrl(safe(product.getModelUrl()))
                 .addAllImageUrls(product.getGallery() == null ? List.of() : product.getGallery())
+                .addAllVariants(product.getVariants() == null ? List.of() : product.getVariants().stream()
+                        .map(this::toVariantDto)
+                        .toList())
                 .build();
+    }
+
+    private List<CreateProductCommand.VariantCommand> resolveCreateVariants(
+            List<ProductVariantInput> variants,
+            double fallbackPrice,
+            int fallbackStock) {
+        if (variants != null && !variants.isEmpty()) {
+            return variants.stream().map(this::toCreateVariantCommand).toList();
+        }
+        return List.of(CreateProductCommand.VariantCommand.builder()
+                .price(Math.max(fallbackPrice, 0D))
+                .stockQuantity(Math.max(fallbackStock, 0))
+                .weight(1D)
+                .length(1D)
+                .width(1D)
+                .height(1D)
+                .material("N/A")
+                .color("")
+                .warranty("")
+                .sku("")
+                .build());
+    }
+
+    private CreateProductCommand.VariantCommand toCreateVariantCommand(ProductVariantInput variant) {
+        return CreateProductCommand.VariantCommand.builder()
+                .price(Math.max(variant.getPrice(), 0D))
+                .stockQuantity(Math.max(variant.getStock(), 0))
+                .weight(positiveOrDefault(variant.getWeight()))
+                .length(positiveOrDefault(variant.getLength()))
+                .width(positiveOrDefault(variant.getWidth()))
+                .height(positiveOrDefault(variant.getHeight()))
+                .material(defaultText(variant.getMaterial(), "N/A"))
+                .warranty(safe(variant.getWarranty()))
+                .color(safe(variant.getColor()))
+                .sku(safe(variant.getSku()))
+                .build();
+    }
+
+    private void replaceVariants(UUID productId, List<ProductVariantInput> variants, double fallbackPrice, int fallbackStock) {
+        productRepository.findById(productId).ifPresent(product -> {
+            if (variants != null && !variants.isEmpty()) {
+                if (product.getVariants() != null) {
+                    product.getVariants().clear();
+                }
+                variants.forEach(input -> product.addVariant(toProductVariant(input)));
+            } else if (fallbackPrice >= 0 && fallbackStock >= 0 && product.getVariants() != null && !product.getVariants().isEmpty()) {
+                ProductVariant primaryVariant = product.getVariants().get(0);
+                primaryVariant.setPrice(new Price(BigDecimal.valueOf(fallbackPrice)));
+                primaryVariant.setStockQuantity(new StockQuantity(fallbackStock));
+            }
+            productRepository.save(product);
+        });
+    }
+
+    private ProductVariant toProductVariant(ProductVariantInput input) {
+        UUID variantId = parseOptionalUuid(input.getId());
+        return ProductVariant.builder()
+                .id(variantId == null ? UUID.randomUUID() : variantId)
+                .price(new Price(BigDecimal.valueOf(Math.max(input.getPrice(), 0D))))
+                .stockQuantity(new StockQuantity(Math.max(input.getStock(), 0)))
+                .dimensions(new ProductDimensions(
+                        positiveOrDefault(input.getWeight()),
+                        positiveOrDefault(input.getLength()),
+                        positiveOrDefault(input.getWidth()),
+                        positiveOrDefault(input.getHeight())))
+                .material(defaultText(input.getMaterial(), "N/A"))
+                .warranty(safe(input.getWarranty()))
+                .color(safe(input.getColor()))
+                .sku(safe(input.getSku()))
+                .build();
+    }
+
+    private List<ProductVariantDto> fetchAdminVariantDtos(UUID productId) {
+        List<ProductDetailProjection.VariantDto> variants = findProductDetail(productId.toString()).getVariants();
+        if (variants == null) {
+            return List.of();
+        }
+        return variants.stream()
+                .map(this::toVariantDto)
+                .toList();
+    }
+
+    private ProductVariantDto toVariantDto(ProductDetailProjection.VariantDto variant) {
+        return ProductVariantDto.newBuilder()
+                .setId(variant.getId() == null ? "" : variant.getId().toString())
+                .setSku(safe(variant.getSku()))
+                .setPrice(variant.getPrice() == null ? 0D : variant.getPrice())
+                .setStock(variant.getStockQuantity() == null ? 0 : variant.getStockQuantity())
+                .setColor(safe(variant.getColor()))
+                .setMaterial(safe(variant.getMaterial()))
+                .setWarranty(safe(variant.getWarranty()))
+                .setWeight(variant.getWeight() == null ? 0D : variant.getWeight())
+                .setLength(variant.getLength() == null ? 0D : variant.getLength())
+                .setWidth(variant.getWidth() == null ? 0D : variant.getWidth())
+                .setHeight(variant.getHeight() == null ? 0D : variant.getHeight())
+                .setLabel(variantLabel(variant))
+                .build();
+    }
+
+    private String variantLabel(ProductDetailProjection.VariantDto variant) {
+        String color = safe(variant.getColor());
+        String material = safe(variant.getMaterial());
+        if (!color.isBlank() && !material.isBlank()) {
+            return color + " / " + material;
+        }
+        if (!color.isBlank()) {
+            return color;
+        }
+        if (!material.isBlank()) {
+            return material;
+        }
+        return variant.getId() == null ? "Variant" : variant.getId().toString();
     }
 
     private void replaceGallery(UUID productId, List<String> imageUrls) {
@@ -384,11 +505,12 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setName(safe(category.getName()))
                 .setSlug(safe(category.getSlug()))
                 .setProductCount(category.getProductCount() == null ? 0 : category.getProductCount())
-                .setVisible(true)
-                .setVisibleLabel("Hiển thị")
+                .setVisible(category.getVisible() == null || category.getVisible())
+                .setVisibleLabel(category.getVisible() == null || category.getVisible() ? "Hiển thị" : "Ẩn")
                 .setCreatedAt("")
                 .setIconId(resolveIconId(category.getIconUrl()))
-                .setDescription(safe(category.getPath()))
+                .setDescription(safe(category.getDescription()))
+                .setImageUrl(safe(category.getImageUrl()))
                 .build();
     }
 
@@ -530,6 +652,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     private String defaultText(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private double positiveOrDefault(double value) {
+        return value > 0 ? value : 1D;
     }
 
     private String safe(String value) {

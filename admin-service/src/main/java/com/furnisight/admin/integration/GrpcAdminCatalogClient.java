@@ -11,9 +11,12 @@ import com.furnisight.admin.catalog.DeleteProductRequest;
 import com.furnisight.admin.catalog.GetAdminCategoriesRequest;
 import com.furnisight.admin.catalog.GetAdminProductsRequest;
 import com.furnisight.admin.catalog.GetLowStockProductsRequest;
+import com.furnisight.admin.catalog.GetProductDetailRequest;
 import com.furnisight.admin.catalog.LowStockProductListResponse;
 import com.furnisight.admin.catalog.ProductPageResponse;
 import com.furnisight.admin.catalog.ProductStatsResponse;
+import com.furnisight.admin.catalog.ProductDto;
+import com.furnisight.admin.catalog.StockInVariantRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
 import net.devh.boot.grpc.client.inject.GrpcClient;
@@ -39,6 +42,12 @@ public class GrpcAdminCatalogClient {
         return adminCatalogServiceStub.getProductStats(com.google.protobuf.Empty.getDefaultInstance());
     }
 
+    public ProductDto getProductDetail(String id) {
+        return adminCatalogServiceStub.getProductDetail(GetProductDetailRequest.newBuilder()
+                .setId(id == null ? "" : id)
+                .build());
+    }
+
     public LowStockProductListResponse getLowStockProducts(int limit, int threshold) {
         return adminCatalogServiceStub.getLowStockProducts(GetLowStockProductsRequest.newBuilder()
                 .setLimit(limit)
@@ -56,6 +65,10 @@ public class GrpcAdminCatalogClient {
 
     public AdminActionResponse deleteProduct(String id) {
         return adminCatalogServiceStub.deleteProduct(DeleteProductRequest.newBuilder().setId(id == null ? "" : id).build());
+    }
+
+    public AdminActionResponse stockInVariant(StockInVariantRequest request) {
+        return adminCatalogServiceStub.stockInVariant(request);
     }
 
     public CategoryListResponse getCategories(String query) {

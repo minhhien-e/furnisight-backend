@@ -27,6 +27,10 @@ public class UpdateCategoryService implements UpdateCategoryUseCase {
         CategorySlug slug = new CategorySlug(command.getSlug());
 
         category.update(name, slug, command.getParentId());
+        category.setIconUrl(command.getIconId());
+        category.setVisible(command.getVisible() == null || command.getVisible());
+        category.setDescription(command.getDescription());
+        category.setImageUrl(command.getImageUrl());
 
         categoryRepository.save(category);
     }

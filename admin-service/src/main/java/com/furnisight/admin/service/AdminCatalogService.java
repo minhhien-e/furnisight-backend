@@ -7,16 +7,24 @@ import com.furnisight.admin.catalog.CreateProductRequest;
 import com.furnisight.admin.catalog.LowStockProductDto;
 import com.furnisight.admin.catalog.ProductDto;
 import com.furnisight.admin.catalog.ProductPageResponse;
+import com.furnisight.admin.catalog.ProductVariantDto;
+import com.furnisight.admin.catalog.ProductVariantInput;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
 import com.furnisight.admin.controller.dto.AdminActionResultResponse;
 import com.furnisight.admin.controller.dto.AdminCategoryListResponse;
 import com.furnisight.admin.controller.dto.AdminCategoryResponse;
+import com.furnisight.admin.controller.dto.AdminInventoryItemResponse;
+import com.furnisight.admin.controller.dto.AdminInventoryResponse;
 import com.furnisight.admin.controller.dto.AdminProductPageResponse;
 import com.furnisight.admin.controller.dto.AdminProductResponse;
+import com.furnisight.admin.controller.dto.AdminProductVariantResponse;
 import com.furnisight.admin.controller.dto.DashboardLowStockResponse;
+import com.furnisight.admin.controller.dto.DashboardKpiResponse;
 import com.furnisight.admin.controller.dto.SaveAdminCategoryRequest;
 import com.furnisight.admin.controller.dto.SaveAdminProductRequest;
+import com.furnisight.admin.controller.dto.SaveAdminProductVariantRequest;
+import com.furnisight.admin.controller.dto.StockInVariantRequest;
 import com.furnisight.admin.integration.GrpcAdminCatalogClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -53,6 +61,7 @@ public class AdminCatalogService {
                 .setModel3DFileName(value(request.model3dFileName()))
                 .setModel3DSize(request.model3dSize())
                 .addAllImageUrls(cleanList(request.imageUrls()))
+                .addAllVariants(toVariantInputs(request.variants()))
                 .build()));
     }
 
@@ -71,7 +80,12 @@ public class AdminCatalogService {
                 .setModel3DFileName(value(request.model3dFileName()))
                 .setModel3DSize(request.model3dSize())
                 .addAllImageUrls(cleanList(request.imageUrls()))
+                .addAllVariants(toVariantInputs(request.variants()))
                 .build()));
+    }
+
+    public AdminProductResponse getProduct(String id) {
+        return toProductResponse(grpcAdminCatalogClient.getProductDetail(id));
     }
 
     public AdminActionResultResponse deleteProduct(String id) {
@@ -92,6 +106,7 @@ public class AdminCatalogService {
                 .setIconId(value(request.iconId()))
                 .setVisible(request.visible())
                 .setDescription(value(request.description()))
+                .setImageUrl(value(request.imageUrl()))
                 .build()));
     }
 
@@ -103,6 +118,7 @@ public class AdminCatalogService {
                 .setIconId(value(request.iconId()))
                 .setVisible(request.visible())
                 .setDescription(value(request.description()))
+                .setImageUrl(value(request.imageUrl()))
                 .build()));
     }
 
@@ -114,6 +130,31 @@ public class AdminCatalogService {
         return grpcAdminCatalogClient.getLowStockProducts(limit, threshold).getProductsList().stream()
                 .map(this::toDashboardLowStock)
                 .toList();
+    }
+
+    public AdminInventoryResponse getInventory(String query) {
+        ProductPageResponse response = grpcAdminCatalogClient.getProducts(1, 500, query, null, null);
+        List<AdminInventoryItemResponse> items = response.getProductsList().stream()
+                .flatMap(product -> product.getVariantsList().stream().map(variant -> toInventoryItem(product, variant)))
+                .toList();
+        long totalStock = items.stream().mapToLong(AdminInventoryItemResponse::stock).sum();
+        long lowStock = items.stream().filter(item -> item.stock() > 0 && item.stock() <= item.threshold()).count();
+        long outOfStock = items.stream().filter(item -> item.stock() <= 0).count();
+        return new AdminInventoryResponse(List.of(
+                new DashboardKpiResponse("variants", "Variant", String.valueOf(items.size()), "", "", true, "default", "box"),
+                new DashboardKpiResponse("stock", "Tổng tồn", String.valueOf(totalStock), "", "", true, "default", "warehouse"),
+                new DashboardKpiResponse("low", "Sắp hết", String.valueOf(lowStock), "", "", false, "warn", "alert"),
+                new DashboardKpiResponse("empty", "Hết hàng", String.valueOf(outOfStock), "", "", false, "danger", "ban")
+        ), items);
+    }
+
+    public AdminActionResultResponse stockInVariant(StockInVariantRequest request) {
+        return toActionResult(grpcAdminCatalogClient.stockInVariant(com.furnisight.admin.catalog.StockInVariantRequest.newBuilder()
+                .setProductId(value(request.productId()))
+                .setVariantId(value(request.variantId()))
+                .setQuantity(request.quantity())
+                .setNote(value(request.note()))
+                .build()));
     }
 
     private AdminProductResponse toProductResponse(ProductDto product) {
@@ -129,7 +170,71 @@ public class AdminCatalogService {
                 product.getModel3DUrl(),
                 product.getModel3DFileName(),
                 product.getModel3DSize(),
-                product.getImageUrlsList());
+                product.getImageUrlsList(),
+                product.getVariantsList().stream().map(this::toVariantResponse).toList());
+    }
+
+    private AdminProductVariantResponse toVariantResponse(ProductVariantDto variant) {
+        return new AdminProductVariantResponse(
+                variant.getId(),
+                variant.getSku(),
+                variant.getPrice(),
+                variant.getStock(),
+                variant.getColor(),
+                variant.getMaterial(),
+                variant.getWarranty(),
+                variant.getWeight(),
+                variant.getLength(),
+                variant.getWidth(),
+                variant.getHeight(),
+                variant.getLabel());
+    }
+
+    private ProductVariantInput toVariantInput(SaveAdminProductVariantRequest variant) {
+        return ProductVariantInput.newBuilder()
+                .setId(value(variant.id()))
+                .setSku(value(variant.sku()))
+                .setPrice(variant.price())
+                .setStock(variant.stock())
+                .setColor(value(variant.color()))
+                .setMaterial(value(variant.material()))
+                .setWarranty(value(variant.warranty()))
+                .setWeight(variant.weight())
+                .setLength(variant.length())
+                .setWidth(variant.width())
+                .setHeight(variant.height())
+                .build();
+    }
+
+    private List<ProductVariantInput> toVariantInputs(List<SaveAdminProductVariantRequest> variants) {
+        if (variants == null || variants.isEmpty()) {
+            return List.of();
+        }
+        return variants.stream().map(this::toVariantInput).toList();
+    }
+
+    private AdminInventoryItemResponse toInventoryItem(ProductDto product, ProductVariantDto variant) {
+        int stock = variant.getStock();
+        int threshold = 5;
+        String status = stock <= 0 ? "cancel" : stock <= threshold ? "low" : "success";
+        String statusLabel = stock <= 0 ? "Hết hàng" : stock <= threshold ? "Sắp hết" : "Đủ hàng";
+        int stockPercent = Math.min(100, Math.max(0, stock * 100 / 50));
+        String label = variant.getLabel().isBlank() ? variant.getId() : variant.getLabel();
+        return new AdminInventoryItemResponse(
+                product.getId(),
+                variant.getId(),
+                variant.getSku().isBlank() ? variant.getId() : variant.getSku(),
+                product.getName(),
+                product.getCategory(),
+                label,
+                stock,
+                threshold,
+                stockPercent,
+                status,
+                "",
+                "",
+                status,
+                statusLabel);
     }
 
     private AdminCategoryResponse toCategoryResponse(CategoryDto category) {
@@ -142,7 +247,8 @@ public class AdminCatalogService {
                 category.getVisibleLabel(),
                 category.getCreatedAt(),
                 category.getIconId(),
-                category.getDescription());
+                category.getDescription(),
+                category.getImageUrl());
     }
 
     private DashboardLowStockResponse toDashboardLowStock(LowStockProductDto product) {

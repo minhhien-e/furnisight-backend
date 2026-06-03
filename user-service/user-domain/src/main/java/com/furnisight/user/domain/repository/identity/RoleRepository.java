@@ -15,5 +15,6 @@ public interface RoleRepository {
     Role save(Role role);
     void delete(Role role);
 
+    List<Role> findAll();
     List<Role> findAllByAccountId(UUID id);
 }

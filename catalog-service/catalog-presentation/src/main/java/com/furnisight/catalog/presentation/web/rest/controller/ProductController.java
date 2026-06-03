@@ -127,6 +127,7 @@ public class ProductController {
                 .material(request.getMaterial())
                 .color(request.getColor())
                 .warranty(request.getWarranty())
+                .sku(request.getSku())
                 .build();
         addProductVariantUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();

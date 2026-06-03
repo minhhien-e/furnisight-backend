@@ -48,6 +48,7 @@ public class CreateProductService implements CreateProductUseCase {
                         .material(v.getMaterial())
                         .warranty(v.getWarranty())
                         .color(v.getColor())
+                        .sku(v.getSku())
                         .build());
             }
         }

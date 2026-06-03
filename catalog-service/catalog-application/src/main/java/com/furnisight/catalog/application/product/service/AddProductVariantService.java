@@ -44,6 +44,7 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 .material(command.getMaterial())
                 .warranty(command.getWarranty())
                 .color(command.getColor())
+                .sku(command.getSku())
                 .build();
 
         productLifecycleService.addVariant(product, variant);

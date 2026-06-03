@@ -2,9 +2,12 @@ package com.furnisight.admin.controller;
 
 import com.furnisight.admin.controller.dto.AdminActionResultResponse;
 import com.furnisight.admin.controller.dto.AdminCategoryListResponse;
+import com.furnisight.admin.controller.dto.AdminInventoryResponse;
 import com.furnisight.admin.controller.dto.AdminProductPageResponse;
+import com.furnisight.admin.controller.dto.AdminProductResponse;
 import com.furnisight.admin.controller.dto.SaveAdminCategoryRequest;
 import com.furnisight.admin.controller.dto.SaveAdminProductRequest;
+import com.furnisight.admin.controller.dto.StockInVariantRequest;
 import com.furnisight.admin.service.AdminCatalogService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -37,6 +40,12 @@ public class AdminCatalogController {
         return ResponseEntity.ok(adminCatalogService.getProducts(page, size, query, status, category));
     }
 
+    @GetMapping("/products/{id}")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<AdminProductResponse> getProduct(@PathVariable String id) {
+        return ResponseEntity.ok(adminCatalogService.getProduct(id));
+    }
+
     @PostMapping("/products")
     @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasAuthority('product_create') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<AdminActionResultResponse> createProduct(@RequestBody SaveAdminProductRequest request) {
@@ -54,6 +63,18 @@ public class AdminCatalogController {
     @PreAuthorize("hasAuthority('PRODUCT_DELETE') or hasAuthority('product_delete') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<AdminActionResultResponse> deleteProduct(@PathVariable String id) {
         return ResponseEntity.ok(adminCatalogService.deleteProduct(id));
+    }
+
+    @GetMapping("/inventory")
+    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<AdminInventoryResponse> getInventory(@RequestParam(required = false) String query) {
+        return ResponseEntity.ok(adminCatalogService.getInventory(query));
+    }
+
+    @PostMapping("/inventory/stock-in")
+    @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<AdminActionResultResponse> stockInVariant(@RequestBody StockInVariantRequest request) {
+        return ResponseEntity.ok(adminCatalogService.stockInVariant(request));
     }
 
     @GetMapping("/categories")

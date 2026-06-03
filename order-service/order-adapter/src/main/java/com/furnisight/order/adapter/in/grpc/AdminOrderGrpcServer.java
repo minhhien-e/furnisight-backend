@@ -3,8 +3,11 @@ package com.furnisight.order.adapter.in.grpc;
 import com.furnisight.admin.order.AdminActionResponse;
 import com.furnisight.admin.order.AdminOrderServiceGrpc;
 import com.furnisight.admin.order.ChartPoint;
+import com.furnisight.admin.order.CreateVoucherRequest;
+import com.furnisight.admin.order.DeleteVoucherRequest;
 import com.furnisight.admin.order.DeliverOrderRequest;
 import com.furnisight.admin.order.GetAdminOrdersRequest;
+import com.furnisight.admin.order.GetAdminVouchersRequest;
 import com.furnisight.admin.order.GetRecentOrdersRequest;
 import com.furnisight.admin.order.OrderDto;
 import com.furnisight.admin.order.OrderPageResponse;
@@ -13,9 +16,15 @@ import com.furnisight.admin.order.OrderStatusCount;
 import com.furnisight.admin.order.RecentOrderListResponse;
 import com.furnisight.admin.order.ShipOrderRequest;
 import com.furnisight.admin.order.UpdateOrderStatusRequest;
+import com.furnisight.admin.order.UpdateVoucherRequest;
+import com.furnisight.admin.order.VoucherDto;
+import com.furnisight.admin.order.VoucherListResponse;
+import com.furnisight.order.adapter.out.repository.promotion.jpa.PromotionJpaRepository;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
+import com.furnisight.order.domain.entities.promotion.Promotion;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
+import com.furnisight.order.domain.enums.DiscountType;
 import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.valueobjects.ProductSnapshot;
@@ -40,6 +49,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
 
     private final OrderRepository orderRepository;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
+    private final PromotionJpaRepository promotionJpaRepository;
 
     @Override
     public void getAdminOrders(GetAdminOrdersRequest request, StreamObserver<OrderPageResponse> responseObserver) {
@@ -131,6 +141,75 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             log.error("Failed to get order stats", ex);
             responseObserver.onError(ex);
         }
+    }
+
+    @Override
+    public void getAdminVouchers(GetAdminVouchersRequest request, StreamObserver<VoucherListResponse> responseObserver) {
+        try {
+            String query = request.getQuery() == null ? "" : request.getQuery().trim().toLowerCase();
+            String status = request.getStatus() == null ? "" : request.getStatus().trim().toLowerCase();
+            List<VoucherDto> vouchers = promotionJpaRepository.findAll().stream()
+                    .filter(promotion -> query.isBlank()
+                            || safe(promotion.getCode()).toLowerCase().contains(query)
+                            || safe(promotion.getName()).toLowerCase().contains(query))
+                    .filter(promotion -> status.isBlank()
+                            || ("active".equals(status) && promotion.isActive())
+                            || ("inactive".equals(status) && !promotion.isActive()))
+                    .map(this::toVoucherDto)
+                    .toList();
+            responseObserver.onNext(VoucherListResponse.newBuilder().addAllVouchers(vouchers).build());
+            responseObserver.onCompleted();
+        } catch (Exception ex) {
+            log.error("Failed to get admin vouchers", ex);
+            responseObserver.onError(ex);
+        }
+    }
+
+    @Override
+    public void createVoucher(CreateVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        completeAction(responseObserver, () -> {
+            Promotion promotion = Promotion.builder()
+                    .id(java.util.UUID.randomUUID())
+                    .code(normalizeCode(request.getCode()))
+                    .name(defaultText(request.getName(), normalizeCode(request.getCode())))
+                    .description(safe(request.getDescription()))
+                    .icon(safe(request.getIcon()))
+                    .discountType(parseDiscountType(request.getDiscountType()))
+                    .discountValue(Math.max(request.getDiscountValue(), 0D))
+                    .maxDiscount(optionalPositive(request.getMaxDiscount()))
+                    .minOrder(optionalPositive(request.getMinOrder()))
+                    .startDate(parseDateTime(request.getStartDate()))
+                    .endDate(parseDateTime(request.getEndDate()))
+                    .active(request.getActive())
+                    .build();
+            promotionJpaRepository.save(promotion);
+        }, "Voucher created");
+    }
+
+    @Override
+    public void updateVoucher(UpdateVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        completeAction(responseObserver, () -> {
+            Promotion promotion = promotionJpaRepository.findById(java.util.UUID.fromString(request.getId()))
+                    .orElseThrow(() -> new IllegalArgumentException("Voucher not found"));
+            promotion.setCode(normalizeCode(request.getCode()));
+            promotion.setName(defaultText(request.getName(), promotion.getCode()));
+            promotion.setDescription(safe(request.getDescription()));
+            promotion.setIcon(safe(request.getIcon()));
+            promotion.setDiscountType(parseDiscountType(request.getDiscountType()));
+            promotion.setDiscountValue(Math.max(request.getDiscountValue(), 0D));
+            promotion.setMaxDiscount(optionalPositive(request.getMaxDiscount()));
+            promotion.setMinOrder(optionalPositive(request.getMinOrder()));
+            promotion.setStartDate(parseDateTime(request.getStartDate()));
+            promotion.setEndDate(parseDateTime(request.getEndDate()));
+            promotion.setActive(request.getActive());
+            promotionJpaRepository.save(promotion);
+        }, "Voucher updated");
+    }
+
+    @Override
+    public void deleteVoucher(DeleteVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        completeAction(responseObserver, () -> promotionJpaRepository.deleteById(java.util.UUID.fromString(request.getId())),
+                "Voucher deleted");
     }
 
     @Override
@@ -246,6 +325,58 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             case "PAYMENT_FAILED" -> "Thanh toán lỗi";
             default -> "Chờ thanh toán";
         };
+    }
+
+    private VoucherDto toVoucherDto(Promotion promotion) {
+        return VoucherDto.newBuilder()
+                .setId(promotion.getId() == null ? "" : promotion.getId().toString())
+                .setCode(safe(promotion.getCode()))
+                .setName(safe(promotion.getName()))
+                .setDescription(safe(promotion.getDescription()))
+                .setIcon(safe(promotion.getIcon()))
+                .setDiscountType(promotion.getDiscountType() == null ? "" : promotion.getDiscountType().name())
+                .setDiscountValue(promotion.getDiscountValue() == null ? 0D : promotion.getDiscountValue())
+                .setMaxDiscount(promotion.getMaxDiscount() == null ? 0D : promotion.getMaxDiscount())
+                .setMinOrder(promotion.getMinOrder() == null ? 0D : promotion.getMinOrder())
+                .setStartDate(promotion.getStartDate() == null ? "" : promotion.getStartDate().toString())
+                .setEndDate(promotion.getEndDate() == null ? "" : promotion.getEndDate().toString())
+                .setActive(promotion.isActive())
+                .setStatusLabel(promotion.isActive() ? "Đang bật" : "Đã tắt")
+                .build();
+    }
+
+    private DiscountType parseDiscountType(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return DiscountType.FIXED;
+        }
+        String normalized = raw.trim().replace('-', '_').replace(' ', '_').toUpperCase();
+        if ("PERCENTAGE".equals(normalized)) {
+            return DiscountType.PERCENT;
+        }
+        return DiscountType.valueOf(normalized);
+    }
+
+    private LocalDateTime parseDateTime(String raw) {
+        if (raw == null || raw.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(raw);
+        } catch (Exception ignored) {
+            return LocalDate.parse(raw).atStartOfDay();
+        }
+    }
+
+    private Double optionalPositive(double value) {
+        return value > 0 ? value : null;
+    }
+
+    private String normalizeCode(String raw) {
+        return safe(raw).trim().toUpperCase();
+    }
+
+    private String defaultText(String value, String fallback) {
+        return value == null || value.isBlank() ? fallback : value;
     }
 
     private String safe(String value) {

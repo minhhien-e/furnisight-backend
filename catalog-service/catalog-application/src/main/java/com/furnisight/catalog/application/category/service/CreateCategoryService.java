@@ -24,6 +24,10 @@ public class CreateCategoryService implements CreateCategoryUseCase {
         CategorySlug slug = new CategorySlug(command.getSlug());
 
         Category category = categoryLifecycleService.createCategory(name, slug, command.getParentId());
+        category.setIconUrl(command.getIconId());
+        category.setVisible(command.getVisible() == null || command.getVisible());
+        category.setDescription(command.getDescription());
+        category.setImageUrl(command.getImageUrl());
 
         categoryRepository.save(category);
     }

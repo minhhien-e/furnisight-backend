@@ -35,6 +35,10 @@ public class CategoryController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .parentId(request.getParentId())
+                .iconId(request.getIconId())
+                .visible(request.getVisible())
+                .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
                 .build();
         createCategoryUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -47,6 +51,10 @@ public class CategoryController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .parentId(request.getParentId())
+                .iconId(request.getIconId())
+                .visible(request.getVisible())
+                .description(request.getDescription())
+                .imageUrl(request.getImageUrl())
                 .build();
         updateCategoryUseCase.execute(command);
         return ResponseEntity.ok().build();

@@ -3,11 +3,17 @@ package com.furnisight.admin.service;
 import com.furnisight.admin.controller.dto.AdminActionResultResponse;
 import com.furnisight.admin.controller.dto.AdminOrderPageResponse;
 import com.furnisight.admin.controller.dto.AdminOrderResponse;
+import com.furnisight.admin.controller.dto.AdminVoucherListResponse;
+import com.furnisight.admin.controller.dto.AdminVoucherResponse;
 import com.furnisight.admin.controller.dto.DashboardRecentOrderResponse;
+import com.furnisight.admin.controller.dto.SaveAdminVoucherRequest;
 import com.furnisight.admin.integration.GrpcAdminOrderClient;
 import com.furnisight.admin.order.AdminActionResponse;
+import com.furnisight.admin.order.CreateVoucherRequest;
 import com.furnisight.admin.order.OrderDto;
 import com.furnisight.admin.order.OrderPageResponse;
+import com.furnisight.admin.order.UpdateVoucherRequest;
+import com.furnisight.admin.order.VoucherDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +50,54 @@ public class AdminOrderService {
         return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
     }
 
+    public AdminVoucherListResponse getVouchers(String query, String status) {
+        return new AdminVoucherListResponse(grpcAdminOrderClient.getVouchers(query, status)
+                .getVouchersList()
+                .stream()
+                .map(this::toVoucherResponse)
+                .toList());
+    }
+
+    public AdminActionResultResponse createVoucher(SaveAdminVoucherRequest request) {
+        AdminActionResponse response = grpcAdminOrderClient.createVoucher(CreateVoucherRequest.newBuilder()
+                .setCode(value(request.code()))
+                .setName(value(request.name()))
+                .setDescription(value(request.description()))
+                .setIcon(value(request.icon()))
+                .setDiscountType(value(request.discountType()))
+                .setDiscountValue(request.discountValue())
+                .setMaxDiscount(request.maxDiscount())
+                .setMinOrder(request.minOrder())
+                .setStartDate(value(request.startDate()))
+                .setEndDate(value(request.endDate()))
+                .setActive(request.active())
+                .build());
+        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+    }
+
+    public AdminActionResultResponse updateVoucher(String id, SaveAdminVoucherRequest request) {
+        AdminActionResponse response = grpcAdminOrderClient.updateVoucher(UpdateVoucherRequest.newBuilder()
+                .setId(value(id))
+                .setCode(value(request.code()))
+                .setName(value(request.name()))
+                .setDescription(value(request.description()))
+                .setIcon(value(request.icon()))
+                .setDiscountType(value(request.discountType()))
+                .setDiscountValue(request.discountValue())
+                .setMaxDiscount(request.maxDiscount())
+                .setMinOrder(request.minOrder())
+                .setStartDate(value(request.startDate()))
+                .setEndDate(value(request.endDate()))
+                .setActive(request.active())
+                .build());
+        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+    }
+
+    public AdminActionResultResponse deleteVoucher(String id) {
+        AdminActionResponse response = grpcAdminOrderClient.deleteVoucher(id);
+        return new AdminActionResultResponse(response.getSuccess(), response.getMessage());
+    }
+
     private AdminOrderResponse toOrderResponse(OrderDto order) {
         return new AdminOrderResponse(
                 order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
@@ -62,6 +116,23 @@ public class AdminOrderService {
                 formatCurrency(order.getTotalAmount()),
                 toOrderTone(order.getStatus()),
                 toOrderStatusLabel(order.getStatus()));
+    }
+
+    private AdminVoucherResponse toVoucherResponse(VoucherDto voucher) {
+        return new AdminVoucherResponse(
+                voucher.getId(),
+                voucher.getCode(),
+                voucher.getName(),
+                voucher.getDescription(),
+                voucher.getIcon(),
+                voucher.getDiscountType(),
+                voucher.getDiscountValue(),
+                voucher.getMaxDiscount(),
+                voucher.getMinOrder(),
+                voucher.getStartDate(),
+                voucher.getEndDate(),
+                voucher.getActive(),
+                voucher.getStatusLabel());
     }
 
     private String toOrderTone(String status) {
@@ -109,5 +180,9 @@ public class AdminOrderService {
 
     private String emptyFallback(String value, String fallback) {
         return value == null || value.isBlank() ? fallback : value;
+    }
+
+    private String value(String value) {
+        return value == null ? "" : value;
     }
 }

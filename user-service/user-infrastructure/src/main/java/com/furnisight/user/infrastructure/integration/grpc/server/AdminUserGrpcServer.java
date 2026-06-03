@@ -226,8 +226,15 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     @Override
     public void getRoles(Empty request, StreamObserver<RoleListResponse> responseObserver) {
         try {
-            // Need a find all in RoleRepository or just mock for compilation
-            RoleListResponse response = RoleListResponse.newBuilder().build();
+            RoleListResponse response = RoleListResponse.newBuilder()
+                    .addAllRoles(roleRepository.findAll().stream()
+                            .map(role -> RoleDto.newBuilder()
+                                    .setId(role.getId().toString())
+                                    .setName(role.getName().getValue())
+                                    .addAllPermissions(role.getPermissions().stream().map(Enum::name).toList())
+                                    .build())
+                            .toList())
+                    .build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {

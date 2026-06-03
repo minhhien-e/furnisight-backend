@@ -12,6 +12,7 @@ public record AdminProductResponse(
         String model3dUrl,
         String model3dFileName,
         long model3dSize,
-        java.util.List<String> imageUrls
+        java.util.List<String> imageUrls,
+        java.util.List<AdminProductVariantResponse> variants
 ) {
 }
