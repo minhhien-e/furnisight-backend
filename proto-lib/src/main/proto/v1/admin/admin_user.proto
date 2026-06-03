@@ -17,9 +17,14 @@ service AdminUserService {
     rpc ActivateAccount (ActivateAccountRequest) returns (AdminActionResponse);
     rpc DeleteAccount (DeleteAccountRequest) returns (AdminActionResponse);
     rpc GetRoles (google.protobuf.Empty) returns (RoleListResponse);
+    rpc CreateRole (CreateRoleRequest) returns (AdminActionResponse);
+    rpc UpdateRole (UpdateRoleRequest) returns (AdminActionResponse);
+    rpc DeleteRole (DeleteRoleRequest) returns (AdminActionResponse);
+    rpc SyncRolePermissions (SyncRolePermissionsRequest) returns (AdminActionResponse);
     rpc AssignRole (AssignRoleRequest) returns (AdminActionResponse);
     rpc RevokeRole (RevokeRoleRequest) returns (AdminActionResponse);
     rpc CreateAccount (CreateAccountRequest) returns (AdminActionResponse);
+    rpc UpdateAccountProfile (UpdateAccountProfileRequest) returns (AdminActionResponse);
 }
 
 message CreateAccountRequest {
@@ -118,6 +123,28 @@ message RoleListResponse {
     repeated RoleDto roles = 1;
 }
 
+message CreateRoleRequest {
+    string name = 1;
+    int32 position = 2;
+    repeated string permissions = 3;
+}
+
+message UpdateRoleRequest {
+    string id = 1;
+    string name = 2;
+    int32 position = 3;
+    repeated string permissions = 4;
+}
+
+message DeleteRoleRequest {
+    string id = 1;
+}
+
+message SyncRolePermissionsRequest {
+    string role_id = 1;
+    repeated string permissions = 2;
+}
+
 message AssignRoleRequest {
     string admin_id = 1;
     string account_id = 2;
@@ -128,4 +155,11 @@ message RevokeRoleRequest {
     string admin_id = 1;
     string account_id = 2;
     string role_id = 3;
+}
+
+message UpdateAccountProfileRequest {
+    string account_id = 1;
+    string display_name = 2;
+    string first_name = 3;
+    string last_name = 4;
 }
