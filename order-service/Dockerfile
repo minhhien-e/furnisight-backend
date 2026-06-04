@@ -22,9 +22,9 @@ COPY order-domain order-domain
 
 # Tiến hành cấp quyền thực thi và build JAR, sử dụng Cache Mount và Secret Mount để tối ưu bảo mật & tốc độ
 RUN --mount=type=secret,id=GITHUB_TOKEN \
-    --mount=type=cache,target=/root/.gradle \
+    --mount=type=cache,id=gradle-cache-order-service,target=/root/.gradle \
     export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && \
-    chmod +x gradlew && ./gradlew build -x test
+    chmod +x gradlew && ./gradlew --no-daemon build -x test
 
 # =========================================================================
 # Stage 2: Run (Môi trường chạy thực tế siêu nhẹ và bảo mật)

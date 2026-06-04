@@ -18,7 +18,7 @@ RUN ls -la
 
 RUN chmod +x gradlew
 
-RUN ./gradlew build -x test
+RUN ./gradlew --no-daemon build -x test
 
 # =========================================================================
 # Stage 2: Run (Môi trường chạy thực tế siêu nhẹ và bảo mật)

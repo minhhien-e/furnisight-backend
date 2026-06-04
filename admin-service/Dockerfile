@@ -17,9 +17,9 @@ COPY src src
 
 # Tiến hành cấp quyền thực thi và build JAR, sử dụng Cache Mount và Secret Mount để tối ưu bảo mật & tốc độ
 RUN --mount=type=secret,id=GITHUB_TOKEN \
-    --mount=type=cache,target=/home/gradle/.gradle \
+    --mount=type=cache,id=gradle-cache-admin-service,target=/home/gradle/.gradle \
     export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && \
-    gradle build -x test
+    gradle --no-daemon build -x test
 
 # =========================================================================
 # Stage 2: Run (Môi trường chạy thực tế siêu nhẹ và bảo mật)
