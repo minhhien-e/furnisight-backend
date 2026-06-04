@@ -250,6 +250,8 @@ services:
     <<: *common-service
     expose:
       - "8080"
+    volumes:
+      - ./ai-image-classifier/models:/app/models:ro
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
 
   ai-image-reconstruction:
@@ -261,15 +263,13 @@ services:
         TORCH_WHEEL: ${TORCH_WHEEL:-}
     container_name: furnisight_ai_reconstruction
     <<: *common-service
-    ports:
-      - "8001:8001"
     env_file:
       - ./ai-image-reconstruction/.env
     volumes:
       - ./ai-image-reconstruction/checkpoints:/app/checkpoints:ro
       - ./ai-image-reconstruction/outputs:/app/outputs
     expose:
-      - "8001"
+      - "8080"
 
   media-service:
     <<: *java-service

@@ -25,5 +25,16 @@
     "confidence": 0.35,
     "max_image_size": 1024,
     "remove_classes": [0, 56, 57, 58, 59, 60, 62, 63, 66, 67, 72, 73, 74, 75]
+  },
+  "recommendation": {
+    "catalog_base_url": "http://catalog-service:8080/api/v1",
+    "recommendation_limit": 6,
+    "recommendation_timeout_seconds": 3,
+    "category_mapping": {
+      "livingroom": "living-room",
+      "bedroom": "bedroom",
+      "kitchen": "kitchen",
+      "bathroom": "bathroom"
+    }
   }
 }

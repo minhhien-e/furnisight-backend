@@ -22,7 +22,6 @@ COPY ./app /app/app
 
 # Copy config and models (weights loaded at runtime via ModelGateway)
 COPY config.json /app/config.json
-COPY ./models /app/models
 
 # Expose port
 EXPOSE 8000

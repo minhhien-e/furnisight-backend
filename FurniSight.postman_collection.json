@@ -1,2313 +1,2399 @@
 {
-  "info": {
-    "_postman_id": "furnisight-master-collection",
-    "name": "FurniSight Master Collection",
-    "description": "Merged Postman Collection containing all FurniSight microservice APIs.",
-    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
-  },
-  "item": [
-    {
-      "name": "AI Image Classifier",
-      "description": "Collection for testing the AI Image Classification microservice.\n\nEndpoints:\n- GET  /health  \u2014 ki\u1ec3m tra service \u0111ang ch\u1ea1y\n- POST /predict \u2014 ph\u00e2n lo\u1ea1i \u1ea3nh (normal ho\u1eb7c 360\u00b0)",
-      "item": [
-        {
-          "name": "Health Check",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{ai_classifier_base_url}}/health",
-              "host": [
-                "{{ai_classifier_base_url}}"
-              ],
-              "path": [
-                "health"
-              ]
-            },
-            "description": "Ki\u1ec3m tra service \u0111ang ch\u1ea1y v\u00e0 model \u0111\u00e3 \u0111\u01b0\u1ee3c load th\u00e0nh c\u00f4ng."
-          },
-          "response": [
-            {
-              "name": "200 OK \u2014 Service running",
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"status\": \"ok\"\n}"
-            },
-            {
-              "name": "503 \u2014 Model not loaded",
-              "status": "Service Unavailable",
-              "code": 503,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"detail\": \"Service Unavailable: Model not loaded\"\n}"
-            }
-          ]
-        },
-        {
-          "name": "Predict \u2014 Normal Image",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": "",
-                  "description": "\u1ea2nh c\u1ea7n ph\u00e2n lo\u1ea1i (jpg, png, ...)"
-                },
-                {
-                  "key": "image_type",
-                  "value": "normal",
-                  "type": "text",
-                  "description": "Lo\u1ea1i \u1ea3nh: 'normal' ho\u1eb7c '360'"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{ai_classifier_base_url}}/predict",
-              "host": [
-                "{{ai_classifier_base_url}}"
-              ],
-              "path": [
-                "predict"
-              ]
-            },
-            "description": "Ph\u00e2n lo\u1ea1i \u1ea3nh th\u01b0\u1eddng (ch\u1ee5p th\u1eb3ng). Model: resnet50_normal_best.pth\n\nK\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1 label thu\u1ed9c 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
-          },
-          "response": [
-            {
-              "name": "200 OK \u2014 Prediction result",
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"label\": \"bedroom\",\n  \"confidence\": 0.9231\n}"
-            },
-            {
-              "name": "400 \u2014 Not an image",
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"detail\": \"File provided is not an image.\"\n}"
-            },
-            {
-              "name": "400 \u2014 Invalid image format",
-              "status": "Bad Request",
-              "code": 400,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"detail\": \"Invalid image file format.\"\n}"
-            },
-            {
-              "name": "500 \u2014 Inference error",
-              "status": "Internal Server Error",
-              "code": 500,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"detail\": \"Inference failed: <error detail>\"\n}"
-            }
-          ]
-        },
-        {
-          "name": "Predict \u2014 360\u00b0 Image",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                {
-                  "key": "file",
-                  "type": "file",
-                  "src": "",
-                  "description": "\u1ea2nh panorama 360\u00b0 c\u1ea7n ph\u00e2n lo\u1ea1i"
-                },
-                {
-                  "key": "image_type",
-                  "value": "360",
-                  "type": "text",
-                  "description": "Lo\u1ea1i \u1ea3nh: '360'"
-                }
-              ]
-            },
-            "url": {
-              "raw": "{{ai_classifier_base_url}}/predict",
-              "host": [
-                "{{ai_classifier_base_url}}"
-              ],
-              "path": [
-                "predict"
-              ]
-            },
-            "description": "Ph\u00e2n lo\u1ea1i \u1ea3nh panorama 360\u00b0. Model: resnet50_360_best.pth\n\nK\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1 label thu\u1ed9c 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
-          },
-          "response": [
-            {
-              "name": "200 OK \u2014 Prediction result",
-              "status": "OK",
-              "code": 200,
-              "header": [
-                {
-                  "key": "Content-Type",
-                  "value": "application/json"
-                }
-              ],
-              "body": "{\n  \"label\": \"kitchen\",\n  \"confidence\": 0.8754\n}"
-            }
-          ]
-        }
-      ]
+    "info": {
+        "_postman_id": "furnisight-master-collection",
+        "name": "FurniSight Master Collection",
+        "description": "Merged Postman Collection containing all FurniSight microservice APIs.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
     },
-    {
-      "name": "Notification Service",
-      "description": "API collection for Notification Service (FurniSight) updated to match current controllers",
-      "item": [
+    "item": [
         {
-          "name": "Inbox Messages",
-          "item": [
-            {
-              "name": "Save Inbox Message",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"title\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 x\u00e1c nh\u1eadn \ud83d\uded2\",\n  \"body\": \"\u0110\u01a1n h\u00e0ng #FS-98402 c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c x\u00e1c nh\u1eadn v\u00e0 \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb.\",\n  \"image\": \"https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=200\",\n  \"actionUrl\": \"\",\n  \"type\": \"ORDER\"\n}"
-                },
-                "url": {
-                  "raw": "{{notification_service_base_url}}/inbox-messages",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "inbox-messages"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Mark Message as Read",
-              "request": {
-                "method": "PUT",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/inbox-messages/{{message_id}}/read",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "inbox-messages",
-                    "{{message_id}}",
-                    "read"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Mark All Messages as Read",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"userId\": \"{{user_id}}\"\n}"
-                },
-                "url": {
-                  "raw": "{{notification_service_base_url}}/inbox-messages/read-all",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "inbox-messages",
-                    "read-all"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Inbox Message",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/inbox-messages/{{message_id}}?isHardDelete=false",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "inbox-messages",
-                    "{{message_id}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "isHardDelete",
-                      "value": "false"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Get All Messages",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/inbox-messages?startDate=2023-01-01T00:00:00&isRead=false&isDeleted=false&limit=20",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "inbox-messages"
-                  ],
-                  "query": [
-                    {
-                      "key": "startDate",
-                      "value": "2023-01-01T00:00:00"
-                    },
-                    {
-                      "key": "isRead",
-                      "value": "false"
-                    },
-                    {
-                      "key": "isDeleted",
-                      "value": "false"
-                    },
-                    {
-                      "key": "limit",
-                      "value": "20"
-                    }
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "Notification Preferences",
-          "item": [
-            {
-              "name": "Create Default Preference",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"userEmail\": \"minhhien7840@gmail.com\"\n}"
-                },
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-preferences/default",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-preferences",
-                    "default"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Update Notification Preference",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"orderUpdatesEnabled\": true,\n    \"promotionsEnabled\": true,\n    \"walletUpdatesEnabled\": true,\n    \"socialUpdatesEnabled\": false\n}"
-                },
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-preferences/{{user_id}}",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-preferences",
-                    "{{user_id}}"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Notification Preference",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-preferences/{{user_id}}",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-preferences",
-                    "{{user_id}}"
-                  ]
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "Notification Templates",
-          "item": [
-            {
-              "name": "Create Notification Template",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"code\": \"order-shipped\",\n  \"name\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 giao cho v\u1eadn chuy\u1ec3n\",\n  \"titleTemplate\": \"\u0110\u01a1n h\u00e0ng {{orderId}} \u0111ang tr\u00ean \u0111\u01b0\u1eddng \u0111\u1ebfn b\u1ea1n\",\n  \"bodyTemplate\": \"\u0110\u01a1n h\u00e0ng c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c giao cho \u0111\u01a1n v\u1ecb v\u1eadn chuy\u1ec3n.\",\n  \"type\": \"ORDER\",\n  \"channel\": \"IN_APP\",\n  \"variables\": [\n    \"orderId\"\n  ]\n}"
-                },
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-templates",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-templates"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Update Notification Template",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n    \"name\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 giao cho v\u1eadn chuy\u1ec3n (C\u1eadp nh\u1eadt)\",\n    \"titleTemplate\": \"[C\u1eadp nh\u1eadt] \u0110\u01a1n h\u00e0ng {{orderId}} \u0111ang tr\u00ean \u0111\u01b0\u1eddng \u0111\u1ebfn b\u1ea1n\",\n    \"bodyTemplate\": \"\u0110\u01a1n h\u00e0ng c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c giao cho \u0111\u01a1n v\u1ecb v\u1eadn chuy\u1ec3n\"\n}"
-                },
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-templates",
-                    "{{template_id}}"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Filter Notification Templates",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-templates?name=ORDER&channel=INAPP&type=ORDER",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-templates"
-                  ],
-                  "query": [
-                    {
-                      "key": "name",
-                      "value": "ORDER"
-                    },
-                    {
-                      "key": "channel",
-                      "value": "INAPP"
-                    },
-                    {
-                      "key": "type",
-                      "value": "ORDER"
-                    }
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Find Notification Template By Code",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-templates/code/ORDER_SHIPPED",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-templates",
-                    "code",
-                    "ORDER_SHIPPED"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Notification Template",
-              "request": {
-                "method": "DELETE",
-                "header": [],
-                "url": {
-                  "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
-                  "host": [
-                    "{{notification_service_base_url}}"
-                  ],
-                  "path": [
-                    "notification-templates",
-                    "{{template_id}}"
-                  ]
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "User Service",
-      "description": "API collection for user-service.\n\nBase URL: http://localhost:8080/api/v1\n\nVariables:\n- base_url : http://localhost:8080\n- accountId : set after register/login\n- accessToken / refreshToken : set after login\n- otpCode : OTP received via email/phone\n- roleId : UUID of an existing role",
-      "item": [
-        {
-          "name": "Auth",
-          "item": [
-            {
-              "name": "Register",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/register",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "register"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@furnisight.store\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
-                }
-              },
-              "event": [
+            "name": "AI Image Classifier",
+            "description": "Collection for testing the AI Image Classification microservice.\n\nEndpoints:\n- GET  /health  \u2014 ki\u1ec3m tra service \u0111ang ch\u1ea1y\n- POST /predict \u2014 ph\u00e2n lo\u1ea1i \u1ea3nh (normal ho\u1eb7c 360\u00b0)",
+            "item": [
                 {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "var res = pm.response.json();",
-                      "if (res.accountId) pm.collectionVariables.set('accountId', res.accountId);"
+                    "name": "Health Check",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{ai_classifier_base_url}}/health",
+                            "host": [
+                                "{{ai_classifier_base_url}}"
+                            ],
+                            "path": [
+                                "health"
+                            ]
+                        },
+                        "description": "Ki\u1ec3m tra service \u0111ang ch\u1ea1y v\u00e0 model \u0111\u00e3 \u0111\u01b0\u1ee3c load th\u00e0nh c\u00f4ng."
+                    },
+                    "response": [
+                        {
+                            "name": "200 OK \u2014 Service running",
+                            "status": "OK",
+                            "code": 200,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"status\": \"ok\"\n}"
+                        },
+                        {
+                            "name": "503 \u2014 Model not loaded",
+                            "status": "Service Unavailable",
+                            "code": 503,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"detail\": \"Service Unavailable: Model not loaded\"\n}"
+                        }
                     ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Login",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/login",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "login"
-                  ]
                 },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"identifier\": \"minhhien\",\n  \"password\": \"Password123!\"\n}"
-                }
-              },
-              "event": [
                 {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "var res = pm.response.json();",
-                      "if (res.accessToken)  pm.collectionVariables.set('accessToken',  res.accessToken);",
-                      "if (res.refreshToken) pm.collectionVariables.set('refreshToken', res.refreshToken);"
+                    "name": "Predict \u2014 Normal Image",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "\u1ea2nh c\u1ea7n ph\u00e2n lo\u1ea1i (jpg, png, ...)"
+                                },
+                                {
+                                    "key": "image_type",
+                                    "value": "normal",
+                                    "type": "text",
+                                    "description": "Lo\u1ea1i \u1ea3nh: 'normal' ho\u1eb7c '360'"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{ai_classifier_base_url}}/predict",
+                            "host": [
+                                "{{ai_classifier_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Ph\u00e2n lo\u1ea1i \u1ea3nh th\u01b0\u1eddng (ch\u1ee5p th\u1eb3ng). Model: resnet50_normal_best.pth\n\nK\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1 label thu\u1ed9c 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
+                    },
+                    "response": [
+                        {
+                            "name": "200 OK \u2014 Prediction result",
+                            "status": "OK",
+                            "code": 200,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"label\": \"bedroom\",\n  \"confidence\": 0.9231\n}"
+                        },
+                        {
+                            "name": "400 \u2014 Not an image",
+                            "status": "Bad Request",
+                            "code": 400,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"detail\": \"File provided is not an image.\"\n}"
+                        },
+                        {
+                            "name": "400 \u2014 Invalid image format",
+                            "status": "Bad Request",
+                            "code": 400,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"detail\": \"Invalid image file format.\"\n}"
+                        },
+                        {
+                            "name": "500 \u2014 Inference error",
+                            "status": "Internal Server Error",
+                            "code": 500,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"detail\": \"Inference failed: <error detail>\"\n}"
+                        }
                     ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Refresh Token",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/refresh-token",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "refresh-token"
-                  ]
                 },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                }
-              },
-              "event": [
                 {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "var res = pm.response.json();",
-                      "if (res.accessToken)  pm.collectionVariables.set('accessToken',  res.accessToken);",
-                      "if (res.refreshToken) pm.collectionVariables.set('refreshToken', res.refreshToken);"
+                    "name": "Predict \u2014 360\u00b0 Image",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": "",
+                                    "description": "\u1ea2nh panorama 360\u00b0 c\u1ea7n ph\u00e2n lo\u1ea1i"
+                                },
+                                {
+                                    "key": "image_type",
+                                    "value": "360",
+                                    "type": "text",
+                                    "description": "Lo\u1ea1i \u1ea3nh: '360'"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{ai_classifier_base_url}}/predict",
+                            "host": [
+                                "{{ai_classifier_base_url}}"
+                            ],
+                            "path": [
+                                "predict"
+                            ]
+                        },
+                        "description": "Ph\u00e2n lo\u1ea1i \u1ea3nh panorama 360\u00b0. Model: resnet50_360_best.pth\n\nK\u1ebft qu\u1ea3 tr\u1ea3 v\u1ec1 label thu\u1ed9c 1 trong 4 class: bathroom, bedroom, kitchen, livingroom."
+                    },
+                    "response": [
+                        {
+                            "name": "200 OK \u2014 Prediction result",
+                            "status": "OK",
+                            "code": 200,
+                            "header": [
+                                {
+                                    "key": "Content-Type",
+                                    "value": "application/json"
+                                }
+                            ],
+                            "body": "{\n  \"label\": \"kitchen\",\n  \"confidence\": 0.8754\n}"
+                        }
                     ]
-                  }
                 }
-              ]
-            },
-            {
-              "name": "Verify Account (confirm OTP)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/verify",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "verify"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"token\": \"{{otpCode}}\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Request Verification OTP",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/verify/request",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "verify",
-                    "request"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"minhhien7840@gmail.com\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Logout",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/logout",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "logout"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Logout All Devices",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/logout-all",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "logout-all"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Change Password",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/password/change",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "password",
-                    "change"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"newPassword\": \"NewPassword@456\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Forgot Password (request OTP)",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/password/forgot",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "password",
-                    "forgot"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"minhhien7840@gmail.com\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Verify Reset Password Code",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/password/verify",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "password",
-                    "verify"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"token\": \"{{otpCode}}\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Reset Password",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/password/reset",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "password",
-                    "reset"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"token\": \"{{otpCode}}\",\n  \"newPassword\": \"ResetPassword@789\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Login with Google",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth/login/google",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth",
-                    "login",
-                    "google"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Own Account",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/auth",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "auth"
-                  ]
-                }
-              }
-            }
-          ]
+            ]
         },
         {
-          "name": "Profile",
-          "item": [
-            {
-              "name": "Get Profile",
-              "request": {
-                "method": "GET",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/profile",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "profile"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Update Profile",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/profile",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "profile"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"displayName\": \"Minh Hi\u1ec1n\",\n  \"firstName\": \"Hi\u1ec1n\",\n  \"lastName\": \"Minh\",\n  \"avatarUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"gender\": \"MALE\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Contact Change \u2014 Step 1a: Request OTP to current contact",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/profile/contact/change/request",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "profile",
-                    "contact",
-                    "change",
-                    "request"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"type\": \"EMAIL_CHANGE\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Contact Change \u2014 Step 1b: Verify OTP at current contact",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/profile/contact/change/verify-current",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "profile",
-                    "contact",
-                    "change",
-                    "verify-current"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"type\": \"EMAIL_CHANGE\",\n  \"otpCode\": \"{{otpCode}}\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Contact Change \u2014 Step 2a: Submit new contact",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/profile/contact/change/request-new",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "profile",
-                    "contact",
-                    "change",
-                    "request-new"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"type\": \"EMAIL_CHANGE\",\n  \"newContact\": \"new.email@example.com\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Contact Change \u2014 Step 2b: Confirm OTP at new contact",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/profile/contact/change/confirm",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "profile",
-                    "contact",
-                    "change",
-                    "confirm"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"type\": \"EMAIL_CHANGE\",\n  \"otpCode\": \"{{otpCode}}\"\n}"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "Admin \u2013 Account Management",
-          "item": [
-            {
-              "name": "Activate Account",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/activate",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts",
-                    "{{accountId}}",
-                    "activate"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Ban Account",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/ban",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts",
-                    "{{accountId}}",
-                    "ban"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"reason\": \"Violating terms of service\",\n  \"expiresAt\": \"2026-12-31T23:59:59\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Unban Account",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/unban",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts",
-                    "{{accountId}}",
-                    "unban"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Delete Account",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts",
-                    "{{accountId}}"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Assign Role",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/roles/assign",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts",
-                    "{{accountId}}",
-                    "roles",
-                    "assign"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"roleId\": \"{{roleId}}\"\n}"
-                }
-              }
-            },
-            {
-              "name": "Revoke Role",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/roles/revoke",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "accounts",
-                    "{{accountId}}",
-                    "roles",
-                    "revoke"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"roleId\": \"{{roleId}}\"\n}"
-                }
-              }
-            }
-          ]
-        },
-        {
-          "name": "Admin \u2013 Role Management",
-          "item": [
-            {
-              "name": "Add Role",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/roles",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "roles"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"STAFF\",\n  \"position\": 1\n}"
-                }
-              },
-              "event": [
+            "name": "Notification Service",
+            "description": "API collection for Notification Service (FurniSight) updated to match current controllers",
+            "item": [
                 {
-                  "listen": "test",
-                  "script": {
-                    "exec": [
-                      "var res = pm.response.json();",
-                      "if (res.roleId) pm.collectionVariables.set('roleId', res.roleId);"
+                    "name": "Inbox Messages",
+                    "item": [
+                        {
+                            "name": "Save Inbox Message",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"title\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 x\u00e1c nh\u1eadn \ud83d\uded2\",\n  \"body\": \"\u0110\u01a1n h\u00e0ng #FS-98402 c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c x\u00e1c nh\u1eadn v\u00e0 \u0111ang \u0111\u01b0\u1ee3c chu\u1ea9n b\u1ecb.\",\n  \"image\": \"https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=200\",\n  \"actionUrl\": \"\",\n  \"type\": \"ORDER\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/inbox-messages",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "inbox-messages"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Mark Message as Read",
+                            "request": {
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/inbox-messages/{{message_id}}/read",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "inbox-messages",
+                                        "{{message_id}}",
+                                        "read"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Mark All Messages as Read",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"userId\": \"{{user_id}}\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/inbox-messages/read-all",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "inbox-messages",
+                                        "read-all"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Inbox Message",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/inbox-messages/{{message_id}}?isHardDelete=false",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "inbox-messages",
+                                        "{{message_id}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "isHardDelete",
+                                            "value": "false"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Get All Messages",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/inbox-messages?startDate=2023-01-01T00:00:00&isRead=false&isDeleted=false&limit=20",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "inbox-messages"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "startDate",
+                                            "value": "2023-01-01T00:00:00"
+                                        },
+                                        {
+                                            "key": "isRead",
+                                            "value": "false"
+                                        },
+                                        {
+                                            "key": "isDeleted",
+                                            "value": "false"
+                                        },
+                                        {
+                                            "key": "limit",
+                                            "value": "20"
+                                        }
+                                    ]
+                                }
+                            }
+                        }
                     ]
-                  }
-                }
-              ]
-            },
-            {
-              "name": "Update Role",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "roles",
-                    "{{roleId}}"
-                  ]
                 },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"SENIOR_STAFF\",\n  \"position\": 2\n}"
-                }
-              }
-            },
-            {
-              "name": "Delete Role",
-              "request": {
-                "method": "DELETE",
-                "header": [
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "roles",
-                    "{{roleId}}"
-                  ]
-                }
-              }
-            },
-            {
-              "name": "Assign Permission",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}/permissions/assign",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "roles",
-                    "{{roleId}}",
-                    "permissions",
-                    "assign"
-                  ]
+                {
+                    "name": "Notification Preferences",
+                    "item": [
+                        {
+                            "name": "Create Default Preference",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"userEmail\": \"minhhien7840@gmail.com\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-preferences/default",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-preferences",
+                                        "default"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Update Notification Preference",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"orderUpdatesEnabled\": true,\n    \"promotionsEnabled\": true,\n    \"walletUpdatesEnabled\": true,\n    \"socialUpdatesEnabled\": false\n}"
+                                },
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-preferences/{{user_id}}",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-preferences",
+                                        "{{user_id}}"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Notification Preference",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-preferences/{{user_id}}",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-preferences",
+                                        "{{user_id}}"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
                 },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"permission\": \"READ_USERS\"\n}"
+                {
+                    "name": "Notification Templates",
+                    "item": [
+                        {
+                            "name": "Create Notification Template",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"code\": \"order-shipped\",\n  \"name\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 giao cho v\u1eadn chuy\u1ec3n\",\n  \"titleTemplate\": \"\u0110\u01a1n h\u00e0ng {{orderId}} \u0111ang tr\u00ean \u0111\u01b0\u1eddng \u0111\u1ebfn b\u1ea1n\",\n  \"bodyTemplate\": \"\u0110\u01a1n h\u00e0ng c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c giao cho \u0111\u01a1n v\u1ecb v\u1eadn chuy\u1ec3n.\",\n  \"type\": \"ORDER\",\n  \"channel\": \"IN_APP\",\n  \"variables\": [\n    \"orderId\"\n  ]\n}"
+                                },
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-templates",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-templates"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Update Notification Template",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n    \"name\": \"\u0110\u01a1n h\u00e0ng \u0111\u00e3 giao cho v\u1eadn chuy\u1ec3n (C\u1eadp nh\u1eadt)\",\n    \"titleTemplate\": \"[C\u1eadp nh\u1eadt] \u0110\u01a1n h\u00e0ng {{orderId}} \u0111ang tr\u00ean \u0111\u01b0\u1eddng \u0111\u1ebfn b\u1ea1n\",\n    \"bodyTemplate\": \"\u0110\u01a1n h\u00e0ng c\u1ee7a b\u1ea1n \u0111\u00e3 \u0111\u01b0\u1ee3c giao cho \u0111\u01a1n v\u1ecb v\u1eadn chuy\u1ec3n\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-templates",
+                                        "{{template_id}}"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Filter Notification Templates",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-templates?name=ORDER&channel=INAPP&type=ORDER",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-templates"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "name",
+                                            "value": "ORDER"
+                                        },
+                                        {
+                                            "key": "channel",
+                                            "value": "INAPP"
+                                        },
+                                        {
+                                            "key": "type",
+                                            "value": "ORDER"
+                                        }
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Find Notification Template By Code",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-templates/code/ORDER_SHIPPED",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-templates",
+                                        "code",
+                                        "ORDER_SHIPPED"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Notification Template",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{notification_service_base_url}}/notification-templates/{{template_id}}",
+                                    "host": [
+                                        "{{notification_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "notification-templates",
+                                        "{{template_id}}"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
                 }
-              }
-            },
-            {
-              "name": "Revoke Permission",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  },
-                  {
-                    "key": "Authorization",
-                    "value": "Bearer {{accessToken}}"
-                  }
-                ],
-                "url": {
-                  "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}/permissions/revoke",
-                  "host": [
-                    "{{user_service_base_url}}"
-                  ],
-                  "path": [
-                    "admin",
-                    "roles",
-                    "{{roleId}}",
-                    "permissions",
-                    "revoke"
-                  ]
-                },
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"permission\": \"READ_USERS\"\n}"
-                }
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Catalog Service",
-      "description": "Collection for testing Catalog Service endpoints through Gateway",
-      "item": [
-        {
-          "name": "Categories",
-          "item": [
-            {
-              "name": "List Categories",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/categories",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "categories"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Category Detail",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/categories/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "categories",
-                    "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Category",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"Outdoor Furniture\",\n  \"slug\": \"outdoor-furniture\",\n  \"parentId\": null\n}"
-                },
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/categories",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "categories"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
+            ]
         },
         {
-          "name": "Products",
-          "item": [
-            {
-              "name": "Search Products",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/products?size=8&page=0",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "products"
-                  ],
-                  "query": [
-                    {
-                      "key": "size",
-                      "value": "8"
-                    },
-                    {
-                      "key": "page",
-                      "value": "0"
-                    },
-                    {
-                      "key": "query",
-                      "value": "Sofa",
-                      "disabled": true
+            "name": "User Service",
+            "description": "API collection for user-service.\n\nBase URL: http://localhost:8080/api/v1\n\nVariables:\n- base_url : http://localhost:8080\n- accountId : set after register/login\n- accessToken / refreshToken : set after login\n- otpCode : OTP received via email/phone\n- roleId : UUID of an existing role",
+            "item": [
+                {
+                    "name": "Auth",
+                    "item": [
+                        {
+                            "name": "Register",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/register",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "register"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"username\": \"testuser\",\n  \"email\": \"testuser@furnisight.store\",\n  \"password\": \"Password123!\",\n  \"firstName\": \"Test\",\n  \"lastName\": \"User\"\n}"
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "var res = pm.response.json();",
+                                            "if (res.accountId) pm.collectionVariables.set('accountId', res.accountId);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Login",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/login",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"identifier\": \"minhhien\",\n  \"password\": \"Password123!\"\n}"
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "var res = pm.response.json();",
+                                            "if (res.accessToken)  pm.collectionVariables.set('accessToken',  res.accessToken);",
+                                            "if (res.refreshToken) pm.collectionVariables.set('refreshToken', res.refreshToken);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Refresh Token",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/refresh-token",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "refresh-token"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "var res = pm.response.json();",
+                                            "if (res.accessToken)  pm.collectionVariables.set('accessToken',  res.accessToken);",
+                                            "if (res.refreshToken) pm.collectionVariables.set('refreshToken', res.refreshToken);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Verify Account (confirm OTP)",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/verify",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "verify"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"token\": \"{{otpCode}}\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Request Verification OTP",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/verify/request",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "verify",
+                                        "request"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"minhhien7840@gmail.com\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Logout",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/logout",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "logout"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Logout All Devices",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/logout-all",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "logout-all"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Change Password",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/password/change",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "password",
+                                        "change"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"newPassword\": \"NewPassword@456\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Forgot Password (request OTP)",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/password/forgot",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "password",
+                                        "forgot"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"channel\": \"EMAIL\",\n  \"destination\": \"minhhien7840@gmail.com\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Verify Reset Password Code",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/password/verify",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "password",
+                                        "verify"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"token\": \"{{otpCode}}\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Reset Password",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/password/reset",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "password",
+                                        "reset"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"token\": \"{{otpCode}}\",\n  \"newPassword\": \"ResetPassword@789\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Login with Google",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth/login/google",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth",
+                                        "login",
+                                        "google"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Own Account",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/auth",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "auth"
+                                    ]
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Profile",
+                    "item": [
+                        {
+                            "name": "Get Profile",
+                            "request": {
+                                "method": "GET",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/profile",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "profile"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Update Profile",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/profile",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "profile"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"displayName\": \"Minh Hi\u1ec1n\",\n  \"firstName\": \"Hi\u1ec1n\",\n  \"lastName\": \"Minh\",\n  \"avatarUrl\": \"https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien\",\n  \"dateOfBirth\": \"2000-01-15\",\n  \"gender\": \"MALE\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Contact Change \u2014 Step 1a: Request OTP to current contact",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/profile/contact/change/request",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "profile",
+                                        "contact",
+                                        "change",
+                                        "request"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"type\": \"EMAIL_CHANGE\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Contact Change \u2014 Step 1b: Verify OTP at current contact",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/profile/contact/change/verify-current",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "profile",
+                                        "contact",
+                                        "change",
+                                        "verify-current"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"type\": \"EMAIL_CHANGE\",\n  \"otpCode\": \"{{otpCode}}\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Contact Change \u2014 Step 2a: Submit new contact",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/profile/contact/change/request-new",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "profile",
+                                        "contact",
+                                        "change",
+                                        "request-new"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"type\": \"EMAIL_CHANGE\",\n  \"newContact\": \"new.email@example.com\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Contact Change \u2014 Step 2b: Confirm OTP at new contact",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/profile/contact/change/confirm",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "profile",
+                                        "contact",
+                                        "change",
+                                        "confirm"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"type\": \"EMAIL_CHANGE\",\n  \"otpCode\": \"{{otpCode}}\"\n}"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Admin \u2013 Account Management",
+                    "item": [
+                        {
+                            "name": "Activate Account",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/activate",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "accounts",
+                                        "{{accountId}}",
+                                        "activate"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Ban Account",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/ban",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "accounts",
+                                        "{{accountId}}",
+                                        "ban"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"reason\": \"Violating terms of service\",\n  \"expiresAt\": \"2026-12-31T23:59:59\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Unban Account",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/unban",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "accounts",
+                                        "{{accountId}}",
+                                        "unban"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Account",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "accounts",
+                                        "{{accountId}}"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Assign Role",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/roles/assign",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "accounts",
+                                        "{{accountId}}",
+                                        "roles",
+                                        "assign"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"roleId\": \"{{roleId}}\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Revoke Role",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/accounts/{{accountId}}/roles/revoke",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "accounts",
+                                        "{{accountId}}",
+                                        "roles",
+                                        "revoke"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"roleId\": \"{{roleId}}\"\n}"
+                                }
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Admin \u2013 Role Management",
+                    "item": [
+                        {
+                            "name": "Add Role",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/roles",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "roles"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"STAFF\",\n  \"position\": 1\n}"
+                                }
+                            },
+                            "event": [
+                                {
+                                    "listen": "test",
+                                    "script": {
+                                        "exec": [
+                                            "var res = pm.response.json();",
+                                            "if (res.roleId) pm.collectionVariables.set('roleId', res.roleId);"
+                                        ]
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            "name": "Update Role",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "roles",
+                                        "{{roleId}}"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"SENIOR_STAFF\",\n  \"position\": 2\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Delete Role",
+                            "request": {
+                                "method": "DELETE",
+                                "header": [
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "roles",
+                                        "{{roleId}}"
+                                    ]
+                                }
+                            }
+                        },
+                        {
+                            "name": "Assign Permission",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}/permissions/assign",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "roles",
+                                        "{{roleId}}",
+                                        "permissions",
+                                        "assign"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"permission\": \"READ_USERS\"\n}"
+                                }
+                            }
+                        },
+                        {
+                            "name": "Revoke Permission",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    },
+                                    {
+                                        "key": "Authorization",
+                                        "value": "Bearer {{accessToken}}"
+                                    }
+                                ],
+                                "url": {
+                                    "raw": "{{user_service_base_url}}/admin/roles/{{roleId}}/permissions/revoke",
+                                    "host": [
+                                        "{{user_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "admin",
+                                        "roles",
+                                        "{{roleId}}",
+                                        "permissions",
+                                        "revoke"
+                                    ]
+                                },
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"permission\": \"READ_USERS\"\n}"
+                                }
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Catalog Service",
+            "description": "Collection for testing Catalog Service endpoints through Gateway",
+            "item": [
+                {
+                    "name": "Categories",
+                    "item": [
+                        {
+                            "name": "List Categories",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/categories",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "categories"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Category Detail",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/categories/a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "categories",
+                                        "a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Category",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"Outdoor Furniture\",\n  \"slug\": \"outdoor-furniture\",\n  \"parentId\": null\n}"
+                                },
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/categories",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "categories"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Products",
+                    "item": [
+                        {
+                            "name": "Search Products",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/products?size=8&page=0",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "products"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "size",
+                                            "value": "8"
+                                        },
+                                        {
+                                            "key": "page",
+                                            "value": "0"
+                                        },
+                                        {
+                                            "key": "query",
+                                            "value": "Sofa",
+                                            "disabled": true
+                                        }
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Product Detail by Slug",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/products/modern-leather-sofa",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "products",
+                                        "modern-leather-sofa"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Get Weekly Favorite Products",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/products/favorite-weekly?limit=5",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "products",
+                                        "favorite-weekly"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "limit",
+                                            "value": "5"
+                                        }
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Create Product",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"categoryId\": \"d0000000-0000-0000-0000-000000000001\",\n  \"name\": \"Vintage Velvet Sofa\",\n  \"description\": \"Gh\u1ebf sofa nhung phong c\u00e1ch c\u1ed5 \u0111i\u1ec3n sang tr\u1ecdng.\",\n  \"weight\": 45000.0,\n  \"length\": 180.0,\n  \"width\": 85.0,\n  \"height\": 80.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"new\",\n      \"classic\"\n    ],\n    \"features\": [\n      \"Nhung cao c\u1ea5p\",\n      \"Khung g\u1ed7 t\u1ef1 nhi\u00ean\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Classic Collection 2026\"\n  },\n  \"specs\": {\n    \"Th\u01b0\u01a1ng hi\u1ec7u\": \"FurniSight\",\n    \"Xu\u1ea5t x\u1ee9\": \"Vi\u1ec7t Nam\",\n    \"B\u1ea3o h\u00e0nh\": \"12 th\u00e1ng\",\n    \"Ch\u1ea5t li\u1ec7u\": \"Nhung & G\u1ed7 t\u1ef1 nhi\u00ean\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/products",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "products"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Update Product Info",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"name\": \"Modern Leather Sofa (Updated)\",\n  \"description\": \"Gh\u1ebf sofa da cao c\u1ea5p phi\u00ean b\u1ea3n c\u1eadp nh\u1eadt v\u1edbi nhi\u1ec1u t\u00ednh n\u0103ng h\u01a1n.\",\n  \"weight\": 52000.0,\n  \"length\": 210.0,\n  \"width\": 95.0,\n  \"height\": 90.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"hot\",\n      \"new\",\n      \"living-room\"\n    ],\n    \"features\": [\n      \"Thi\u1ebft k\u1ebf sang tr\u1ecdng\",\n      \"\u0110\u1ec7m m\u00fat cao c\u1ea5p\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Luxury Collection 2026\"\n  },\n  \"specs\": {\n    \"Th\u01b0\u01a1ng hi\u1ec7u\": \"FurniSight\",\n    \"Ch\u1ea5t li\u1ec7u\": \"Da b\u00f2 th\u1eadt\",\n    \"B\u1ea3o h\u00e0nh\": \"24 th\u00e1ng\"\n  }\n}"
+                                },
+                                "url": {
+                                    "raw": "{{catalog_service_base_url}}/products/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
+                                    "host": [
+                                        "{{catalog_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "products",
+                                        "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
+                                    ]
+                                }
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Media Service",
+            "description": "Collection cho to\u00e0n b\u1ed9 API c\u1ee7a Media Service trong d\u1ef1 \u00e1n FurniSight Clone. Bao g\u1ed3m c\u00e1c API qu\u1ea3n l\u00fd upload (init, complete, status) v\u00e0 c\u00e1c API \u0111\u00f3ng vai tr\u00f2 Mock Storage cho local (upload, download tr\u1ef1c ti\u1ebfp).",
+            "item": [
+                {
+                    "name": "Media Management",
+                    "description": "API d\u00e0nh cho vi\u1ec7c qu\u1ea3n l\u00fd v\u00f2ng \u0111\u1eddi c\u1ee7a Media Asset (Quy tr\u00ecnh upload g\u1ed3m: Init Upload -> Upload file l\u00ean Storage -> Complete Upload).",
+                    "item": [
+                        {
+                            "name": "1. Init Upload",
+                            "request": {
+                                "method": "POST",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/json"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "raw",
+                                    "raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileName\": \"product-sofa.jpg\",\n  \"sizeBytes\": 1048576,\n  \"ownerType\": \"USER\",\n  \"ownerId\": \"52379d96-5238-4fd9-8383-bae82736bb3b\"\n}"
+                                },
+                                "url": {
+                                    "raw": "{{media_service_base_url}}/api/init-upload",
+                                    "host": [
+                                        "{{media_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "init-upload"
+                                    ]
+                                },
+                                "description": "API kh\u1edfi t\u1ea1o qu\u00e1 tr\u00ecnh upload. Tr\u1ea3 v\u1ec1 th\u00f4ng tin Asset v\u00e0 m\u1ed9t Pre-signed URL \u0111\u1ec3 client c\u00f3 th\u1ec3 upload file tr\u1ef1c ti\u1ebfp l\u00ean Storage Provider (v\u00ed d\u1ee5 S3, ho\u1eb7c Local Storage Mock)."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "2. Complete Upload",
+                            "request": {
+                                "method": "PUT",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{media_service_base_url}}/api/{{media_id}}/complete-upload",
+                                    "host": [
+                                        "{{media_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "{{media_id}}",
+                                        "complete-upload"
+                                    ]
+                                },
+                                "description": "API \u0111\u01b0\u1ee3c client g\u1ecdi sau khi \u0111\u00e3 upload file th\u00e0nh c\u00f4ng l\u00ean Storage Provider b\u1eb1ng Pre-signed URL. System s\u1ebd \u0111\u00e1nh d\u1ea5u Asset l\u00e0 PROCESSING v\u00e0 b\u1eaft \u0111\u1ea7u c\u00e1c job x\u1eed l\u00fd background (Background Job)."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "3. Get Media Status",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{media_service_base_url}}/api/{{media_id}}",
+                                    "host": [
+                                        "{{media_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "api",
+                                        "{{media_id}}"
+                                    ]
+                                },
+                                "description": "API ki\u1ec3m tra tr\u1ea1ng th\u00e1i hi\u1ec7n t\u1ea1i c\u1ee7a m\u1ed9t Media Asset (v\u00ed d\u1ee5: PENDING, PROCESSING, READY, FAILED)."
+                            },
+                            "response": []
+                        }
+                    ]
+                },
+                {
+                    "name": "Local Storage Mock",
+                    "description": "C\u00e1c API n\u00e0y \u0111\u00f3ng vai tr\u00f2 nh\u01b0 m\u1ed9t Storage Provider (mock S3) khi ch\u1ea1y \u1edf m\u00f4i tr\u01b0\u1eddng local. Endpoint Upload \u0111\u01b0\u1ee3c g\u1ecdi b\u1edfi client khi c\u00f3 Pre-signed URL. Endpoint Download d\u00f9ng \u0111\u1ec3 tr\u1ea3 lu\u1ed3ng byte \u1ea3nh hi\u1ec3n th\u1ecb l\u00ean UI.",
+                    "item": [
+                        {
+                            "name": "Upload File (Mock S3)",
+                            "request": {
+                                "method": "PUT",
+                                "header": [
+                                    {
+                                        "key": "Content-Type",
+                                        "value": "application/octet-stream"
+                                    }
+                                ],
+                                "body": {
+                                    "mode": "file",
+                                    "file": {}
+                                },
+                                "url": {
+                                    "raw": "{{media_service_base_url}}/upload/{{object_key}}?expires={{expires}}&signature={{signature}}",
+                                    "host": [
+                                        "{{media_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "upload",
+                                        "{{object_key}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "expires",
+                                            "value": "{{expires}}"
+                                        },
+                                        {
+                                            "key": "signature",
+                                            "value": "{{signature}}"
+                                        }
+                                    ]
+                                },
+                                "description": "API gi\u1ea3 l\u1eadp vi\u1ec7c Upload file l\u00ean S3. Client s\u1eed d\u1ee5ng URL \u0111\u01b0\u1ee3c tr\u1ea3 v\u1ec1 t\u1eeb Init Upload API \u0111\u1ec3 \u0111\u1ea9y binary data (file v\u1eadt l\u00fd) l\u00ean."
+                            },
+                            "response": []
+                        },
+                        {
+                            "name": "Download File (Mock S3)",
+                            "request": {
+                                "method": "GET",
+                                "header": [],
+                                "url": {
+                                    "raw": "{{media_service_base_url}}/download/{{object_key}}?expires={{expires}}&signature={{signature}}",
+                                    "host": [
+                                        "{{media_service_base_url}}"
+                                    ],
+                                    "path": [
+                                        "download",
+                                        "{{object_key}}"
+                                    ],
+                                    "query": [
+                                        {
+                                            "key": "expires",
+                                            "value": "{{expires}}"
+                                        },
+                                        {
+                                            "key": "signature",
+                                            "value": "{{signature}}"
+                                        }
+                                    ]
+                                },
+                                "description": "API gi\u1ea3 l\u1eadp vi\u1ec7c Download / View file t\u1eeb S3. D\u00f9ng \u0111\u1ec3 l\u1ea5y n\u1ed9i dung file hi\u1ec3n th\u1ecb l\u00ean tr\u00ecnh duy\u1ec7t d\u1ef1a v\u00e0o pre-signed view url."
+                            },
+                            "response": []
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Review Service",
+            "description": "Collection for testing Review Service endpoints through Gateway",
+            "item": [
+                {
+                    "name": "Create Review",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"productId\": \"e0000000-0000-0000-0000-000000000009\",\n  \"orderItemId\": \"oi000099-0000-0000-0000-000000000001\",\n  \"title\": \"B\u00e0n \u0111\u1ee9ng thay \u0111\u1ed5i cu\u1ed9c s\u1ed1ng!\",\n  \"content\": \"T\u1eeb khi c\u00f3 b\u00e0n \u0111\u1ee9ng \u0111i\u1ec1u ch\u1ec9nh \u0111i\u1ec7n, l\u01b0ng \u0111\u1ee1 \u0111au h\u1eb3n. R\u1ea5t \u0111\u00e1ng ti\u1ec1n!\",\n  \"rating\": 5\n}"
+                        },
+                        "url": {
+                            "raw": "{{review_service_base_url}}",
+                            "host": [
+                                "{{review_service_base_url}}"
+                            ],
+                            "path": []
+                        }
                     }
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Product Detail by Slug",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/products/modern-leather-sofa",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "products",
-                    "modern-leather-sofa"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Get Weekly Favorite Products",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/products/favorite-weekly?limit=5",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "products",
-                    "favorite-weekly"
-                  ],
-                  "query": [
-                    {
-                      "key": "limit",
-                      "value": "5"
+                },
+                {
+                    "name": "Get Reviews by Product",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{review_service_base_url}}?productId=b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11&page=0&size=10",
+                            "host": [
+                                "{{review_service_base_url}}"
+                            ],
+                            "query": [
+                                {
+                                    "key": "productId",
+                                    "value": "e0000000-0000-0000-0000-000000000001"
+                                },
+                                {
+                                    "key": "page",
+                                    "value": "0"
+                                },
+                                {
+                                    "key": "size",
+                                    "value": "10"
+                                }
+                            ]
+                        }
                     }
-                  ]
+                },
+                {
+                    "name": "Get Reviews by Product (JDBC Query)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{review_service_base_url}}/product/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
+                            "host": [
+                                "{{review_service_base_url}}"
+                            ],
+                            "path": [
+                                "product",
+                                "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Update Review",
+                    "request": {
+                        "method": "PATCH",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            },
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"reviewId\": \"r0000001-0000-0000-0000-000000000001\",\n  \"title\": \"Sofa da r\u1ea5t x\u1ecbn - c\u1eadp nh\u1eadt sau 1 th\u00e1ng\",\n  \"content\": \"D\u00f9ng 1 th\u00e1ng v\u1eabn r\u1ea5t t\u1ed1t, da kh\u00f4ng b\u1ecb phai m\u00e0u. R\u1ea5t h\u00e0i l\u00f2ng!\",\n  \"rating\": 5\n}"
+                        },
+                        "url": {
+                            "raw": "{{review_service_base_url}}/update",
+                            "host": [
+                                "{{review_service_base_url}}"
+                            ],
+                            "path": [
+                                "update"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Delete Review",
+                    "request": {
+                        "method": "DELETE",
+                        "header": [
+                            {
+                                "key": "Authorization",
+                                "value": "Bearer {{accessToken}}"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{review_service_base_url}}/e0eebc99-9c0b-4ef8-bb6d-6bb9bd380e11",
+                            "host": [
+                                "{{review_service_base_url}}"
+                            ],
+                            "path": [
+                                "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380e11"
+                            ]
+                        }
+                    }
                 }
-              },
-              "response": []
-            },
-            {
-              "name": "Create Product",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"categoryId\": \"d0000000-0000-0000-0000-000000000001\",\n  \"name\": \"Vintage Velvet Sofa\",\n  \"description\": \"Gh\u1ebf sofa nhung phong c\u00e1ch c\u1ed5 \u0111i\u1ec3n sang tr\u1ecdng.\",\n  \"weight\": 45000.0,\n  \"length\": 180.0,\n  \"width\": 85.0,\n  \"height\": 80.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"new\",\n      \"classic\"\n    ],\n    \"features\": [\n      \"Nhung cao c\u1ea5p\",\n      \"Khung g\u1ed7 t\u1ef1 nhi\u00ean\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Classic Collection 2026\"\n  },\n  \"specs\": {\n    \"Th\u01b0\u01a1ng hi\u1ec7u\": \"FurniSight\",\n    \"Xu\u1ea5t x\u1ee9\": \"Vi\u1ec7t Nam\",\n    \"B\u1ea3o h\u00e0nh\": \"12 th\u00e1ng\",\n    \"Ch\u1ea5t li\u1ec7u\": \"Nhung & G\u1ed7 t\u1ef1 nhi\u00ean\"\n  }\n}"
-                },
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/products",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "products"
-                  ]
-                }
-              },
-              "response": []
-            },
-            {
-              "name": "Update Product Info",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"name\": \"Modern Leather Sofa (Updated)\",\n  \"description\": \"Gh\u1ebf sofa da cao c\u1ea5p phi\u00ean b\u1ea3n c\u1eadp nh\u1eadt v\u1edbi nhi\u1ec1u t\u00ednh n\u0103ng h\u01a1n.\",\n  \"weight\": 52000.0,\n  \"length\": 210.0,\n  \"width\": 95.0,\n  \"height\": 90.0,\n  \"attributes\": {\n    \"image\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=800\"\n  },\n  \"metadata\": {\n    \"tags\": [\n      \"hot\",\n      \"new\",\n      \"living-room\"\n    ],\n    \"features\": [\n      \"Thi\u1ebft k\u1ebf sang tr\u1ecdng\",\n      \"\u0110\u1ec7m m\u00fat cao c\u1ea5p\"\n    ],\n    \"model_url\": \"/models/sofa.glb\",\n    \"collection\": \"Luxury Collection 2026\"\n  },\n  \"specs\": {\n    \"Th\u01b0\u01a1ng hi\u1ec7u\": \"FurniSight\",\n    \"Ch\u1ea5t li\u1ec7u\": \"Da b\u00f2 th\u1eadt\",\n    \"B\u1ea3o h\u00e0nh\": \"24 th\u00e1ng\"\n  }\n}"
-                },
-                "url": {
-                  "raw": "{{catalog_service_base_url}}/products/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
-                  "host": [
-                    "{{catalog_service_base_url}}"
-                  ],
-                  "path": [
-                    "products",
-                    "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
-                  ]
-                }
-              },
-              "response": []
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Media Service",
-      "description": "Collection cho to\u00e0n b\u1ed9 API c\u1ee7a Media Service trong d\u1ef1 \u00e1n FurniSight Clone. Bao g\u1ed3m c\u00e1c API qu\u1ea3n l\u00fd upload (init, complete, status) v\u00e0 c\u00e1c API \u0111\u00f3ng vai tr\u00f2 Mock Storage cho local (upload, download tr\u1ef1c ti\u1ebfp).",
-      "item": [
-        {
-          "name": "Media Management",
-          "description": "API d\u00e0nh cho vi\u1ec7c qu\u1ea3n l\u00fd v\u00f2ng \u0111\u1eddi c\u1ee7a Media Asset (Quy tr\u00ecnh upload g\u1ed3m: Init Upload -> Upload file l\u00ean Storage -> Complete Upload).",
-          "item": [
-            {
-              "name": "1. Init Upload",
-              "request": {
-                "method": "POST",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/json"
-                  }
-                ],
-                "body": {
-                  "mode": "raw",
-                  "raw": "{\n  \"contentType\": \"image/jpeg\",\n  \"fileName\": \"product-sofa.jpg\",\n  \"sizeBytes\": 1048576,\n  \"ownerType\": \"USER\",\n  \"ownerId\": \"52379d96-5238-4fd9-8383-bae82736bb3b\"\n}"
-                },
-                "url": {
-                  "raw": "{{media_service_base_url}}/api/init-upload",
-                  "host": [
-                    "{{media_service_base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "init-upload"
-                  ]
-                },
-                "description": "API kh\u1edfi t\u1ea1o qu\u00e1 tr\u00ecnh upload. Tr\u1ea3 v\u1ec1 th\u00f4ng tin Asset v\u00e0 m\u1ed9t Pre-signed URL \u0111\u1ec3 client c\u00f3 th\u1ec3 upload file tr\u1ef1c ti\u1ebfp l\u00ean Storage Provider (v\u00ed d\u1ee5 S3, ho\u1eb7c Local Storage Mock)."
-              },
-              "response": []
-            },
-            {
-              "name": "2. Complete Upload",
-              "request": {
-                "method": "PUT",
-                "header": [],
-                "url": {
-                  "raw": "{{media_service_base_url}}/api/{{media_id}}/complete-upload",
-                  "host": [
-                    "{{media_service_base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "{{media_id}}",
-                    "complete-upload"
-                  ]
-                },
-                "description": "API \u0111\u01b0\u1ee3c client g\u1ecdi sau khi \u0111\u00e3 upload file th\u00e0nh c\u00f4ng l\u00ean Storage Provider b\u1eb1ng Pre-signed URL. System s\u1ebd \u0111\u00e1nh d\u1ea5u Asset l\u00e0 PROCESSING v\u00e0 b\u1eaft \u0111\u1ea7u c\u00e1c job x\u1eed l\u00fd background (Background Job)."
-              },
-              "response": []
-            },
-            {
-              "name": "3. Get Media Status",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{media_service_base_url}}/api/{{media_id}}",
-                  "host": [
-                    "{{media_service_base_url}}"
-                  ],
-                  "path": [
-                    "api",
-                    "{{media_id}}"
-                  ]
-                },
-                "description": "API ki\u1ec3m tra tr\u1ea1ng th\u00e1i hi\u1ec7n t\u1ea1i c\u1ee7a m\u1ed9t Media Asset (v\u00ed d\u1ee5: PENDING, PROCESSING, READY, FAILED)."
-              },
-              "response": []
-            }
-          ]
+            ]
         },
         {
-          "name": "Local Storage Mock",
-          "description": "C\u00e1c API n\u00e0y \u0111\u00f3ng vai tr\u00f2 nh\u01b0 m\u1ed9t Storage Provider (mock S3) khi ch\u1ea1y \u1edf m\u00f4i tr\u01b0\u1eddng local. Endpoint Upload \u0111\u01b0\u1ee3c g\u1ecdi b\u1edfi client khi c\u00f3 Pre-signed URL. Endpoint Download d\u00f9ng \u0111\u1ec3 tr\u1ea3 lu\u1ed3ng byte \u1ea3nh hi\u1ec3n th\u1ecb l\u00ean UI.",
-          "item": [
-            {
-              "name": "Upload File (Mock S3)",
-              "request": {
-                "method": "PUT",
-                "header": [
-                  {
-                    "key": "Content-Type",
-                    "value": "application/octet-stream"
-                  }
-                ],
-                "body": {
-                  "mode": "file",
-                  "file": {}
+            "name": "Order Service",
+            "description": "API collection for order-service",
+            "item": [
+                {
+                    "name": "Create Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders"
+                            ]
+                        },
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"customerNote\": \"Giao h\\u00e0ng bu\\u1ed5i s\\u00e1ng\",\n  \"shippingAddressName\": \"Minh Hi\\u1ec1n\",\n  \"shippingAddressPhone\": \"0123456789\",\n  \"shippingAddressDetail\": \"123 \\u0110\\u01b0\\u1eddng A, Qu\\u1eadn B, TP C\",\n  \"shippingMethod\": \"Giao h\\u00e0ng t\\u1eadn n\\u01a1i\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"e0000000-0000-0000-0000-000000000001\",\n      \"variantId\": \"a0000001-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Sofa\",\n      \"productName\": \"Modern Leather Sofa\",\n      \"color\": \"N\\u00e2u\",\n      \"material\": \"Da th\\u1eadt\",\n      \"price\": 12000000,\n      \"quantity\": 1,\n      \"imageUrl\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc\"\n    }\n  ],\n  \"shopVoucherCode\": \"DISCOUNT10\",\n  \"shippingVoucherCode\": \"FREESHIP\",\n  \"discountAmount\": 15000.0,\n  \"shippingDiscount\": 15000.0\n}"
+                        }
+                    }
                 },
-                "url": {
-                  "raw": "{{media_service_base_url}}/upload/{{object_key}}?expires={{expires}}&signature={{signature}}",
-                  "host": [
-                    "{{media_service_base_url}}"
-                  ],
-                  "path": [
-                    "upload",
-                    "{{object_key}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "expires",
-                      "value": "{{expires}}"
+                {
+                    "name": "Get User Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders/user",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "user"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Order Details",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders/ORD-A1B2C3D4",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "ORD-A1B2C3D4"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Get Admin Orders",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders/admin?status=UNPAID",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "admin"
+                            ],
+                            "query": [
+                                {
+                                    "key": "status",
+                                    "value": "UNPAID"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Ship Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders/admin/ORD-A1B2C3D4/ship",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "admin",
+                                "ORD-A1B2C3D4",
+                                "ship"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Deliver Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders/admin/ORD-A1B2C3D4/deliver",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "admin",
+                                "ORD-A1B2C3D4",
+                                "deliver"
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Create VNPAY Payment",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/payment/vnpay/create?orderCode=ORD-A1B2C3D4",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "payment",
+                                "vnpay",
+                                "create"
+                            ],
+                            "query": [
+                                {
+                                    "key": "orderCode",
+                                    "value": "ORD-A1B2C3D4"
+                                }
+                            ]
+                        }
+                    }
+                },
+                {
+                    "name": "Cancel Order",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/orders/ORD-A1B2C3D4/cancel",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "orders",
+                                "ORD-A1B2C3D4",
+                                "cancel"
+                            ],
+                            "query": []
+                        }
+                    }
+                },
+                {
+                    "name": "Get User Vouchers",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/orders/vouchers/user",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "vouchers",
+                                "user"
+                            ]
+                        }
                     },
-                    {
-                      "key": "signature",
-                      "value": "{{signature}}"
-                    }
-                  ]
+                    "response": []
                 },
-                "description": "API gi\u1ea3 l\u1eadp vi\u1ec7c Upload file l\u00ean S3. Client s\u1eed d\u1ee5ng URL \u0111\u01b0\u1ee3c tr\u1ea3 v\u1ec1 t\u1eeb Init Upload API \u0111\u1ec3 \u0111\u1ea9y binary data (file v\u1eadt l\u00fd) l\u00ean."
-              },
-              "response": []
-            },
-            {
-              "name": "Download File (Mock S3)",
-              "request": {
-                "method": "GET",
-                "header": [],
-                "url": {
-                  "raw": "{{media_service_base_url}}/download/{{object_key}}?expires={{expires}}&signature={{signature}}",
-                  "host": [
-                    "{{media_service_base_url}}"
-                  ],
-                  "path": [
-                    "download",
-                    "{{object_key}}"
-                  ],
-                  "query": [
-                    {
-                      "key": "expires",
-                      "value": "{{expires}}"
+                {
+                    "name": "Validate Voucher",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [
+                            {
+                                "key": "Content-Type",
+                                "value": "application/json"
+                            }
+                        ],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"code\": \"SUMMER_SALE_2026\",\n  \"type\": \"shop\",\n  \"subtotal\": 1000000.0\n}",
+                            "options": {
+                                "raw": {
+                                    "language": "json"
+                                }
+                            }
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/orders/vouchers/validate",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "vouchers",
+                                "validate"
+                            ]
+                        }
                     },
-                    {
-                      "key": "signature",
-                      "value": "{{signature}}"
-                    }
-                  ]
-                },
-                "description": "API gi\u1ea3 l\u1eadp vi\u1ec7c Download / View file t\u1eeb S3. D\u00f9ng \u0111\u1ec3 l\u1ea5y n\u1ed9i dung file hi\u1ec3n th\u1ecb l\u00ean tr\u00ecnh duy\u1ec7t d\u1ef1a v\u00e0o pre-signed view url."
-              },
-              "response": []
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "name": "Review Service",
-      "description": "Collection for testing Review Service endpoints through Gateway",
-      "item": [
-        {
-          "name": "Create Review",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"productId\": \"e0000000-0000-0000-0000-000000000009\",\n  \"orderItemId\": \"oi000099-0000-0000-0000-000000000001\",\n  \"title\": \"B\u00e0n \u0111\u1ee9ng thay \u0111\u1ed5i cu\u1ed9c s\u1ed1ng!\",\n  \"content\": \"T\u1eeb khi c\u00f3 b\u00e0n \u0111\u1ee9ng \u0111i\u1ec1u ch\u1ec9nh \u0111i\u1ec7n, l\u01b0ng \u0111\u1ee1 \u0111au h\u1eb3n. R\u1ea5t \u0111\u00e1ng ti\u1ec1n!\",\n  \"rating\": 5\n}"
-            },
-            "url": {
-              "raw": "{{review_service_base_url}}",
-              "host": [
-                "{{review_service_base_url}}"
-              ],
-              "path": []
-            }
-          }
-        },
-        {
-          "name": "Get Reviews by Product",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{review_service_base_url}}?productId=b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11&page=0&size=10",
-              "host": [
-                "{{review_service_base_url}}"
-              ],
-              "query": [
-                {
-                  "key": "productId",
-                  "value": "e0000000-0000-0000-0000-000000000001"
+                    "response": []
                 },
                 {
-                  "key": "page",
-                  "value": "0"
-                },
-                {
-                  "key": "size",
-                  "value": "10"
+                    "name": "Save Voucher",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{user_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "method": "POST",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/orders/vouchers/SUMMER_SALE_2026/save",
+                            "host": [
+                                "{{base_url}}"
+                            ],
+                            "path": [
+                                "api",
+                                "v1",
+                                "orders",
+                                "vouchers",
+                                "SUMMER_SALE_2026",
+                                "save"
+                            ]
+                        }
+                    },
+                    "response": []
                 }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Reviews by Product (JDBC Query)",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{review_service_base_url}}/product/b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11",
-              "host": [
-                "{{review_service_base_url}}"
-              ],
-              "path": [
-                "product",
-                "b0eebc99-9c0b-4ef8-bb6d-6bb9bd380b11"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Update Review",
-          "request": {
-            "method": "PATCH",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              },
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"reviewId\": \"r0000001-0000-0000-0000-000000000001\",\n  \"title\": \"Sofa da r\u1ea5t x\u1ecbn - c\u1eadp nh\u1eadt sau 1 th\u00e1ng\",\n  \"content\": \"D\u00f9ng 1 th\u00e1ng v\u1eabn r\u1ea5t t\u1ed1t, da kh\u00f4ng b\u1ecb phai m\u00e0u. R\u1ea5t h\u00e0i l\u00f2ng!\",\n  \"rating\": 5\n}"
-            },
-            "url": {
-              "raw": "{{review_service_base_url}}/update",
-              "host": [
-                "{{review_service_base_url}}"
-              ],
-              "path": [
-                "update"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Delete Review",
-          "request": {
-            "method": "DELETE",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
-            "url": {
-              "raw": "{{review_service_base_url}}/e0eebc99-9c0b-4ef8-bb6d-6bb9bd380e11",
-              "host": [
-                "{{review_service_base_url}}"
-              ],
-              "path": [
-                "e0eebc99-9c0b-4ef8-bb6d-6bb9bd380e11"
-              ]
-            }
-          }
-        }
-      ]
-    },
-    {
-      "name": "Order Service",
-      "description": "API collection for order-service",
-      "item": [
-        {
-          "name": "Create Order",
-          "request": {
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{gateway_url}}/orders",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders"
-              ]
-            },
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"customerNote\": \"Giao h\\u00e0ng bu\\u1ed5i s\\u00e1ng\",\n  \"shippingAddressName\": \"Minh Hi\\u1ec1n\",\n  \"shippingAddressPhone\": \"0123456789\",\n  \"shippingAddressDetail\": \"123 \\u0110\\u01b0\\u1eddng A, Qu\\u1eadn B, TP C\",\n  \"shippingMethod\": \"Giao h\\u00e0ng t\\u1eadn n\\u01a1i\",\n  \"paymentMethod\": \"COD\",\n  \"items\": [\n    {\n      \"productId\": \"e0000000-0000-0000-0000-000000000001\",\n      \"variantId\": \"a0000001-0000-0000-0000-000000000001\",\n      \"categoryName\": \"Sofa\",\n      \"productName\": \"Modern Leather Sofa\",\n      \"color\": \"N\\u00e2u\",\n      \"material\": \"Da th\\u1eadt\",\n      \"price\": 12000000,\n      \"quantity\": 1,\n      \"imageUrl\": \"https://images.unsplash.com/photo-1555041469-a586c61ea9bc\"\n    }\n  ],\n  \"shopVoucherCode\": \"DISCOUNT10\",\n  \"shippingVoucherCode\": \"FREESHIP\",\n  \"discountAmount\": 15000.0,\n  \"shippingDiscount\": 15000.0\n}"
-            }
-          }
-        },
-        {
-          "name": "Get User Orders",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/orders/user",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders",
-                "user"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Order Details",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/orders/ORD-A1B2C3D4",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders",
-                "ORD-A1B2C3D4"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Get Admin Orders",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/orders/admin?status=UNPAID",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders",
-                "admin"
-              ],
-              "query": [
-                {
-                  "key": "status",
-                  "value": "UNPAID"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Ship Order",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/orders/admin/ORD-A1B2C3D4/ship",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders",
-                "admin",
-                "ORD-A1B2C3D4",
-                "ship"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Deliver Order",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/orders/admin/ORD-A1B2C3D4/deliver",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders",
-                "admin",
-                "ORD-A1B2C3D4",
-                "deliver"
-              ]
-            }
-          }
-        },
-        {
-          "name": "Create VNPAY Payment",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/payment/vnpay/create?orderCode=ORD-A1B2C3D4",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "payment",
-                "vnpay",
-                "create"
-              ],
-              "query": [
-                {
-                  "key": "orderCode",
-                  "value": "ORD-A1B2C3D4"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "name": "Cancel Order",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{gateway_url}}/orders/ORD-A1B2C3D4/cancel",
-              "host": [
-                "{{gateway_url}}"
-              ],
-              "path": [
-                "orders",
-                "ORD-A1B2C3D4",
-                "cancel"
-              ],
-              "query": []
-            }
-          }
-        },
-        {
-          "name": "Get User Vouchers",
-          "request": {
             "auth": {
-              "type": "bearer",
-              "bearer": [
-                {
-                  "key": "token",
-                  "value": "{{user_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/vouchers/user",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                "vouchers",
-                "user"
-              ]
+                "type": "bearer",
+                "bearer": [
+                    {
+                        "key": "token",
+                        "value": "{{accessToken}}",
+                        "type": "string"
+                    }
+                ]
             }
-          },
-          "response": []
         },
         {
-          "name": "Validate Voucher",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
+            "name": "AI Image Reconstruction",
+            "item": [
                 {
-                  "key": "token",
-                  "value": "{{user_token}}",
-                  "type": "string"
-                }
-              ]
-            },
-            "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"code\": \"SUMMER_SALE_2026\",\n  \"type\": \"shop\",\n  \"subtotal\": 1000000.0\n}",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/vouchers/validate",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                "vouchers",
-                "validate"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Save Voucher",
-          "request": {
-            "auth": {
-              "type": "bearer",
-              "bearer": [
+                    "name": "Predict (3D Mesh)",
+                    "request": {
+                        "method": "POST",
+                        "header": [],
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                },
+                                {
+                                    "key": "image_type",
+                                    "value": "360",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "mesh_resolution",
+                                    "value": "256",
+                                    "type": "text"
+                                },
+                                {
+                                    "key": "mesh_quality",
+                                    "value": "medium",
+                                    "type": "text"
+                                }
+                            ]
+                        },
+                        "url": {
+                            "raw": "{{gateway_url}}/ai-reconstruction/predict",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "ai-reconstruction",
+                                "predict"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
                 {
-                  "key": "token",
-                  "value": "{{user_token}}",
-                  "type": "string"
+                    "name": "List Meshes",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/ai-reconstruction/api/meshes",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "ai-reconstruction",
+                                "api",
+                                "meshes"
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Run Status",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{gateway_url}}/ai-reconstruction/api/run_status",
+                            "host": [
+                                "{{gateway_url}}"
+                            ],
+                            "path": [
+                                "ai-reconstruction",
+                                "api",
+                                "run_status"
+                            ]
+                        }
+                    },
+                    "response": []
                 }
-              ]
-            },
-            "method": "POST",
-            "header": [],
-            "url": {
-              "raw": "{{base_url}}/api/v1/orders/vouchers/SUMMER_SALE_2026/save",
-              "host": [
-                "{{base_url}}"
-              ],
-              "path": [
-                "api",
-                "v1",
-                "orders",
-                "vouchers",
-                "SUMMER_SALE_2026",
-                "save"
-              ]
-            }
-          },
-          "response": []
+            ]
         }
-      ],
-      "auth": {
-        "type": "bearer",
-        "bearer": [
-          {
-            "key": "token",
-            "value": "{{accessToken}}",
+    ],
+    "variable": [
+        {
+            "key": "ai_classifier_base_url",
+            "value": "{{gateway_url}}/ai-classifier",
             "type": "string"
-          }
-        ]
-      }
-    }
-  ],
-  "variable": [
-    {
-      "key": "ai_classifier_base_url",
-      "value": "{{gateway_url}}/ai-classifier",
-      "type": "string"
-    },
-    {
-      "key": "notification_service_base_url",
-      "value": "{{gateway_url}}/notifications",
-      "type": "string"
-    },
-    {
-      "key": "user_id",
-      "value": "52379d96-5238-4fd9-8383-bae82736bb3b",
-      "type": "string"
-    },
-    {
-      "key": "message_id",
-      "value": "00000000-0000-0000-0000-000000000000",
-      "type": "string"
-    },
-    {
-      "key": "template_id",
-      "value": "7d9e4a3e-1f5b-48af-91cd-b2354cf1af91",
-      "type": "string"
-    },
-    {
-      "key": "user_service_base_url",
-      "value": "{{gateway_url}}/users",
-      "type": "string"
-    },
-    {
-      "key": "accountId",
-      "value": "52379d96-5238-4fd9-8383-bae82736bb3b"
-    },
-    {
-      "key": "accessToken",
-      "value": ""
-    },
-    {
-      "key": "refreshToken",
-      "value": ""
-    },
-    {
-      "key": "otpCode",
-      "value": ""
-    },
-    {
-      "key": "roleId",
-      "value": "a0000000-0000-0000-0000-000000000002"
-    },
-    {
-      "key": "catalog_service_base_url",
-      "value": "{{gateway_url}}/catalog",
-      "type": "string"
-    },
-    {
-      "key": "media_service_base_url",
-      "value": "{{gateway_url}}/media",
-      "type": "string"
-    },
-    {
-      "key": "media_id",
-      "value": "00000000-0000-0000-0000-000000000000",
-      "type": "string"
-    },
-    {
-      "key": "object_key",
-      "value": "products/sample-image.jpg",
-      "type": "string"
-    },
-    {
-      "key": "expires",
-      "value": "9999999999",
-      "type": "string"
-    },
-    {
-      "key": "signature",
-      "value": "sample-signature",
-      "type": "string"
-    },
-    {
-      "key": "gateway_url",
-      "value": "http://localhost:8080",
-      "type": "string"
-    },
-    {
-      "key": "review_service_base_url",
-      "value": "{{gateway_url}}/reviews",
-      "type": "string"
-    },
-    {
-      "key": "product_id",
-      "value": "e0000000-0000-0000-0000-000000000001",
-      "type": "string"
-    },
-    {
-      "key": "category_id",
-      "value": "d0000000-0000-0000-0000-000000000001",
-      "type": "string"
-    },
-    {
-      "key": "variant_id",
-      "value": "",
-      "type": "string"
-    },
-    {
-      "key": "review_id",
-      "value": "r0000001-0000-0000-0000-000000000001",
-      "type": "string"
-    },
-    {
-      "key": "order_item_id",
-      "value": "oi000099-0000-0000-0000-000000000001",
-      "type": "string"
-    }
-  ]
+        },
+        {
+            "key": "notification_service_base_url",
+            "value": "{{gateway_url}}/notifications",
+            "type": "string"
+        },
+        {
+            "key": "user_id",
+            "value": "52379d96-5238-4fd9-8383-bae82736bb3b",
+            "type": "string"
+        },
+        {
+            "key": "message_id",
+            "value": "00000000-0000-0000-0000-000000000000",
+            "type": "string"
+        },
+        {
+            "key": "template_id",
+            "value": "7d9e4a3e-1f5b-48af-91cd-b2354cf1af91",
+            "type": "string"
+        },
+        {
+            "key": "user_service_base_url",
+            "value": "{{gateway_url}}/users",
+            "type": "string"
+        },
+        {
+            "key": "accountId",
+            "value": "52379d96-5238-4fd9-8383-bae82736bb3b"
+        },
+        {
+            "key": "accessToken",
+            "value": ""
+        },
+        {
+            "key": "refreshToken",
+            "value": ""
+        },
+        {
+            "key": "otpCode",
+            "value": ""
+        },
+        {
+            "key": "roleId",
+            "value": "a0000000-0000-0000-0000-000000000002"
+        },
+        {
+            "key": "catalog_service_base_url",
+            "value": "{{gateway_url}}/catalog",
+            "type": "string"
+        },
+        {
+            "key": "media_service_base_url",
+            "value": "{{gateway_url}}/media",
+            "type": "string"
+        },
+        {
+            "key": "media_id",
+            "value": "00000000-0000-0000-0000-000000000000",
+            "type": "string"
+        },
+        {
+            "key": "object_key",
+            "value": "products/sample-image.jpg",
+            "type": "string"
+        },
+        {
+            "key": "expires",
+            "value": "9999999999",
+            "type": "string"
+        },
+        {
+            "key": "signature",
+            "value": "sample-signature",
+            "type": "string"
+        },
+        {
+            "key": "gateway_url",
+            "value": "http://localhost:8080",
+            "type": "string"
+        },
+        {
+            "key": "review_service_base_url",
+            "value": "{{gateway_url}}/reviews",
+            "type": "string"
+        },
+        {
+            "key": "product_id",
+            "value": "e0000000-0000-0000-0000-000000000001",
+            "type": "string"
+        },
+        {
+            "key": "category_id",
+            "value": "d0000000-0000-0000-0000-000000000001",
+            "type": "string"
+        },
+        {
+            "key": "variant_id",
+            "value": "",
+            "type": "string"
+        },
+        {
+            "key": "review_id",
+            "value": "r0000001-0000-0000-0000-000000000001",
+            "type": "string"
+        },
+        {
+            "key": "order_item_id",
+            "value": "oi000099-0000-0000-0000-000000000001",
+            "type": "string"
+        }
+    ]
 }

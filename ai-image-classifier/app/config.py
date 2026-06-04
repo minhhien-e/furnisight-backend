@@ -43,6 +43,18 @@ class Settings(BaseSettings):
     REMOVER_CONFIDENCE: float = _config.get("object_remover", {}).get("confidence", 0.35)
     REMOVER_MAX_IMAGE_SIZE: int = _config.get("object_remover", {}).get("max_image_size", 1024)
     REMOVE_CLASSES: set = set(_config.get("object_remover", {}).get("remove_classes", [0, 56, 57, 58, 59, 60, 62, 63, 66, 67, 72, 73, 74, 75]))
+
+    # Recommendation configuration
+    _recommendation_config: dict = _config.get("recommendation", {})
+    CATALOG_BASE_URL: str = _recommendation_config.get("catalog_base_url", "http://catalog-service:8080/api/v1")
+    RECOMMENDATION_LIMIT: int = _recommendation_config.get("recommendation_limit", 6)
+    RECOMMENDATION_TIMEOUT_SECONDS: float = _recommendation_config.get("recommendation_timeout_seconds", 3)
+    CATEGORY_MAPPING: dict = _recommendation_config.get("category_mapping", {
+        "livingroom": "living-room",
+        "bedroom": "bedroom",
+        "kitchen": "kitchen",
+        "bathroom": "bathroom",
+    })
     
     class Config:
         env_file = ".env"

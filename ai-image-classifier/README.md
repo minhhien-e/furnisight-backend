@@ -9,6 +9,7 @@ Microservice độc lập có nhiệm vụ nhận ảnh đầu vào và phân lo
 - **Phân loại ảnh thường** — sử dụng model `resnet50_normal_best.pth`
 - **Phân loại ảnh panorama 360°** — sử dụng model `resnet50_360_best.pth`
 - **Tiền xử lý thông minh** — tự động xóa người/đồ vật bằng YOLOv8 + LaMa trước khi phân loại
+- **Gợi ý sản phẩm theo phòng** — gọi `catalog-service` để lấy sản phẩm phù hợp với danh mục dự đoán
 - **Cấu hình linh hoạt** — toàn bộ tham số đọc từ `config.json`, không cần sửa code
 - **Singleton ModelGateway** — models chỉ được load một lần duy nhất lúc khởi động
 - **Pipeline pattern** — luồng xử lý rõ ràng, dễ mở rộng
@@ -69,6 +70,17 @@ ai-image-classifier/
     "num_classes": 4,
     "model_path": "models/resnet50_360_best.pth",
     "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
+  },
+  "recommendation": {
+    "catalog_base_url": "http://catalog-service:8080/api/v1",
+    "recommendation_limit": 6,
+    "recommendation_timeout_seconds": 3,
+    "category_mapping": {
+      "livingroom": "living-room",
+      "bedroom": "bedroom",
+      "kitchen": "kitchen",
+      "bathroom": "bathroom"
+    }
   }
 }
 ```
@@ -150,9 +162,33 @@ curl -X POST http://localhost:8000/predict \
 ```json
 {
   "label": "bedroom",
-  "confidence": 0.9231
+  "confidence": 0.9231,
+  "recommendations": [
+    {
+      "id": "e0000000-0000-0000-0000-000000000004",
+      "slug": "king-size-metal-bed",
+      "name": "King Size Metal Bed",
+      "categoryName": "Bed",
+      "price": 9500000,
+      "oldPrice": null,
+      "image": "https://example.com/bed.jpg",
+      "rating": 0,
+      "ratingCount": 0,
+      "soldCount": 0,
+      "tags": []
+    }
+  ],
+  "recommendationMeta": {
+    "categorySlug": "bedroom",
+    "source": "catalog-service",
+    "reason": null
+  }
 }
 ```
+
+Nếu không có danh mục hoặc sản phẩm phù hợp, `recommendations` là mảng rỗng và
+`recommendationMeta.reason` có thể là `category_not_mapped`, `no_products_found`
+hoặc `catalog_unavailable`.
 
 **Response lỗi:**
 | HTTP Code | Nguyên nhân |
