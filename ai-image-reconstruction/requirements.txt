@@ -30,6 +30,7 @@ trimesh==4.4.9
 fastapi==0.95.2
 uvicorn==0.22.0
 python-multipart==0.0.6
+cloudinary==1.39.0
 
 # =================================
 # Utilities

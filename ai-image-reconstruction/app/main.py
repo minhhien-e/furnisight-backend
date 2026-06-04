@@ -12,6 +12,11 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
 
+from app.storage import (
+    StorageConfigurationError,
+    get_storage_backend,
+    should_retain_local_outputs,
+)
 from pipelines.lgnet.config.defaults import get_config
 from pipelines.lgnet.inference import preprocess, run_one_inference
 from pipelines.lgnet.models.build import build_model
@@ -78,9 +83,39 @@ def on_startup():
     logger.info("FastAPI startup complete. LG-Net model loaded: zind")
 
 
-def _public_model_url(request: Request, mesh_path):
-    mesh_name = Path(mesh_path).name
-    return str(request.base_url).rstrip("/") + f"/static/{quote(mesh_name)}"
+def _store_mesh_or_raise(request: Request, mesh_path, name: str):
+    try:
+        storage = get_storage_backend()
+        stored = storage.save_model(
+            Path(mesh_path),
+            public_name=Path(mesh_path).name,
+            base_url=str(request.base_url),
+        )
+    except StorageConfigurationError as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Inference completed but storage is not configured: {exc}",
+        ) from exc
+    except Exception as exc:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Inference completed but storage upload failed: {exc}",
+        ) from exc
+
+    if stored.should_cleanup_local and not should_retain_local_outputs():
+        _cleanup_local_outputs(name)
+
+    return stored.url
+
+
+def _cleanup_local_outputs(name: str):
+    for path in STATIC_DIR.glob(f"{name}*"):
+        if not path.is_file():
+            continue
+        try:
+            path.unlink()
+        except OSError as exc:
+            logger.warning(f"Could not remove local output {path}: {exc}")
 
 
 @app.get("/viewer")
@@ -184,7 +219,7 @@ async def predict(
             raise HTTPException(status_code=500, detail=f"NonCuboid inference failed: {exc}") from exc
 
         return {
-            "model_url": _public_model_url(request, mesh_path),
+            "model_url": _store_mesh_or_raise(request, mesh_path, name),
         }
 
     allowed_resolutions = {128, 256, 512, 1024}
@@ -225,6 +260,5 @@ async def predict(
         raise HTTPException(status_code=500, detail="Mesh export failed")
 
     return {
-        "model_url": _public_model_url(request, mesh_path),
+        "model_url": _store_mesh_or_raise(request, mesh_path, name),
     }
-

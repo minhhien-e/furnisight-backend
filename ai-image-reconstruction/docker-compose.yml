@@ -6,7 +6,12 @@ services:
       args:
         TORCH_WHEEL: ${TORCH_WHEEL:-}
     env_file:
+      - ../media-service/.env
       - .env
+    environment:
+      STORAGE_BACKEND: ${AI_RECONSTRUCTION_STORAGE_BACKEND:-cloudinary}
+      CLOUDINARY_FOLDER: ${AI_RECONSTRUCTION_CLOUDINARY_FOLDER:-furnisight/ai-reconstruction}
+      RETAIN_LOCAL_OUTPUTS: ${AI_RECONSTRUCTION_RETAIN_LOCAL_OUTPUTS:-false}
     ports:
       - "${HOST_PORT:-8001}:${PORT:-8001}"
     volumes:

@@ -264,7 +264,12 @@ services:
     container_name: furnisight_ai_reconstruction
     <<: *common-service
     env_file:
+      - ./media-service/.env
       - ./ai-image-reconstruction/.env
+    environment:
+      STORAGE_BACKEND: ${AI_RECONSTRUCTION_STORAGE_BACKEND:-cloudinary}
+      CLOUDINARY_FOLDER: ${AI_RECONSTRUCTION_CLOUDINARY_FOLDER:-furnisight/ai-reconstruction}
+      RETAIN_LOCAL_OUTPUTS: ${AI_RECONSTRUCTION_RETAIN_LOCAL_OUTPUTS:-false}
     volumes:
       - ./ai-image-reconstruction/checkpoints:/app/checkpoints:ro
       - ./ai-image-reconstruction/outputs:/app/outputs

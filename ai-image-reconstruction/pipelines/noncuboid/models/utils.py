@@ -163,7 +163,7 @@ def _nms(heat, kernel=(3, 3)):
     return heat * keep
 
 
-@numba.jit(nopython=True)
+@jit(nopython=True)
 def _line_nms(lines, h, w):
     # B*K*4 line must be numpy array(x, y, alpha, score)
     b, n = lines.shape[0], lines.shape[1]
@@ -222,7 +222,7 @@ def _line_nms(lines, h, w):
     return lines_
 
 
-@numba.jit(nopython=True)
+@jit(nopython=True)
 def _box_nms(bbox, threshold=0.5):
     # nms bbox with different threshold with same-class and different-class
     # nms bbox with floor and ceiling not intersection
@@ -378,7 +378,7 @@ def gt_check(batch):
     return gt_planes, gt_lines, gt_params3d
 
 
-@numba.jit(nopython=True)
+@jit(nopython=True)
 def _iou(box1, box2):
   area1 = (box1[2] - box1[0] + 1) * (box1[3] - box1[1] + 1)
   area2 = (box2[2] - box2[0] + 1) * (box2[3] - box2[1] + 1)
@@ -388,7 +388,7 @@ def _iou(box1, box2):
   return iou
 
 
-@numba.jit(nopython=True)
+@jit(nopython=True)
 def evaluate_planes(dt_planes, gt_planes):
     # eval planes
     bs = len(dt_planes)
@@ -437,7 +437,7 @@ def evaluate_planes(dt_planes, gt_planes):
     return mAR, mAP
 
 
-@numba.jit(nopython=True)
+@jit(nopython=True)
 def _line_similar(line1, line2, h):
     # (m, b) x = my + b
     x10, y10 = line1[1] * 1., 0.
@@ -454,7 +454,7 @@ def _line_similar(line1, line2, h):
     return area
 
 
-@numba.jit(nopython=True)
+@jit(nopython=True)
 def evaluate_lines(dt_lines, gt_lines):
     # eval lines
     bs = len(dt_lines)
@@ -549,7 +549,7 @@ def DisplayLayout(
         (0.6196078431372549, 0.8549019607843137, 0.8980392156862745),
     ]
     palette = np.concatenate([np.array(palette)[[0, 1, 5,  10,  16,  19]], np.random.uniform(0, 1, (20, 3))], axis=0)
-    img /= 255
+    img = img.astype(np.float32) / 255.0
     palette = np.array(palette)
     from scipy.optimize import linear_sum_assignment
     _segs_gt = []
@@ -570,9 +570,9 @@ def DisplayLayout(
             continue
         else:
             _segs_opt.append(segs_opt==i)
-    _segs_gt = np.array(_segs_gt).astype(np.int)
-    _segs_noopt = np.array(_segs_noopt).astype(np.int)
-    _segs_opt = np.array(_segs_opt).astype(np.int)
+    _segs_gt = np.array(_segs_gt).astype(int)
+    _segs_noopt = np.array(_segs_noopt).astype(int)
+    _segs_opt = np.array(_segs_opt).astype(int)
     cost1 = ((_segs_gt[:, np.newaxis] + _segs_noopt)==2).sum((2, 3))
     cost2 = ((_segs_gt[:, np.newaxis] + _segs_opt)==2).sum((2, 3))
     r1, c1 = linear_sum_assignment(-1*cost1)
@@ -714,8 +714,8 @@ def display2Dseg(img, segs_pred, segs_gt, label, iters, method=9, draw_gt=0):
             continue
         else:
             _segs_pred.append(segs_pred == i)
-    _segs_gt = np.array(_segs_gt).astype(np.int)
-    _segs_pred = np.array(_segs_pred).astype(np.int)
+    _segs_gt = np.array(_segs_gt).astype(int)
+    _segs_pred = np.array(_segs_pred).astype(int)
     cost1 = ((_segs_gt[:, np.newaxis] + _segs_pred) == 2).sum((2, 3))
     r1, c1 = linear_sum_assignment(-1 * cost1)
     color1 = np.arange(2, len(_segs_gt) + 2)
@@ -773,5 +773,3 @@ def display2Dseg(img, segs_pred, segs_gt, label, iters, method=9, draw_gt=0):
     cv2.imwrite(f'results/{iters}.png', img2 * 255)
     if draw_gt > 0:
         cv2.imwrite(f'results/{iters}_{draw_gt}.png', img1 * 255)
-
-
