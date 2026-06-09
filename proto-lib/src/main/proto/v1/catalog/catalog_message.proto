@@ -39,9 +39,11 @@ message ProductSummary {
 }
 
 message ProductSummaryVariant {
+  reserved 3;
+  reserved "old_price";
+
   string id = 1;
   optional double price = 2;
-  optional double old_price = 3;
   optional int32 stock_quantity = 4;
   optional double length = 5;
   optional double width = 6;
@@ -53,12 +55,39 @@ message ProductSummaryVariant {
 }
 
 message FavoriteProductSummary {
+  reserved 7;
+  reserved "old_price";
+
   string id = 1;
   string slug = 2;
   string name = 3;
   string image = 4;
   string category_name = 5;
   optional double price = 6;
-  optional double old_price = 7;
   int32 sold_count = 8;
+}
+
+message SearchRecommendedProductsRequest {
+  string category_slug = 1;
+  int32 limit = 2;
+  string status = 3;
+}
+
+message SearchRecommendedProductsResponse {
+  repeated RecommendedProduct products = 1;
+}
+
+message RecommendedProduct {
+  string id = 1;
+  string slug = 2;
+  string name = 3;
+  string category_name = 4;
+  optional double price = 5;
+  string image = 6;
+  string model_url = 7;
+  string default_variant_id = 8;
+  double rating = 9;
+  int32 rating_count = 10;
+  int32 sold_count = 11;
+  repeated string tags = 12;
 }

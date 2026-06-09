@@ -12,6 +12,10 @@ java {
     withJavadocJar()
 }
 
+tasks.withType(Javadoc).configureEach {
+    options.addStringOption('Xdoclint:none', '-quiet')
+}
+
 repositories {
     mavenCentral()
 }

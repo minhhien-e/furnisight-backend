@@ -9,4 +9,5 @@ import "v1/media/media_message.proto";
 
 service MediaService {
   rpc GetMediaUrl (GetMediaUrlRequest) returns (GetMediaUrlResponse);
+  rpc DeleteMedia (DeleteMediaRequest) returns (DeleteMediaResponse);
 }

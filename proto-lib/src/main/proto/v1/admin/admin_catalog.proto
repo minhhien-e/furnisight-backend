@@ -12,6 +12,7 @@ service AdminCatalogService {
     rpc GetAdminProducts (GetAdminProductsRequest) returns (ProductPageResponse);
     rpc GetProductDetail (GetProductDetailRequest) returns (ProductDto);
     rpc StockInVariant (StockInVariantRequest) returns (AdminActionResponse);
+    rpc UpdateVariantThreshold (UpdateVariantThresholdRequest) returns (AdminActionResponse);
     rpc GetProductStats (google.protobuf.Empty) returns (ProductStatsResponse);
     rpc GetLowStockProducts (GetLowStockProductsRequest) returns (LowStockProductListResponse);
     rpc CreateProduct (CreateProductRequest) returns (AdminActionResponse);
@@ -60,6 +61,9 @@ message ProductDto {
     string slug = 12;
     repeated string image_urls = 13;
     repeated ProductVariantDto variants = 14;
+    string model_media_id = 15;
+    bool supports3d = 16;
+    string model_url = 17;
 }
 
 message ProductVariantDto {
@@ -75,6 +79,7 @@ message ProductVariantDto {
     double width = 10;
     double height = 11;
     string label = 12;
+    int32 low_stock_threshold = 13;
 }
 
 message ProductStatsResponse {
@@ -117,6 +122,9 @@ message CreateProductRequest {
     int64 model3d_size = 12;
     repeated string image_urls = 13;
     repeated ProductVariantInput variants = 14;
+    string model_media_id = 15;
+    bool supports3d = 16;
+    string model_url = 17;
 }
 
 message UpdateProductRequest {
@@ -135,6 +143,9 @@ message UpdateProductRequest {
     int64 model3d_size = 13;
     repeated string image_urls = 14;
     repeated ProductVariantInput variants = 15;
+    string model_media_id = 16;
+    bool supports3d = 17;
+    string model_url = 18;
 }
 
 message ProductVariantInput {
@@ -149,6 +160,7 @@ message ProductVariantInput {
     double length = 9;
     double width = 10;
     double height = 11;
+    int32 low_stock_threshold = 12;
 }
 
 message StockInVariantRequest {
@@ -156,6 +168,11 @@ message StockInVariantRequest {
     string variant_id = 2;
     int32 quantity = 3;
     string note = 4;
+}
+
+message UpdateVariantThresholdRequest {
+    string variant_id = 1;
+    int32 low_stock_threshold = 2;
 }
 
 message DeleteProductRequest {
