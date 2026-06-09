@@ -11,6 +11,7 @@ public record SaveAdminProductVariantRequest(
         double weight,
         double length,
         double width,
-        double height
+        double height,
+        int lowStockThreshold
 ) {
 }

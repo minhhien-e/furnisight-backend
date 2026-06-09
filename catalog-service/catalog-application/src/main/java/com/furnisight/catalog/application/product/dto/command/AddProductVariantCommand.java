@@ -23,4 +23,5 @@ public class AddProductVariantCommand {
     private String warranty; // optional
     private String color;
     private String sku;
+    private Integer lowStockThreshold;
 }

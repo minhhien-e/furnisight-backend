@@ -46,8 +46,12 @@ public class ProductVariant extends BaseEntity {
     @Column(name = "color")
     private String color;
 
-    @Column(name = "sku")
+    @Column(name = "sku", nullable = false)
     private String sku;
+
+    @Column(name = "low_stock_threshold", nullable = false)
+    @Builder.Default
+    private Integer lowStockThreshold = 5;
 
     public ProductVariant(Product product, Price price, StockQuantity stockQuantity,
                           ProductDimensions dimensions, String material, String warranty,

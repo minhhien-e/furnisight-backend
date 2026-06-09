@@ -30,14 +30,16 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.text.Normalizer;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
 public class AdminCatalogService {
 
     private final GrpcAdminCatalogClient grpcAdminCatalogClient;
-    private final AdminInventorySettingsService inventorySettingsService;
 
     public AdminProductPageResponse getProducts(int page, int size, String query, String status, String category) {
         ProductPageResponse response = grpcAdminCatalogClient.getProducts(page, size, query, status, category);
@@ -49,6 +51,7 @@ public class AdminCatalogService {
     }
 
     public AdminActionResultResponse createProduct(SaveAdminProductRequest request) {
+        validateVariants(request.variants());
         return toActionResult(grpcAdminCatalogClient.createProduct(CreateProductRequest.newBuilder()
                 .setName(value(request.name()))
                 .setSlug(slugFrom(request.sku(), request.name()))
@@ -58,15 +61,16 @@ public class AdminCatalogService {
                 .setSku(value(request.sku()))
                 .setStatus(productStatusInput(request))
                 .setDescription(value(request.description()))
-                .setModel3DUrl(value(request.model3dUrl()))
-                .setModel3DFileName(value(request.model3dFileName()))
-                .setModel3DSize(request.model3dSize())
+                .setModelMediaId(value(request.modelMediaId()))
+                .setModelUrl(value(request.modelUrl()))
+                .setSupports3D(request.supports3d())
                 .addAllImageUrls(cleanList(request.imageUrls()))
                 .addAllVariants(toVariantInputs(request.variants()))
                 .build()));
     }
 
     public AdminActionResultResponse updateProduct(String id, SaveAdminProductRequest request) {
+        validateVariants(request.variants());
         return toActionResult(grpcAdminCatalogClient.updateProduct(UpdateProductRequest.newBuilder()
                 .setId(value(id))
                 .setName(value(request.name()))
@@ -77,9 +81,9 @@ public class AdminCatalogService {
                 .setSku(value(request.sku()))
                 .setStatus(productStatusInput(request))
                 .setDescription(value(request.description()))
-                .setModel3DUrl(value(request.model3dUrl()))
-                .setModel3DFileName(value(request.model3dFileName()))
-                .setModel3DSize(request.model3dSize())
+                .setModelMediaId(value(request.modelMediaId()))
+                .setModelUrl(value(request.modelUrl()))
+                .setSupports3D(request.supports3d())
                 .addAllImageUrls(cleanList(request.imageUrls()))
                 .addAllVariants(toVariantInputs(request.variants()))
                 .build()));
@@ -168,7 +172,9 @@ public class AdminCatalogService {
                 product.getStock(),
                 product.getStatus(),
                 product.getStatusLabel(),
-                product.getModel3DUrl(),
+                product.getModelMediaId(),
+                product.getModelUrl(),
+                product.getSupports3D(),
                 product.getModel3DFileName(),
                 product.getModel3DSize(),
                 product.getImageUrlsList(),
@@ -188,13 +194,14 @@ public class AdminCatalogService {
                 variant.getLength(),
                 variant.getWidth(),
                 variant.getHeight(),
-                variant.getLabel());
+                variant.getLabel(),
+                variant.getLowStockThreshold());
     }
 
     private ProductVariantInput toVariantInput(SaveAdminProductVariantRequest variant) {
         return ProductVariantInput.newBuilder()
                 .setId(value(variant.id()))
-                .setSku(value(variant.sku()))
+                .setSku(normalizeSku(variant.sku()))
                 .setPrice(variant.price())
                 .setStock(variant.stock())
                 .setColor(value(variant.color()))
@@ -204,6 +211,7 @@ public class AdminCatalogService {
                 .setLength(variant.length())
                 .setWidth(variant.width())
                 .setHeight(variant.height())
+                .setLowStockThreshold(validThreshold(variant.lowStockThreshold()))
                 .build();
     }
 
@@ -216,7 +224,7 @@ public class AdminCatalogService {
 
     private AdminInventoryItemResponse toInventoryItem(ProductDto product, ProductVariantDto variant) {
         int stock = variant.getStock();
-        int threshold = inventorySettingsService.thresholdForVariant(variant.getId());
+        int threshold = validThreshold(variant.getLowStockThreshold());
         String status = stock <= 0 ? "cancel" : stock <= threshold ? "low" : "success";
         String statusLabel = stock <= 0 ? "Hết hàng" : stock <= threshold ? "Sắp hết" : "Đủ hàng";
         int stockPercent = Math.min(100, Math.max(0, stock * 100 / 50));
@@ -236,6 +244,41 @@ public class AdminCatalogService {
                 "",
                 status,
                 statusLabel);
+    }
+
+    public AdminActionResultResponse updateVariantThreshold(String variantId, int threshold) {
+        return toActionResult(grpcAdminCatalogClient.updateVariantThreshold(
+                value(variantId), validThreshold(threshold)));
+    }
+
+    private void validateVariants(List<SaveAdminProductVariantRequest> variants) {
+        if (variants == null || variants.isEmpty()) {
+            throw new IllegalArgumentException("Sản phẩm phải có ít nhất một variant");
+        }
+        Set<String> skus = new HashSet<>();
+        for (SaveAdminProductVariantRequest variant : variants) {
+            String sku = normalizeSku(variant.sku());
+            if (!skus.add(sku)) {
+                throw new IllegalArgumentException("SKU variant bị trùng: " + sku);
+            }
+            validThreshold(variant.lowStockThreshold());
+        }
+    }
+
+    private String normalizeSku(String sku) {
+        String normalized = value(sku).trim().toUpperCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("SKU variant là bắt buộc");
+        }
+        return normalized;
+    }
+
+    private int validThreshold(int threshold) {
+        int value = threshold == 0 ? 5 : threshold;
+        if (value < 1 || value > 9999) {
+            throw new IllegalArgumentException("Ngưỡng cảnh báo phải từ 1 đến 9999");
+        }
+        return value;
     }
 
     private AdminCategoryResponse toCategoryResponse(CategoryDto category) {

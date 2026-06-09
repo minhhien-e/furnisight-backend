@@ -5,15 +5,13 @@ import com.furnisight.admin.controller.dto.AdminCategoryListResponse;
 import com.furnisight.admin.controller.dto.AdminInventoryResponse;
 import com.furnisight.admin.controller.dto.AdminProductPageResponse;
 import com.furnisight.admin.controller.dto.AdminProductResponse;
-import com.furnisight.admin.controller.dto.InventoryWarningSettingsResponse;
 import com.furnisight.admin.controller.dto.SaveAdminCategoryRequest;
-import com.furnisight.admin.controller.dto.SaveInventoryWarningSettingsRequest;
 import com.furnisight.admin.controller.dto.SaveAdminProductRequest;
 import com.furnisight.admin.controller.dto.StockInVariantRequest;
+import com.furnisight.admin.controller.dto.UpdateVariantThresholdRequest;
 import com.furnisight.admin.security.CurrentUserProvider;
 import com.furnisight.admin.service.AdminAuditLogService;
 import com.furnisight.admin.service.AdminCatalogService;
-import com.furnisight.admin.service.AdminInventorySettingsService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -34,7 +32,6 @@ import org.springframework.web.bind.annotation.RestController;
 public class AdminCatalogController {
 
     private final AdminCatalogService adminCatalogService;
-    private final AdminInventorySettingsService adminInventorySettingsService;
     private final AdminAuditLogService adminAuditLogService;
     private final CurrentUserProvider currentUserProvider;
 
@@ -101,20 +98,17 @@ public class AdminCatalogController {
         return ResponseEntity.ok(result);
     }
 
-    @GetMapping("/inventory/warning-settings")
-    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<InventoryWarningSettingsResponse> getInventoryWarningSettings() {
-        return ResponseEntity.ok(adminInventorySettingsService.getSettings());
-    }
-
-    @PutMapping("/inventory/warning-settings")
+    @PutMapping("/inventory/variants/{variantId}/threshold")
     @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
-    public ResponseEntity<InventoryWarningSettingsResponse> updateInventoryWarningSettings(
-            @RequestBody SaveInventoryWarningSettingsRequest request,
+    public ResponseEntity<AdminActionResultResponse> updateVariantThreshold(
+            @PathVariable String variantId,
+            @RequestBody UpdateVariantThresholdRequest request,
             HttpServletRequest httpRequest) {
-        InventoryWarningSettingsResponse response = adminInventorySettingsService.saveSettings(request);
+        AdminActionResultResponse response = adminCatalogService.updateVariantThreshold(
+                variantId, request.lowStockThreshold());
         adminAuditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật cảnh báo tồn kho",
-                "INVENTORY_SETTINGS", null, true, "Ngưỡng mặc định: " + response.defaultThreshold(), httpRequest);
+                "PRODUCT_VARIANT", variantId, response,
+                "Ngưỡng cảnh báo: " + request.lowStockThreshold(), httpRequest);
         return ResponseEntity.ok(response);
     }
 

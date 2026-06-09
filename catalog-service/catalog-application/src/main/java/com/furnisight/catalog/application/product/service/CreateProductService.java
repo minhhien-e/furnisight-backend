@@ -20,6 +20,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashSet;
+import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -36,8 +39,13 @@ public class CreateProductService implements CreateProductUseCase {
         ProductDescription description = new ProductDescription(command.getDescription());
 
         List<ProductVariant> variants = new ArrayList<>();
+        Set<String> skus = new HashSet<>();
         if (command.getVariants() != null) {
             for (CreateProductCommand.VariantCommand v : command.getVariants()) {
+                String sku = normalizeSku(v.getSku());
+                if (!skus.add(sku) || productRepository.findVariantIdBySku(sku).isPresent()) {
+                    throw new IllegalArgumentException("Variant SKU already exists: " + sku);
+                }
                 ProductDimensions dims = new ProductDimensions(
                         v.getWeight(), v.getLength(), v.getWidth(), v.getHeight());
                 variants.add(ProductVariant.builder()
@@ -48,7 +56,8 @@ public class CreateProductService implements CreateProductUseCase {
                         .material(v.getMaterial())
                         .warranty(v.getWarranty())
                         .color(v.getColor())
-                        .sku(v.getSku())
+                        .sku(sku)
+                        .lowStockThreshold(validThreshold(v.getLowStockThreshold()))
                         .build());
             }
         }
@@ -73,6 +82,7 @@ public class CreateProductService implements CreateProductUseCase {
                 name,
                 slug,
                 description,
+                command.getModelMediaId(),
                 command.getModelUrl(),
                 command.getSupports3d(),
                 command.getFeatures(),
@@ -80,5 +90,21 @@ public class CreateProductService implements CreateProductUseCase {
                 variants);
 
         productRepository.save(product);
+    }
+
+    private String normalizeSku(String sku) {
+        String normalized = sku == null ? "" : sku.trim().toUpperCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            throw new IllegalArgumentException("Variant SKU is required");
+        }
+        return normalized;
+    }
+
+    private int validThreshold(Integer threshold) {
+        int value = threshold == null || threshold == 0 ? 5 : threshold;
+        if (value < 1 || value > 9999) {
+            throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
+        }
+        return value;
     }
 }

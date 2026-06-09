@@ -46,6 +46,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.model_media_id,
                     p.model_url,
                     p.supports_3d,
                     p.sold_count,
@@ -100,6 +101,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.model_media_id,
                     p.model_url,
                     p.supports_3d,
                     p.sold_count,
@@ -277,6 +279,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.product_status,
+                    p.model_media_id,
                     p.model_url,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
@@ -285,7 +288,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
                 """ + whereClause + """
-                GROUP BY p.id, p.name, p.slug, p.product_status, p.model_url, c.name, p.created_at
+                GROUP BY p.id, p.name, p.slug, p.product_status, p.model_media_id, p.model_url, c.name, p.created_at
                 ORDER BY p.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
@@ -321,14 +324,15 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         Long total = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM (
-                    SELECT p.id, COALESCE(SUM(pv.stock_quantity), 0) AS stock
+                    SELECT p.id
                     FROM products p
-                    LEFT JOIN product_variants pv ON pv.product_id = p.id
+                    JOIN product_variants pv ON pv.product_id = p.id
                     GROUP BY p.id
+                    HAVING BOOL_OR(pv.stock_quantity > 0
+                        AND pv.stock_quantity <= pv.low_stock_threshold)
                 ) stock_view
-                WHERE stock > 0 AND stock <= :threshold
                 """,
-                Map.of("threshold", Math.max(threshold, 1)),
+                Map.of(),
                 Long.class);
         return total == null ? 0L : total;
     }
@@ -362,14 +366,15 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
                 GROUP BY p.id, p.name, c.name
-                HAVING COALESCE(SUM(pv.stock_quantity), 0) <= :threshold
+                HAVING BOOL_OR(pv.stock_quantity > 0
+                    AND pv.stock_quantity <= pv.low_stock_threshold)
                 ORDER BY product_stock ASC, p.name ASC
                 LIMIT :limit
                 """;
 
         return jdbcTemplate.query(
                 sql,
-                Map.of("threshold", Math.max(threshold, 1), "limit", Math.max(limit, 1)),
+                Map.of("limit", Math.max(limit, 1)),
                 (rs, rowNum) -> LowStockProductProjection.builder()
                         .id((UUID) rs.getObject("product_id"))
                         .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
@@ -422,6 +427,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .price(getNullableDouble(rs, "product_price") == null ? 0D : getNullableDouble(rs, "product_price"))
                 .stock(rs.getInt("product_stock"))
                 .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
+                .modelMediaId((UUID) rs.getObject("model_media_id"))
                 .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .imageUrls(fetchGallery(id))
                 .build();
@@ -676,6 +682,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .collection(normalizeText(rs.getString("collection_name"), null))
                 .features(features)
                 .price(0.0)
+                .modelMediaId((UUID) rs.getObject("model_media_id"))
                 .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .roomTypeHint(categoryName)
                 .build();
@@ -694,7 +701,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     color,
                     material,
                     warranty,
-                    sku
+                    sku,
+                    low_stock_threshold
                 FROM product_variants
                 WHERE product_id = :productId
                 ORDER BY price ASC
@@ -715,6 +723,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .material(normalizeText(rs.getString("material"), ""))
                         .warranty(normalizeText(rs.getString("warranty"), ""))
                         .sku(normalizeText(rs.getString("sku"), ""))
+                        .lowStockThreshold(rs.getInt("low_stock_threshold"))
                         .build());
     }
 

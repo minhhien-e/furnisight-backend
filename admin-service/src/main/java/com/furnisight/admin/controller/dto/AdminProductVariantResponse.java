@@ -12,6 +12,7 @@ public record AdminProductVariantResponse(
         double length,
         double width,
         double height,
-        String label
+        String label,
+        int lowStockThreshold
 ) {
 }

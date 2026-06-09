@@ -8,9 +8,9 @@ public record SaveAdminProductRequest(
         String sku,
         String status,
         String statusLabel,
-        String model3dUrl,
-        String model3dFileName,
-        long model3dSize,
+        String modelMediaId,
+        String modelUrl,
+        boolean supports3d,
         String description,
         java.util.List<String> imageUrls,
         java.util.List<SaveAdminProductVariantRequest> variants

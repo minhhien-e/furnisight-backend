@@ -19,6 +19,7 @@ import com.furnisight.admin.catalog.ProductDto;
 import com.furnisight.admin.catalog.StockInVariantRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
+import com.furnisight.admin.catalog.UpdateVariantThresholdRequest;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Service;
 
@@ -69,6 +70,13 @@ public class GrpcAdminCatalogClient {
 
     public AdminActionResponse stockInVariant(StockInVariantRequest request) {
         return adminCatalogServiceStub.stockInVariant(request);
+    }
+
+    public AdminActionResponse updateVariantThreshold(String variantId, int threshold) {
+        return adminCatalogServiceStub.updateVariantThreshold(UpdateVariantThresholdRequest.newBuilder()
+                .setVariantId(variantId)
+                .setLowStockThreshold(threshold)
+                .build());
     }
 
     public CategoryListResponse getCategories(String query) {

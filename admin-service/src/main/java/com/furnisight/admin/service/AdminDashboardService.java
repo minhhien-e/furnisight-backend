@@ -28,7 +28,6 @@ public class AdminDashboardService {
     private final GrpcAdminCatalogClient grpcAdminCatalogClient;
     private final AdminOrderService adminOrderService;
     private final AdminCatalogService adminCatalogService;
-    private final AdminInventorySettingsService adminInventorySettingsService;
 
     public AdminDashboardResponse getDashboardData() {
         AccountStatsResponse userStats = grpcAdminUserClient.getAccountStats();
@@ -60,7 +59,7 @@ public class AdminDashboardService {
                         orderStats.getOrdersThisMonthByStatusList().stream().map(OrderStatusCount::getLabel).toList(),
                         orderStats.getOrdersThisMonthByStatusList().stream().map(point -> (double) point.getCount()).toList()),
                 adminOrderService.getRecentOrders(5),
-                adminCatalogService.getLowStockProducts(5, adminInventorySettingsService.defaultThreshold()),
+                adminCatalogService.getLowStockProducts(5, 5),
                 buildAlerts(orderStats, productStats));
     }
 

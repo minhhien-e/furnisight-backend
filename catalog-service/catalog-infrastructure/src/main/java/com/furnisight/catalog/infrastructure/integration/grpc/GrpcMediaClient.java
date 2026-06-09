@@ -1,5 +1,7 @@
 package com.furnisight.catalog.infrastructure.integration.grpc;
 
+import com.furnisight.media.DeleteMediaRequest;
+import com.furnisight.media.DeleteMediaResponse;
 import com.furnisight.media.GetMediaUrlRequest;
 import com.furnisight.media.GetMediaUrlResponse;
 import com.furnisight.media.MediaServiceGrpc;
@@ -22,5 +24,11 @@ public class GrpcMediaClient {
             .setTtlSeconds(DEFAULT_URL_TTL_SECONDS)
             .build();
         return mediaServiceBlockingStub.getMediaUrl(request);
+    }
+
+    public DeleteMediaResponse deleteMedia(UUID mediaId) {
+        return mediaServiceBlockingStub.deleteMedia(DeleteMediaRequest.newBuilder()
+                .setMediaId(mediaId.toString())
+                .build());
     }
 }

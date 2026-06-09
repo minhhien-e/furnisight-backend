@@ -24,6 +24,7 @@ import com.furnisight.admin.catalog.ProductVariantInput;
 import com.furnisight.admin.catalog.StockInVariantRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
+import com.furnisight.admin.catalog.UpdateVariantThresholdRequest;
 import com.furnisight.catalog.application.category.dto.command.CreateCategoryCommand;
 import com.furnisight.catalog.application.category.dto.command.UpdateCategoryCommand;
 import com.furnisight.catalog.application.category.dto.projection.CategoryDetailProjection;
@@ -45,21 +46,28 @@ import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductI
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductStatusUseCase;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import com.furnisight.catalog.domain.entities.ProductImage;
+import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.enums.ProductStatus;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
+import com.furnisight.catalog.infrastructure.integration.grpc.GrpcMediaClient;
+import com.furnisight.media.GetMediaUrlResponse;
 import io.grpc.stub.StreamObserver;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.server.service.GrpcService;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.text.Normalizer;
 import java.util.UUID;
 
@@ -81,6 +89,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     private final ReleaseInventoryUseCase releaseInventoryUseCase;
     private final CreateCategoryUseCase createCategoryUseCase;
     private final UpdateCategoryUseCase updateCategoryUseCase;
+    private final GrpcMediaClient grpcMediaClient;
 
     @Override
     public void getAdminProducts(GetAdminProductsRequest request, StreamObserver<ProductPageResponse> responseObserver) {
@@ -164,16 +173,21 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     @Override
     public void createProduct(CreateProductRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        complete(responseObserver, () -> createProductUseCase.execute(CreateProductCommand.builder()
+        complete(responseObserver, () -> {
+            validateVariantInputs(request.getVariantsList());
+            ModelMedia model = resolveModelMedia(request.getModelMediaId());
+            createProductUseCase.execute(CreateProductCommand.builder()
                 .categoryId(resolveCategoryId(request.getCategoryId(), request.getCategory()))
                 .name(request.getName())
                 .slug(resolveSlug(request.getSlug(), request.getName()))
                 .description(defaultText(request.getDescription(), request.getName()))
-                .modelUrl(request.getModel3DUrl())
-                .supports3d(!request.getModel3DUrl().isBlank())
+                .modelMediaId(model.mediaId())
+                .modelUrl(model.url())
+                .supports3d(model.mediaId() != null && request.getSupports3D())
                 .imageUrls(request.getImageUrlsList())
                 .variants(resolveCreateVariants(request.getVariantsList(), request.getPrice(), request.getStock()))
-                .build()), "Product created");
+                .build());
+        }, "Product created");
     }
 
     @Override
@@ -181,13 +195,24 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     public void updateProduct(UpdateProductRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         complete(responseObserver, () -> {
             UUID productId = UUID.fromString(request.getId());
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+            UUID oldModelMediaId = product.getModelMediaId();
+            validateVariantInputs(request.getVariantsList());
+            ModelMedia model = request.getModelMediaId().isBlank()
+                    && request.getSupports3D()
+                    && !request.getModelUrl().isBlank()
+                    && product.getModelMediaId() == null
+                    ? new ModelMedia(null, request.getModelUrl(), "", 0)
+                    : resolveModelMedia(request.getModelMediaId());
             updateProductInfoUseCase.execute(UpdateProductInfoCommand.builder()
                     .productId(productId)
                     .name(emptyToNull(request.getName()))
                     .slug(emptyToNull(resolveSlug(request.getSlug(), request.getName())))
                     .description(emptyToNull(request.getDescription()))
-                    .modelUrl(emptyToNull(request.getModel3DUrl()))
-                    .supports3d(!request.getModel3DUrl().isBlank())
+                    .modelMediaId(model.mediaId())
+                    .modelUrl(model.url())
+                    .supports3d(!model.url().isBlank() && request.getSupports3D())
                     .build());
 
             UUID categoryId = resolveCategoryId(request.getCategoryId(), request.getCategory());
@@ -208,7 +233,24 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
             replaceVariants(productId, request.getVariantsList(), request.getPrice(), request.getStock());
             replaceGallery(productId, request.getImageUrlsList());
+            deleteReplacedModel(oldModelMediaId, model.mediaId());
         }, "Product updated");
+    }
+
+    @Override
+    @Transactional
+    public void updateVariantThreshold(UpdateVariantThresholdRequest request,
+            StreamObserver<AdminActionResponse> responseObserver) {
+        complete(responseObserver, () -> {
+            int threshold = request.getLowStockThreshold();
+            if (threshold < 1 || threshold > 9999) {
+                throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
+            }
+            if (productRepository.updateVariantLowStockThreshold(
+                    UUID.fromString(request.getVariantId()), threshold) == 0) {
+                throw new IllegalArgumentException("Variant not found");
+            }
+        }, "Variant threshold updated");
     }
 
     @Override
@@ -314,6 +356,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     }
 
     private ProductDto toProductDto(AdminProductProjection product) {
+        ModelMedia model = readModelMetadata(product.getModelMediaId(), product.getModelUrl());
         return ProductDto.newBuilder()
                 .setId(product.getId().toString())
                 .setName(safe(product.getName()))
@@ -324,7 +367,11 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setStock(product.getStock() == null ? 0 : product.getStock())
                 .setStatus(toProductTone(product.getStatus(), product.getStock()))
                 .setStatusLabel(toProductStatusLabel(product.getStatus(), product.getStock()))
-                .setModel3DUrl(safe(product.getModelUrl()))
+                .setModelUrl(model.url())
+                .setModelMediaId(product.getModelMediaId() == null ? "" : product.getModelMediaId().toString())
+                .setSupports3D(product.getModelMediaId() != null)
+                .setModel3DFileName(model.filename())
+                .setModel3DSize(model.sizeBytes())
                 .addAllImageUrls(product.getImageUrls() == null ? List.of() : product.getImageUrls())
                 .addAllVariants(fetchAdminVariantDtos(product.getId()))
                 .build();
@@ -336,6 +383,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .sum();
         double price = product.getPrice() == null ? 0D : product.getPrice();
         String category = product.getCategory() == null ? "" : product.getCategory().getLabel();
+        ModelMedia model = readModelMetadata(product.getModelMediaId(), product.getModelUrl());
         return ProductDto.newBuilder()
                 .setId(product.getId().toString())
                 .setName(safe(product.getName()))
@@ -346,7 +394,11 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setStock(stock)
                 .setStatus(toProductTone(product.getStatus(), stock))
                 .setStatusLabel(toProductStatusLabel(product.getStatus(), stock))
-                .setModel3DUrl(safe(product.getModelUrl()))
+                .setModelUrl(model.url())
+                .setModelMediaId(product.getModelMediaId() == null ? "" : product.getModelMediaId().toString())
+                .setSupports3D(Boolean.TRUE.equals(product.getSupports3d()))
+                .setModel3DFileName(model.filename())
+                .setModel3DSize(model.sizeBytes())
                 .addAllImageUrls(product.getGallery() == null ? List.of() : product.getGallery())
                 .addAllVariants(product.getVariants() == null ? List.of() : product.getVariants().stream()
                         .map(this::toVariantDto)
@@ -371,7 +423,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .material("N/A")
                 .color("")
                 .warranty("")
-                .sku("")
+                .sku("AUTO-" + UUID.randomUUID().toString().toUpperCase(Locale.ROOT))
+                .lowStockThreshold(5)
                 .build());
     }
 
@@ -386,15 +439,27 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .material(defaultText(variant.getMaterial(), "N/A"))
                 .warranty(safe(variant.getWarranty()))
                 .color(safe(variant.getColor()))
-                .sku(safe(variant.getSku()))
+                .sku(normalizeSku(variant.getSku()))
+                .lowStockThreshold(validThreshold(variant.getLowStockThreshold()))
                 .build();
     }
 
     private void replaceVariants(UUID productId, List<ProductVariantInput> variants, double fallbackPrice, int fallbackStock) {
         productRepository.findById(productId).ifPresent(product -> {
             if (variants != null && !variants.isEmpty()) {
+                Set<UUID> existingIds = product.getVariants() == null
+                        ? Set.of()
+                        : product.getVariants().stream().map(ProductVariant::getId).collect(java.util.stream.Collectors.toSet());
+                Set<UUID> incomingIds = variants.stream()
+                        .map(ProductVariantInput::getId)
+                        .filter(id -> id != null && !id.isBlank())
+                        .map(UUID::fromString)
+                        .collect(java.util.stream.Collectors.toSet());
+                if (!existingIds.containsAll(incomingIds)) {
+                    throw new IllegalArgumentException("Variant does not belong to this product");
+                }
                 if (product.getVariants() != null) {
-                    product.getVariants().clear();
+                    product.getVariants().removeIf(variant -> !incomingIds.contains(variant.getId()));
                 }
                 variants.forEach(input -> product.addVariant(toProductVariant(input)));
             } else if (fallbackPrice >= 0 && fallbackStock >= 0 && product.getVariants() != null && !product.getVariants().isEmpty()) {
@@ -420,7 +485,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .material(defaultText(input.getMaterial(), "N/A"))
                 .warranty(safe(input.getWarranty()))
                 .color(safe(input.getColor()))
-                .sku(safe(input.getSku()))
+                .sku(normalizeSku(input.getSku()))
+                .lowStockThreshold(validThreshold(input.getLowStockThreshold()))
                 .build();
     }
 
@@ -447,8 +513,100 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setLength(variant.getLength() == null ? 0D : variant.getLength())
                 .setWidth(variant.getWidth() == null ? 0D : variant.getWidth())
                 .setHeight(variant.getHeight() == null ? 0D : variant.getHeight())
+                .setLowStockThreshold(validThreshold(variant.getLowStockThreshold()))
                 .setLabel(variantLabel(variant))
                 .build();
+    }
+
+    private void validateVariantInputs(List<ProductVariantInput> variants) {
+        if (variants == null || variants.isEmpty()) {
+            throw new IllegalArgumentException("At least one product variant is required");
+        }
+        Set<String> requestSkus = new HashSet<>();
+        for (ProductVariantInput variant : variants) {
+            String sku = normalizeSku(variant.getSku());
+            if (!requestSkus.add(sku)) {
+                throw new IllegalArgumentException("Duplicate variant SKU: " + sku);
+            }
+            UUID requestVariantId = parseOptionalUuid(variant.getId());
+            productRepository.findVariantIdBySku(sku)
+                    .filter(existingId -> !existingId.equals(requestVariantId))
+                    .ifPresent(existingId -> {
+                        throw new IllegalArgumentException("Variant SKU already exists: " + sku);
+                    });
+            validThreshold(variant.getLowStockThreshold());
+        }
+    }
+
+    private String normalizeSku(String rawSku) {
+        String sku = rawSku == null ? "" : rawSku.trim().toUpperCase(Locale.ROOT);
+        if (sku.isBlank()) {
+            throw new IllegalArgumentException("Variant SKU is required");
+        }
+        return sku;
+    }
+
+    private int validThreshold(Integer threshold) {
+        int value = threshold == null || threshold == 0 ? 5 : threshold;
+        if (value < 1 || value > 9999) {
+            throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
+        }
+        return value;
+    }
+
+    private ModelMedia resolveModelMedia(String rawMediaId) {
+        UUID mediaId = parseOptionalUuid(rawMediaId);
+        if (mediaId == null) {
+            return new ModelMedia(null, "", "", 0);
+        }
+        GetMediaUrlResponse media = grpcMediaClient.getMediaUrl(mediaId);
+        if (!"ACTIVE".equalsIgnoreCase(media.getState())
+                || !"PRODUCT_MODEL".equalsIgnoreCase(media.getOwnerType())
+                || !"DOCUMENT".equalsIgnoreCase(media.getMediaType())
+                || media.getUrl().isBlank()) {
+            throw new IllegalArgumentException("Media is not an active product GLB model");
+        }
+        return new ModelMedia(mediaId, media.getUrl(), media.getOriginalFilename(), media.getSizeBytes());
+    }
+
+    private ModelMedia readModelMetadata(UUID mediaId, String fallbackUrl) {
+        if (mediaId == null) {
+            return new ModelMedia(null, safe(fallbackUrl), "", 0);
+        }
+        try {
+            GetMediaUrlResponse media = grpcMediaClient.getMediaUrl(mediaId);
+            return new ModelMedia(mediaId, defaultText(media.getUrl(), fallbackUrl),
+                    media.getOriginalFilename(), media.getSizeBytes());
+        } catch (Exception ex) {
+            log.warn("Could not resolve model media metadata {}", mediaId, ex);
+            return new ModelMedia(mediaId, safe(fallbackUrl), "", 0);
+        }
+    }
+
+    private void deleteReplacedModel(UUID oldMediaId, UUID newMediaId) {
+        if (oldMediaId == null || oldMediaId.equals(newMediaId)) {
+            return;
+        }
+        Runnable delete = () -> {
+            try {
+                grpcMediaClient.deleteMedia(oldMediaId);
+            } catch (Exception ex) {
+                log.warn("Could not delete replaced model media {}", oldMediaId, ex);
+            }
+        };
+        if (TransactionSynchronizationManager.isSynchronizationActive()) {
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override
+                public void afterCommit() {
+                    delete.run();
+                }
+            });
+        } else {
+            delete.run();
+        }
+    }
+
+    private record ModelMedia(UUID mediaId, String url, String filename, long sizeBytes) {
     }
 
     private String variantLabel(ProductDetailProjection.VariantDto variant) {
