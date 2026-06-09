@@ -18,108 +18,109 @@ spring:
       port: 6379
   cloud:
     gateway:
-      server:
-        webflux:
-          routes:
-            - id: user-service
-              uri: ${USER_SERVICE_URL}
-              predicates:
-                - Path=/users/**
-              filters:
-                - name: RequestRateLimiter
-                  args:
-                    key-resolver: "#{@ipKeyResolver}"
-                    redis-rate-limiter.replenishRate: 5
-                    redis-rate-limiter.burstCapacity: 10
-                - name: RewritePath
-                  args:
-                    regexp: /users/(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URL}
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                key-resolver: "#{@ipKeyResolver}"
+                redis-rate-limiter.replenishRate: 5
+                redis-rate-limiter.burstCapacity: 10
+            - name: RewritePath
+              args:
+                regexp: /users/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
 
-            - id: catalog-service
-              uri: ${CATALOG_SERVICE_URL}
-              predicates:
-                - Path=/catalog/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /catalog/(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
+        - id: catalog-service
+          uri: ${CATALOG_SERVICE_URL}
+          predicates:
+            - Path=/catalog/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /catalog/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
 
-            - id: cart-service
-              uri: ${CART_SERVICE_URL}
-              predicates:
-                - Path=/cart/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /cart/?(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
+        - id: cart-service
+          uri: ${CART_SERVICE_URL}
+          predicates:
+            - Path=/cart/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /cart/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
 
-            - id: notification-service
-              uri: ${NOTIFICATION_SERVICE_URL}
-              predicates:
-                - Path=/notifications/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /notifications/(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL}
+          predicates:
+            - Path=/notifications/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /notifications/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
 
-            - id: message-service
-              uri: ${MESSAGE_SERVICE_URL:http://message-service:8080}
-              predicates:
-                - Path=/messages/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /messages/(?<segment>.*)
-                    replacement: /$\{segment}
-            - id: order-service
-              uri: ${ORDER_SERVICE_URL}
-              predicates:
-                - Path=/orders/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /orders/?(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
+        - id: message-service
+          uri: ${MESSAGE_SERVICE_URL:http://message-service:8080}
+          predicates:
+            - Path=/messages/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /messages/(?<segment>.*)
+                replacement: /$\{segment}
 
-            - id: ai-image-classifier
-              uri: ${AI_IMAGE_CLASSIFIER_URL}
-              predicates:
-                - Path=/ai-classifier/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /ai-classifier/(?<segment>.*)
-                    replacement: /$\{segment}
-            - id: ai-image-reconstruction
-              uri: ${AI_IMAGE_RECONSTRUCTION_URL}
-              predicates:
-                - Path=/ai-reconstruction/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /ai-reconstruction/(?<segment>.*)
-                    replacement: /${segment}
-            - id: media-service-api
-              uri: ${MEDIA_SERVICE_URL}
-              predicates:
-                - Path=/media/**
-              filters:
-                - name: RewritePath
-                  args:
-                    regexp: /media/?(?<segment>.*)
-                    replacement: /api/v1/$\{segment}
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL}
+          predicates:
+            - Path=/orders/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /orders/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
 
-            - id: admin-service
-              uri: ${ADMIN_SERVICE_URL:http://localhost:8088}
-              predicates:
-                - Path=/admin/**
+        - id: ai-image-classifier
+          uri: ${AI_IMAGE_CLASSIFIER_URL}
+          predicates:
+            - Path=/ai-classifier/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /ai-classifier/(?<segment>.*)
+                replacement: /$\{segment}
 
-          forwarded:
-            enabled: true
+        - id: ai-image-reconstruction
+          uri: ${AI_IMAGE_RECONSTRUCTION_URL}
+          predicates:
+            - Path=/ai-reconstruction/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /ai-reconstruction/(?<segment>.*)
+                replacement: /$\{segment}
+
+        - id: media-service-api
+          uri: ${MEDIA_SERVICE_URL}
+          predicates:
+            - Path=/media/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /media/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: admin-service
+          uri: ${ADMIN_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/admin/**
+
+      forwarded:
+        enabled: true
 
 management:
   tracing:
