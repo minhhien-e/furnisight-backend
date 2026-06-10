@@ -19,6 +19,7 @@ service AdminOrderService {
     rpc ShipOrder (ShipOrderRequest) returns (AdminActionResponse);
     rpc DeliverOrder (DeliverOrderRequest) returns (AdminActionResponse);
     rpc UpdateOrderStatus (UpdateOrderStatusRequest) returns (AdminActionResponse);
+    rpc GetRevenueSummary (GetRevenueSummaryRequest) returns (RevenueSummaryResponse);
 }
 
 message AdminActionResponse {
@@ -153,4 +154,25 @@ message UpdateOrderStatusRequest {
     string admin_id = 1;
     string order_code = 2;
     string status = 3;
+}
+
+// Revenue summary
+message GetRevenueSummaryRequest {
+    int32 months = 1; // số tháng gần nhất, mặc định 12
+}
+
+message RevenueSummaryResponse {
+    repeated MonthlyRevenue monthly = 1;
+    double total_revenue = 2;
+    double revenue_this_month = 3;
+    int64 total_orders = 4;
+    int64 orders_this_month = 5;
+}
+
+message MonthlyRevenue {
+    string year_month = 1;    // "2026-05"
+    string label = 2;         // "T5/2026"
+    double revenue = 3;
+    int64  order_count = 4;
+    double mom_change_pct = 5; // % so với tháng trước
 }
