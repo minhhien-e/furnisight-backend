@@ -22,6 +22,9 @@ import com.furnisight.admin.order.UpdateOrderStatusRequest;
 import com.furnisight.admin.order.UpdateVoucherRequest;
 import com.furnisight.admin.order.VoucherDto;
 import com.furnisight.admin.order.VoucherListResponse;
+import com.furnisight.admin.order.GetTopSellingProductsRequest;
+import com.furnisight.admin.order.TopSellingProductsResponse;
+import com.furnisight.admin.order.TopProductDto;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
 import com.furnisight.order.application.promotion.port.out.repository.PromotionRepository;
 import com.furnisight.order.domain.entities.order.Order;
@@ -282,6 +285,41 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get revenue summary", ex);
+            responseObserver.onError(ex);
+        }
+    }
+
+    @Override
+    public void getTopSellingProducts(GetTopSellingProductsRequest request, StreamObserver<TopSellingProductsResponse> responseObserver) {
+        try {
+            int limit = request.getLimit() > 0 ? request.getLimit() : 5;
+            List<Object[]> queryResults = orderRepository.findTopSellingProducts(limit);
+
+            TopSellingProductsResponse.Builder builder = TopSellingProductsResponse.newBuilder();
+            for (Object[] row : queryResults) {
+                String productId = row[0] == null ? "" : row[0].toString();
+                String productName = row[1] == null ? "" : row[1].toString();
+                String categoryName = row[2] == null ? "" : row[2].toString();
+                String imageUrl = row[3] == null ? "" : row[3].toString();
+                double price = row[4] == null ? 0D : ((Number) row[4]).doubleValue();
+                int soldCount = row[5] == null ? 0 : ((Number) row[5]).intValue();
+                double totalRevenue = row[6] == null ? 0D : ((Number) row[6]).doubleValue();
+
+                builder.addProducts(TopProductDto.newBuilder()
+                        .setProductId(productId)
+                        .setProductName(productName)
+                        .setCategoryName(categoryName)
+                        .setImageUrl(imageUrl)
+                        .setPrice(price)
+                        .setSoldCount(soldCount)
+                        .setTotalRevenue(totalRevenue)
+                        .build());
+            }
+
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        } catch (Exception ex) {
+            log.error("Failed to get top selling products", ex);
             responseObserver.onError(ex);
         }
     }

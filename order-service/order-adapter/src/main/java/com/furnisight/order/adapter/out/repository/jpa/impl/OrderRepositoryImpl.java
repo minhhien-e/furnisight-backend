@@ -94,4 +94,12 @@ public class OrderRepositoryImpl implements OrderRepository {
         Double value = jpaRepository.sumTotalAmountCreatedAtBetween(start, end);
         return value == null ? 0D : value;
     }
+
+    @Override
+    public List<Object[]> findTopSellingProducts(int limit) {
+        return jpaRepository.findTopSellingProducts(
+            List.of(OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED),
+            PageRequest.of(0, Math.max(limit, 1))
+        );
+    }
 }

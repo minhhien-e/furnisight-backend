@@ -47,4 +47,17 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
 
     @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.createdAt between :start and :end")
     Double sumTotalAmountCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+
+    @Query(value = "SELECT oi.productSnapshot.productId AS productId, " +
+                   "MAX(oi.productSnapshot.productName) AS productName, " +
+                   "MAX(oi.productSnapshot.categoryName) AS categoryName, " +
+                   "MAX(oi.productSnapshot.imageUrl) AS imageUrl, " +
+                   "MAX(oi.price) AS price, " +
+                   "SUM(oi.quantity) AS soldCount, " +
+                   "SUM(oi.price * oi.quantity) AS totalRevenue " +
+                   "FROM Order o JOIN o.items oi " +
+                   "WHERE o.status NOT IN :statuses " +
+                   "GROUP BY oi.productSnapshot.productId " +
+                   "ORDER BY SUM(oi.quantity) DESC")
+    List<Object[]> findTopSellingProducts(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);
 }
