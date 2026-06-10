@@ -3,7 +3,7 @@
 -- Chay thu cong sau khi Docker stack va Flyway migrations da san sang.
 --
 -- Cach chay:
---   docker exec -i furnisight_user_postgres psql -U postgres < seed-data.sql
+--   docker exec -i furnisight_user_postgres psql -v ON_ERROR_STOP=1 -U postgres < seed-data.sql
 -- ============================================================
 
 -- ============================================================
@@ -11,6 +11,9 @@
 -- Schema tham chieu:
 --   - user-service/.../V1__init_identity_schema.sql
 --   - user-service/.../V2__init_profile_schema.sql
+--   - user-service/.../V3__init_favorite_product_schema.sql
+--   - user-service/.../V4__create_user_addresses_table.sql
+--   - user-service/.../V5__add_avatar_url_to_user_profiles.sql
 -- ============================================================
 \connect furnisight_user_db;
 
@@ -36,6 +39,15 @@ WHERE account_id IN (
 );
 
 DELETE FROM user_profiles
+WHERE account_id IN (
+  '52379d96-5238-4fd9-8383-bae82736bb3b',
+  'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
+  '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
+  '7c22e6d3-1111-4aab-b999-aabbcc001122',
+  '8d33f7e4-2222-4bbc-caaa-bbccdd002233'
+);
+
+DELETE FROM user_addresses
 WHERE account_id IN (
   '52379d96-5238-4fd9-8383-bae82736bb3b',
   'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
@@ -109,6 +121,28 @@ INSERT INTO user_profiles (
   (gen_random_uuid(), '7c22e6d3-1111-4aab-b999-aabbcc001122', 'User 02', 'Thi', 'Binh', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user02', 'user02@furnisight.store', '2001-08-10', 'FEMALE', NOW(), NOW()),
   (gen_random_uuid(), '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'User 03', 'Quoc', 'Cuong', 'https://api.dicebear.com/7.x/avataaars/svg?seed=user03', 'user03@furnisight.store', '1998-12-03', 'MALE', NOW(), NOW());
 
+INSERT INTO user_addresses (
+  id,
+  account_id,
+  full_name,
+  phone,
+  province_code,
+  province_name,
+  district_code,
+  district_name,
+  ward_code,
+  ward_name,
+  detail,
+  type,
+  is_default,
+  created_at,
+  updated_at
+) VALUES
+  ('61000000-0000-0000-0000-000000000001', '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hiền', '0901234567', '79', 'Thành phố Hồ Chí Minh', '769', 'Thành phố Thủ Đức', '26824', 'Phường Linh Trung', 'Khu phố 6', 'HOME', TRUE, NOW(), NOW()),
+  ('61000000-0000-0000-0000-000000000002', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'Văn An', '0902345678', '79', 'Thành phố Hồ Chí Minh', '760', 'Quận 1', '26734', 'Phường Bến Nghé', '12 Nguyễn Huệ', 'HOME', TRUE, NOW(), NOW()),
+  ('61000000-0000-0000-0000-000000000003', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'Thị Bình', '0903456789', '79', 'Thành phố Hồ Chí Minh', '765', 'Quận Bình Thạnh', '26905', 'Phường 25', '45 Nguyễn Gia Trí', 'OFFICE', TRUE, NOW(), NOW()),
+  ('61000000-0000-0000-0000-000000000004', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'Quốc Cường', '0904567890', '79', 'Thành phố Hồ Chí Minh', '770', 'Quận 3', '27142', 'Phường Võ Thị Sáu', '89 Võ Văn Tần', 'HOME', TRUE, NOW(), NOW());
+
 INSERT INTO favorite_products (id, account_id, product_id, created_at, updated_at) VALUES
   (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
   (gen_random_uuid(), '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '2 days', NOW() - INTERVAL '2 days'),
@@ -124,7 +158,7 @@ COMMIT;
 -- ============================================================
 -- furnisight_catalog_db
 -- Schema tham chieu:
---   - catalog-service/.../V1__init_schema.sql
+--   - catalog-service/.../V1__init_schema.sql den V7
 -- ============================================================
 \connect furnisight_catalog_db;
 
@@ -254,21 +288,23 @@ INSERT INTO products (
   description,
   product_status,
   model_url,
+  model_media_id,
   supports_3d,
   features,
+  sold_count,
   created_at,
   updated_at
 ) VALUES
-  ('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Sofa da bò hiện đại', 'modern-leather-sofa', 'Ghế sofa da bò cao cấp, dáng gọn và sang trọng cho phòng khách hiện đại.', 'ACTIVE', NULL, FALSE, '["Da bò thật","Khung gỗ sồi","Dễ vệ sinh","Đệm ngồi êm"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Sofa vải chữ L êm ái', 'fabric-sectional-sofa', 'Sofa vải chữ L rộng rãi, phù hợp phòng khách gia đình và không gian mở.', 'ACTIVE', NULL, FALSE, '["Vải nỉ cao cấp","Thiết kế chữ L","Đệm mút dày","Có thể tháo vỏ"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001', 'Bàn trà gỗ sồi tối giản', 'minimalist-oak-coffee-table', 'Bàn trà gỗ sồi phong cách tối giản, dễ phối với sofa và thảm phòng khách.', 'ACTIVE', NULL, FALSE, '["Gỗ sồi tự nhiên","Mặt bàn chống trầy","Kiểu dáng tối giản"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002', 'Giường king khung kim loại', 'king-size-metal-bed', 'Giường king size khung kim loại chắc chắn, rộng rãi và dễ vệ sinh gầm giường.', 'ACTIVE', NULL, FALSE, '["Sơn tĩnh điện","Khung thép chịu lực","Dễ lắp ráp","Không gây tiếng kêu"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002', 'Giường queen gỗ tự nhiên', 'queen-size-wooden-bed', 'Giường queen size bằng gỗ tự nhiên, tông ấm và phù hợp phòng ngủ thư giãn.', 'ACTIVE', NULL, FALSE, '["Gỗ thông tự nhiên","Phong cách ấm áp","Nan giường chắc chắn"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000006', 'd0000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000002', 'Tủ quần áo cửa trượt', 'sliding-door-wardrobe', 'Tủ quần áo cửa trượt rộng rãi, tích hợp gương và chia ngăn khoa học.', 'ACTIVE', NULL, FALSE, '["Cửa trượt tiết kiệm diện tích","Tích hợp gương lớn","Gỗ MDF phủ Melamine"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000007', 'd0000000-0000-0000-0000-000000000005', 'f0000000-0000-0000-0000-000000000003', 'Bàn ăn mặt đá cẩm thạch', 'marble-top-dining-table', 'Bàn ăn mặt đá cẩm thạch sang trọng, phù hợp phòng bếp và khu vực ăn gia đình.', 'ACTIVE', NULL, FALSE, '["Mặt đá cẩm thạch","Chân bàn kim loại","Dễ lau chùi","Phong cách hiện đại"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000008', 'd0000000-0000-0000-0000-000000000006', 'f0000000-0000-0000-0000-000000000003', 'Tủ bếp gỗ sáng màu', 'light-wood-kitchen-cabinet', 'Tủ bếp gỗ sáng màu có nhiều ngăn lưu trữ, giúp khu bếp gọn gàng và sạch sẽ.', 'ACTIVE', NULL, FALSE, '["Gỗ công nghiệp chống ẩm","Tay nắm âm","Dễ lau dầu mỡ","Nhiều khoang chứa"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000009', 'd0000000-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000004', 'Tủ lavabo treo tường', 'wall-mounted-bathroom-vanity', 'Tủ lavabo treo tường chống ẩm, giúp phòng tắm thoáng và dễ vệ sinh sàn.', 'ACTIVE', NULL, TRUE, '["Chống ẩm tốt","Thiết kế treo tường","Ngăn kéo giảm chấn","Mặt lavabo dễ lau"]', NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000010', 'd0000000-0000-0000-0000-000000000008', 'f0000000-0000-0000-0000-000000000004', 'Gương phòng tắm có đèn LED', 'led-bathroom-mirror', 'Gương phòng tắm tích hợp đèn LED, ánh sáng dịu và phù hợp khu vực lavabo.', 'ACTIVE', NULL, TRUE, '["Đèn LED tiết kiệm điện","Chống mờ nhẹ","Ánh sáng trung tính","Dễ lắp đặt"]', NOW(), NOW());
+  ('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Sofa da bò hiện đại', 'modern-leather-sofa', 'Ghế sofa da bò cao cấp, dáng gọn và sang trọng cho phòng khách hiện đại.', 'ACTIVE', NULL, NULL, FALSE, '["Da bò thật","Khung gỗ sồi","Dễ vệ sinh","Đệm ngồi êm"]', 24, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Sofa vải chữ L êm ái', 'fabric-sectional-sofa', 'Sofa vải chữ L rộng rãi, phù hợp phòng khách gia đình và không gian mở.', 'ACTIVE', NULL, NULL, FALSE, '["Vải nỉ cao cấp","Thiết kế chữ L","Đệm mút dày","Có thể tháo vỏ"]', 17, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001', 'Bàn trà gỗ sồi tối giản', 'minimalist-oak-coffee-table', 'Bàn trà gỗ sồi phong cách tối giản, dễ phối với sofa và thảm phòng khách.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ sồi tự nhiên","Mặt bàn chống trầy","Kiểu dáng tối giản"]', 31, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002', 'Giường king khung kim loại', 'king-size-metal-bed', 'Giường king size khung kim loại chắc chắn, rộng rãi và dễ vệ sinh gầm giường.', 'ACTIVE', NULL, NULL, FALSE, '["Sơn tĩnh điện","Khung thép chịu lực","Dễ lắp ráp","Không gây tiếng kêu"]', 12, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002', 'Giường queen gỗ tự nhiên', 'queen-size-wooden-bed', 'Giường queen size bằng gỗ tự nhiên, tông ấm và phù hợp phòng ngủ thư giãn.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ thông tự nhiên","Phong cách ấm áp","Nan giường chắc chắn"]', 20, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000006', 'd0000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000002', 'Tủ quần áo cửa trượt', 'sliding-door-wardrobe', 'Tủ quần áo cửa trượt rộng rãi, tích hợp gương và chia ngăn khoa học.', 'ACTIVE', NULL, NULL, FALSE, '["Cửa trượt tiết kiệm diện tích","Tích hợp gương lớn","Gỗ MDF phủ Melamine"]', 9, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000007', 'd0000000-0000-0000-0000-000000000005', 'f0000000-0000-0000-0000-000000000003', 'Bàn ăn mặt đá cẩm thạch', 'marble-top-dining-table', 'Bàn ăn mặt đá cẩm thạch sang trọng, phù hợp phòng bếp và khu vực ăn gia đình.', 'ACTIVE', NULL, NULL, FALSE, '["Mặt đá cẩm thạch","Chân bàn kim loại","Dễ lau chùi","Phong cách hiện đại"]', 8, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000008', 'd0000000-0000-0000-0000-000000000006', 'f0000000-0000-0000-0000-000000000003', 'Tủ bếp gỗ sáng màu', 'light-wood-kitchen-cabinet', 'Tủ bếp gỗ sáng màu có nhiều ngăn lưu trữ, giúp khu bếp gọn gàng và sạch sẽ.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ công nghiệp chống ẩm","Tay nắm âm","Dễ lau dầu mỡ","Nhiều khoang chứa"]', 6, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000009', 'd0000000-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000004', 'Tủ lavabo treo tường', 'wall-mounted-bathroom-vanity', 'Tủ lavabo treo tường chống ẩm, giúp phòng tắm thoáng và dễ vệ sinh sàn.', 'ACTIVE', NULL, NULL, TRUE, '["Chống ẩm tốt","Thiết kế treo tường","Ngăn kéo giảm chấn","Mặt lavabo dễ lau"]', 15, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000010', 'd0000000-0000-0000-0000-000000000008', 'f0000000-0000-0000-0000-000000000004', 'Gương phòng tắm có đèn LED', 'led-bathroom-mirror', 'Gương phòng tắm tích hợp đèn LED, ánh sáng dịu và phù hợp khu vực lavabo.', 'ACTIVE', NULL, NULL, TRUE, '["Đèn LED tiết kiệm điện","Chống mờ nhẹ","Ánh sáng trung tính","Dễ lắp đặt"]', 27, NOW(), NOW());
 
 INSERT INTO product_images (id, product_id, image_url, position, created_at, updated_at) VALUES
   (gen_random_uuid(), 'e0000000-0000-0000-0000-000000000001', 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1200', 1, NOW(), NOW()),
@@ -297,21 +333,23 @@ INSERT INTO product_variants (
   material,
   warranty,
   color,
+  sku,
+  low_stock_threshold,
   created_at,
   updated_at
 ) VALUES
-  ('a0000001-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 12000000.00, 10, 50.0, 200.0, 90.0, 85.0, 'Da bò tự nhiên', '2 năm', 'Nâu đỏ', NOW(), NOW()),
-  ('a0000001-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 15000000.00, 5, 60.0, 220.0, 95.0, 90.0, 'Da bò cao cấp', '2 năm', 'Đen tuyền', NOW(), NOW()),
-  ('a0000002-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 18000000.00, 8, 70.0, 250.0, 150.0, 85.0, 'Vải nỉ Hàn Quốc', '1 năm', 'Xám', NOW(), NOW()),
-  ('a0000003-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000003', 4500000.00, 15, 15.0, 100.0, 60.0, 45.0, 'Gỗ sồi trắng', '1 năm', 'Màu gỗ tự nhiên', NOW(), NOW()),
-  ('a0000004-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000004', 9500000.00, 12, 40.0, 210.0, 190.0, 35.0, 'Thép sơn tĩnh điện', '3 năm', 'Trắng tĩnh điện', NOW(), NOW()),
-  ('a0000005-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000005', 8500000.00, 14, 35.0, 200.0, 160.0, 40.0, 'Gỗ thông New Zealand', '2 năm', 'Nâu đậm', NOW(), NOW()),
-  ('a0000006-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000006', 13500000.00, 7, 80.0, 220.0, 180.0, 60.0, 'MDF phủ Melamine', '1 năm', 'Trắng ngà', NOW(), NOW()),
-  ('a0000007-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000007', 24000000.00, 6, 60.0, 180.0, 90.0, 75.0, 'Đá cẩm thạch thật', '5 năm', 'Trắng vân mây', NOW(), NOW()),
-  ('a0000008-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000008', 18500000.00, 9, 95.0, 240.0, 60.0, 220.0, 'Gỗ công nghiệp chống ẩm', '2 năm', 'Sồi sáng', NOW(), NOW()),
-  ('a0000009-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000009', 7200000.00, 18, 30.0, 90.0, 48.0, 55.0, 'MDF chống ẩm / mặt lavabo sứ', '3 năm', 'Trắng', NOW(), NOW()),
-  ('a0000010-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000010', 3600000.00, 25, 8.0, 80.0, 4.0, 70.0, 'Gương bạc / khung nhôm', '1 năm', 'Đen', NOW(), NOW()),
-  ('a0000010-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000010', 4200000.00, 12, 8.5, 90.0, 4.0, 75.0, 'Gương bạc / khung nhôm', '1 năm', 'Xám than', NOW(), NOW());
+  ('a0000001-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000001', 12000000.00, 10, 50.0, 200.0, 90.0, 85.0, 'Da bò tự nhiên', '2 năm', 'Nâu đỏ', 'SOFA-DA-NAU-200', 3, NOW(), NOW()),
+  ('a0000001-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 15000000.00, 5, 60.0, 220.0, 95.0, 90.0, 'Da bò cao cấp', '2 năm', 'Đen tuyền', 'SOFA-DA-DEN-220', 3, NOW(), NOW()),
+  ('a0000002-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000002', 18000000.00, 8, 70.0, 250.0, 150.0, 85.0, 'Vải nỉ Hàn Quốc', '1 năm', 'Xám', 'SOFA-VAI-L-XAM', 4, NOW(), NOW()),
+  ('a0000003-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000003', 4500000.00, 15, 15.0, 100.0, 60.0, 45.0, 'Gỗ sồi trắng', '1 năm', 'Màu gỗ tự nhiên', 'BAN-TRA-SOI-100', 5, NOW(), NOW()),
+  ('a0000004-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000004', 9500000.00, 12, 40.0, 210.0, 190.0, 35.0, 'Thép sơn tĩnh điện', '3 năm', 'Trắng tĩnh điện', 'GIUONG-KING-KL', 4, NOW(), NOW()),
+  ('a0000005-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000005', 8500000.00, 14, 35.0, 200.0, 160.0, 40.0, 'Gỗ thông New Zealand', '2 năm', 'Nâu đậm', 'GIUONG-QUEEN-GO', 5, NOW(), NOW()),
+  ('a0000006-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000006', 13500000.00, 7, 80.0, 220.0, 180.0, 60.0, 'MDF phủ Melamine', '1 năm', 'Trắng ngà', 'TU-AO-TRUOT-220', 3, NOW(), NOW()),
+  ('a0000007-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000007', 24000000.00, 6, 60.0, 180.0, 90.0, 75.0, 'Đá cẩm thạch thật', '5 năm', 'Trắng vân mây', 'BAN-AN-DA-180', 3, NOW(), NOW()),
+  ('a0000008-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000008', 18500000.00, 9, 95.0, 240.0, 60.0, 220.0, 'Gỗ công nghiệp chống ẩm', '2 năm', 'Sồi sáng', 'TU-BEP-SOI-240', 4, NOW(), NOW()),
+  ('a0000009-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000009', 7200000.00, 18, 30.0, 90.0, 48.0, 55.0, 'MDF chống ẩm / mặt lavabo sứ', '3 năm', 'Trắng', 'LAVABO-TREO-90', 5, NOW(), NOW()),
+  ('a0000010-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000010', 3600000.00, 25, 8.0, 80.0, 4.0, 70.0, 'Gương bạc / khung nhôm', '1 năm', 'Đen', 'GUONG-LED-80-DEN', 5, NOW(), NOW()),
+  ('a0000010-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000010', 4200000.00, 12, 8.5, 90.0, 4.0, 75.0, 'Gương bạc / khung nhôm', '1 năm', 'Xám than', 'GUONG-LED-90-XAM', 5, NOW(), NOW());
 
 INSERT INTO product_favorite_logs (id, user_id, product_id, created_at, updated_at) VALUES
   (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
@@ -351,21 +389,80 @@ COMMIT;
 
 -- ============================================================
 -- furnisight_order_db
+-- Schema tham chieu:
+--   - order-service/.../V1__init_order_schema.sql den V8
 -- ============================================================
 \connect furnisight_order_db;
 
 BEGIN;
 
-DELETE FROM order_items;
-DELETE FROM orders;
+DELETE FROM stock_reservations
+WHERE order_code IN ('ORD-A1B2C3D4', 'ORD-X9Y8Z7W6');
+
+DELETE FROM order_items
+WHERE order_id IN (
+  'c5379d96-1111-4fd9-8383-bae82736bb11',
+  'd5379d96-2222-4fd9-8383-bae82736bb22'
+);
+
+DELETE FROM orders
+WHERE id IN (
+  'c5379d96-1111-4fd9-8383-bae82736bb11',
+  'd5379d96-2222-4fd9-8383-bae82736bb22'
+)
+OR order_code IN ('ORD-A1B2C3D4', 'ORD-X9Y8Z7W6');
+
+DELETE FROM user_vouchers
+WHERE promotion_id IN (
+  '71000000-0000-0000-0000-000000000001',
+  '71000000-0000-0000-0000-000000000002',
+  '71000000-0000-0000-0000-000000000003'
+);
+
+DELETE FROM promotions
+WHERE id IN (
+  '71000000-0000-0000-0000-000000000001',
+  '71000000-0000-0000-0000-000000000002',
+  '71000000-0000-0000-0000-000000000003'
+)
+OR code IN ('WELCOME10', 'FREESHIP', 'FURNI500K');
+
+INSERT INTO promotions (
+  id, code, name, description, icon, discount_type, discount_value,
+  max_discount, min_order, start_date, end_date, active, created_at, updated_at
+) VALUES
+  ('71000000-0000-0000-0000-000000000001', 'WELCOME10', 'Ưu đãi khách hàng mới', 'Giảm 10% cho đơn hàng đầu tiên.', 'percent', 'PERCENT', 10, 500000, 3000000, NOW() - INTERVAL '30 days', NOW() + INTERVAL '180 days', TRUE, NOW(), NOW()),
+  ('71000000-0000-0000-0000-000000000002', 'FREESHIP', 'Miễn phí vận chuyển', 'Giảm tối đa 100.000đ phí vận chuyển.', 'truck', 'SHIPPING_CAP', 100000, 100000, 1000000, NOW() - INTERVAL '30 days', NOW() + INTERVAL '180 days', TRUE, NOW(), NOW()),
+  ('71000000-0000-0000-0000-000000000003', 'FURNI500K', 'Giảm 500.000đ', 'Giảm trực tiếp 500.000đ cho đơn nội thất từ 10 triệu.', 'ticket', 'FIXED', 500000, 500000, 10000000, NOW() - INTERVAL '30 days', NOW() + INTERVAL '90 days', TRUE, NOW(), NOW());
+
+INSERT INTO user_vouchers (id, user_id, promotion_id, is_used, used_at, saved_at) VALUES
+  ('72000000-0000-0000-0000-000000000001', '52379d96-5238-4fd9-8383-bae82736bb3b', '71000000-0000-0000-0000-000000000001', FALSE, NULL, NOW() - INTERVAL '3 days'),
+  ('72000000-0000-0000-0000-000000000002', '52379d96-5238-4fd9-8383-bae82736bb3b', '71000000-0000-0000-0000-000000000002', FALSE, NULL, NOW() - INTERVAL '2 days');
 
 -- Mock Orders cho minhhien7840@gmail.com
-INSERT INTO orders (id, order_code, user_id, status, sub_total, total_amount, shipping_fee, shipping_discount, discount_amount, insurance_fee, saved_amount, shipping_address_name, shipping_address_phone, shipping_address_detail, shipping_method, customer_note, payment_method, payment_status, paid_amount, created_at, updated_at) VALUES 
-('c5379d96-1111-4fd9-8383-bae82736bb11', 'ORD-A1B2C3D4', '52379d96-5238-4fd9-8383-bae82736bb3b', 'UNPAID', 5000000, 5015000, 15000, 0, 0, 0, 0, 'Minh Hiền', '0123456789', '123 Đường A, Quận B, TP C', 'Giao hàng tận nơi', 'Giao sáng sớm', 'COD', 'UNPAID', 0, NOW(), NOW()),
-('d5379d96-2222-4fd9-8383-bae82736bb22', 'ORD-X9Y8Z7W6', '52379d96-5238-4fd9-8383-bae82736bb3b', 'DELIVERED', 12000000, 12015000, 15000, 0, 0, 0, 0, 'Minh Hiền', '0123456789', '123 Đường A, Quận B, TP C', 'Giao hàng tận nơi', '', 'BANK_TRANSFER', 'PAID', 12015000, NOW() - INTERVAL '5 DAYS', NOW());
+INSERT INTO orders (
+  id, order_code, user_id, status, sub_total, total_amount, shipping_fee,
+  shipping_discount, discount_amount, insurance_fee, saved_amount,
+  shipping_address_name, shipping_address_phone, shipping_address_detail,
+  shipping_method, customer_note, payment_method, payment_status, paid_amount,
+  paid_at, order_created_at, payment_initiated_at, payment_completed_at,
+  payment_failed_at, shop_voucher_code, shipping_voucher_code,
+  created_at, updated_at, created_by, updated_by
+) VALUES
+  ('c5379d96-1111-4fd9-8383-bae82736bb11', 'ORD-A1B2C3D4', '52379d96-5238-4fd9-8383-bae82736bb3b', 'UNPAID', 4500000, 4500000, 100000, 100000, 0, 0, 100000, 'Minh Hiền', '0901234567', 'Khu phố 6, Phường Linh Trung, Thành phố Thủ Đức, Thành phố Hồ Chí Minh', 'STANDARD', 'Giao hàng trong giờ hành chính', 'VNPAY', 'PENDING', 0, NULL, NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 hours', NULL, NULL, NULL, 'FREESHIP', NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 hours', 'seed-data', 'seed-data'),
+  ('d5379d96-2222-4fd9-8383-bae82736bb22', 'ORD-X9Y8Z7W6', '52379d96-5238-4fd9-8383-bae82736bb3b', 'DELIVERED', 12000000, 11500000, 100000, 100000, 500000, 0, 600000, 'Minh Hiền', '0901234567', 'Khu phố 6, Phường Linh Trung, Thành phố Thủ Đức, Thành phố Hồ Chí Minh', 'STANDARD', NULL, 'VNPAY', 'PAID', 11500000, NOW() - INTERVAL '7 days', NOW() - INTERVAL '8 days', NOW() - INTERVAL '8 days', NOW() - INTERVAL '7 days', NULL, 'FURNI500K', 'FREESHIP', NOW() - INTERVAL '8 days', NOW() - INTERVAL '2 days', 'seed-data', 'seed-data');
 
-INSERT INTO order_items (id, order_id, product_id, variant_id, category_name, product_name, color, material, warranty, weight, length, width, height, price, quantity, image_url, created_at, updated_at) VALUES
-('e5379d96-3333-4fd9-8383-bae82736bb33', 'c5379d96-1111-4fd9-8383-bae82736bb11', 'prod-1', 'var-1', 'Ghế sofa', 'Sofa Gỗ Xoan Đào', 'Nâu', 'Gỗ Xoan Đào', '12 tháng', 50000, 120, 60, 40, 5000000, 1, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1200', NOW(), NOW()),
-('f5379d96-4444-4fd9-8383-bae82736bb44', 'd5379d96-2222-4fd9-8383-bae82736bb22', 'prod-2', 'var-2', 'Giường ngủ', 'Giường Thông Minh', 'Trắng', 'Gỗ Công Nghiệp', '24 tháng', 80000, 200, 160, 30, 12000000, 1, 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=80&w=1200', NOW() - INTERVAL '5 DAYS', NOW() - INTERVAL '5 DAYS');
+INSERT INTO order_items (
+  id, order_id, product_id, variant_id, category_name, product_name, color,
+  material, warranty, weight, length, width, height, price, quantity,
+  image_url, created_at, updated_at, created_by, updated_by
+) VALUES
+  ('e5379d96-3333-4fd9-8383-bae82736bb33', 'c5379d96-1111-4fd9-8383-bae82736bb11', 'e0000000-0000-0000-0000-000000000003', 'a0000003-0000-0000-0000-000000000001', 'Bàn trà', 'Bàn trà gỗ sồi tối giản', 'Màu gỗ tự nhiên', 'Gỗ sồi trắng', '1 năm', 15, 100, 60, 45, 4500000, 1, 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=1200', NOW() - INTERVAL '2 hours', NOW() - INTERVAL '2 hours', 'seed-data', 'seed-data'),
+  ('f5379d96-4444-4fd9-8383-bae82736bb44', 'd5379d96-2222-4fd9-8383-bae82736bb22', 'e0000000-0000-0000-0000-000000000001', 'a0000001-0000-0000-0000-000000000001', 'Ghế sofa', 'Sofa da bò hiện đại', 'Nâu đỏ', 'Da bò tự nhiên', '2 năm', 50, 200, 90, 85, 12000000, 1, 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1200', NOW() - INTERVAL '8 days', NOW() - INTERVAL '8 days', 'seed-data', 'seed-data');
+
+INSERT INTO stock_reservations (
+  id, order_code, product_id, product_variant_id, quantity, created_at
+) VALUES
+  ('73000000-0000-0000-0000-000000000001', 'ORD-A1B2C3D4', 'e0000000-0000-0000-0000-000000000003', 'a0000003-0000-0000-0000-000000000001', 1, NOW() - INTERVAL '2 hours');
 
 COMMIT;

@@ -223,6 +223,17 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         }
 
         String sql = """
+                WITH RECURSIVE category_tree AS (
+                    SELECT id
+                    FROM categories
+                    WHERE LOWER(slug) = :categorySlug
+
+                    UNION
+
+                    SELECT child.id
+                    FROM categories child
+                    JOIN category_tree parent ON child.parent_id = parent.id
+                )
                 SELECT
                     p.id AS product_id,
                     p.slug AS product_slug,
@@ -258,7 +269,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     WHERE status = 'VISIBLE'::review_status
                     GROUP BY product_id
                 ) review_stats ON review_stats.product_id = p.id
-                WHERE LOWER(c.slug) = :categorySlug
+                WHERE p.category_id IN (SELECT id FROM category_tree)
                   AND p.product_status = :status
                 ORDER BY p.created_at DESC
                 LIMIT :limit

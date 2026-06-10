@@ -33,7 +33,7 @@ dependencies {
 
 	implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
 	implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
-	implementation 'com.furnisight:proto-lib:1.0.1781075000000'
+	implementation 'com.furnisight:proto-lib:1.0.1781077383461'
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
