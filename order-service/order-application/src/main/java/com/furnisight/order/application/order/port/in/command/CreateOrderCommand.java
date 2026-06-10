@@ -39,7 +39,6 @@ public class CreateOrderCommand {
         private String categoryName;
         private String productName;
         private Double price;
-        private Double oldPrice;
         private Integer quantity;
         private String imageUrl;
     }

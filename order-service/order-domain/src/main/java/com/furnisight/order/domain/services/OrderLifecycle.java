@@ -60,9 +60,8 @@ public class OrderLifecycle {
                                 .warranty(param.getWarranty())
                                 .dimensions(param.getDimensions())
                                 .imageUrl(param.getImageUrl())
-                                .build())
+                        .build())
                         .price(param.getPrice())
-                        .oldPrice(param.getOldPrice())
                         .quantity(param.getQuantity())
                         .build()
         ).collect(Collectors.toList());

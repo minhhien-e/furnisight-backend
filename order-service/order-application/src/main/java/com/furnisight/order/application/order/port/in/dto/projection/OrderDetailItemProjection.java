@@ -21,7 +21,6 @@ public class OrderDetailItemProjection {
     private String warranty;
     private com.furnisight.order.domain.valueobjects.ProductDimensions dimensions;
     private Double price;
-    private Double oldPrice;
     private Integer quantity;
     private String imageUrl;
 }

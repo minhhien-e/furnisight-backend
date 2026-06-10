@@ -28,14 +28,11 @@ public class OrderItem extends DomainEntity {
     // "8.500.000đ"
     private Double price;
 
-    // Original price (scratched out) "1.450.000đ"
-    private Double oldPrice;
-
     // Quantity "1"
     private Integer quantity;
 
     @Builder
-    public OrderItem(UUID id, Order order, ProductSnapshot productSnapshot, Double price, Double oldPrice, Integer quantity) {
+    public OrderItem(UUID id, Order order, ProductSnapshot productSnapshot, Double price, Integer quantity) {
         if (price == null || price < 0) {
             throw new ValidationException(ErrorCode.NEGATIVE_PRICE);
         }
@@ -47,7 +44,6 @@ public class OrderItem extends DomainEntity {
         this.order = order;
         this.productSnapshot = productSnapshot;
         this.price = price;
-        this.oldPrice = oldPrice;
         this.quantity = quantity;
     }
 }

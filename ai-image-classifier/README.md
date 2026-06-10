@@ -72,7 +72,7 @@ ai-image-classifier/
     "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
   },
   "recommendation": {
-    "catalog_base_url": "http://catalog-service:8080/api/v1",
+    "catalog_grpc_target": "catalog-service:9093",
     "recommendation_limit": 6,
     "recommendation_timeout_seconds": 3,
     "category_mapping": {
@@ -170,8 +170,10 @@ curl -X POST http://localhost:8000/predict \
       "name": "King Size Metal Bed",
       "categoryName": "Bed",
       "price": 9500000,
-      "oldPrice": null,
       "image": "https://example.com/bed.jpg",
+      "modelUrl": "https://example.com/bed.glb",
+      "defaultVariantId": "variant-id",
+      "variantId": "variant-id",
       "rating": 0,
       "ratingCount": 0,
       "soldCount": 0,

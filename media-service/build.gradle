@@ -35,7 +35,7 @@ dependencies {
 
     // gRPC
     implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
-    implementation 'com.furnisight:proto-lib:1.0.1780477369851'
+    implementation 'com.furnisight:proto-lib:1.0.1781016462392'
 
     // Database
     runtimeOnly 'org.postgresql:postgresql'

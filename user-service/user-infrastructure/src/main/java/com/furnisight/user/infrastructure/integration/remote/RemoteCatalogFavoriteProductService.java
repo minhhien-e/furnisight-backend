@@ -39,7 +39,6 @@ public class RemoteCatalogFavoriteProductService implements CatalogFavoriteProdu
             product.getImage(),
             product.getCategoryName(),
             product.hasPrice() ? product.getPrice() : null,
-            product.hasOldPrice() ? product.getOldPrice() : null,
             product.getSoldCount()
         );
     }

@@ -18,7 +18,6 @@ public class ProductSummaryProjection {
     private String name;
     private String categoryName;
     private Double price;
-    private Double oldPrice;
     private String image;
     private Double rating;
     private Integer ratingCount;

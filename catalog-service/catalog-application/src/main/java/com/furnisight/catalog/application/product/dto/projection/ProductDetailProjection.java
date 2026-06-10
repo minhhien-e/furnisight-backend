@@ -17,7 +17,6 @@ public class ProductDetailProjection {
     private Double price;
     private String slug;
     private CategoryInfo category;
-    private Double oldPrice;
     private Double rating;
     private Integer ratingCount;
     private Integer soldCount;

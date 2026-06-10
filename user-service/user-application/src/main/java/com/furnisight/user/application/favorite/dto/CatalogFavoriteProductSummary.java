@@ -9,7 +9,6 @@ public record CatalogFavoriteProductSummary(
     String image,
     String categoryName,
     Double price,
-    Double oldPrice,
     Integer soldCount
 ) {
 }

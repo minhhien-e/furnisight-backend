@@ -39,7 +39,6 @@ public class CreateOrderService implements CreateOrderUseCase {
                         .categoryName(item.getCategoryName())
                         .productName(item.getProductName())
                         .price(item.getPrice())
-                        .oldPrice(item.getOldPrice())
                         .quantity(item.getQuantity())
                         .imageUrl(item.getImageUrl())
                         .build())

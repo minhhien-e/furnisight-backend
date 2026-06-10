@@ -13,7 +13,6 @@ public class CartItemResponse {
     private String name;
     private String slug;
     private Double price;
-    private Double oldPrice;
     private String imageUrl;
     private Integer quantity;
     private Integer stockQuantity;

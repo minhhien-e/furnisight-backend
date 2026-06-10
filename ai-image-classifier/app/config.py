@@ -46,7 +46,7 @@ class Settings(BaseSettings):
 
     # Recommendation configuration
     _recommendation_config: dict = _config.get("recommendation", {})
-    CATALOG_BASE_URL: str = _recommendation_config.get("catalog_base_url", "http://catalog-service:8080/api/v1")
+    CATALOG_GRPC_TARGET: str = _recommendation_config.get("catalog_grpc_target", "catalog-service:9093")
     RECOMMENDATION_LIMIT: int = _recommendation_config.get("recommendation_limit", 6)
     RECOMMENDATION_TIMEOUT_SECONDS: float = _recommendation_config.get("recommendation_timeout_seconds", 3)
     CATEGORY_MAPPING: dict = _recommendation_config.get("category_mapping", {

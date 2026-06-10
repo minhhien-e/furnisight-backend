@@ -6,6 +6,7 @@ import com.furnisight.catalog.application.product.dto.projection.ProductDetailPr
 import com.furnisight.catalog.application.product.dto.projection.ProductSummaryProjection;
 import com.furnisight.catalog.application.product.dto.projection.AdminProductProjection;
 import com.furnisight.catalog.application.product.dto.projection.LowStockProductProjection;
+import com.furnisight.catalog.application.product.dto.projection.RecommendedProductProjection;
 import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
@@ -212,6 +213,77 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .pageSize(size)
                 .facets(facets)
                 .build();
+    }
+
+    @Override
+    public List<RecommendedProductProjection> findRecommendedProducts(
+            String categorySlug, String status, int limit) {
+        if (categorySlug == null || categorySlug.isBlank() || limit <= 0) {
+            return List.of();
+        }
+
+        String sql = """
+                SELECT
+                    p.id AS product_id,
+                    p.slug AS product_slug,
+                    p.name AS product_name,
+                    c.name AS category_name,
+                    cheapest_variant.id AS default_variant_id,
+                    cheapest_variant.price AS product_price,
+                    p.model_url,
+                    p.sold_count,
+                    p.features AS product_features,
+                    (
+                        SELECT pi.image_url
+                        FROM product_images pi
+                        WHERE pi.product_id = p.id
+                        ORDER BY pi.position ASC
+                        LIMIT 1
+                    ) AS product_image,
+                    COALESCE(review_stats.avg_rating, 0) AS product_rating,
+                    COALESCE(review_stats.rating_count, 0) AS product_rating_count
+                FROM products p
+                JOIN categories c ON c.id = p.category_id
+                LEFT JOIN LATERAL (
+                    SELECT pv.id, pv.price
+                    FROM product_variants pv
+                    WHERE pv.product_id = p.id
+                      AND pv.price IS NOT NULL
+                    ORDER BY pv.price ASC, pv.id ASC
+                    LIMIT 1
+                ) cheapest_variant ON TRUE
+                LEFT JOIN (
+                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS rating_count
+                    FROM reviews
+                    WHERE status = 'VISIBLE'::review_status
+                    GROUP BY product_id
+                ) review_stats ON review_stats.product_id = p.id
+                WHERE LOWER(c.slug) = :categorySlug
+                  AND p.product_status = :status
+                ORDER BY p.created_at DESC
+                LIMIT :limit
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of(
+                        "categorySlug", categorySlug.trim().toLowerCase(),
+                        "status", normalizeText(status, "ACTIVE").toUpperCase(),
+                        "limit", limit),
+                (rs, rowNum) -> RecommendedProductProjection.builder()
+                        .id((UUID) rs.getObject("product_id"))
+                        .slug(normalizeText(rs.getString("product_slug"), ""))
+                        .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
+                        .categoryName(normalizeText(rs.getString("category_name"), "Sản phẩm"))
+                        .defaultVariantId((UUID) rs.getObject("default_variant_id"))
+                        .price(getNullableDouble(rs, "product_price"))
+                        .image(normalizeText(rs.getString("product_image"), null))
+                        .modelUrl(normalizeText(rs.getString("model_url"), ""))
+                        .rating(getNullableDouble(rs, "product_rating"))
+                        .ratingCount(rs.getInt("product_rating_count"))
+                        .soldCount(rs.getInt("sold_count"))
+                        .tags(parseJsonList(rs.getString("product_features")))
+                        .build());
     }
 
     @Override
@@ -640,7 +712,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .name(name)
                 .categoryName(categoryName)
                 .price(price)
-                .oldPrice(price > 0 ? price * 1.2 : null)
                 .image(imageUrl)
                 .rating(getNullableDouble(rs, "product_rating"))
                 .ratingCount(rs.getInt("product_rating_count"))

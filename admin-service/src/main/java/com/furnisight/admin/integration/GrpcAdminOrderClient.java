@@ -7,9 +7,11 @@ import com.furnisight.admin.order.DeleteVoucherRequest;
 import com.furnisight.admin.order.GetAdminOrdersRequest;
 import com.furnisight.admin.order.GetAdminVouchersRequest;
 import com.furnisight.admin.order.GetRecentOrdersRequest;
+import com.furnisight.admin.order.GetRevenueSummaryRequest;
 import com.furnisight.admin.order.OrderPageResponse;
 import com.furnisight.admin.order.OrderStatsResponse;
 import com.furnisight.admin.order.RecentOrderListResponse;
+import com.furnisight.admin.order.RevenueSummaryResponse;
 import com.furnisight.admin.order.UpdateOrderStatusRequest;
 import com.furnisight.admin.order.UpdateVoucherRequest;
 import com.furnisight.admin.order.VoucherListResponse;
@@ -69,6 +71,12 @@ public class GrpcAdminOrderClient {
                 .setAdminId(adminId == null ? "" : adminId.toString())
                 .setOrderCode(orderCode == null ? "" : orderCode)
                 .setStatus(status == null ? "" : status)
+                .build());
+    }
+
+    public RevenueSummaryResponse getRevenueSummary(int months) {
+        return adminOrderServiceStub.getRevenueSummary(GetRevenueSummaryRequest.newBuilder()
+                .setMonths(months)
                 .build());
     }
 }

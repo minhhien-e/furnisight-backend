@@ -13,6 +13,7 @@ ultralytics
 simple-lama-inpainting
 
 python-multipart
-requests
 pydantic-settings
+grpcio>=1.81.0
+protobuf>=6.33.5
 pytest

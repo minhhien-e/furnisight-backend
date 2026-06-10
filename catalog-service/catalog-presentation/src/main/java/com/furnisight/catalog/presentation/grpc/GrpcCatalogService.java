@@ -9,7 +9,11 @@ import com.furnisight.catalog.GetProductSummariesRequest;
 import com.furnisight.catalog.GetProductSummariesResponse;
 import com.furnisight.catalog.ProductSummary;
 import com.furnisight.catalog.ProductSummaryVariant;
+import com.furnisight.catalog.RecommendedProduct;
+import com.furnisight.catalog.SearchRecommendedProductsRequest;
+import com.furnisight.catalog.SearchRecommendedProductsResponse;
 import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
+import com.furnisight.catalog.application.product.dto.projection.RecommendedProductProjection;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -98,6 +102,40 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         }
     }
 
+    @Override
+    public void searchRecommendedProducts(
+            SearchRecommendedProductsRequest request,
+            StreamObserver<SearchRecommendedProductsResponse> responseObserver) {
+        try {
+            String categorySlug = request.getCategorySlug() == null
+                    ? "" : request.getCategorySlug().trim();
+            if (categorySlug.isBlank()) {
+                throw new IllegalArgumentException("category_slug is required");
+            }
+            int limit = request.getLimit() > 0 ? Math.min(request.getLimit(), 50) : 6;
+            String status = request.getStatus().isBlank() ? "ACTIVE" : request.getStatus();
+
+            responseObserver.onNext(SearchRecommendedProductsResponse.newBuilder()
+                    .addAllProducts(productReadRepository
+                            .findRecommendedProducts(categorySlug, status, limit)
+                            .stream()
+                            .map(this::toRecommendedProduct)
+                            .toList())
+                    .build());
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException ex) {
+            responseObserver.onError(Status.INVALID_ARGUMENT
+                    .withDescription(ex.getMessage())
+                    .withCause(ex)
+                    .asRuntimeException());
+        } catch (Exception ex) {
+            responseObserver.onError(Status.INTERNAL
+                    .withDescription(ex.getMessage())
+                    .withCause(ex)
+                    .asRuntimeException());
+        }
+    }
+
     private List<SummaryRequestItem> resolveRequestItems(GetProductSummariesRequest request) {
         if (request.getItemsCount() > 0) {
             return request.getItemsList().stream()
@@ -165,10 +203,6 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         if (detail.getPrice() != null) {
             builder.setPrice(detail.getPrice());
         }
-        if (detail.getOldPrice() != null) {
-            builder.setOldPrice(detail.getOldPrice());
-        }
-
         return builder.build();
     }
 
@@ -223,11 +257,33 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
     }
 
     private String resolveSelectedVariantId(String selectedVariantId, List<ProductSummaryVariant> variants) {
-        if (selectedVariantId != null && !selectedVariantId.isBlank()) {
+        if (selectedVariantId != null && !selectedVariantId.isBlank()
+                && variants.stream().anyMatch(variant -> variant.getId().equals(selectedVariantId))) {
             return selectedVariantId;
         }
 
         return variants.isEmpty() ? "" : defaultString(variants.get(0).getId());
+    }
+
+    private RecommendedProduct toRecommendedProduct(RecommendedProductProjection product) {
+        RecommendedProduct.Builder builder = RecommendedProduct.newBuilder()
+                .setId(product.getId().toString())
+                .setSlug(defaultString(product.getSlug()))
+                .setName(defaultString(product.getName()))
+                .setCategoryName(defaultString(product.getCategoryName()))
+                .setImage(defaultString(product.getImage()))
+                .setModelUrl(defaultString(product.getModelUrl()))
+                .setDefaultVariantId(product.getDefaultVariantId() == null
+                        ? "" : product.getDefaultVariantId().toString())
+                .setRating(product.getRating() == null ? 0D : product.getRating())
+                .setRatingCount(product.getRatingCount() == null ? 0 : product.getRatingCount())
+                .setSoldCount(product.getSoldCount() == null ? 0 : product.getSoldCount())
+                .addAllTags(product.getTags() == null ? List.of() : product.getTags());
+
+        if (product.getPrice() != null) {
+            builder.setPrice(product.getPrice());
+        }
+        return builder.build();
     }
 
     private String defaultString(String value) {

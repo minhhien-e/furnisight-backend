@@ -9,11 +9,14 @@ import com.furnisight.admin.order.DeliverOrderRequest;
 import com.furnisight.admin.order.GetAdminOrdersRequest;
 import com.furnisight.admin.order.GetAdminVouchersRequest;
 import com.furnisight.admin.order.GetRecentOrdersRequest;
+import com.furnisight.admin.order.GetRevenueSummaryRequest;
+import com.furnisight.admin.order.MonthlyRevenue;
 import com.furnisight.admin.order.OrderDto;
 import com.furnisight.admin.order.OrderPageResponse;
 import com.furnisight.admin.order.OrderStatsResponse;
 import com.furnisight.admin.order.OrderStatusCount;
 import com.furnisight.admin.order.RecentOrderListResponse;
+import com.furnisight.admin.order.RevenueSummaryResponse;
 import com.furnisight.admin.order.ShipOrderRequest;
 import com.furnisight.admin.order.UpdateOrderStatusRequest;
 import com.furnisight.admin.order.UpdateVoucherRequest;
@@ -225,6 +228,62 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
                 .setMessage("Unsupported admin order status: " + request.getStatus())
                 .build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getRevenueSummary(GetRevenueSummaryRequest request, StreamObserver<RevenueSummaryResponse> responseObserver) {
+        try {
+            int months = request.getMonths() > 0 ? Math.min(request.getMonths(), 24) : 12;
+            LocalDate today = LocalDate.now();
+            LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+
+            RevenueSummaryResponse.Builder builder = RevenueSummaryResponse.newBuilder()
+                    .setTotalRevenue(orderRepository.sumTotalAmount())
+                    .setTotalOrders(orderRepository.countAll());
+
+            // Revenue & order count this month
+            LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
+            LocalDateTime nextMonthStart = firstDayOfMonth.plusMonths(1).atStartOfDay();
+            double revenueThisMonth = orderRepository.sumTotalAmountCreatedAtBetween(monthStart, nextMonthStart);
+            long ordersThisMonth = orderRepository.countCreatedAtBetween(monthStart, nextMonthStart);
+            builder.setRevenueThisMonth(revenueThisMonth).setOrdersThisMonth(ordersThisMonth);
+
+            // Build monthly breakdown (oldest first)
+            double prevRevenue = -1;
+            for (int i = months - 1; i >= 0; i--) {
+                LocalDate bucket = firstDayOfMonth.minusMonths(i);
+                LocalDateTime start = bucket.atStartOfDay();
+                LocalDateTime end = bucket.plusMonths(1).atStartOfDay();
+
+                double revenue = orderRepository.sumTotalAmountCreatedAtBetween(start, end);
+                long orderCount = orderRepository.countCreatedAtBetween(start, end);
+
+                double momChangePct = 0;
+                if (prevRevenue > 0) {
+                    momChangePct = Math.round(((revenue - prevRevenue) / prevRevenue) * 10000D) / 100D;
+                } else if (prevRevenue == 0 && revenue > 0) {
+                    momChangePct = 100D;
+                }
+                prevRevenue = revenue;
+
+                String yearMonth = bucket.format(DateTimeFormatter.ofPattern("yyyy-MM"));
+                String label = "T" + bucket.getMonthValue() + "/" + bucket.getYear();
+
+                builder.addMonthly(MonthlyRevenue.newBuilder()
+                        .setYearMonth(yearMonth)
+                        .setLabel(label)
+                        .setRevenue(revenue)
+                        .setOrderCount(orderCount)
+                        .setMomChangePct(momChangePct)
+                        .build());
+            }
+
+            responseObserver.onNext(builder.build());
+            responseObserver.onCompleted();
+        } catch (Exception ex) {
+            log.error("Failed to get revenue summary", ex);
+            responseObserver.onError(ex);
+        }
     }
 
     private void completeAction(StreamObserver<AdminActionResponse> responseObserver, Runnable action, String message) {

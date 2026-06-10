@@ -1,27 +1,27 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
-import requests
+import grpc
+
+from v1.catalog import catalog_message_pb2, catalog_pb2_grpc
 
 from .config import settings
 
 
 class RecommendationService:
-    """
-    Fetches catalog products that match the predicted room category.
-    Recommendation failures are non-blocking so image classification can still succeed.
-    """
+    """Fetches recommendation products from Catalog over gRPC."""
 
     SOURCE = "catalog-service"
 
     def __init__(
         self,
-        catalog_base_url: Optional[str] = None,
+        catalog_grpc_target: Optional[str] = None,
         limit: Optional[int] = None,
         timeout_seconds: Optional[float] = None,
         category_mapping: Optional[Dict[str, str]] = None,
-        http_client: Any = requests,
+        stub: Any = None,
+        channel_factory: Any = grpc.insecure_channel,
     ):
-        self.catalog_base_url = (catalog_base_url or settings.CATALOG_BASE_URL).rstrip("/")
+        self.catalog_grpc_target = catalog_grpc_target or settings.CATALOG_GRPC_TARGET
         self.limit = limit if limit is not None else settings.RECOMMENDATION_LIMIT
         self.timeout_seconds = (
             timeout_seconds
@@ -29,29 +29,32 @@ class RecommendationService:
             else settings.RECOMMENDATION_TIMEOUT_SECONDS
         )
         self.category_mapping = category_mapping or settings.CATEGORY_MAPPING
-        self.http_client = http_client
+        self._channel = None
+        if stub is not None:
+            self.stub = stub
+        else:
+            self._channel = channel_factory(self.catalog_grpc_target)
+            self.stub = catalog_pb2_grpc.CatalogServiceStub(self._channel)
 
     def recommend_for_label(self, label: str) -> Dict[str, Any]:
         category_slug = self._resolve_category_slug(label)
         if category_slug is None:
             return self._empty_response(None, "category_not_mapped")
 
+        request = catalog_message_pb2.SearchRecommendedProductsRequest(
+            category_slug=category_slug,
+            limit=self.limit,
+            status="ACTIVE",
+        )
         try:
-            response = self.http_client.get(
-                f"{self.catalog_base_url}/products",
-                params={
-                    "category": category_slug,
-                    "status": "ACTIVE",
-                    "size": self.limit,
-                    "sort": "newest",
-                },
+            response = self.stub.SearchRecommendedProducts(
+                request,
                 timeout=self.timeout_seconds,
             )
-            response.raise_for_status()
-        except requests.RequestException:
+        except grpc.RpcError:
             return self._empty_response(category_slug, "catalog_unavailable")
 
-        products = self._extract_products(response)
+        products = [self._normalize_product(product) for product in response.products]
         if not products:
             return self._empty_response(category_slug, "no_products_found")
 
@@ -67,38 +70,28 @@ class RecommendationService:
     def _resolve_category_slug(self, label: str) -> Optional[str]:
         if label is None:
             return None
+        return self.category_mapping.get(label.strip().lower())
 
-        normalized_label = label.strip().lower()
-        return self.category_mapping.get(normalized_label)
-
-    def _extract_products(self, response: requests.Response) -> List[Dict[str, Any]]:
-        try:
-            payload = response.json()
-        except ValueError:
-            return []
-
-        raw_products = payload.get("products", [])
-        if not isinstance(raw_products, list):
-            return []
-
-        return [self._normalize_product(product) for product in raw_products if isinstance(product, dict)]
-
-    def _normalize_product(self, product: Dict[str, Any]) -> Dict[str, Any]:
+    def _normalize_product(self, product: Any) -> Dict[str, Any]:
         return {
-            "id": product.get("id"),
-            "slug": product.get("slug"),
-            "name": product.get("name"),
-            "categoryName": product.get("categoryName"),
-            "price": product.get("price"),
-            "oldPrice": product.get("oldPrice"),
-            "image": product.get("image"),
-            "rating": product.get("rating"),
-            "ratingCount": product.get("ratingCount"),
-            "soldCount": product.get("soldCount"),
-            "tags": product.get("tags") or [],
+            "id": product.id,
+            "slug": product.slug,
+            "name": product.name,
+            "categoryName": product.category_name,
+            "price": product.price if product.HasField("price") else None,
+            "image": product.image,
+            "modelUrl": product.model_url,
+            "defaultVariantId": product.default_variant_id,
+            "variantId": product.default_variant_id,
+            "rating": product.rating,
+            "ratingCount": product.rating_count,
+            "soldCount": product.sold_count,
+            "tags": list(product.tags),
         }
 
-    def _empty_response(self, category_slug: Optional[str], reason: str) -> Dict[str, Any]:
+    def _empty_response(
+        self, category_slug: Optional[str], reason: str
+    ) -> Dict[str, Any]:
         return {
             "recommendations": [],
             "recommendationMeta": {

@@ -11,6 +11,5 @@ public class OrderItemResponse {
     private UUID id;
     private Object productSnapshot;
     private Double price;
-    private Double oldPrice;
     private Integer quantity;
 }

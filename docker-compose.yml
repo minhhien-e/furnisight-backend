@@ -250,6 +250,10 @@ services:
     <<: *common-service
     expose:
       - "8080"
+    environment:
+      CATALOG_GRPC_TARGET: catalog-service:9093
+    depends_on:
+      - catalog-service
     volumes:
       - ./ai-image-classifier/models:/app/models:ro
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]

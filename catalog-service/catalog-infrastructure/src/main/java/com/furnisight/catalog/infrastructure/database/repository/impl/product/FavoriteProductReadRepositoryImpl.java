@@ -92,7 +92,6 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
                             .name(name)
                             .categoryName(categoryName)
                             .price(price)
-                            .oldPrice(price > 0 ? price * 1.2 : null)
                             .image(image)
                             .rating(4.8)
                             .ratingCount(120)
