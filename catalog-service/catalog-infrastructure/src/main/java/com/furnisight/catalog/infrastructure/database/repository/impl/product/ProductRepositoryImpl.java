@@ -29,4 +29,14 @@ public class ProductRepositoryImpl implements ProductRepository {
     public boolean existsByNameValue(String name) {
         return jpaProductRepository.existsByNameValue(name);
     }
+
+    @Override
+    public Optional<UUID> findVariantIdBySku(String normalizedSku) {
+        return jpaProductRepository.findVariantIdBySku(normalizedSku);
+    }
+
+    @Override
+    public int updateVariantLowStockThreshold(UUID variantId, int lowStockThreshold) {
+        return jpaProductRepository.updateVariantLowStockThreshold(variantId, lowStockThreshold);
+    }
 }

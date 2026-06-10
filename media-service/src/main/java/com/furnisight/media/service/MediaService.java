@@ -26,6 +26,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class MediaService {
 
+    private static final long PRODUCT_MODEL_MAX_SIZE_BYTES = 100L * 1024 * 1024;
+
     private final Cloudinary cloudinary;
     private final MediaAssetRepository mediaAssetRepository;
 
@@ -85,15 +87,45 @@ public class MediaService {
         }
 
         String publicId = request.getPublicId() != null ? request.getPublicId() : asset.getCloudinaryPublicId();
+        if (publicId == null || !publicId.equals(asset.getCloudinaryPublicId())) {
+            throw new IllegalArgumentException("Uploaded public_id does not match the initialized media session");
+        }
+        String completedUrl = request.getSecureUrl() != null ? request.getSecureUrl() : request.getUrl();
+        if (completedUrl == null || completedUrl.isBlank()) {
+            throw new IllegalArgumentException("Uploaded media URL is required");
+        }
+        String expectedResourceType = toResourceType(asset.getMediaType());
+        if (request.getResourceType() != null
+                && !request.getResourceType().isBlank()
+                && !expectedResourceType.equalsIgnoreCase(request.getResourceType())) {
+            throw new IllegalArgumentException("Uploaded resource_type does not match the initialized media session");
+        }
+        Map<?, ?> uploadedResource;
+        try {
+            uploadedResource = cloudinary.api().resource(publicId,
+                    Map.of("resource_type", expectedResourceType));
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Uploaded asset could not be verified with Cloudinary", ex);
+        }
+        Object secureUrl = uploadedResource.get("secure_url");
+        Object plainUrl = uploadedResource.get("url");
+        String verifiedUrl = String.valueOf(secureUrl != null ? secureUrl : plainUrl);
+        if (!completedUrl.equals(verifiedUrl)) {
+            throw new IllegalArgumentException("Uploaded media URL does not match the initialized media session");
+        }
+        Object verifiedBytes = uploadedResource.get("bytes");
+        if (verifiedBytes instanceof Number bytes && bytes.longValue() > asset.getSizeBytes()) {
+            throw new IllegalArgumentException("Uploaded media size exceeds the initialized media session");
+        }
 
         asset.setCloudinaryPublicId(publicId);
-        asset.setUrl(request.getUrl());
-        asset.setSecureUrl(request.getSecureUrl() != null ? request.getSecureUrl() : request.getUrl());
+        asset.setUrl(String.valueOf(plainUrl != null ? plainUrl : completedUrl));
+        asset.setSecureUrl(verifiedUrl);
         asset.setFormat(request.getFormat());
         asset.setWidth(request.getWidth());
         asset.setHeight(request.getHeight());
-        if (request.getBytes() != null) {
-            asset.setSizeBytes(request.getBytes());
+        if (verifiedBytes instanceof Number bytes) {
+            asset.setSizeBytes(bytes.longValue());
         }
         if (request.getOriginalFilename() != null && !request.getOriginalFilename().isBlank()) {
             asset.setOriginalFilename(request.getOriginalFilename());
@@ -188,6 +220,20 @@ public class MediaService {
         }
         if (request.getSizeBytes() == null || request.getSizeBytes() <= 0) {
             throw new IllegalArgumentException("sizeBytes must be greater than 0");
+        }
+        if (request.getOwnerType() == com.furnisight.media.enums.OwnerType.PRODUCT_MODEL) {
+            String filename = request.getFileName().toLowerCase();
+            String contentType = request.getContentType().toLowerCase();
+            if (!filename.endsWith(".glb")) {
+                throw new IllegalArgumentException("Product model must use the .glb extension");
+            }
+            if (!contentType.equals("model/gltf-binary")
+                    && !contentType.equals("application/octet-stream")) {
+                throw new IllegalArgumentException("Product model contentType must be model/gltf-binary or application/octet-stream");
+            }
+            if (request.getSizeBytes() > PRODUCT_MODEL_MAX_SIZE_BYTES) {
+                throw new IllegalArgumentException("Product model must not exceed 100 MB");
+            }
         }
     }
 

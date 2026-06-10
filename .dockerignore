@@ -1,0 +1,21 @@
+__pycache__
+*.pyc
+.git
+.env
+models/
+checkpoints/
+outputs/
+
+# Large runtime/model artifacts must be mounted at runtime, not baked into the image.
+**/models/
+**/checkpoints/
+**/outputs/
+*.ckpt
+*.pkl
+*.pt
+*.pth
+*.safetensors
+*.onnx
+*.glb
+*.gltf
+*.obj

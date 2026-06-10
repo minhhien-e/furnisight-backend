@@ -74,7 +74,6 @@ public class OrderController {
                         .id(item.getId())
                         .productSnapshot(item.getProductSnapshot())
                         .price(item.getPrice())
-                        .oldPrice(item.getOldPrice())
                         .quantity(item.getQuantity())
                         .build())
                 .collect(Collectors.toList());

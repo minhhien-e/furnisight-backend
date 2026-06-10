@@ -17,6 +17,7 @@ public class AdminProductProjection {
     private Double price;
     private Integer stock;
     private String status;
+    private UUID modelMediaId;
     private String modelUrl;
     private List<String> imageUrls;
 }

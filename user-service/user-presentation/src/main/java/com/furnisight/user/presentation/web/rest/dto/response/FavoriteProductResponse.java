@@ -30,7 +30,6 @@ public record FavoriteProductResponse(
         String image,
         String categoryName,
         Double price,
-        Double oldPrice,
         Integer soldCount
     ) {
         public static ProductSummaryResponse from(CatalogFavoriteProductSummary product) {
@@ -45,7 +44,6 @@ public record FavoriteProductResponse(
                 product.image(),
                 product.categoryName(),
                 product.price(),
-                product.oldPrice(),
                 product.soldCount()
             );
         }

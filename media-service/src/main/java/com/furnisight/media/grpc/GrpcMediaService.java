@@ -2,6 +2,8 @@ package com.furnisight.media.grpc;
 
 import com.furnisight.media.GetMediaUrlRequest;
 import com.furnisight.media.GetMediaUrlResponse;
+import com.furnisight.media.DeleteMediaRequest;
+import com.furnisight.media.DeleteMediaResponse;
 import com.furnisight.media.MediaServiceGrpc;
 import com.furnisight.media.entity.MediaAsset;
 import com.furnisight.media.enums.AssetState;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class GrpcMediaService extends MediaServiceGrpc.MediaServiceImplBase {
 
     private final MediaAssetRepository mediaAssetRepository;
+    private final com.furnisight.media.service.MediaService mediaService;
 
     @Override
     public void getMediaUrl(GetMediaUrlRequest request,
@@ -39,8 +42,25 @@ public class GrpcMediaService extends MediaServiceGrpc.MediaServiceImplBase {
             .setState(asset.getState().name())
             .setMimeType(asset.getMimeType() == null ? "" : asset.getMimeType())
             .setOriginalFilename(asset.getOriginalFilename() == null ? "" : asset.getOriginalFilename())
+            .setOwnerType(asset.getOwnerType().name())
+            .setMediaType(asset.getMediaType().name())
+            .setSizeBytes(asset.getSizeBytes() == null ? 0L : asset.getSizeBytes())
             .build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void deleteMedia(DeleteMediaRequest request,
+                            StreamObserver<DeleteMediaResponse> responseObserver) {
+        UUID mediaId = parseId(request.getMediaId());
+        try {
+            mediaService.delete(mediaId);
+            responseObserver.onNext(DeleteMediaResponse.newBuilder().setDeleted(true).build());
+            responseObserver.onCompleted();
+        } catch (com.furnisight.media.exception.MediaNotFoundException ex) {
+            responseObserver.onError(
+                Status.NOT_FOUND.withDescription("Media not found: " + mediaId).asRuntimeException());
+        }
     }
 
     private UUID parseId(String raw) {

@@ -23,4 +23,5 @@ public interface OrderRepository {
     long countByStatusCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
     double sumTotalAmount();
     double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end);
+    List<Object[]> findTopSellingProducts(int limit);
 }

@@ -43,8 +43,9 @@ public class ProductController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .description(request.getDescription())
+                .modelMediaId(request.getModelMediaId())
                 .features(request.getFeatures())
-                .supports3d(request.getSupports3d() != null ? request.getSupports3d() : false)
+                .supports3d(request.getSupports3d())
                 .modelUrl(request.getModelUrl())
                 .variants(request.getVariants().stream()
                         .map(v -> CreateProductCommand.VariantCommand.builder()
@@ -57,6 +58,8 @@ public class ProductController {
                                 .material(v.getMaterial())
                                 .color(v.getColor())
                                 .warranty(v.getWarranty())
+                                .sku(v.getSku())
+                                .lowStockThreshold(v.getLowStockThreshold())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
@@ -73,8 +76,9 @@ public class ProductController {
                 .name(request.getName())
                 .slug(request.getSlug())
                 .description(request.getDescription())
+                .modelMediaId(request.getModelMediaId())
                 .features(request.getFeatures())
-                .supports3d(request.getSupports3d() != null ? request.getSupports3d() : false)
+                .supports3d(request.getSupports3d())
                 .modelUrl(request.getModelUrl())
                 .build();
 
@@ -128,6 +132,7 @@ public class ProductController {
                 .color(request.getColor())
                 .warranty(request.getWarranty())
                 .sku(request.getSku())
+                .lowStockThreshold(request.getLowStockThreshold())
                 .build();
         addProductVariantUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();

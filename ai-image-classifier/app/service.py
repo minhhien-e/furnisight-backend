@@ -3,6 +3,7 @@ from PIL import Image, UnidentifiedImageError
 from .preprocess import preprocess_image
 from .postprocess import postprocess_output
 from .model import model_gateway
+from .recommendation import recommendation_service
 
 
 class PredictionService:
@@ -26,6 +27,7 @@ class PredictionService:
           2. Preprocess → tensor
           3. Inference → output tensor
           4. Postprocess → label + confidence
+          5. Recommendation → products matching predicted category
         """
         image = PredictionService._parse_image(contents)
 
@@ -42,7 +44,11 @@ class PredictionService:
             except Exception as e:
                 raise RuntimeError(f"{error_msg}: {e}") from e
 
-        return data
+        recommendations = recommendation_service.recommend_for_label(data.get("label"))
+        return {
+            **data,
+            **recommendations,
+        }
 
 
 # Cung cấp singleton pattern instance để router import

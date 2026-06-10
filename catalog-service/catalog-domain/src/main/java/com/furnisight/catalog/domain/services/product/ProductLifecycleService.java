@@ -29,6 +29,7 @@ public class ProductLifecycleService {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
+            UUID modelMediaId,
             String modelUrl,
             Boolean supports3d,
             List<String> features,
@@ -45,6 +46,7 @@ public class ProductLifecycleService {
                 name,
                 slug,
                 description,
+                modelMediaId,
                 modelUrl,
                 supports3d,
                 features,
@@ -59,6 +61,7 @@ public class ProductLifecycleService {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
+            UUID modelMediaId,
             String modelUrl,
             Boolean supports3d,
             List<String> features) {
@@ -69,7 +72,7 @@ public class ProductLifecycleService {
             }
         }
 
-        product.updateProfile(name, slug, description, modelUrl, supports3d, features);
+        product.updateProfile(name, slug, description, modelMediaId, modelUrl, supports3d, features);
     }
 
     /**

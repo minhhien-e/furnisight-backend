@@ -12,9 +12,9 @@ COPY build.gradle settings.gradle ./
 COPY src src
 
 RUN --mount=type=secret,id=GITHUB_TOKEN \
-    --mount=type=cache,target=/root/.gradle \
+    --mount=type=cache,id=gradle-cache-media-service,target=/root/.gradle \
     export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && \
-    chmod +x gradlew && ./gradlew build -x test
+    chmod +x gradlew && ./gradlew --no-daemon build -x test
 
 # Stage 2: Run
 FROM eclipse-temurin:17-jre-alpine

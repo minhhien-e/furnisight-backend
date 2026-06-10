@@ -47,15 +47,6 @@ public class PricingService {
         }
         order.setTotalAmount(totalAmount);
 
-        // Calculate Saved Amount (from old prices and discounts)
-        double itemSaved = order.getItems().stream()
-                .mapToDouble(item -> {
-                    if (item.getOldPrice() != null && item.getOldPrice() > item.getPrice()) {
-                        return (item.getOldPrice() - item.getPrice()) * item.getQuantity();
-                    }
-                    return 0.0;
-                })
-                .sum();
-        order.setSavedAmount(itemSaved + shippingDisc + discount);
+        order.setSavedAmount(shippingDisc + discount);
     }
 }

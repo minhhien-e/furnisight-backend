@@ -19,9 +19,9 @@ COPY src src
 
 # Tiến hành cấp quyền thực thi và build JAR, sử dụng Cache Mount và Secret Mount
 RUN --mount=type=secret,id=GITHUB_TOKEN \
-    --mount=type=cache,target=/root/.gradle \
-    export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN) && \
-    chmod +x gradlew && ./gradlew build -x test
+    --mount=type=cache,id=gradle-cache-cart-service,target=/root/.gradle \
+    if [ -f /run/secrets/GITHUB_TOKEN ]; then export GITHUB_TOKEN=$(cat /run/secrets/GITHUB_TOKEN); fi && \
+    chmod +x gradlew && ./gradlew --no-daemon build -x test
 
 # =========================================================================
 # Stage 2: Run (Môi trường chạy thực tế siêu nhẹ và bảo mật)

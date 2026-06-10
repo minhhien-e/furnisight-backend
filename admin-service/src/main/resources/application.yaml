@@ -34,8 +34,3 @@ management:
     web:
       exposure:
         include: health,info,prometheus
-
-admin:
-  inventory:
-    default-low-stock-threshold: ${ADMIN_INVENTORY_DEFAULT_LOW_STOCK_THRESHOLD:5}
-    settings-file: ${ADMIN_INVENTORY_SETTINGS_FILE:/app/data/inventory-warning-settings.json}

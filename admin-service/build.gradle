@@ -44,7 +44,7 @@ dependencies {
 	
 	// gRPC
 	implementation "net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE"
-	implementation 'com.furnisight:proto-lib:1.0.1780477369850'
+	implementation 'com.furnisight:proto-lib:1.0.1781077383461'
 	
 	// Tracking
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'
@@ -54,6 +54,7 @@ dependencies {
 	// Test
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+	testImplementation 'com.tngtech.archunit:archunit-junit5:1.4.1'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 

@@ -19,10 +19,10 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application source
 COPY ./app /app/app
+COPY ./v1 /app/v1
 
 # Copy config and models (weights loaded at runtime via ModelGateway)
 COPY config.json /app/config.json
-COPY ./models /app/models
 
 # Expose port
 EXPOSE 8000

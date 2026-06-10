@@ -144,6 +144,7 @@ services:
       - order-service
       - media-service
       - ai-image-classifier
+      - ai-image-reconstruction
       - admin-service
 
   user-service:
@@ -249,7 +250,35 @@ services:
     <<: *common-service
     expose:
       - "8080"
+    environment:
+      CATALOG_GRPC_TARGET: catalog-service:9093
+    depends_on:
+      - catalog-service
+    volumes:
+      - ./ai-image-classifier/models:/app/models:ro
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+
+  ai-image-reconstruction:
+    image: furnisight-ai-image-reconstruction:latest
+    build:
+      context: ./ai-image-reconstruction
+      dockerfile: Dockerfile
+      args:
+        TORCH_WHEEL: ${TORCH_WHEEL:-}
+    container_name: furnisight_ai_reconstruction
+    <<: *common-service
+    env_file:
+      - ./media-service/.env
+      - ./ai-image-reconstruction/.env
+    environment:
+      STORAGE_BACKEND: ${AI_RECONSTRUCTION_STORAGE_BACKEND:-cloudinary}
+      CLOUDINARY_FOLDER: ${AI_RECONSTRUCTION_CLOUDINARY_FOLDER:-furnisight/ai-reconstruction}
+      RETAIN_LOCAL_OUTPUTS: ${AI_RECONSTRUCTION_RETAIN_LOCAL_OUTPUTS:-false}
+    volumes:
+      - ./ai-image-reconstruction/checkpoints:/app/checkpoints:ro
+      - ./ai-image-reconstruction/outputs:/app/outputs
+    expose:
+      - "8080"
 
   media-service:
     <<: *java-service

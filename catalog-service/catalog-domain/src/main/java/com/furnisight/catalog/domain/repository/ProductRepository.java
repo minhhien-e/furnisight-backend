@@ -9,4 +9,6 @@ public interface ProductRepository {
     Product save(Product product);
     Optional<Product> findById(UUID id);
     boolean existsByNameValue(String name);
+    Optional<UUID> findVariantIdBySku(String normalizedSku);
+    int updateVariantLowStockThreshold(UUID variantId, int lowStockThreshold);
 }

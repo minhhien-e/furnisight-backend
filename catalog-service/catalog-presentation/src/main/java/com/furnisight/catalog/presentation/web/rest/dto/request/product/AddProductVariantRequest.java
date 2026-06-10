@@ -17,4 +17,5 @@ public class AddProductVariantRequest {
     private String color;
     private String warranty;
     private String sku;
+    private Integer lowStockThreshold;
 }

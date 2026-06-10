@@ -24,9 +24,6 @@ public class CartItem {
     private String slug;
 
     @Transient
-    private Double oldPrice;
-
-    @Transient
     private Integer stockQuantity;
 
     @Transient

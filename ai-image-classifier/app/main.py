@@ -1,9 +1,9 @@
-import io
+from typing import Optional
+
 from fastapi import FastAPI, File, UploadFile, HTTPException, Form
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from PIL import Image, UnidentifiedImageError
 
 from .model import model_gateway
 from .service import prediction_service
@@ -27,14 +27,6 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
 @app.get("/health")
 async def health_check():
     """
@@ -46,17 +38,28 @@ async def health_check():
     return {"status": "ok"}
 
 @app.post("/predict")
-async def predict_image(file: UploadFile = File(...), image_type: str = Form("normal")):
+async def predict_image(
+    file: Optional[UploadFile] = File(None),
+    image: Optional[UploadFile] = File(None),
+    image_type: str = Form("normal"),
+):
     """
     Receives an image file, processes it, and returns the classification label and confidence.
     """
+    upload = file or image
+    if upload is None:
+        raise HTTPException(
+            status_code=400,
+            detail="Missing image file. Send multipart/form-data with a file field named 'file' or 'image'.",
+        )
+
     # 1. Validate file extension/content type
-    if not file.content_type.startswith("image/"):
+    if not upload.content_type or not upload.content_type.startswith("image/"):
         raise HTTPException(status_code=400, detail="File provided is not an image.")
         
     try:
         # Read the file bytes
-        contents = await file.read()
+        contents = await upload.read()
         # Xử lý toàn bộ logic dự đoán qua Service Layer
         try:
             result = prediction_service.process_image(contents, image_type)
@@ -75,4 +78,4 @@ async def predict_image(file: UploadFile = File(...), image_type: str = Form("no
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
     finally:
-        await file.close()
+        await upload.close()

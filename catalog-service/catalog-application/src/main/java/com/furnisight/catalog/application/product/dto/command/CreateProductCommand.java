@@ -18,6 +18,7 @@ public class CreateProductCommand {
     private String name;
     private String slug;
     private String description;
+    private UUID modelMediaId;
     private String modelUrl;
     private Boolean supports3d;
     private List<String> features;
@@ -39,5 +40,6 @@ public class CreateProductCommand {
         private String warranty; // optional
         private String color;
         private String sku;
+        private Integer lowStockThreshold;
     }
 }

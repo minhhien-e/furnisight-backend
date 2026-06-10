@@ -8,7 +8,6 @@ import lombok.Data;
 public class CartItemVariant {
     private String id;
     private Double price;
-    private Double oldPrice;
     private Integer stockQuantity;
     private Double length;
     private Double width;

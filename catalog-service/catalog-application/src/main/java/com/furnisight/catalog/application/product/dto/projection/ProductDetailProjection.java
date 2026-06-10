@@ -17,7 +17,6 @@ public class ProductDetailProjection {
     private Double price;
     private String slug;
     private CategoryInfo category;
-    private Double oldPrice;
     private Double rating;
     private Integer ratingCount;
     private Integer soldCount;
@@ -29,6 +28,7 @@ public class ProductDetailProjection {
     private List<Review> reviews;
     private List<QA> qa;
     private String modelUrl;
+    private UUID modelMediaId;
     private String roomTypeHint;
 
     private List<VariantDto> variants;
@@ -75,5 +75,6 @@ public class ProductDetailProjection {
         private String color;
         private String warranty;
         private String sku;
+        private Integer lowStockThreshold;
     }
 }

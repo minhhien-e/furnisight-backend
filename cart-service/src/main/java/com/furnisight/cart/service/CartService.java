@@ -241,7 +241,6 @@ public class CartService {
                 .name(item.getName())
                 .slug(item.getSlug())
                 .price(item.getPrice())
-                .oldPrice(item.getOldPrice())
                 .imageUrl(item.getImageUrl())
                 .quantity(item.getQuantity())
                 .stockQuantity(item.getStockQuantity())
@@ -274,7 +273,6 @@ public class CartService {
         return CartItemVariant.builder()
                 .id(nonBlank(variant.getId(), null))
                 .price(variant.hasPrice() ? variant.getPrice() : null)
-                .oldPrice(variant.hasOldPrice() ? variant.getOldPrice() : null)
                 .stockQuantity(variant.hasStockQuantity() ? variant.getStockQuantity() : null)
                 .length(variant.hasLength() ? variant.getLength() : null)
                 .width(variant.hasWidth() ? variant.getWidth() : null)
@@ -292,9 +290,6 @@ public class CartService {
         }
         if (variant.getPrice() != null) {
             item.setPrice(variant.getPrice());
-        }
-        if (variant.getOldPrice() != null) {
-            item.setOldPrice(variant.getOldPrice());
         }
         if (variant.getStockQuantity() != null) {
             item.setStockQuantity(variant.getStockQuantity());
@@ -331,7 +326,6 @@ public class CartService {
         return CartItemVariantResponse.builder()
                 .id(variant.getId())
                 .price(variant.getPrice())
-                .oldPrice(variant.getOldPrice())
                 .stockQuantity(variant.getStockQuantity())
                 .length(variant.getLength())
                 .width(variant.getWidth())

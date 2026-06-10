@@ -44,6 +44,9 @@ public class Product extends AggregateRoot {
     @Column(name = "model_url")
     private String modelUrl;
 
+    @Column(name = "model_media_id")
+    private UUID modelMediaId;
+
     @Column(name = "supports_3d", nullable = false)
     private Boolean supports3d;
 
@@ -66,6 +69,7 @@ public class Product extends AggregateRoot {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
+            UUID modelMediaId,
             String modelUrl,
             Boolean supports3d,
             List<String> features,
@@ -79,6 +83,7 @@ public class Product extends AggregateRoot {
                 .name(name)
                 .slug(slug)
                 .description(description)
+                .modelMediaId(modelMediaId)
                 .modelUrl(modelUrl)
                 .supports3d(supports3d != null ? supports3d : false)
                 .soldCount(0)
@@ -173,6 +178,7 @@ public class Product extends AggregateRoot {
             existing.setWarranty(variant.getWarranty());
             existing.setColor(variant.getColor());
             existing.setSku(variant.getSku());
+            existing.setLowStockThreshold(variant.getLowStockThreshold());
         } else {
             this.variants.add(variant);
         }
@@ -197,6 +203,7 @@ public class Product extends AggregateRoot {
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
+            UUID modelMediaId,
             String modelUrl,
             Boolean supports3d,
             List<String> features) {
@@ -206,10 +213,11 @@ public class Product extends AggregateRoot {
             this.slug = slug;
         if (description != null)
             this.description = description;
-        if (modelUrl != null)
+        if (supports3d != null) {
+            this.modelMediaId = modelMediaId;
             this.modelUrl = modelUrl;
-        if (supports3d != null)
             this.supports3d = supports3d;
+        }
         if (features != null)
             this.features = features;
     }

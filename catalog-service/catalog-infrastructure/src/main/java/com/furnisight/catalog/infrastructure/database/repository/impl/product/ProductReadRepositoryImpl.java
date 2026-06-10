@@ -6,6 +6,7 @@ import com.furnisight.catalog.application.product.dto.projection.ProductDetailPr
 import com.furnisight.catalog.application.product.dto.projection.ProductSummaryProjection;
 import com.furnisight.catalog.application.product.dto.projection.AdminProductProjection;
 import com.furnisight.catalog.application.product.dto.projection.LowStockProductProjection;
+import com.furnisight.catalog.application.product.dto.projection.RecommendedProductProjection;
 import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
@@ -46,6 +47,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.model_media_id,
                     p.model_url,
                     p.supports_3d,
                     p.sold_count,
@@ -100,6 +102,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.model_media_id,
                     p.model_url,
                     p.supports_3d,
                     p.sold_count,
@@ -213,6 +216,88 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
+    public List<RecommendedProductProjection> findRecommendedProducts(
+            String categorySlug, String status, int limit) {
+        if (categorySlug == null || categorySlug.isBlank() || limit <= 0) {
+            return List.of();
+        }
+
+        String sql = """
+                WITH RECURSIVE category_tree AS (
+                    SELECT id
+                    FROM categories
+                    WHERE LOWER(slug) = :categorySlug
+
+                    UNION
+
+                    SELECT child.id
+                    FROM categories child
+                    JOIN category_tree parent ON child.parent_id = parent.id
+                )
+                SELECT
+                    p.id AS product_id,
+                    p.slug AS product_slug,
+                    p.name AS product_name,
+                    c.name AS category_name,
+                    cheapest_variant.id AS default_variant_id,
+                    cheapest_variant.price AS product_price,
+                    p.model_url,
+                    p.sold_count,
+                    p.features AS product_features,
+                    (
+                        SELECT pi.image_url
+                        FROM product_images pi
+                        WHERE pi.product_id = p.id
+                        ORDER BY pi.position ASC
+                        LIMIT 1
+                    ) AS product_image,
+                    COALESCE(review_stats.avg_rating, 0) AS product_rating,
+                    COALESCE(review_stats.rating_count, 0) AS product_rating_count
+                FROM products p
+                JOIN categories c ON c.id = p.category_id
+                LEFT JOIN LATERAL (
+                    SELECT pv.id, pv.price
+                    FROM product_variants pv
+                    WHERE pv.product_id = p.id
+                      AND pv.price IS NOT NULL
+                    ORDER BY pv.price ASC, pv.id ASC
+                    LIMIT 1
+                ) cheapest_variant ON TRUE
+                LEFT JOIN (
+                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS rating_count
+                    FROM reviews
+                    WHERE status = 'VISIBLE'::review_status
+                    GROUP BY product_id
+                ) review_stats ON review_stats.product_id = p.id
+                WHERE p.category_id IN (SELECT id FROM category_tree)
+                  AND p.product_status = :status
+                ORDER BY p.created_at DESC
+                LIMIT :limit
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of(
+                        "categorySlug", categorySlug.trim().toLowerCase(),
+                        "status", normalizeText(status, "ACTIVE").toUpperCase(),
+                        "limit", limit),
+                (rs, rowNum) -> RecommendedProductProjection.builder()
+                        .id((UUID) rs.getObject("product_id"))
+                        .slug(normalizeText(rs.getString("product_slug"), ""))
+                        .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
+                        .categoryName(normalizeText(rs.getString("category_name"), "Sản phẩm"))
+                        .defaultVariantId((UUID) rs.getObject("default_variant_id"))
+                        .price(getNullableDouble(rs, "product_price"))
+                        .image(normalizeText(rs.getString("product_image"), null))
+                        .modelUrl(normalizeText(rs.getString("model_url"), ""))
+                        .rating(getNullableDouble(rs, "product_rating"))
+                        .ratingCount(rs.getInt("product_rating_count"))
+                        .soldCount(rs.getInt("sold_count"))
+                        .tags(parseJsonList(rs.getString("product_features")))
+                        .build());
+    }
+
+    @Override
     public List<ProductSummaryProjection> findTopProducts(int limit) {
         if (limit <= 0) {
             return List.of();
@@ -277,6 +362,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.product_status,
+                    p.model_media_id,
                     p.model_url,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
@@ -285,7 +371,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
                 """ + whereClause + """
-                GROUP BY p.id, p.name, p.slug, p.product_status, p.model_url, c.name, p.created_at
+                GROUP BY p.id, p.name, p.slug, p.product_status, p.model_media_id, p.model_url, c.name, p.created_at
                 ORDER BY p.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
@@ -321,14 +407,15 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         Long total = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM (
-                    SELECT p.id, COALESCE(SUM(pv.stock_quantity), 0) AS stock
+                    SELECT p.id
                     FROM products p
-                    LEFT JOIN product_variants pv ON pv.product_id = p.id
+                    JOIN product_variants pv ON pv.product_id = p.id
                     GROUP BY p.id
+                    HAVING BOOL_OR(pv.stock_quantity > 0
+                        AND pv.stock_quantity <= pv.low_stock_threshold)
                 ) stock_view
-                WHERE stock > 0 AND stock <= :threshold
                 """,
-                Map.of("threshold", Math.max(threshold, 1)),
+                Map.of(),
                 Long.class);
         return total == null ? 0L : total;
     }
@@ -362,14 +449,15 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
                 GROUP BY p.id, p.name, c.name
-                HAVING COALESCE(SUM(pv.stock_quantity), 0) <= :threshold
+                HAVING BOOL_OR(pv.stock_quantity > 0
+                    AND pv.stock_quantity <= pv.low_stock_threshold)
                 ORDER BY product_stock ASC, p.name ASC
                 LIMIT :limit
                 """;
 
         return jdbcTemplate.query(
                 sql,
-                Map.of("threshold", Math.max(threshold, 1), "limit", Math.max(limit, 1)),
+                Map.of("limit", Math.max(limit, 1)),
                 (rs, rowNum) -> LowStockProductProjection.builder()
                         .id((UUID) rs.getObject("product_id"))
                         .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
@@ -422,6 +510,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .price(getNullableDouble(rs, "product_price") == null ? 0D : getNullableDouble(rs, "product_price"))
                 .stock(rs.getInt("product_stock"))
                 .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
+                .modelMediaId((UUID) rs.getObject("model_media_id"))
                 .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .imageUrls(fetchGallery(id))
                 .build();
@@ -634,7 +723,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .name(name)
                 .categoryName(categoryName)
                 .price(price)
-                .oldPrice(price > 0 ? price * 1.2 : null)
                 .image(imageUrl)
                 .rating(getNullableDouble(rs, "product_rating"))
                 .ratingCount(rs.getInt("product_rating_count"))
@@ -676,6 +764,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .collection(normalizeText(rs.getString("collection_name"), null))
                 .features(features)
                 .price(0.0)
+                .modelMediaId((UUID) rs.getObject("model_media_id"))
                 .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .roomTypeHint(categoryName)
                 .build();
@@ -694,7 +783,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     color,
                     material,
                     warranty,
-                    sku
+                    sku,
+                    low_stock_threshold
                 FROM product_variants
                 WHERE product_id = :productId
                 ORDER BY price ASC
@@ -715,6 +805,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .material(normalizeText(rs.getString("material"), ""))
                         .warranty(normalizeText(rs.getString("warranty"), ""))
                         .sku(normalizeText(rs.getString("sku"), ""))
+                        .lowStockThreshold(rs.getInt("low_stock_threshold"))
                         .build());
     }
 

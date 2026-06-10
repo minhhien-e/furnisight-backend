@@ -17,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.UUID;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,19 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 command.getWidth(),
                 command.getHeight());
 
+        String sku = command.getSku() == null ? "" : command.getSku().trim().toUpperCase(Locale.ROOT);
+        if (sku.isBlank()) {
+            throw new IllegalArgumentException("Variant SKU is required");
+        }
+        if (productRepository.findVariantIdBySku(sku).isPresent()) {
+            throw new IllegalArgumentException("Variant SKU already exists: " + sku);
+        }
+        int threshold = command.getLowStockThreshold() == null || command.getLowStockThreshold() == 0
+                ? 5 : command.getLowStockThreshold();
+        if (threshold < 1 || threshold > 9999) {
+            throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
+        }
+
         ProductVariant variant = ProductVariant.builder()
                 .id(UUID.randomUUID())
                 .price(new Price(BigDecimal.valueOf(command.getPrice())))
@@ -44,7 +58,8 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 .material(command.getMaterial())
                 .warranty(command.getWarranty())
                 .color(command.getColor())
-                .sku(command.getSku())
+                .sku(sku)
+                .lowStockThreshold(threshold)
                 .build();
 
         productLifecycleService.addVariant(product, variant);
