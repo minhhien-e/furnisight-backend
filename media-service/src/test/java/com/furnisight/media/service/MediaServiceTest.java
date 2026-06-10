@@ -3,6 +3,7 @@ package com.furnisight.media.service;
 import com.cloudinary.Cloudinary;
 import com.furnisight.media.dto.request.InitUploadRequest;
 import com.furnisight.media.entity.MediaAsset;
+import com.furnisight.media.enums.MediaType;
 import com.furnisight.media.enums.OwnerType;
 import com.furnisight.media.repository.MediaAssetRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.UUID;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
@@ -58,6 +60,34 @@ class MediaServiceTest {
                 "chair.glb", "model/gltf+json", 1024)))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessageContaining("contentType");
+    }
+
+    @Test
+    void acceptsCloudinaryRawPublicIdWithInitializedFileExtension() {
+        MediaAsset asset = MediaAsset.builder()
+                .cloudinaryPublicId("owner/session-chair")
+                .originalFilename("chair.glb")
+                .mediaType(MediaType.DOCUMENT)
+                .build();
+
+        assertThat(mediaService.matchesInitializedPublicId(asset, "owner/session-chair.glb")).isTrue();
+    }
+
+    @Test
+    void rejectsDifferentRawPublicIdAndImagePublicIdWithAddedExtension() {
+        MediaAsset modelAsset = MediaAsset.builder()
+                .cloudinaryPublicId("owner/session-chair")
+                .originalFilename("chair.glb")
+                .mediaType(MediaType.DOCUMENT)
+                .build();
+        MediaAsset imageAsset = MediaAsset.builder()
+                .cloudinaryPublicId("owner/session-image")
+                .originalFilename("image.png")
+                .mediaType(MediaType.IMAGE)
+                .build();
+
+        assertThat(mediaService.matchesInitializedPublicId(modelAsset, "owner/another-chair.glb")).isFalse();
+        assertThat(mediaService.matchesInitializedPublicId(imageAsset, "owner/session-image.png")).isFalse();
     }
 
     private InitUploadRequest modelRequest(String filename, String contentType, long sizeBytes) {

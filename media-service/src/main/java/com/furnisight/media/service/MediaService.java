@@ -87,7 +87,7 @@ public class MediaService {
         }
 
         String publicId = request.getPublicId() != null ? request.getPublicId() : asset.getCloudinaryPublicId();
-        if (publicId == null || !publicId.equals(asset.getCloudinaryPublicId())) {
+        if (!matchesInitializedPublicId(asset, publicId)) {
             throw new IllegalArgumentException("Uploaded public_id does not match the initialized media session");
         }
         String completedUrl = request.getSecureUrl() != null ? request.getSecureUrl() : request.getUrl();
@@ -245,6 +245,34 @@ public class MediaService {
         }
 
         return request.getOwnerId() + "/" + UUID.randomUUID() + "-" + safeName;
+    }
+
+    boolean matchesInitializedPublicId(MediaAsset asset, String uploadedPublicId) {
+        String initializedPublicId = asset.getCloudinaryPublicId();
+        if (uploadedPublicId == null || initializedPublicId == null) {
+            return false;
+        }
+        if (uploadedPublicId.equals(initializedPublicId)) {
+            return true;
+        }
+        if (asset.getMediaType() != MediaType.DOCUMENT) {
+            return false;
+        }
+
+        String extension = fileExtension(asset.getOriginalFilename());
+        return !extension.isBlank()
+                && uploadedPublicId.equals(initializedPublicId + "." + extension);
+    }
+
+    private String fileExtension(String filename) {
+        if (filename == null) {
+            return "";
+        }
+        int extensionSeparator = filename.lastIndexOf('.');
+        if (extensionSeparator < 0 || extensionSeparator == filename.length() - 1) {
+            return "";
+        }
+        return filename.substring(extensionSeparator + 1).toLowerCase();
     }
 
 }

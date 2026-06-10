@@ -6,6 +6,10 @@ server:
 grpc:
   server:
     port: ${GRPC_SERVER_PORT:9093}
+  client:
+    media-service:
+      address: "static://${MEDIA_SERVICE_GRPC_HOST:localhost}:${MEDIA_SERVICE_GRPC_PORT:9094}"
+      negotiationType: plaintext
 
 spring:
   application:
