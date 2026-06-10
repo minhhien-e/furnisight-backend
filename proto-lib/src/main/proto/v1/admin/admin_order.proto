@@ -20,6 +20,7 @@ service AdminOrderService {
     rpc DeliverOrder (DeliverOrderRequest) returns (AdminActionResponse);
     rpc UpdateOrderStatus (UpdateOrderStatusRequest) returns (AdminActionResponse);
     rpc GetRevenueSummary (GetRevenueSummaryRequest) returns (RevenueSummaryResponse);
+    rpc GetTopSellingProducts (GetTopSellingProductsRequest) returns (TopSellingProductsResponse);
 }
 
 message AdminActionResponse {
@@ -175,4 +176,22 @@ message MonthlyRevenue {
     double revenue = 3;
     int64  order_count = 4;
     double mom_change_pct = 5; // % so với tháng trước
+}
+
+message GetTopSellingProductsRequest {
+    int32 limit = 1;
+}
+
+message TopSellingProductsResponse {
+    repeated TopProductDto products = 1;
+}
+
+message TopProductDto {
+    string product_id = 1;
+    string product_name = 2;
+    string category_name = 3;
+    string image_url = 4;
+    double price = 5;
+    int32 sold_count = 6;
+    double total_revenue = 7;
 }
