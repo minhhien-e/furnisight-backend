@@ -46,6 +46,13 @@ message GetAccountsRequest {
     int32 size = 2;
     string query = 3;
     string status = 4;
+    AccountScope scope = 5;
+}
+
+enum AccountScope {
+    ACCOUNT_SCOPE_UNSPECIFIED = 0;
+    ACCOUNT_SCOPE_CUSTOMER = 1;
+    ACCOUNT_SCOPE_ADMIN = 2;
 }
 
 message AccountPageResponse {
