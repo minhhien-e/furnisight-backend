@@ -32,8 +32,10 @@ public class OrderLifecycle {
             List<OrderItemParam> itemParams,
             String shopVoucherCode,
             String shippingVoucherCode,
+            String comboId,
             Double discountAmount,
             Double shippingDiscount,
+            Double comboDiscount,
             Double shippingFee,
             Double insuranceFee) {
 
@@ -46,6 +48,7 @@ public class OrderLifecycle {
         double actualInsuranceFee = insuranceFee != null ? insuranceFee : 0.0;
         double actualShippingDiscount = shippingDiscount != null ? shippingDiscount : 0.0;
         double actualDiscountAmount = discountAmount != null ? discountAmount : 0.0;
+        double actualComboDiscount = comboDiscount != null ? comboDiscount : 0.0;
 
         var items = itemParams.stream().map(param ->
                 OrderItem.builder()
@@ -77,9 +80,11 @@ public class OrderLifecycle {
                         .shippingFee(actualShippingFee)
                         .shippingDiscount(actualShippingDiscount)
                         .discountAmount(actualDiscountAmount)
+                        .comboDiscount(actualComboDiscount)
                         .insuranceFee(actualInsuranceFee)
                         .shopVoucherCode(shopVoucherCode)
                         .shippingVoucherCode(shippingVoucherCode)
+                        .comboId(comboId)
                         .build())
                 .customerNote(customerNote)
                 .shippingDetail(shippingDetail)

@@ -84,6 +84,16 @@ spring:
                 regexp: /orders/?(?<segment>.*)
                 replacement: /api/v1/$\{segment}
 
+        - id: promotion-service
+          uri: ${PROMOTION_SERVICE_URL}
+          predicates:
+            - Path=/promotions/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /promotions/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
         - id: ai-image-classifier
           uri: ${AI_IMAGE_CLASSIFIER_URL}
           predicates:

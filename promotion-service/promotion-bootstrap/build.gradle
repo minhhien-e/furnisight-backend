@@ -1,0 +1,20 @@
+plugins {
+    id 'org.springframework.boot'
+}
+
+dependencies {
+    implementation project(':promotion-adapter')
+    implementation project(':promotion-application')
+    implementation project(':promotion-domain')
+    implementation 'me.paulschwarz:spring-dotenv:4.0.0'
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+}
+
+bootJar {
+    enabled = true
+}
+
+jar {
+    enabled = false
+}

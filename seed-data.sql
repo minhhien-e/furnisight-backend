@@ -1,10 +1,13 @@
 -- ============================================================
 -- SEED DATA
 -- Chay thu cong sau khi Docker stack va Flyway migrations da san sang.
---
+--v 
 -- Cach chay:
 --   docker exec -i furnisight_user_postgres psql -v ON_ERROR_STOP=1 -U postgres < seed-data.sql
 -- ============================================================
+
+SELECT 'CREATE DATABASE furnisight_promotion_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_promotion_db')\gexec
 
 -- ============================================================
 -- furnisight_user_db
@@ -384,6 +387,254 @@ INSERT INTO reviews (
   ('b0000009-0000-0000-0000-000000000001', 'Tủ lavabo gọn và đẹp', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'User 01', 'e0000000-0000-0000-0000-000000000009', 'c0000009-0000-0000-0000-000000000001', 'Tủ treo tường giúp phòng tắm thoáng hơn, ngăn kéo đóng êm và mặt lavabo dễ lau.', md5('Tủ treo tường giúp phòng tắm thoáng hơn.'), 5, 'VISIBLE', 0.92, NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),
   ('b0000009-0000-0000-0000-000000000002', 'Tốt nhưng giao hàng chậm', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'User 02', 'e0000000-0000-0000-0000-000000000009', 'c0000009-0000-0000-0000-000000000002', 'Sản phẩm chất lượng tốt, đúng mô tả. Khâu giao hàng cần cải thiện.', md5('Sản phẩm chất lượng tốt, đúng mô tả.'), 3, 'VISIBLE', 0.65, NOW() - INTERVAL '4 days', NOW() - INTERVAL '4 days'),
   ('b0000010-0000-0000-0000-000000000001', 'Gương LED sáng dịu, rất tiện', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'User 03', 'e0000000-0000-0000-0000-000000000010', 'c0000010-0000-0000-0000-000000000001', 'Đèn LED sáng vừa đủ, soi rõ mặt nhưng không chói. Lắp ở khu lavabo rất hợp.', md5('Đèn LED sáng vừa đủ, soi rõ mặt nhưng không chói.'), 5, 'VISIBLE', 0.87, NOW() - INTERVAL '6 days', NOW() - INTERVAL '6 days');
+
+COMMIT;
+
+-- ============================================================
+-- furnisight_promotion_db
+-- Schema tham chieu:
+--   - promotion-service/.../V1__create_promotion_tables.sql
+-- ============================================================
+\connect furnisight_promotion_db;
+
+BEGIN;
+
+DELETE FROM user_vouchers
+WHERE promotion_id IN (
+  '81000000-0000-0000-0000-000000000001',
+  '81000000-0000-0000-0000-000000000002',
+  '81000000-0000-0000-0000-000000000003',
+  '81000000-0000-0000-0000-000000000004',
+  '81000000-0000-0000-0000-000000000005',
+  '81000000-0000-0000-0000-000000000006'
+);
+
+DELETE FROM promotions
+WHERE id IN (
+  '81000000-0000-0000-0000-000000000001',
+  '81000000-0000-0000-0000-000000000002',
+  '81000000-0000-0000-0000-000000000003',
+  '81000000-0000-0000-0000-000000000004',
+  '81000000-0000-0000-0000-000000000005',
+  '81000000-0000-0000-0000-000000000006'
+)
+OR code IN (
+  'WELCOME10',
+  'FREESHIP',
+  'FURNI500K',
+  'MINHHIEN15',
+  'VIPSHIP',
+  'SUMMER25'
+);
+
+INSERT INTO promotions (
+  id,
+  code,
+  name,
+  description,
+  icon,
+  voucher_type,
+  discount_type,
+  discount_value,
+  max_discount,
+  min_order,
+  start_date,
+  end_date,
+  active,
+  created_at,
+  updated_at
+) VALUES
+  (
+    '81000000-0000-0000-0000-000000000001',
+    'WELCOME10',
+    'Welcome 10%',
+    'Public voucher: giam 10% cho don tu 3.000.000, toi da 500.000.',
+    'badgePercent',
+    'PUBLIC',
+    'PERCENT',
+    10,
+    500000,
+    3000000,
+    NOW() - INTERVAL '30 days',
+    NOW() + INTERVAL '180 days',
+    TRUE,
+    NOW(),
+    NOW()
+  ),
+  (
+    '81000000-0000-0000-0000-000000000002',
+    'FREESHIP',
+    'Free shipping',
+    'Public shipping voucher: giam phi van chuyen toi da 100.000.',
+    'truck',
+    'PUBLIC',
+    'SHIPPING_CAP',
+    100000,
+    NULL,
+    1000000,
+    NOW() - INTERVAL '30 days',
+    NOW() + INTERVAL '180 days',
+    TRUE,
+    NOW(),
+    NOW()
+  ),
+  (
+    '81000000-0000-0000-0000-000000000003',
+    'FURNI500K',
+    'Furni 500K',
+    'Public voucher: giam truc tiep 500.000 cho don tu 10.000.000.',
+    'ticket',
+    'PUBLIC',
+    'FIXED',
+    500000,
+    NULL,
+    10000000,
+    NOW() - INTERVAL '30 days',
+    NOW() + INTERVAL '90 days',
+    TRUE,
+    NOW(),
+    NOW()
+  ),
+  (
+    '81000000-0000-0000-0000-000000000004',
+    'MINHHIEN15',
+    'Personal 15%',
+    'Personal voucher gan san cho account minhhien.',
+    'sparkles',
+    'PERSONAL',
+    'PERCENT',
+    15,
+    750000,
+    5000000,
+    NOW() - INTERVAL '7 days',
+    NOW() + INTERVAL '60 days',
+    TRUE,
+    NOW(),
+    NOW()
+  ),
+  (
+    '81000000-0000-0000-0000-000000000005',
+    'VIPSHIP',
+    'VIP shipping',
+    'Personal shipping voucher gan san cho account admin de test saved voucher.',
+    'truck',
+    'PERSONAL',
+    'SHIPPING_CAP',
+    200000,
+    NULL,
+    2000000,
+    NOW() - INTERVAL '7 days',
+    NOW() + INTERVAL '60 days',
+    TRUE,
+    NOW(),
+    NOW()
+  ),
+  (
+    '81000000-0000-0000-0000-000000000006',
+    'SUMMER25',
+    'Summer marketing preview',
+    'Marketing voucher mau cho admin list/stats, chua dung de phat hang loat o v1.',
+    'megaphone',
+    'MARKETING',
+    'PERCENT',
+    25,
+    1000000,
+    15000000,
+    NOW() + INTERVAL '7 days',
+    NOW() + INTERVAL '45 days',
+    FALSE,
+    NOW(),
+    NOW()
+  );
+
+INSERT INTO user_vouchers (
+  id,
+  user_id,
+  promotion_id,
+  is_used,
+  used_at,
+  saved_at
+) VALUES
+  (
+    '82000000-0000-0000-0000-000000000001',
+    '52379d96-5238-4fd9-8383-bae82736bb3b',
+    '81000000-0000-0000-0000-000000000004',
+    FALSE,
+    NULL,
+    NOW() - INTERVAL '2 days'
+  ),
+  (
+    '82000000-0000-0000-0000-000000000002',
+    'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
+    '81000000-0000-0000-0000-000000000005',
+    FALSE,
+    NULL,
+    NOW() - INTERVAL '1 day'
+  );
+
+DELETE FROM marketing_dispatch_logs
+WHERE source_id IN (
+  '83000000-0000-0000-0000-000000000001',
+  '85000000-0000-0000-0000-000000000001'
+);
+
+DELETE FROM marketing_campaigns
+WHERE id IN (
+  '83000000-0000-0000-0000-000000000001',
+  '83000000-0000-0000-0000-000000000002'
+);
+
+DELETE FROM marketing_notifications
+WHERE id IN (
+  '85000000-0000-0000-0000-000000000001',
+  '85000000-0000-0000-0000-000000000002'
+);
+
+DELETE FROM promotion_combo_items
+WHERE combo_id IN (
+  '84000000-0000-0000-0000-000000000001',
+  '84000000-0000-0000-0000-000000000002'
+);
+
+DELETE FROM promotion_combos
+WHERE id IN (
+  '84000000-0000-0000-0000-000000000001',
+  '84000000-0000-0000-0000-000000000002'
+);
+
+INSERT INTO marketing_campaigns (
+  id, name, voucher_id, target_type, target_user_ids, segment_key, channels,
+  schedule_type, scheduled_at, notification_title, notification_body, status,
+  sent_count, active, dispatched_at, created_at, updated_at
+) VALUES
+  ('83000000-0000-0000-0000-000000000001', 'Phat WELCOME10 cho khach moi', '81000000-0000-0000-0000-000000000001', 'SEGMENT', '', 'NEW_USERS', 'NOTIFICATION,EMAIL', 'SCHEDULED', NOW() + INTERVAL '1 day', 'Ban vua nhan voucher WELCOME10', 'Dung voucher WELCOME10 de giam 10% cho don hang dau tien.', 'SCHEDULED', 0, TRUE, NULL, NOW(), NOW()),
+  ('83000000-0000-0000-0000-000000000002', 'Nhac gio hang bo quen', '81000000-0000-0000-0000-000000000003', 'SEGMENT', '', 'ABANDONED_CART', 'NOTIFICATION', 'DRAFT', NULL, 'Uu dai cho gio hang cua ban', 'Hoan tat don hang hom nay de nhan uu dai noi that.', 'DRAFT', 0, TRUE, NULL, NOW(), NOW());
+
+INSERT INTO promotion_combos (
+  id, name, description, discount_type, discount_value, start_date, end_date,
+  active, placements, original_amount, final_amount, saved_amount, used_count,
+  created_at, updated_at
+) VALUES
+  ('84000000-0000-0000-0000-000000000001', 'Combo phong ngu LuxNest', 'Giuong, tu ao va ban trang diem cho phong ngu.', 'PERCENTAGE', 15, NOW() - INTERVAL '7 days', NOW() + INTERVAL '60 days', TRUE, 'PRODUCT_DETAIL,CART,CHECKOUT', 11000000, 9350000, 1650000, 24, NOW(), NOW()),
+  ('84000000-0000-0000-0000-000000000002', 'Combo phong khach tinh gon', 'Sofa va ban tra cho phong khach hien dai.', 'FIXED_AMOUNT', 1300000, NOW() - INTERVAL '7 days', NOW() + INTERVAL '45 days', TRUE, 'PRODUCT_DETAIL,CART', 10300000, 9000000, 1300000, 11, NOW(), NOW());
+
+INSERT INTO promotion_combo_items (
+  id, combo_id, product_id, variant_id, product_name, sku, category_name, image,
+  price, quantity, snapshot_missing, created_at, updated_at
+) VALUES
+  ('84100000-0000-0000-0000-000000000001', '84000000-0000-0000-0000-000000000001', 'product-bed-001', 'variant-bed-001', 'Giuong go LuxBed 01', 'BED-LUX-001', 'Phong ngu', 'bedDouble', 5000000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000002', '84000000-0000-0000-0000-000000000001', 'product-wardrobe-003', 'variant-wardrobe-003', 'Tu ao 3 canh LuxWardrobe', 'WAR-LUX-003', 'Phong ngu', 'box', 4000000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000003', '84000000-0000-0000-0000-000000000001', 'product-makeup-002', 'variant-makeup-002', 'Ban trang diem LuxMakeup', 'MAKEUP-LUX-002', 'Phong ngu', 'sparkles', 2000000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000004', '84000000-0000-0000-0000-000000000002', 'product-sofa-004', 'variant-sofa-004', 'Sofa goc LuxSofa', 'SOFA-LUX-004', 'Phong khach', 'sofa', 8500000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000005', '84000000-0000-0000-0000-000000000002', 'product-table-005', 'variant-table-005', 'Ban tra LuxTable', 'TABLE-LUX-005', 'Phong khach', 'table', 1800000, 1, FALSE, NOW(), NOW());
+
+INSERT INTO marketing_notifications (
+  id, title, body, target_type, target_user_ids, segment_key, channels, send_type,
+  scheduled_at, related_voucher_id, status, sent_count, active, dispatched_at,
+  created_at, updated_at
+) VALUES
+  ('85000000-0000-0000-0000-000000000001', 'Ban vua nhan voucher WELCOME10', 'Kiem tra vi voucher va dung uu dai trong checkout.', 'ALL', '', NULL, 'NOTIFICATION', 'DRAFT', NULL, '81000000-0000-0000-0000-000000000001', 'DRAFT', 0, TRUE, NULL, NOW(), NOW()),
+  ('85000000-0000-0000-0000-000000000002', 'Uu dai noi that cuoi tuan', 'Khach VIP nhan uu dai dac biet cho bo suu tap moi.', 'SEGMENT', '', 'VIP', 'NOTIFICATION,EMAIL', 'SCHEDULED', NOW() + INTERVAL '3 days', NULL, 'SCHEDULED', 0, TRUE, NULL, NOW(), NOW());
 
 COMMIT;
 

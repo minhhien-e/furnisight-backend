@@ -6,6 +6,7 @@ import com.furnisight.admin.shared.web.ActionResultResponse;
 import com.furnisight.admin.voucher.application.VoucherService;
 import com.furnisight.admin.voucher.web.dto.request.UpsertVoucherRequest;
 import com.furnisight.admin.voucher.web.dto.response.VoucherListResponse;
+import com.furnisight.admin.voucher.web.dto.response.VoucherStatsResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,8 +26,15 @@ public class VoucherController {
     @PreAuthorize("hasAuthority('ORDER_VIEW') or hasAuthority('order_view') or hasAuthority('MANAGE_ORDERS') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<VoucherListResponse> getVouchers(
             @RequestParam(required = false) String query,
+            @RequestParam(required = false) String type,
             @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(voucherService.getVouchers(query, status));
+        return ResponseEntity.ok(voucherService.getVouchers(query, type, status));
+    }
+
+    @GetMapping("/stats")
+    @PreAuthorize("hasAuthority('ORDER_VIEW') or hasAuthority('order_view') or hasAuthority('MANAGE_ORDERS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<VoucherStatsResponse> getStats() {
+        return ResponseEntity.ok(voucherService.getStats());
     }
 
     @PostMapping
@@ -56,6 +64,16 @@ public class VoucherController {
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.deleteVoucher(id);
         auditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa voucher", "VOUCHER",
+                id, result, "Voucher id: " + id, httpRequest);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/{id}/publish")
+    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('order_update') or hasAuthority('MANAGE_ORDERS') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<ActionResultResponse> publishVoucher(
+            @PathVariable String id, @RequestBody Object request, HttpServletRequest httpRequest) {
+        ActionResultResponse result = voucherService.publishVoucher(id, request);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), "send", "Phát hành voucher", "VOUCHER_PUBLISH",
                 id, result, "Voucher id: " + id, httpRequest);
         return ResponseEntity.ok(result);
     }
