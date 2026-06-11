@@ -25,7 +25,6 @@ public class ProductLifecycleService {
 
     public Product createProduct(
             UUID categoryId,
-            UUID collectionId,
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
@@ -42,7 +41,6 @@ public class ProductLifecycleService {
 
         Product product = Product.create(
                 categoryId,
-                collectionId,
                 name,
                 slug,
                 description,
@@ -80,14 +78,6 @@ public class ProductLifecycleService {
      */
     public void changeCategory(Product product, UUID categoryId) {
         product.changeCategory(categoryId);
-    }
-
-    public void assignToCollection(Product product, UUID collectionId) {
-        product.assignToCollection(collectionId);
-    }
-
-    public void removeFromCollection(Product product) {
-        product.removeFromCollection();
     }
 
     public void addImage(Product product, ProductImage image) {

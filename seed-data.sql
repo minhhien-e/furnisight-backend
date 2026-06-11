@@ -238,14 +238,6 @@ WHERE id IN (
   'e0000000-0000-0000-0000-000000000010'
 );
 
-DELETE FROM collections
-WHERE id IN (
-  'f0000000-0000-0000-0000-000000000001',
-  'f0000000-0000-0000-0000-000000000002',
-  'f0000000-0000-0000-0000-000000000003',
-  'f0000000-0000-0000-0000-000000000004'
-);
-
 DELETE FROM categories
 WHERE id IN (
   'c0000000-0000-0000-0000-000000000001',
@@ -276,16 +268,9 @@ INSERT INTO categories (id, name, slug, parent_id, path, product_count, image_ur
   ('d0000000-0000-0000-0000-000000000007', 'Tủ lavabo', 'bathroom-vanity', 'c0000000-0000-0000-0000-000000000004', 'bathroom/bathroom-vanity', 1, 'https://images.unsplash.com/photo-1584622781564-1d987f7333c1?auto=format&fit=crop&q=80&w=800', 'bathroom-vanity', NOW(), NOW()),
   ('d0000000-0000-0000-0000-000000000008', 'Gương phòng tắm', 'bathroom-mirror', 'c0000000-0000-0000-0000-000000000004', 'bathroom/bathroom-mirror', 1, 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&q=80&w=800', 'bathroom-mirror', NOW(), NOW());
 
-INSERT INTO collections (id, name, description, slug, created_at, updated_at) VALUES
-  ('f0000000-0000-0000-0000-000000000001', 'Phòng khách hiện đại', 'Bộ sưu tập nội thất phòng khách gọn gàng, ấm cúng và dễ phối màu.', 'modern-living-room', NOW(), NOW()),
-  ('f0000000-0000-0000-0000-000000000002', 'Phòng ngủ thư giãn', 'Bộ sưu tập phòng ngủ ưu tiên sự thoải mái, lưu trữ tốt và chất liệu bền.', 'relaxing-bedroom', NOW(), NOW()),
-  ('f0000000-0000-0000-0000-000000000003', 'Góc bếp ấm cúng', 'Bộ sưu tập bàn ăn và tủ bếp phù hợp căn hộ gia đình hiện đại.', 'cozy-kitchen', NOW(), NOW()),
-  ('f0000000-0000-0000-0000-000000000004', 'Phòng tắm tinh gọn', 'Bộ sưu tập tủ lavabo và gương giúp phòng tắm sáng, sạch và dễ sử dụng.', 'clean-bathroom', NOW(), NOW());
-
 INSERT INTO products (
   id,
   category_id,
-  collection_id,
   name,
   slug,
   description,
@@ -298,16 +283,16 @@ INSERT INTO products (
   created_at,
   updated_at
 ) VALUES
-  ('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Sofa da bò hiện đại', 'modern-leather-sofa', 'Ghế sofa da bò cao cấp, dáng gọn và sang trọng cho phòng khách hiện đại.', 'ACTIVE', NULL, NULL, FALSE, '["Da bò thật","Khung gỗ sồi","Dễ vệ sinh","Đệm ngồi êm"]', 24, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'f0000000-0000-0000-0000-000000000001', 'Sofa vải chữ L êm ái', 'fabric-sectional-sofa', 'Sofa vải chữ L rộng rãi, phù hợp phòng khách gia đình và không gian mở.', 'ACTIVE', NULL, NULL, FALSE, '["Vải nỉ cao cấp","Thiết kế chữ L","Đệm mút dày","Có thể tháo vỏ"]', 17, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000002', 'f0000000-0000-0000-0000-000000000001', 'Bàn trà gỗ sồi tối giản', 'minimalist-oak-coffee-table', 'Bàn trà gỗ sồi phong cách tối giản, dễ phối với sofa và thảm phòng khách.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ sồi tự nhiên","Mặt bàn chống trầy","Kiểu dáng tối giản"]', 31, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002', 'Giường king khung kim loại', 'king-size-metal-bed', 'Giường king size khung kim loại chắc chắn, rộng rãi và dễ vệ sinh gầm giường.', 'ACTIVE', NULL, NULL, FALSE, '["Sơn tĩnh điện","Khung thép chịu lực","Dễ lắp ráp","Không gây tiếng kêu"]', 12, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000003', 'f0000000-0000-0000-0000-000000000002', 'Giường queen gỗ tự nhiên', 'queen-size-wooden-bed', 'Giường queen size bằng gỗ tự nhiên, tông ấm và phù hợp phòng ngủ thư giãn.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ thông tự nhiên","Phong cách ấm áp","Nan giường chắc chắn"]', 20, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000006', 'd0000000-0000-0000-0000-000000000004', 'f0000000-0000-0000-0000-000000000002', 'Tủ quần áo cửa trượt', 'sliding-door-wardrobe', 'Tủ quần áo cửa trượt rộng rãi, tích hợp gương và chia ngăn khoa học.', 'ACTIVE', NULL, NULL, FALSE, '["Cửa trượt tiết kiệm diện tích","Tích hợp gương lớn","Gỗ MDF phủ Melamine"]', 9, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000007', 'd0000000-0000-0000-0000-000000000005', 'f0000000-0000-0000-0000-000000000003', 'Bàn ăn mặt đá cẩm thạch', 'marble-top-dining-table', 'Bàn ăn mặt đá cẩm thạch sang trọng, phù hợp phòng bếp và khu vực ăn gia đình.', 'ACTIVE', NULL, NULL, FALSE, '["Mặt đá cẩm thạch","Chân bàn kim loại","Dễ lau chùi","Phong cách hiện đại"]', 8, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000008', 'd0000000-0000-0000-0000-000000000006', 'f0000000-0000-0000-0000-000000000003', 'Tủ bếp gỗ sáng màu', 'light-wood-kitchen-cabinet', 'Tủ bếp gỗ sáng màu có nhiều ngăn lưu trữ, giúp khu bếp gọn gàng và sạch sẽ.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ công nghiệp chống ẩm","Tay nắm âm","Dễ lau dầu mỡ","Nhiều khoang chứa"]', 6, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000009', 'd0000000-0000-0000-0000-000000000007', 'f0000000-0000-0000-0000-000000000004', 'Tủ lavabo treo tường', 'wall-mounted-bathroom-vanity', 'Tủ lavabo treo tường chống ẩm, giúp phòng tắm thoáng và dễ vệ sinh sàn.', 'ACTIVE', NULL, NULL, TRUE, '["Chống ẩm tốt","Thiết kế treo tường","Ngăn kéo giảm chấn","Mặt lavabo dễ lau"]', 15, NOW(), NOW()),
-  ('e0000000-0000-0000-0000-000000000010', 'd0000000-0000-0000-0000-000000000008', 'f0000000-0000-0000-0000-000000000004', 'Gương phòng tắm có đèn LED', 'led-bathroom-mirror', 'Gương phòng tắm tích hợp đèn LED, ánh sáng dịu và phù hợp khu vực lavabo.', 'ACTIVE', NULL, NULL, TRUE, '["Đèn LED tiết kiệm điện","Chống mờ nhẹ","Ánh sáng trung tính","Dễ lắp đặt"]', 27, NOW(), NOW());
+  ('e0000000-0000-0000-0000-000000000001', 'd0000000-0000-0000-0000-000000000001', 'Sofa da bò hiện đại', 'modern-leather-sofa', 'Ghế sofa da bò cao cấp, dáng gọn và sang trọng cho phòng khách hiện đại.', 'ACTIVE', NULL, NULL, FALSE, '["Da bò thật","Khung gỗ sồi","Dễ vệ sinh","Đệm ngồi êm"]', 24, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000002', 'd0000000-0000-0000-0000-000000000001', 'Sofa vải chữ L êm ái', 'fabric-sectional-sofa', 'Sofa vải chữ L rộng rãi, phù hợp phòng khách gia đình và không gian mở.', 'ACTIVE', NULL, NULL, FALSE, '["Vải nỉ cao cấp","Thiết kế chữ L","Đệm mút dày","Có thể tháo vỏ"]', 17, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000003', 'd0000000-0000-0000-0000-000000000002', 'Bàn trà gỗ sồi tối giản', 'minimalist-oak-coffee-table', 'Bàn trà gỗ sồi phong cách tối giản, dễ phối với sofa và thảm phòng khách.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ sồi tự nhiên","Mặt bàn chống trầy","Kiểu dáng tối giản"]', 31, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000004', 'd0000000-0000-0000-0000-000000000003', 'Giường king khung kim loại', 'king-size-metal-bed', 'Giường king size khung kim loại chắc chắn, rộng rãi và dễ vệ sinh gầm giường.', 'ACTIVE', NULL, NULL, FALSE, '["Sơn tĩnh điện","Khung thép chịu lực","Dễ lắp ráp","Không gây tiếng kêu"]', 12, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000005', 'd0000000-0000-0000-0000-000000000003', 'Giường queen gỗ tự nhiên', 'queen-size-wooden-bed', 'Giường queen size bằng gỗ tự nhiên, tông ấm và phù hợp phòng ngủ thư giãn.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ thông tự nhiên","Phong cách ấm áp","Nan giường chắc chắn"]', 20, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000006', 'd0000000-0000-0000-0000-000000000004', 'Tủ quần áo cửa trượt', 'sliding-door-wardrobe', 'Tủ quần áo cửa trượt rộng rãi, tích hợp gương và chia ngăn khoa học.', 'ACTIVE', NULL, NULL, FALSE, '["Cửa trượt tiết kiệm diện tích","Tích hợp gương lớn","Gỗ MDF phủ Melamine"]', 9, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000007', 'd0000000-0000-0000-0000-000000000005', 'Bàn ăn mặt đá cẩm thạch', 'marble-top-dining-table', 'Bàn ăn mặt đá cẩm thạch sang trọng, phù hợp phòng bếp và khu vực ăn gia đình.', 'ACTIVE', NULL, NULL, FALSE, '["Mặt đá cẩm thạch","Chân bàn kim loại","Dễ lau chùi","Phong cách hiện đại"]', 8, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000008', 'd0000000-0000-0000-0000-000000000006', 'Tủ bếp gỗ sáng màu', 'light-wood-kitchen-cabinet', 'Tủ bếp gỗ sáng màu có nhiều ngăn lưu trữ, giúp khu bếp gọn gàng và sạch sẽ.', 'ACTIVE', NULL, NULL, FALSE, '["Gỗ công nghiệp chống ẩm","Tay nắm âm","Dễ lau dầu mỡ","Nhiều khoang chứa"]', 6, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000009', 'd0000000-0000-0000-0000-000000000007', 'Tủ lavabo treo tường', 'wall-mounted-bathroom-vanity', 'Tủ lavabo treo tường chống ẩm, giúp phòng tắm thoáng và dễ vệ sinh sàn.', 'ACTIVE', NULL, NULL, TRUE, '["Chống ẩm tốt","Thiết kế treo tường","Ngăn kéo giảm chấn","Mặt lavabo dễ lau"]', 15, NOW(), NOW()),
+  ('e0000000-0000-0000-0000-000000000010', 'd0000000-0000-0000-0000-000000000008', 'Gương phòng tắm có đèn LED', 'led-bathroom-mirror', 'Gương phòng tắm tích hợp đèn LED, ánh sáng dịu và phù hợp khu vực lavabo.', 'ACTIVE', NULL, NULL, TRUE, '["Đèn LED tiết kiệm điện","Chống mờ nhẹ","Ánh sáng trung tính","Dễ lắp đặt"]', 27, NOW(), NOW());
 
 INSERT INTO product_images (id, product_id, image_url, position, created_at, updated_at) VALUES
   (gen_random_uuid(), 'e0000000-0000-0000-0000-000000000001', 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1200', 1, NOW(), NOW()),
@@ -611,12 +596,12 @@ INSERT INTO marketing_campaigns (
   ('83000000-0000-0000-0000-000000000002', 'Nhac gio hang bo quen', '81000000-0000-0000-0000-000000000003', 'SEGMENT', '', 'ABANDONED_CART', 'NOTIFICATION', 'DRAFT', NULL, 'Uu dai cho gio hang cua ban', 'Hoan tat don hang hom nay de nhan uu dai noi that.', 'DRAFT', 0, TRUE, NULL, NOW(), NOW());
 
 INSERT INTO promotion_combos (
-  id, name, description, discount_type, discount_value, start_date, end_date,
+  id, name, description, image_url, discount_type, discount_value, start_date, end_date,
   active, placements, original_amount, final_amount, saved_amount, used_count,
   created_at, updated_at
 ) VALUES
-  ('84000000-0000-0000-0000-000000000001', 'Combo phong ngu LuxNest', 'Giuong, tu ao va ban trang diem cho phong ngu.', 'PERCENTAGE', 15, NOW() - INTERVAL '7 days', NOW() + INTERVAL '60 days', TRUE, 'PRODUCT_DETAIL,CART,CHECKOUT', 11000000, 9350000, 1650000, 24, NOW(), NOW()),
-  ('84000000-0000-0000-0000-000000000002', 'Combo phong khach tinh gon', 'Sofa va ban tra cho phong khach hien dai.', 'FIXED_AMOUNT', 1300000, NOW() - INTERVAL '7 days', NOW() + INTERVAL '45 days', TRUE, 'PRODUCT_DETAIL,CART', 10300000, 9000000, 1300000, 11, NOW(), NOW());
+  ('84000000-0000-0000-0000-000000000001', 'Combo phong ngu LuxNest', 'Giuong, tu ao va ban trang diem cho phong ngu.', 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=85', 'PERCENTAGE', 15, NOW() - INTERVAL '7 days', NOW() + INTERVAL '60 days', TRUE, 'PRODUCT_DETAIL,CART,CHECKOUT', 11000000, 9350000, 1650000, 24, NOW(), NOW()),
+  ('84000000-0000-0000-0000-000000000002', 'Combo phong khach tinh gon', 'Sofa va ban tra cho phong khach hien dai.', 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85', 'FIXED_AMOUNT', 1300000, NOW() - INTERVAL '7 days', NOW() + INTERVAL '45 days', TRUE, 'PRODUCT_DETAIL,CART', 10300000, 9000000, 1300000, 11, NOW(), NOW());
 
 INSERT INTO promotion_combo_items (
   id, combo_id, product_id, variant_id, product_name, sku, category_name, image,

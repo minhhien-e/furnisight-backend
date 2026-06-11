@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 @Builder
@@ -12,6 +13,8 @@ public class MarketingComboDto {
     private String id;
     private String name;
     private String description;
+    private UUID imageMediaId;
+    private String imageUrl;
     private String discountType;
     private double discountValue;
     private LocalDateTime startDate;

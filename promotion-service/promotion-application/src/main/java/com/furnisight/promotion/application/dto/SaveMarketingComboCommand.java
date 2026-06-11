@@ -4,11 +4,14 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Data
 public class SaveMarketingComboCommand {
     private String name;
     private String description;
+    private UUID imageMediaId;
+    private String imageUrl;
     private String discountType;
     private Double discountValue;
     private LocalDateTime startDate;

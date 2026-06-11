@@ -78,7 +78,6 @@ public class CreateProductService implements CreateProductUseCase {
 
         Product product = productLifecycleService.createProduct(
                 command.getCategoryId(),
-                command.getCollectionId(),
                 name,
                 slug,
                 description,

@@ -41,7 +41,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 SELECT
                     p.id AS product_id,
                     p.category_id,
-                    p.collection_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.description AS product_description,
@@ -55,13 +54,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
                     pc.slug AS parent_category_slug,
-                    col.name AS collection_name,
                     COALESCE(rv.avg_rating, 0) AS avg_rating,
                     COALESCE(rv.review_count, 0) AS review_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                LEFT JOIN collections col ON p.collection_id = col.id
                 LEFT JOIN (
                     SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
                     FROM reviews
@@ -96,7 +93,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 SELECT
                     p.id AS product_id,
                     p.category_id,
-                    p.collection_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.description AS product_description,
@@ -110,13 +106,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
                     pc.slug AS parent_category_slug,
-                    col.name AS collection_name,
                     COALESCE(rv.avg_rating, 0) AS avg_rating,
                     COALESCE(rv.review_count, 0) AS review_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                LEFT JOIN collections col ON p.collection_id = col.id
                 LEFT JOIN (
                     SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
                     FROM reviews
@@ -761,7 +755,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .soldCount(rs.getInt("sold_count"))
                 .tags(List.of("new", "sale"))
                 .supports3d(rs.getBoolean("supports_3d"))
-                .collection(normalizeText(rs.getString("collection_name"), null))
                 .features(features)
                 .price(0.0)
                 .modelMediaId((UUID) rs.getObject("model_media_id"))

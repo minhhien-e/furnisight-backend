@@ -303,6 +303,8 @@ public class MarketingService {
         }
         combo.setName(requireText(command.getName(), "Missing combo name"));
         combo.setDescription(defaultText(command.getDescription(), ""));
+        combo.setImageMediaId(command.getImageMediaId());
+        combo.setImageUrl(defaultText(command.getImageUrl(), ""));
         combo.setDiscountType(parseEnum(command.getDiscountType(), ComboDiscountType.PERCENTAGE, ComboDiscountType.class));
         combo.setDiscountValue(Math.max(0, command.getDiscountValue() == null ? 0 : command.getDiscountValue()));
         combo.setStartDate(command.getStartDate());
@@ -410,6 +412,8 @@ public class MarketingService {
                 .id(combo.getId().toString())
                 .name(combo.getName())
                 .description(combo.getDescription())
+                .imageMediaId(combo.getImageMediaId())
+                .imageUrl(combo.getImageUrl())
                 .discountType(combo.getDiscountType().name())
                 .discountValue(combo.getDiscountValue())
                 .startDate(combo.getStartDate())

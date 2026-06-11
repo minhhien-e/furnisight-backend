@@ -19,6 +19,9 @@ public class PromotionCombo {
     private String name;
     @Column(columnDefinition = "TEXT")
     private String description;
+    private UUID imageMediaId;
+    @Column(columnDefinition = "TEXT")
+    private String imageUrl;
     @Enumerated(EnumType.STRING)
     private ComboDiscountType discountType;
     private double discountValue;
