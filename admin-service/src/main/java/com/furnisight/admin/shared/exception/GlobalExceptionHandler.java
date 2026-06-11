@@ -5,6 +5,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -50,6 +52,15 @@ public class GlobalExceptionHandler {
         log.warn("gRPC call failed: status={}, description={}, path={}", ex.getStatus().getCode(), ex.getStatus().getDescription(), request.getRequestURI());
         String message = "gRPC Error: " + ex.getStatus().getCode() + " - " + (ex.getStatus().getDescription() != null ? ex.getStatus().getDescription() : ex.getMessage());
         return buildResponse(HttpStatus.BAD_GATEWAY, "GRPC_ERROR", message, request.getRequestURI());
+    }
+
+    @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
+    public ResponseEntity<ApiError> handleAccessDeniedException(
+            RuntimeException ex,
+            HttpServletRequest request
+    ) {
+        log.warn("Access denied: message={}, path={}", ex.getMessage(), request.getRequestURI());
+        return buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", "Access denied", request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)

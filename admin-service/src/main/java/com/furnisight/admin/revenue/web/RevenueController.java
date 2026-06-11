@@ -21,7 +21,7 @@ public class RevenueController {
     private final RevenueService adminRevenueService;
 
     @GetMapping("/revenue")
-    @PreAuthorize("hasAuthority('MANAGE_USERS') or hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view')")
+    @PreAuthorize("hasAuthority('REPORTS') or hasAuthority('reports') or hasAuthority('dashboard') or hasAuthority('VIEW_DASHBOARD') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<RevenueResponse> getRevenueSummary() {
         return ResponseEntity.ok(adminRevenueService.getRevenueSummary());
     }
