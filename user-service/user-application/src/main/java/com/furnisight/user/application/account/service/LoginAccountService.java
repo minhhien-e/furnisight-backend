@@ -25,7 +25,8 @@ public class LoginAccountService implements LoginAccountUseCase {
     @Override
     @Transactional
     public AccountToken execute(LoginAccountCommand command) {
-        Account account = accountRepository.findByCredential(command.identifier())
+        String identifier = command.identifier() == null ? "" : command.identifier().trim();
+        Account account = accountRepository.findByCredential(identifier)
             .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
         if (!authenticationService.login(account, command.password()))
             throw new DomainException(ErrorCode.INVALID_PASSWORD);

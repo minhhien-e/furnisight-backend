@@ -24,7 +24,7 @@ public interface AccountJpaRepository extends JpaRepository<Account, UUID> {
 
     @Query("""
             SELECT a FROM Account a
-            WHERE a.email.value = :identifier
+            WHERE LOWER(a.email.value) = LOWER(:identifier)
                OR a.username.value = :identifier
         """)
     Optional<Account> findByIdentifier(String identifier);

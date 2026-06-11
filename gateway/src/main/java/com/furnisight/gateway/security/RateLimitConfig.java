@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import reactor.core.publisher.Mono;
 
+import java.util.Optional;
 
 @Configuration
 public class RateLimitConfig {
@@ -17,6 +18,14 @@ public class RateLimitConfig {
                 return Mono.just("OPTIONS_" + System.nanoTime());
             }
 
+            String clientIp = firstHeaderValue(exchange.getRequest().getHeaders().getFirst("CF-Connecting-IP"));
+            if (clientIp == null) {
+                clientIp = firstHeaderValue(exchange.getRequest().getHeaders().getFirst("X-Forwarded-For"));
+            }
+            if (clientIp != null) {
+                return Mono.just(clientIp);
+            }
+
             var address = exchange.getRequest().getRemoteAddress();
             if (address == null) {
                 return Mono.just("UNKNOWN");
@@ -24,5 +33,12 @@ public class RateLimitConfig {
 
             return Mono.just(address.getHostString());
         };
+    }
+
+    private String firstHeaderValue(String value) {
+        return Optional.ofNullable(value)
+                .map(header -> header.split(",", 2)[0].trim())
+                .filter(header -> !header.isEmpty())
+                .orElse(null);
     }
 }
