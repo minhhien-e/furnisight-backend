@@ -21,7 +21,7 @@
   },
   "object_remover": {
     "yolo_model_path": "models/yolov8s-seg.pt",
-    "lama_model_url": "https://github.com/enesmsahin/simple-lama-inpainting/releases/download/v0.1.0/big-lama.pt",
+    "lama_model_path": "models/big-lama.pt",
     "confidence": 0.35,
     "max_image_size": 1024,
     "remove_classes": [0, 56, 57, 58, 59, 60, 62, 63, 66, 67, 72, 73, 74, 75]

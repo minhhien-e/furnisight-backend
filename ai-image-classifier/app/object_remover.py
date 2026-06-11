@@ -5,12 +5,13 @@
 # ==========================================================
 
 import cv2
+import os
 import torch
 import numpy as np
 from PIL import Image
 
 from ultralytics import YOLO
-from simple_lama_inpainting.utils import prepare_img_and_mask, download_model
+from simple_lama_inpainting.utils import prepare_img_and_mask
 from .config import settings
 
 
@@ -51,8 +52,12 @@ class ObjectRemover:
         # Load LaMa
         # -------------------------------------------------
 
-        lama_url = settings.LAMA_MODEL_URL
-        model_path = download_model(lama_url)
+        model_path = settings.LAMA_MODEL_PATH
+        if not os.path.isfile(model_path):
+            raise FileNotFoundError(
+                f"LaMa model not found: {model_path}. "
+                "Place big-lama.pt in the configured models directory before startup."
+            )
 
         self.lama = torch.jit.load(model_path, map_location=device)
         self.lama.eval()

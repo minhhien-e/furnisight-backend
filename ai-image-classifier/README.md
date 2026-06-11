@@ -44,7 +44,8 @@ ai-image-classifier/
 ├── models/
 │   ├── resnet50_normal_best.pth   # Weights model ảnh thường
 │   ├── resnet50_360_best.pth      # Weights model ảnh 360°
-│   └── yolov8s-seg.pt             # Weights YOLO segmentation
+│   ├── yolov8s-seg.pt             # Weights YOLO segmentation
+│   └── big-lama.pt                # Weights LaMa inpainting
 ├── config.json           # Cấu hình toàn bộ service
 ├── requirements.txt
 ├── Dockerfile
@@ -70,6 +71,10 @@ ai-image-classifier/
     "num_classes": 4,
     "model_path": "models/resnet50_360_best.pth",
     "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
+  },
+  "object_remover": {
+    "yolo_model_path": "models/yolov8s-seg.pt",
+    "lama_model_path": "models/big-lama.pt"
   },
   "recommendation": {
     "catalog_grpc_target": "catalog-service:9093",

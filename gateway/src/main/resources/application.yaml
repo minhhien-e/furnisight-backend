@@ -24,11 +24,6 @@ spring:
           predicates:
             - Path=/users/**
           filters:
-            - name: RequestRateLimiter
-              args:
-                key-resolver: "#{@ipKeyResolver}"
-                redis-rate-limiter.replenishRate: 5
-                redis-rate-limiter.burstCapacity: 10
             - name: RewritePath
               args:
                 regexp: /users/(?<segment>.*)

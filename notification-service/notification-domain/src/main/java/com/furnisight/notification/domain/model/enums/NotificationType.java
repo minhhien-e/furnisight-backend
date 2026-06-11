@@ -6,5 +6,6 @@ public enum NotificationType {
     PROMOTION,
     SYSTEM,
     WALLET,
-    SOCIAL
+    SOCIAL,
+    REVIEW
 }

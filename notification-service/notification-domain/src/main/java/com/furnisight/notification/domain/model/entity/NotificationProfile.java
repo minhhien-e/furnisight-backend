@@ -41,7 +41,7 @@ public class NotificationProfile {
             case ORDER -> this.orderUpdatesEnabled;
             case PROMOTION -> this.promotionsEnabled;
             case WALLET -> this.walletUpdatesEnabled;
-            case SOCIAL -> this.socialUpdatesEnabled;
+            case SOCIAL, REVIEW -> this.socialUpdatesEnabled;
             case MEDIA, SYSTEM -> true;
         };
     }
