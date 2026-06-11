@@ -22,8 +22,10 @@ public class CreateOrderCommand {
     private String paymentMethod;
     private String shopVoucherCode;
     private String shippingVoucherCode;
+    private String comboId;
     private Double discountAmount;
     private Double shippingDiscount;
+    private Double comboDiscount;
     private Double shippingFee;
     private Double insuranceFee;
     

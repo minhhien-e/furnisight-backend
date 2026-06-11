@@ -38,15 +38,16 @@ public class PricingService {
         double shipping = fee != null && fee.getShippingFee() != null ? fee.getShippingFee() : 0.0;
         double shippingDisc = fee != null && fee.getShippingDiscount() != null ? fee.getShippingDiscount() : 0.0;
         double discount = fee != null && fee.getDiscountAmount() != null ? fee.getDiscountAmount() : 0.0;
+        double comboDiscount = fee != null && fee.getComboDiscount() != null ? fee.getComboDiscount() : 0.0;
         double insurance = fee != null && fee.getInsuranceFee() != null ? fee.getInsuranceFee() : 0.0;
 
         // Calculate Total
-        double totalAmount = subTotal + shipping + insurance - shippingDisc - discount;
+        double totalAmount = subTotal + shipping + insurance - shippingDisc - discount - comboDiscount;
         if (totalAmount < 0) {
             totalAmount = 0.0;
         }
         order.setTotalAmount(totalAmount);
 
-        order.setSavedAmount(shippingDisc + discount);
+        order.setSavedAmount(shippingDisc + discount + comboDiscount);
     }
 }
