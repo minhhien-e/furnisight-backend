@@ -102,4 +102,14 @@ public class OrderRepositoryImpl implements OrderRepository {
             PageRequest.of(0, Math.max(limit, 1))
         );
     }
+
+    @Override
+    public Optional<UUID> findDeliveredOrderItemIdByUserIdAndProductId(UUID userId, String productId) {
+        return jpaRepository.findDeliveredOrderItemIdsByUserIdAndProductId(
+                userId,
+                productId,
+                OrderStatus.DELIVERED,
+                PageRequest.of(0, 1)
+        ).stream().findFirst();
+    }
 }

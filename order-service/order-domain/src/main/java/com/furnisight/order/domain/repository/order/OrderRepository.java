@@ -24,4 +24,5 @@ public interface OrderRepository {
     double sumTotalAmount();
     double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end);
     List<Object[]> findTopSellingProducts(int limit);
+    Optional<UUID> findDeliveredOrderItemIdByUserIdAndProductId(UUID userId, String productId);
 }

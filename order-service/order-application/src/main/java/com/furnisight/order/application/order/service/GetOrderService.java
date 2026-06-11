@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -38,5 +39,10 @@ public class GetOrderService implements GetOrderQuery {
             }
         }
         return orderRepository.findAll();
+    }
+
+    @Override
+    public Optional<UUID> getDeliveredOrderItemIdForProduct(UUID userId, String productId) {
+        return orderRepository.findDeliveredOrderItemIdByUserIdAndProductId(userId, productId);
     }
 }
