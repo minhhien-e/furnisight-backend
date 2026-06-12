@@ -28,6 +28,9 @@ grpc:
     catalog-service:
       address: "static://${CATALOG_SERVICE_GRPC_HOST:localhost}:${CATALOG_SERVICE_GRPC_PORT:9093}"
       negotiation-type: plaintext
+    promotion-service:
+      address: "static://${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
+      negotiation-type: plaintext
 
 management:
   tracing:

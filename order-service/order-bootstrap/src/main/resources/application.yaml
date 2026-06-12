@@ -6,6 +6,10 @@ server:
 grpc:
   server:
     port: 9095
+  client:
+    promotion-service:
+      address: "static://${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
+      negotiation-type: plaintext
 spring:
   application:
     name: order-service
