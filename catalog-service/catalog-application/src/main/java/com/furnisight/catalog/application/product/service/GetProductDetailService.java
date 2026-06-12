@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -23,7 +25,7 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
     @Override
     @Transactional(readOnly = true)
     public ProductDetailProjection execute(GetProductDetailQuery query) {
-        ProductDetailProjection product = productReadRepository.findProductDetailBySlug(query.getSlug()).orElseThrow(
+        ProductDetailProjection product = findProductDetail(query.getSlug()).orElseThrow(
                 () -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
         List<ReviewProjection> reviews = reviewQueryRepository.findByProductId(product.getId(), 0, 20);
@@ -55,5 +57,17 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
         }
 
         return product;
+    }
+
+    private Optional<ProductDetailProjection> findProductDetail(String idOrSlug) {
+        if (idOrSlug == null || idOrSlug.isBlank()) {
+            return Optional.empty();
+        }
+
+        try {
+            return productReadRepository.findProductDetailById(UUID.fromString(idOrSlug));
+        } catch (IllegalArgumentException ignored) {
+            return productReadRepository.findProductDetailBySlug(idOrSlug);
+        }
     }
 }

@@ -600,18 +600,18 @@ INSERT INTO promotion_combos (
   active, placements, original_amount, final_amount, saved_amount, used_count,
   created_at, updated_at
 ) VALUES
-  ('84000000-0000-0000-0000-000000000001', 'Combo phong ngu LuxNest', 'Giuong, tu ao va ban trang diem cho phong ngu.', 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=85', 'PERCENTAGE', 15, NOW() - INTERVAL '7 days', NOW() + INTERVAL '60 days', TRUE, 'PRODUCT_DETAIL,CART,CHECKOUT', 11000000, 9350000, 1650000, 24, NOW(), NOW()),
-  ('84000000-0000-0000-0000-000000000002', 'Combo phong khach tinh gon', 'Sofa va ban tra cho phong khach hien dai.', 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85', 'FIXED_AMOUNT', 1300000, NOW() - INTERVAL '7 days', NOW() + INTERVAL '45 days', TRUE, 'PRODUCT_DETAIL,CART', 10300000, 9000000, 1300000, 11, NOW(), NOW());
+  ('84000000-0000-0000-0000-000000000001', 'Combo phong ngu LuxNest', 'Giuong king, giuong queen va tu quan ao cho phong ngu.', 'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=85', 'PERCENTAGE', 15, NOW() - INTERVAL '7 days', NOW() + INTERVAL '60 days', TRUE, 'PRODUCT_DETAIL,CART,CHECKOUT', 31500000, 26775000, 4725000, 24, NOW(), NOW()),
+  ('84000000-0000-0000-0000-000000000002', 'Combo phong khach tinh gon', 'Sofa da va ban tra go soi cho phong khach hien dai.', 'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85', 'FIXED_AMOUNT', 1300000, NOW() - INTERVAL '7 days', NOW() + INTERVAL '45 days', TRUE, 'PRODUCT_DETAIL,CART', 16500000, 15200000, 1300000, 11, NOW(), NOW());
 
 INSERT INTO promotion_combo_items (
   id, combo_id, product_id, variant_id, product_name, sku, category_name, image,
   price, quantity, snapshot_missing, created_at, updated_at
 ) VALUES
-  ('84100000-0000-0000-0000-000000000001', '84000000-0000-0000-0000-000000000001', 'product-bed-001', 'variant-bed-001', 'Giuong go LuxBed 01', 'BED-LUX-001', 'Phong ngu', 'bedDouble', 5000000, 1, FALSE, NOW(), NOW()),
-  ('84100000-0000-0000-0000-000000000002', '84000000-0000-0000-0000-000000000001', 'product-wardrobe-003', 'variant-wardrobe-003', 'Tu ao 3 canh LuxWardrobe', 'WAR-LUX-003', 'Phong ngu', 'box', 4000000, 1, FALSE, NOW(), NOW()),
-  ('84100000-0000-0000-0000-000000000003', '84000000-0000-0000-0000-000000000001', 'product-makeup-002', 'variant-makeup-002', 'Ban trang diem LuxMakeup', 'MAKEUP-LUX-002', 'Phong ngu', 'sparkles', 2000000, 1, FALSE, NOW(), NOW()),
-  ('84100000-0000-0000-0000-000000000004', '84000000-0000-0000-0000-000000000002', 'product-sofa-004', 'variant-sofa-004', 'Sofa goc LuxSofa', 'SOFA-LUX-004', 'Phong khach', 'sofa', 8500000, 1, FALSE, NOW(), NOW()),
-  ('84100000-0000-0000-0000-000000000005', '84000000-0000-0000-0000-000000000002', 'product-table-005', 'variant-table-005', 'Ban tra LuxTable', 'TABLE-LUX-005', 'Phong khach', 'table', 1800000, 1, FALSE, NOW(), NOW());
+  ('84100000-0000-0000-0000-000000000001', '84000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000004', 'a0000004-0000-0000-0000-000000000001', 'Giường king khung kim loại', 'GIUONG-KING-KL', 'Giường ngủ', 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=80&w=1200', 9500000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000002', '84000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000005', 'a0000005-0000-0000-0000-000000000001', 'Giường queen gỗ tự nhiên', 'GIUONG-QUEEN-GO', 'Giường ngủ', 'https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?auto=format&fit=crop&q=80&w=1200', 8500000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000003', '84000000-0000-0000-0000-000000000001', 'e0000000-0000-0000-0000-000000000006', 'a0000006-0000-0000-0000-000000000001', 'Tủ quần áo cửa trượt', 'TU-AO-TRUOT-220', 'Tủ quần áo', 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=1200', 13500000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000004', '84000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000001', 'a0000001-0000-0000-0000-000000000001', 'Sofa da bò hiện đại', 'SOFA-DA-NAU-200', 'Ghế sofa', 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&q=80&w=1200', 12000000, 1, FALSE, NOW(), NOW()),
+  ('84100000-0000-0000-0000-000000000005', '84000000-0000-0000-0000-000000000002', 'e0000000-0000-0000-0000-000000000003', 'a0000003-0000-0000-0000-000000000001', 'Bàn trà gỗ sồi tối giản', 'BAN-TRA-SOI-100', 'Bàn trà', 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?auto=format&fit=crop&q=80&w=1200', 4500000, 1, FALSE, NOW(), NOW());
 
 INSERT INTO marketing_notifications (
   id, title, body, target_type, target_user_ids, segment_key, channels, send_type,
