@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package com.furnisight.admin.promotion;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.promotion";
+option java_outer_classname = "AdminPromotionProto";
+
+import "google/protobuf/empty.proto";
+
+service AdminPromotionService {
+    rpc GetAdminVouchers (GetAdminVouchersRequest) returns (VoucherListResponse);
+    rpc GetVoucherStats (google.protobuf.Empty) returns (VoucherStatsResponse);
+    rpc CreateVoucher (SaveVoucherRequest) returns (AdminActionResponse);
+    rpc UpdateVoucher (UpdateVoucherRequest) returns (AdminActionResponse);
+    rpc DeleteVoucher (DeleteVoucherRequest) returns (AdminActionResponse);
+    rpc PublishVoucher (PublishVoucherRequest) returns (AdminActionResponse);
+
+    rpc GetMarketingCampaigns (GetMarketingListRequest) returns (MarketingJsonResponse);
+    rpc CreateMarketingCampaign (MarketingJsonRequest) returns (AdminActionResponse);
+    rpc UpdateMarketingCampaign (UpdateMarketingJsonRequest) returns (AdminActionResponse);
+    rpc DeleteMarketingCampaign (DeleteMarketingRequest) returns (AdminActionResponse);
+
+    rpc GetMarketingCombos (GetMarketingListRequest) returns (MarketingJsonResponse);
+    rpc CreateMarketingCombo (MarketingJsonRequest) returns (AdminActionResponse);
+    rpc UpdateMarketingCombo (UpdateMarketingJsonRequest) returns (AdminActionResponse);
+    rpc DeleteMarketingCombo (DeleteMarketingRequest) returns (AdminActionResponse);
+
+    rpc GetMarketingNotifications (GetMarketingListRequest) returns (MarketingJsonResponse);
+    rpc CreateMarketingNotification (MarketingJsonRequest) returns (AdminActionResponse);
+    rpc UpdateMarketingNotification (UpdateMarketingJsonRequest) returns (AdminActionResponse);
+    rpc DeleteMarketingNotification (DeleteMarketingRequest) returns (AdminActionResponse);
+
+    rpc ValidateOrderVouchers (ValidateOrderVouchersRequest) returns (ValidateOrderVouchersResponse);
+    rpc ValidateOrderCombo (ValidateOrderComboRequest) returns (ValidateOrderComboResponse);
+}
+
+message AdminActionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetAdminVouchersRequest {
+    string query = 1;
+    string type = 2;
+    string status = 3;
+}
+
+message VoucherListResponse {
+    repeated VoucherDto items = 1;
+}
+
+message VoucherDto {
+    string id = 1;
+    string code = 2;
+    string name = 3;
+    string description = 4;
+    string icon = 5;
+    string voucher_type = 6;
+    string discount_type = 7;
+    double discount_value = 8;
+    optional double max_discount = 9;
+    optional double min_order = 10;
+    string start_date = 11;
+    string end_date = 12;
+    bool active = 13;
+    string status_label = 14;
+    int64 issued_count = 15;
+}
+
+message VoucherStatsResponse {
+    int64 total_vouchers = 1;
+    int64 active_vouchers = 2;
+    int64 issued_count = 3;
+    int64 campaign_count = 4;
+    int64 running_campaign_count = 5;
+    int64 active_combos = 6;
+    int64 combo_used_count = 7;
+}
+
+message SaveVoucherRequest {
+    string code = 1;
+    string name = 2;
+    string description = 3;
+    string icon = 4;
+    string voucher_type = 5;
+    string discount_type = 6;
+    optional double discount_value = 7;
+    optional double max_discount = 8;
+    optional double min_order = 9;
+    string start_date = 10;
+    string end_date = 11;
+    optional bool active = 12;
+}
+
+message UpdateVoucherRequest {
+    string id = 1;
+    SaveVoucherRequest voucher = 2;
+}
+
+message DeleteVoucherRequest {
+    string id = 1;
+}
+
+message PublishVoucherRequest {
+    string id = 1;
+    string payload_json = 2;
+}
+
+message GetMarketingListRequest {
+    string query = 1;
+    string status = 2;
+}
+
+message MarketingJsonRequest {
+    string payload_json = 1;
+}
+
+message UpdateMarketingJsonRequest {
+    string id = 1;
+    string payload_json = 2;
+}
+
+message DeleteMarketingRequest {
+    string id = 1;
+}
+
+message MarketingJsonResponse {
+    string payload_json = 1;
+}
+
+message ValidateOrderVouchersRequest {
+    string user_id = 1;
+    string shop_voucher_code = 2;
+    string shipping_voucher_code = 3;
+    double subtotal = 4;
+    double shipping_fee = 5;
+}
+
+message ValidateOrderVouchersResponse {
+    bool valid = 1;
+    string message = 2;
+    double discount_amount = 3;
+    double shipping_discount = 4;
+}
+
+message ValidateOrderComboRequest {
+    string user_id = 1;
+    string combo_id = 2;
+    repeated ValidateOrderComboItem items = 3;
+}
+
+message ValidateOrderComboItem {
+    string product_id = 1;
+    string variant_id = 2;
+    int32 quantity = 3;
+    double price = 4;
+}
+
+message ValidateOrderComboResponse {
+    bool valid = 1;
+    string combo_id = 2;
+    string combo_name = 3;
+    double original_amount = 4;
+    double final_amount = 5;
+    double combo_discount = 6;
+    string message = 7;
+}
