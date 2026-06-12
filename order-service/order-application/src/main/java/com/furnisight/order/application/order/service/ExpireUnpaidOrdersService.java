@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class ExpireUnpaidOrdersService {
-    public static final Duration PAYMENT_TIMEOUT = Duration.ofMinutes(5);
+    public static final Duration PAYMENT_TIMEOUT = Duration.ofMinutes(15);
 
     private static final List<OrderStatus> EXPIRABLE_STATUSES = List.of(
             OrderStatus.UNPAID,
