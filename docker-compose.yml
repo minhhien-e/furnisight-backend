@@ -130,7 +130,7 @@ services:
     container_name: furnisight_gateway
     <<: *common-service
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - ./gateway/.env
     depends_on:
