@@ -22,8 +22,10 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
@@ -37,6 +39,7 @@ public class PromotionService {
 
     @Transactional(readOnly = true)
     public List<PromotionDto> getAvailableVouchers(UUID userId) {
+        Map<UUID, UserVoucher> userVouchers = userVoucherMap(userId);
         List<Promotion> result = new ArrayList<>(promotionRepository.findAllActive().stream()
                 .filter(p -> p.getVoucherType() == VoucherType.PUBLIC)
                 .toList());
@@ -52,7 +55,19 @@ public class PromotionService {
         return result.stream()
                 .filter(this::isWithinWindow)
                 .sorted(Comparator.comparing(Promotion::getCode, Comparator.nullsLast(String::compareToIgnoreCase)))
-                .map(this::toDto)
+                .map(p -> toDto(p, userVouchers.get(p.getId())))
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<PromotionDto> getPublicVouchers(UUID userId, String placement) {
+        Map<UUID, UserVoucher> userVouchers = userVoucherMap(userId);
+        return promotionRepository.findAllActive().stream()
+                .filter(p -> p.getVoucherType() == VoucherType.PUBLIC)
+                .filter(this::isWithinWindow)
+                .filter(p -> matchesPlacement(p.getPlacements(), placement))
+                .sorted(Comparator.comparing(Promotion::getEndDate, Comparator.nullsLast(Comparator.naturalOrder())))
+                .map(p -> toDto(p, userVouchers.get(p.getId())))
                 .toList();
     }
 
@@ -65,7 +80,7 @@ public class PromotionService {
                 .filter(p -> matchesType(p, normalizedType))
                 .filter(p -> matchesStatus(p, normalizedStatus))
                 .sorted(Comparator.comparing(Promotion::getCode, Comparator.nullsLast(String::compareToIgnoreCase)))
-                .map(this::toDto)
+                .map(p -> toDto(p, null))
                 .toList();
     }
 
@@ -110,7 +125,7 @@ public class PromotionService {
         return ValidateVoucherResponse.builder()
                 .valid(true)
                 .message("Áp dụng mã giảm giá thành công.")
-                .voucher(toDto(p))
+                .voucher(toDto(p, null))
                 .discount(discount)
                 .build();
     }
@@ -169,7 +184,7 @@ public class PromotionService {
         promotionRepository.findByCode(code).ifPresent(existing -> {
             throw new IllegalArgumentException("Mã voucher đã tồn tại.");
         });
-        return toDto(promotionRepository.save(apply(Promotion.builder().id(UUID.randomUUID()).build(), command, code)));
+        return toDto(promotionRepository.save(apply(Promotion.builder().id(UUID.randomUUID()).build(), command, code)), null);
     }
 
     @Transactional
@@ -182,7 +197,7 @@ public class PromotionService {
                 .ifPresent(existing -> {
                     throw new IllegalArgumentException("Mã voucher đã tồn tại.");
                 });
-        return toDto(promotionRepository.save(apply(promotion, command, code)));
+        return toDto(promotionRepository.save(apply(promotion, command, code)), null);
     }
 
     @Transactional
@@ -197,6 +212,9 @@ public class PromotionService {
         }
         Promotion promotion = promotionRepository.findByCode(requireCode(code))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher."));
+        if (userVoucherRepository.findByUserIdAndPromotionId(userId, promotion.getId()).isPresent()) {
+            return;
+        }
         userVoucherRepository.save(UserVoucher.builder()
                 .id(UUID.randomUUID())
                 .userId(userId)
@@ -219,6 +237,7 @@ public class PromotionService {
         promotion.setStartDate(command.getStartDate());
         promotion.setEndDate(command.getEndDate());
         promotion.setActive(command.getActive() == null || command.getActive());
+        promotion.setPlacements(join(command.getPlacements()));
         return promotion;
     }
 
@@ -252,7 +271,7 @@ public class PromotionService {
         return Math.max(0.0, Math.min(discount, target));
     }
 
-    private PromotionDto toDto(Promotion p) {
+    private PromotionDto toDto(Promotion p, UserVoucher userVoucher) {
         return PromotionDto.builder()
                 .id(p.getId().toString())
                 .code(p.getCode())
@@ -267,9 +286,29 @@ public class PromotionService {
                 .startDate(p.getStartDate())
                 .endDate(p.getEndDate())
                 .active(p.isActive())
+                .placements(split(p.getPlacements()))
+                .saved(userVoucher != null)
+                .used(userVoucher != null && userVoucher.isUsed())
                 .statusLabel(statusLabel(p))
                 .issuedCount(userVoucherRepository.countByPromotionId(p.getId()))
                 .build();
+    }
+
+    private Map<UUID, UserVoucher> userVoucherMap(UUID userId) {
+        if (userId == null) return Map.of();
+        Map<UUID, UserVoucher> result = new HashMap<>();
+        for (UserVoucher userVoucher : userVoucherRepository.findByUserId(userId)) {
+            if (userVoucher.getPromotionId() != null) {
+                result.put(userVoucher.getPromotionId(), userVoucher);
+            }
+        }
+        return result;
+    }
+
+    private boolean matchesPlacement(String placements, String placement) {
+        if (!hasText(placement)) return true;
+        List<String> values = split(placements);
+        return values.isEmpty() || values.stream().anyMatch(value -> value.equalsIgnoreCase(placement.trim()));
     }
 
     private boolean isWithinWindow(Promotion p) {
@@ -362,6 +401,16 @@ public class PromotionService {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private String join(List<String> values) {
+        if (values == null || values.isEmpty()) return "";
+        return String.join(",", values.stream().filter(this::hasText).map(String::trim).distinct().toList());
+    }
+
+    private List<String> split(String value) {
+        if (!hasText(value)) return List.of();
+        return java.util.Arrays.stream(value.split(",")).map(String::trim).filter(this::hasText).toList();
     }
 
     private String normalize(String value) {

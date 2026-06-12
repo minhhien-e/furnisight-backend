@@ -31,6 +31,7 @@ class VoucherServiceTest {
                         null,
                         null,
                         true,
+                        List.of("PROMOTION_PAGE"),
                         "Dang bat",
                         0
                 ))));

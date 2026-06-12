@@ -1,5 +1,7 @@
 package com.furnisight.admin.voucher.web.dto.response;
 
+import java.util.List;
+
 public record VoucherResponse(
         String id,
         String code,
@@ -14,6 +16,7 @@ public record VoucherResponse(
         String startDate,
         String endDate,
         boolean active,
+        List<String> placements,
         String statusLabel,
         long issuedCount
 ) {

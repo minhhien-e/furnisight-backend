@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -21,6 +22,9 @@ public class PromotionDto {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
+    private List<String> placements;
+    private boolean saved;
+    private boolean used;
     private String statusLabel;
     private long issuedCount;
 }

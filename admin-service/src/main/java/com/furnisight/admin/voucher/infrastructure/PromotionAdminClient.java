@@ -21,8 +21,11 @@ import com.furnisight.admin.voucher.web.dto.response.VoucherResponse;
 import com.furnisight.admin.voucher.web.dto.response.VoucherStatsResponse;
 import com.google.protobuf.Empty;
 import net.devh.boot.grpc.client.inject.GrpcClient;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestClient;
 
+import java.util.List;
 import java.util.Map;
 
 @Component
@@ -30,37 +33,48 @@ public class PromotionAdminClient {
     private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
 
     private final ObjectMapper objectMapper;
+    private final RestClient promotionRestClient;
 
     @GrpcClient("promotion-service")
     private AdminPromotionServiceGrpc.AdminPromotionServiceBlockingStub promotionStub;
 
-    public PromotionAdminClient(ObjectMapper objectMapper) {
+    public PromotionAdminClient(
+            ObjectMapper objectMapper,
+            @Value("${promotion.service.http-url:http://promotion-service:8080}") String promotionServiceHttpUrl) {
         this.objectMapper = objectMapper;
+        this.promotionRestClient = RestClient.builder()
+                .baseUrl(stripTrailingSlash(promotionServiceHttpUrl) + "/api/v1")
+                .build();
     }
 
     public VoucherListResponse getVouchers(String query, String type, String status) {
-        var response = promotionStub.getAdminVouchers(GetAdminVouchersRequest.newBuilder()
-                .setQuery(value(query))
-                .setType(value(type))
-                .setStatus(value(status))
-                .build());
-        return new VoucherListResponse(response.getItemsList().stream()
+        PromotionListPayload response = promotionRestClient.get()
+                .uri(uri -> uri.path("/internal/admin/vouchers")
+                        .queryParam("query", value(query))
+                        .queryParam("type", value(type))
+                        .queryParam("status", value(status))
+                        .build())
+                .retrieve()
+                .body(PromotionListPayload.class);
+        List<PromotionPayload> items = response == null || response.items() == null ? List.of() : response.items();
+        return new VoucherListResponse(items.stream()
                 .map(voucher -> new VoucherResponse(
-                        voucher.getId(),
-                        voucher.getCode(),
-                        voucher.getName(),
-                        voucher.getDescription(),
-                        voucher.getIcon(),
-                        voucher.getVoucherType(),
-                        voucher.getDiscountType(),
-                        voucher.getDiscountValue(),
-                        voucher.hasMaxDiscount() ? voucher.getMaxDiscount() : null,
-                        voucher.hasMinOrder() ? voucher.getMinOrder() : null,
-                        voucher.getStartDate(),
-                        voucher.getEndDate(),
-                        voucher.getActive(),
-                        voucher.getStatusLabel(),
-                        voucher.getIssuedCount()))
+                        voucher.id(),
+                        voucher.code(),
+                        voucher.name(),
+                        voucher.description(),
+                        voucher.icon(),
+                        voucher.voucherType(),
+                        voucher.discountType(),
+                        voucher.discountValue(),
+                        voucher.maxDiscount(),
+                        voucher.minOrder(),
+                        voucher.startDate(),
+                        voucher.endDate(),
+                        voucher.active(),
+                        voucher.placements() == null ? List.of() : voucher.placements(),
+                        voucher.statusLabel(),
+                        voucher.issuedCount()))
                 .toList());
     }
 
@@ -77,20 +91,29 @@ public class PromotionAdminClient {
     }
 
     public ActionResultResponse createVoucher(UpsertVoucherRequest request) {
-        return action(promotionStub.createVoucher(toGrpc(request)));
+        ActionResultResponse response = promotionRestClient.post()
+                .uri("/internal/admin/vouchers")
+                .body(request)
+                .retrieve()
+                .body(ActionResultResponse.class);
+        return response == null ? new ActionResultResponse(true, "Voucher created") : response;
     }
 
     public ActionResultResponse updateVoucher(String id, UpsertVoucherRequest request) {
-        return action(promotionStub.updateVoucher(UpdateVoucherRequest.newBuilder()
-                .setId(value(id))
-                .setVoucher(toGrpc(request))
-                .build()));
+        ActionResultResponse response = promotionRestClient.put()
+                .uri("/internal/admin/vouchers/{id}", id)
+                .body(request)
+                .retrieve()
+                .body(ActionResultResponse.class);
+        return response == null ? new ActionResultResponse(true, "Voucher updated") : response;
     }
 
     public ActionResultResponse deleteVoucher(String id) {
-        return action(promotionStub.deleteVoucher(DeleteVoucherRequest.newBuilder()
-                .setId(value(id))
-                .build()));
+        ActionResultResponse response = promotionRestClient.delete()
+                .uri("/internal/admin/vouchers/{id}", id)
+                .retrieve()
+                .body(ActionResultResponse.class);
+        return response == null ? new ActionResultResponse(true, "Voucher deleted") : response;
     }
 
     public ActionResultResponse publishVoucher(String id, Object request) {
@@ -220,4 +243,30 @@ public class PromotionAdminClient {
     private String value(String value) {
         return value == null ? "" : value;
     }
+
+    private static String stripTrailingSlash(String value) {
+        if (value == null || value.isBlank()) return "http://promotion-service:8080";
+        return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
+    }
+
+    private record PromotionListPayload(List<PromotionPayload> items) {}
+
+    private record PromotionPayload(
+            String id,
+            String code,
+            String name,
+            String description,
+            String icon,
+            String voucherType,
+            String discountType,
+            Double discountValue,
+            Double maxDiscount,
+            Double minOrder,
+            String startDate,
+            String endDate,
+            boolean active,
+            List<String> placements,
+            String statusLabel,
+            long issuedCount
+    ) {}
 }

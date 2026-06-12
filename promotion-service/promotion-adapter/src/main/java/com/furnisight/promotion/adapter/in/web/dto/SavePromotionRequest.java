@@ -1,6 +1,7 @@
 package com.furnisight.promotion.adapter.in.web.dto;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public record SavePromotionRequest(
         String code,
@@ -14,6 +15,7 @@ public record SavePromotionRequest(
         Double minOrder,
         LocalDateTime startDate,
         LocalDateTime endDate,
-        Boolean active
+        Boolean active,
+        List<String> placements
 ) {
 }

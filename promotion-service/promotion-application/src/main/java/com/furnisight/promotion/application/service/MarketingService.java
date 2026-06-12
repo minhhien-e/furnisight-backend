@@ -82,6 +82,20 @@ public class MarketingService {
                 .toList();
     }
 
+    public MarketingListResponse<MarketingComboDto> getPublicCombos(String placement, String sort, Integer page, Integer size) {
+        List<MarketingComboDto> allItems = comboRepository.findActive().stream()
+                .filter(this::isWithinWindow)
+                .filter(combo -> matchesPlacement(combo.getPlacements(), placement))
+                .sorted(comboComparator(sort))
+                .map(this::toComboDto)
+                .toList();
+        int safePage = Math.max(0, page == null ? 0 : page);
+        int safeSize = Math.max(1, Math.min(24, size == null ? 6 : size));
+        int from = Math.min(allItems.size(), safePage * safeSize);
+        int to = Math.min(allItems.size(), from + safeSize);
+        return new MarketingListResponse<>(allItems.subList(from, to), allItems.size());
+    }
+
     public ValidateComboResponse validateCombo(ValidateComboCommand command) {
         UUID comboId = parseUuid(command.getComboId());
         if (comboId == null) {
@@ -497,6 +511,22 @@ public class MarketingService {
         LocalDateTime now = LocalDateTime.now();
         return (combo.getStartDate() == null || !combo.getStartDate().isAfter(now))
                 && (combo.getEndDate() == null || !combo.getEndDate().isBefore(now));
+    }
+
+    private boolean matchesPlacement(String placements, String placement) {
+        if (!hasText(placement)) return true;
+        List<String> values = split(placements);
+        return values.isEmpty() || values.stream().anyMatch(value -> value.equalsIgnoreCase(placement.trim()));
+    }
+
+    private Comparator<PromotionCombo> comboComparator(String sort) {
+        String normalizedSort = defaultText(sort, "default").toLowerCase(Locale.ROOT);
+        return switch (normalizedSort) {
+            case "save-desc" -> Comparator.comparingDouble(PromotionCombo::getSavedAmount).reversed();
+            case "price-asc" -> Comparator.comparingDouble(PromotionCombo::getFinalAmount);
+            case "price-desc" -> Comparator.comparingDouble(PromotionCombo::getFinalAmount).reversed();
+            default -> Comparator.comparing(PromotionCombo::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
+        };
     }
 
     private String targetLabel(MarketingTargetType type, String segmentKey, int manualCount) {

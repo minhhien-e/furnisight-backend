@@ -94,6 +94,7 @@ public class InternalVoucherController {
                 .startDate(request.startDate())
                 .endDate(request.endDate())
                 .active(request.active())
+                .placements(request.placements())
                 .build();
     }
 }

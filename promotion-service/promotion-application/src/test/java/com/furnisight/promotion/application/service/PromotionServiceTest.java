@@ -175,6 +175,14 @@ class PromotionServiceTest {
         }
 
         @Override
+        public Optional<UserVoucher> findByUserIdAndPromotionId(UUID userId, UUID promotionId) {
+            return userVouchers.stream()
+                    .filter(v -> v.getUserId().equals(userId))
+                    .filter(v -> v.getPromotionId().equals(promotionId))
+                    .findFirst();
+        }
+
+        @Override
         public long countByPromotionId(UUID promotionId) {
             return userVouchers.stream().filter(v -> v.getPromotionId().equals(promotionId)).count();
         }

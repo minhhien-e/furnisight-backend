@@ -32,6 +32,10 @@ grpc:
       address: "static://${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
       negotiation-type: plaintext
 
+promotion:
+  service:
+    http-url: ${PROMOTION_SERVICE_HTTP_URL:http://promotion-service:8080}
+
 management:
   tracing:
     sampling:

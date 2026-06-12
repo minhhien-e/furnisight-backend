@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -17,6 +18,11 @@ public class UserVoucherRepositoryImpl implements UserVoucherRepository {
     @Override
     public List<UserVoucher> findByUserId(UUID userId) {
         return jpaRepository.findByUserId(userId);
+    }
+
+    @Override
+    public Optional<UserVoucher> findByUserIdAndPromotionId(UUID userId, UUID promotionId) {
+        return jpaRepository.findByUserIdAndPromotionId(userId, promotionId);
     }
 
     @Override
