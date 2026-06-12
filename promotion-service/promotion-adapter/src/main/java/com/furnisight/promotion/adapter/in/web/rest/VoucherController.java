@@ -51,6 +51,12 @@ public class VoucherController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/save")
+    public ResponseEntity<Void> saveVoucherByQuery(@RequestParam String code) {
+        promotionService.saveVoucher(currentUserProvider.getCurrentUserId(), code);
+        return ResponseEntity.ok().build();
+    }
+
     private UUID currentUserIdOrNull() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || !auth.isAuthenticated() || auth.getPrincipal() == null) {
