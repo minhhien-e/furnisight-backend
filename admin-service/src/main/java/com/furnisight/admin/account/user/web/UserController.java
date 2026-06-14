@@ -3,6 +3,7 @@ package com.furnisight.admin.account.user.web;
 import com.furnisight.admin.account.user.application.UserService;
 import com.furnisight.admin.account.user.web.dto.request.CreateUserRequest;
 import com.furnisight.admin.account.user.web.dto.request.UpdateUserRequest;
+import com.furnisight.admin.account.user.web.dto.request.UpdateUserStatusRequest;
 import com.furnisight.admin.account.user.web.dto.response.UserDetailResponse;
 import com.furnisight.admin.account.user.web.dto.response.UserPageResponse;
 import com.furnisight.admin.audit.application.AuditLogService;
@@ -61,6 +62,18 @@ public class UserController {
         ActionResultResponse result = userService.updateUser(adminId, id, request);
         auditLogService.record(adminId, "update", "Cập nhật tài khoản", "USER",
                 id.toString(), result, "User id: " + id, httpRequest);
+        return ResponseEntity.ok(result);
+    }
+
+    @PatchMapping("/{id}/status")
+    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<ActionResultResponse> updateUserStatus(
+            @PathVariable UUID id, @RequestBody UpdateUserStatusRequest request,
+            HttpServletRequest httpRequest) {
+        UUID adminId = currentUserProvider.getCurrentUserId();
+        ActionResultResponse result = userService.updateUserStatus(adminId, id, request.getStatus());
+        auditLogService.record(adminId, "update_status", "Cập nhật trạng thái tài khoản", "USER",
+                id.toString(), result, "Trạng thái: " + request.getStatus(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
