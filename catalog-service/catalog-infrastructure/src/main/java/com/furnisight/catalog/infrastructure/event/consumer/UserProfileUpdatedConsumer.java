@@ -20,9 +20,12 @@ public class UserProfileUpdatedConsumer {
     public void handle(String payload) throws JsonProcessingException {
         UserProfileUpdatedEvent event = objectMapper.readValue(payload, UserProfileUpdatedEvent.class);
         
-        String fullName = event.firstName();
-        if (event.lastName() != null && !event.lastName().isBlank()) {
-            fullName = event.firstName() + " " + event.lastName();
+        String fullName = String.join(" ",
+                event.firstName() == null ? "" : event.firstName().trim(),
+                event.lastName() == null ? "" : event.lastName().trim()
+        ).trim();
+        if (fullName.isBlank()) {
+            fullName = null;
         }
         
         updateReviewUserInfoUseCase.updateUserInfo(event.accountId(), fullName, event.avatarMediaId());

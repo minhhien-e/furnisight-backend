@@ -32,13 +32,13 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
         List<ProductDetailProjection.Review> detailReviews = reviews.stream()
                 .filter(r -> "VISIBLE".equalsIgnoreCase(r.status()))
                 .map(r -> {
-                    String userId = r.userId() != null ? r.userId().toString() : "";
-                    String displayUser = r.userName() != null ? r.userName() : "Người dùng " + (userId.length() > 4 ? userId.substring(0, 4) : userId);
-                    String avatarUrl = r.userAvatarUrl() != null ? r.userAvatarUrl() : "https://i.pravatar.cc/150?u=" + userId;
+                    String displayUser = r.userName() != null && !r.userName().isBlank()
+                            ? r.userName()
+                            : "Khách hàng";
                     return ProductDetailProjection.Review.builder()
                             .id(r.id().toString())
                             .user(displayUser)
-                            .avatar(avatarUrl)
+                            .avatar(r.userAvatarUrl())
                             .rating(r.rating())
                             .createdAt(r.createdAt().toString())
                             .comment(r.content())
