@@ -36,12 +36,6 @@ public class UserAddress extends BaseEntity {
     @Column(name = "province_name", nullable = false, length = 100)
     private String provinceName;
 
-    @Column(name = "district_code", nullable = false, length = 20)
-    private String districtCode;
-
-    @Column(name = "district_name", nullable = false, length = 100)
-    private String districtName;
-
     @Column(name = "ward_code", nullable = false, length = 20)
     private String wardCode;
 
@@ -59,7 +53,6 @@ public class UserAddress extends BaseEntity {
 
     public UserAddress(UUID accountId, String fullName, String phone,
                        String provinceCode, String provinceName,
-                       String districtCode, String districtName,
                        String wardCode, String wardName,
                        String detail, String type, boolean isDefault) {
         this.id = UUID.randomUUID();
@@ -68,8 +61,6 @@ public class UserAddress extends BaseEntity {
         this.phone = phone;
         this.provinceCode = provinceCode;
         this.provinceName = provinceName;
-        this.districtCode = districtCode;
-        this.districtName = districtName;
         this.wardCode = wardCode;
         this.wardName = wardName;
         this.detail = detail;

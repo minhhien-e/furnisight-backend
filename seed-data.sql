@@ -17,6 +17,7 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_promotion_
 --   - user-service/.../V3__init_favorite_product_schema.sql
 --   - user-service/.../V4__create_user_addresses_table.sql
 --   - user-service/.../V5__add_avatar_url_to_user_profiles.sql
+--   - user-service/.../V6__drop_district_from_user_addresses.sql
 -- ============================================================
 \connect furnisight_user_db;
 
@@ -131,8 +132,6 @@ INSERT INTO user_addresses (
   phone,
   province_code,
   province_name,
-  district_code,
-  district_name,
   ward_code,
   ward_name,
   detail,
@@ -141,10 +140,10 @@ INSERT INTO user_addresses (
   created_at,
   updated_at
 ) VALUES
-  ('61000000-0000-0000-0000-000000000001', '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hiền', '0901234567', '79', 'Thành phố Hồ Chí Minh', '769', 'Thành phố Thủ Đức', '26824', 'Phường Linh Trung', 'Khu phố 6', 'HOME', TRUE, NOW(), NOW()),
-  ('61000000-0000-0000-0000-000000000002', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'Văn An', '0902345678', '79', 'Thành phố Hồ Chí Minh', '760', 'Quận 1', '26734', 'Phường Bến Nghé', '12 Nguyễn Huệ', 'HOME', TRUE, NOW(), NOW()),
-  ('61000000-0000-0000-0000-000000000003', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'Thị Bình', '0903456789', '79', 'Thành phố Hồ Chí Minh', '765', 'Quận Bình Thạnh', '26905', 'Phường 25', '45 Nguyễn Gia Trí', 'OFFICE', TRUE, NOW(), NOW()),
-  ('61000000-0000-0000-0000-000000000004', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'Quốc Cường', '0904567890', '79', 'Thành phố Hồ Chí Minh', '770', 'Quận 3', '27142', 'Phường Võ Thị Sáu', '89 Võ Văn Tần', 'HOME', TRUE, NOW(), NOW());
+  ('61000000-0000-0000-0000-000000000001', '52379d96-5238-4fd9-8383-bae82736bb3b', 'Minh Hiền', '0901234567', '79', 'Thành phố Hồ Chí Minh', '26824', 'Phường Thủ Đức', 'Khu phố 6', 'HOME', TRUE, NOW(), NOW()),
+  ('61000000-0000-0000-0000-000000000002', '4b33e5c1-cae1-458d-b4b1-e568ddd766f6', 'Văn An', '0902345678', '79', 'Thành phố Hồ Chí Minh', '26737', 'Phường Tân Định', '12 Nguyễn Huệ', 'HOME', TRUE, NOW(), NOW()),
+  ('61000000-0000-0000-0000-000000000003', '7c22e6d3-1111-4aab-b999-aabbcc001122', 'Thị Bình', '0903456789', '79', 'Thành phố Hồ Chí Minh', '26905', 'Phường Bình Lợi Trung', '45 Nguyễn Gia Trí', 'OFFICE', TRUE, NOW(), NOW()),
+  ('61000000-0000-0000-0000-000000000004', '8d33f7e4-2222-4bbc-caaa-bbccdd002233', 'Quốc Cường', '0904567890', '79', 'Thành phố Hồ Chí Minh', '27142', 'Phường Nhiêu Lộc', '89 Võ Văn Tần', 'HOME', TRUE, NOW(), NOW());
 
 INSERT INTO favorite_products (id, account_id, product_id, created_at, updated_at) VALUES
   (gen_random_uuid(), '52379d96-5238-4fd9-8383-bae82736bb3b', 'e0000000-0000-0000-0000-000000000001', NOW() - INTERVAL '1 day', NOW() - INTERVAL '1 day'),

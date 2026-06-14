@@ -18,8 +18,6 @@ public class AddAddressCommand {
     private String phone;
     private String provinceCode;
     private String provinceName;
-    private String districtCode;
-    private String districtName;
     private String wardCode;
     private String wardName;
     private String detail;

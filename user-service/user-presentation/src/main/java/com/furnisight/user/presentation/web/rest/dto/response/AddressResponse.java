@@ -15,8 +15,6 @@ public class AddressResponse {
     private String phone;
     private String provinceCode;
     private String provinceName;
-    private String districtCode;
-    private String districtName;
     private String wardCode;
     private String wardName;
     private String detail;
@@ -32,8 +30,6 @@ public class AddressResponse {
                 .phone(address.getPhone())
                 .provinceCode(address.getProvinceCode())
                 .provinceName(address.getProvinceName())
-                .districtCode(address.getDistrictCode())
-                .districtName(address.getDistrictName())
                 .wardCode(address.getWardCode())
                 .wardName(address.getWardName())
                 .detail(address.getDetail())

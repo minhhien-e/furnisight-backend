@@ -34,8 +34,6 @@ public class GetAddressesService implements GetAddressesUseCase {
                 .phone(address.getPhone())
                 .provinceCode(address.getProvinceCode())
                 .provinceName(address.getProvinceName())
-                .districtCode(address.getDistrictCode())
-                .districtName(address.getDistrictName())
                 .wardCode(address.getWardCode())
                 .wardName(address.getWardName())
                 .detail(address.getDetail())

@@ -39,8 +39,6 @@ public class AddAddressService implements AddAddressUseCase {
                 command.getPhone(),
                 command.getProvinceCode(),
                 command.getProvinceName(),
-                command.getDistrictCode(),
-                command.getDistrictName(),
                 command.getWardCode(),
                 command.getWardName(),
                 command.getDetail(),
@@ -59,8 +57,6 @@ public class AddAddressService implements AddAddressUseCase {
                 .phone(address.getPhone())
                 .provinceCode(address.getProvinceCode())
                 .provinceName(address.getProvinceName())
-                .districtCode(address.getDistrictCode())
-                .districtName(address.getDistrictName())
                 .wardCode(address.getWardCode())
                 .wardName(address.getWardName())
                 .detail(address.getDetail())
