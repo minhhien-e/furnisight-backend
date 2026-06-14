@@ -365,6 +365,9 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         if (lower.contains("giao")) {
             return "SHIPPING";
         }
+        if (lower.contains("hoàn tiền") || lower.contains("refund")) {
+            return "REFUND_PENDING";
+        }
         if (lower.contains("hoàn") || lower.contains("thành công") || lower.contains("success")) {
             return "DELIVERED";
         }
@@ -406,6 +409,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             case "SHIPPING" -> "Đang giao";
             case "DELIVERED", "SUCCESS" -> "Hoàn tất";
             case "CANCELLED" -> "Đã hủy";
+            case "REFUND_PENDING" -> "Chờ hoàn tiền";
             case "PAYMENT_FAILED" -> "Thanh toán lỗi";
             default -> "Chờ thanh toán";
         };

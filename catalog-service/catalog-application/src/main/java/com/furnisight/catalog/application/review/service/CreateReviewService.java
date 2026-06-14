@@ -22,7 +22,16 @@ public class CreateReviewService implements CreateReviewUseCase {
 
     @Override
     @Transactional
-    public void createReview(UUID userId, String productId, String orderItemId, String title, String content, Integer rating) {
+    public void createReview(
+            UUID userId,
+            String productId,
+            String orderItemId,
+            String title,
+            String content,
+            Integer rating,
+            String userName,
+            UUID userAvatarMediaId
+    ) {
         Review review = new Review(
             new ReviewTitle(title),
             userId,
@@ -31,8 +40,16 @@ public class CreateReviewService implements CreateReviewUseCase {
             ReviewContent.from(content),
             new StarRating(rating)
         );
+        review.updateUserInfo(normalizeUserName(userName), userAvatarMediaId);
         review.applyModeration(profanityPolicy);
 
         reviewWritePort.save(review);
+    }
+
+    private String normalizeUserName(String userName) {
+        if (userName == null || userName.isBlank()) {
+            return null;
+        }
+        return userName.trim();
     }
 }

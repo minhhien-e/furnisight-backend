@@ -98,7 +98,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     @Override
     public List<Object[]> findTopSellingProducts(int limit) {
         return jpaRepository.findTopSellingProducts(
-            List.of(OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED),
+            List.of(OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED, OrderStatus.REFUND_PENDING),
             PageRequest.of(0, Math.max(limit, 1))
         );
     }

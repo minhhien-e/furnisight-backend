@@ -37,7 +37,9 @@ public class ReviewController {
             req.orderItemId(),
             req.title(),
             req.content(),
-            req.rating()
+            req.rating(),
+            req.userName(),
+            req.userAvatarMediaId()
         );
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }

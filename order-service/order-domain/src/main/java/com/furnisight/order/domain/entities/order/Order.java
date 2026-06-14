@@ -151,11 +151,17 @@ public class Order extends DomainEntity {
     }
 
     public void shipOrder() {
-        if (this.status != OrderStatus.PAID) {
+        if (this.status != OrderStatus.PAID && !isUnpaidCodOrder()) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         this.status = OrderStatus.SHIPPING;
         this.updatedAt = java.time.LocalDateTime.now();
+    }
+
+    private boolean isUnpaidCodOrder() {
+        return this.status == OrderStatus.UNPAID
+                && this.paymentDetail != null
+                && "cod".equalsIgnoreCase(this.paymentDetail.getPaymentMethod());
     }
 
     public void deliverOrder() {
@@ -167,10 +173,13 @@ public class Order extends DomainEntity {
     }
 
     public void cancelOrder() {
-        if (this.status == OrderStatus.SHIPPING || this.status == OrderStatus.DELIVERED || this.status == OrderStatus.CANCELLED) {
+        if (this.status == OrderStatus.SHIPPING
+                || this.status == OrderStatus.DELIVERED
+                || this.status == OrderStatus.CANCELLED
+                || this.status == OrderStatus.REFUND_PENDING) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
-        this.status = OrderStatus.CANCELLED;
+        this.status = this.status == OrderStatus.PAID ? OrderStatus.REFUND_PENDING : OrderStatus.CANCELLED;
         this.updatedAt = java.time.LocalDateTime.now();
         this.addDomainEvent(com.furnisight.order.domain.events.OrderCancelledEvent.builder()
                 .orderCode(this.orderCode)

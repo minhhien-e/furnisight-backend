@@ -47,7 +47,8 @@ public class OrderService {
                 order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
                 emptyFallback(order.getCustomer(), "Khách hàng"), order.getItemCount(),
                 order.getTotalAmount(), toOrderTone(order.getStatus()),
-                toOrderStatusLabel(order.getStatus()), formatDate(order.getCreatedAt()));
+                toOrderStatusLabel(order.getStatus()), formatDate(order.getCreatedAt()),
+                order.getPaymentMethod());
     }
 
     private RecentOrderResponse toRecentOrderResponse(OrderDto order) {
@@ -63,6 +64,7 @@ public class OrderService {
             case "SHIPPING" -> "shipping";
             case "DELIVERED", "SUCCESS" -> "success";
             case "CANCELLED", "PAYMENT_FAILED" -> "cancel";
+            case "REFUND_PENDING" -> "pending";
             default -> "pending";
         };
     }
@@ -73,6 +75,7 @@ public class OrderService {
             case "SHIPPING" -> "Đang giao";
             case "DELIVERED", "SUCCESS" -> "Hoàn tất";
             case "CANCELLED" -> "Đã hủy";
+            case "REFUND_PENDING" -> "Chờ hoàn tiền";
             case "PAYMENT_FAILED" -> "Thanh toán lỗi";
             default -> "Chờ xác nhận";
         };

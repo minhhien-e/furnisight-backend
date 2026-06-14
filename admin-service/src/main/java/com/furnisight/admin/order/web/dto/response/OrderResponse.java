@@ -7,6 +7,7 @@ public record OrderResponse(
         double total,
         String status,
         String statusLabel,
-        String date
+        String date,
+        String paymentMethod
 ) {
 }

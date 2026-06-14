@@ -1,9 +1,13 @@
 package com.furnisight.catalog.presentation.web.rest.dto.request.review;
 
+import java.util.UUID;
+
 public record CreateReviewRequest(
         String title,
         String productId,
         String orderItemId,
         String content,
-        int rating) {
+        int rating,
+        String userName,
+        UUID userAvatarMediaId) {
 }

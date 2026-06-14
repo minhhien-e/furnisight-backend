@@ -1,5 +1,7 @@
 package com.furnisight.admin.audit.application;
 
+import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
+import com.furnisight.admin.user.AccountDetailResponse;
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import com.furnisight.admin.audit.web.dto.response.AuditLogPageResponse;
 import com.furnisight.admin.audit.web.dto.response.AuditLogResponse;
@@ -20,7 +22,10 @@ import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -31,6 +36,7 @@ public class AuditLogService {
     private static final DateTimeFormatter DATE_TIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final AuditLogRepository repository;
+    private final AdminUserGrpcClient userClient;
 
     @Transactional(readOnly = true)
     public AuditLogPageResponse getLogs(String search, String type, String result, String period, int page, int pageSize) {
@@ -38,9 +44,10 @@ public class AuditLogService {
         int safeSize = Math.min(Math.max(pageSize, 1), 100);
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AuditLog> logs = repository.findAll(buildSpec(search, type, result, period), pageable);
+        Map<UUID, String> actorNames = new HashMap<>();
 
         return new AuditLogPageResponse(
-                logs.getContent().stream().map(this::toResponse).toList(),
+                logs.getContent().stream().map(logEntry -> toResponse(logEntry, actorNames)).toList(),
                 logs.getTotalElements(),
                 safePage,
                 safeSize,
@@ -61,12 +68,14 @@ public class AuditLogService {
             return null;
         }
         String like = "%" + query.toLowerCase(Locale.ROOT) + "%";
+        List<UUID> actorIds = resolveActorIdsBySearch(query);
         return (root, criteriaQuery, criteriaBuilder) -> criteriaBuilder.or(
                 criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.<String>get("action"), "")), like),
                 criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.<String>get("detail"), "")), like),
                 criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.<String>get("resourceType"), "")), like),
                 criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.<String>get("resourceId"), "")), like),
-                criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.<String>get("ipAddress"), "")), like));
+                criteriaBuilder.like(criteriaBuilder.lower(criteriaBuilder.coalesce(root.<String>get("ipAddress"), "")), like),
+                actorIds.isEmpty() ? criteriaBuilder.disjunction() : root.get("actorId").in(actorIds));
     }
 
     private Specification<AuditLog> equalsField(String field, String value) {
@@ -121,11 +130,13 @@ public class AuditLogService {
         }
     }
 
-    private AuditLogResponse toResponse(AuditLog logEntry) {
+    private AuditLogResponse toResponse(AuditLog logEntry, Map<UUID, String> actorNames) {
         String result = safe(logEntry.getResult(), "success");
+        String actorName = resolveActorName(logEntry.getActorId(), actorNames);
         return new AuditLogResponse(
                 logEntry.getId().toString(),
                 logEntry.getActorId() == null ? "" : logEntry.getActorId().toString(),
+                actorName,
                 logEntry.getActionType(),
                 logEntry.getAction(),
                 logEntry.getResourceType(),
@@ -133,7 +144,7 @@ public class AuditLogService {
                 result,
                 safe(logEntry.getDetail(), ""),
                 formatRelativeTime(logEntry.getCreatedAt()),
-                buildMeta(logEntry),
+                buildMeta(logEntry, actorName),
                 "error".equals(result) ? "danger" : "success",
                 "error".equals(result) ? "Lỗi" : "Thành công",
                 safe(logEntry.getIpAddress(), ""),
@@ -141,10 +152,59 @@ public class AuditLogService {
                 logEntry.getCreatedAt() == null ? "" : logEntry.getCreatedAt().format(DATE_TIME_FORMAT));
     }
 
-    private String buildMeta(AuditLog logEntry) {
-        String actor = logEntry.getActorId() == null ? "unknown" : logEntry.getActorId().toString();
+    private String buildMeta(AuditLog logEntry, String actorName) {
+        String actor = actorName.isBlank()
+                ? (logEntry.getActorId() == null ? "unknown" : logEntry.getActorId().toString())
+                : actorName;
         String ip = safe(logEntry.getIpAddress(), "");
         return ip.isBlank() ? actor : actor + " · " + ip;
+    }
+
+    private String resolveActorName(UUID actorId, Map<UUID, String> actorNames) {
+        if (actorId == null) {
+            return "";
+        }
+        return actorNames.computeIfAbsent(actorId, this::fetchActorName);
+    }
+
+    private String fetchActorName(UUID actorId) {
+        try {
+            AccountDetailResponse account = userClient.getAccountById(actorId);
+            String fullName = (safe(account.getFirstName(), "") + " " + safe(account.getLastName(), "")).trim();
+            if (!fullName.isBlank()) {
+                return fullName;
+            }
+            String username = safe(account.getUsername(), "").trim();
+            if (!username.isBlank()) {
+                return username;
+            }
+            return safe(account.getEmail(), "").trim();
+        } catch (Exception ex) {
+            log.debug("Failed to resolve audit actor name {}", actorId, ex);
+            return "";
+        }
+    }
+
+    private List<UUID> resolveActorIdsBySearch(String query) {
+        try {
+            return userClient.getAccounts(1, 50, query, "")
+                    .getAccountsList()
+                    .stream()
+                    .map(account -> parseUuid(account.getId()))
+                    .filter(java.util.Objects::nonNull)
+                    .toList();
+        } catch (Exception ex) {
+            log.debug("Failed to resolve audit actor ids for query {}", query, ex);
+            return List.of();
+        }
+    }
+
+    private UUID parseUuid(String value) {
+        try {
+            return value == null || value.isBlank() ? null : UUID.fromString(value);
+        } catch (Exception ignored) {
+            return null;
+        }
     }
 
     private String formatRelativeTime(LocalDateTime createdAt) {

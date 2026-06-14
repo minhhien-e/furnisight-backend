@@ -3,6 +3,7 @@ package com.furnisight.admin.audit.web.dto.response;
 public record AuditLogResponse(
         String id,
         String actorId,
+        String actorName,
         String actionType,
         String action,
         String resourceType,
