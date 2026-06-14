@@ -39,8 +39,6 @@ public class Product extends AggregateRoot {
     @Enumerated(EnumType.STRING)
     private ProductStatus productStatus;
 
-    private UUID collectionId;
-
     @Column(name = "model_url")
     private String modelUrl;
 
@@ -65,7 +63,6 @@ public class Product extends AggregateRoot {
 
     public static Product create(
             UUID categoryId,
-            UUID collectionId,
             ProductName name,
             ProductSlug slug,
             ProductDescription description,
@@ -79,7 +76,6 @@ public class Product extends AggregateRoot {
         Product product = Product.builder()
                 .id(UUID.randomUUID())
                 .categoryId(categoryId)
-                .collectionId(collectionId)
                 .name(name)
                 .slug(slug)
                 .description(description)
@@ -231,16 +227,4 @@ public class Product extends AggregateRoot {
         this.categoryId = categoryId;
     }
 
-    public void assignToCollection(UUID collectionId) {
-        if (collectionId == null) {
-            throw new ValidationException(
-                    ErrorCode.INVALID_PRODUCT_STATE,
-                    "Collection ID cannot be null");
-        }
-        this.collectionId = collectionId;
-    }
-
-    public void removeFromCollection() {
-        this.collectionId = null;
-    }
 }

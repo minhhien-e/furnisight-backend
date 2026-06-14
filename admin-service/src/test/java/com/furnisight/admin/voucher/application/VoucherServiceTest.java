@@ -1,9 +1,11 @@
 package com.furnisight.admin.voucher.application;
 
-import com.furnisight.admin.order.VoucherDto;
-import com.furnisight.admin.order.VoucherListResponse;
-import com.furnisight.admin.order.infrastructure.grpc.AdminOrderGrpcClient;
+import com.furnisight.admin.voucher.infrastructure.PromotionAdminClient;
+import com.furnisight.admin.voucher.web.dto.response.VoucherListResponse;
+import com.furnisight.admin.voucher.web.dto.response.VoucherResponse;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
@@ -12,22 +14,32 @@ import static org.mockito.Mockito.when;
 class VoucherServiceTest {
 
     @Test
-    void keepsVoucherFallbackStatusLabel() {
-        AdminOrderGrpcClient client = mock(AdminOrderGrpcClient.class);
-        when(client.getVouchers("", "ACTIVE"))
-                .thenReturn(VoucherListResponse.newBuilder()
-                        .addVouchers(VoucherDto.newBuilder()
-                                .setId("voucher-1")
-                                .setCode("SAVE10")
-                                .setName("Save")
-                                .setActive(true)
-                                .build())
-                        .build());
+    void forwardsVoucherListFromPromotionService() {
+        PromotionAdminClient client = mock(PromotionAdminClient.class);
+        when(client.getVouchers("", null, "ACTIVE"))
+                .thenReturn(new VoucherListResponse(List.of(new VoucherResponse(
+                        "voucher-1",
+                        "SAVE10",
+                        "Save",
+                        null,
+                        null,
+                        "PUBLIC",
+                        "PERCENT",
+                        10.0,
+                        null,
+                        0.0,
+                        null,
+                        null,
+                        true,
+                        List.of("PROMOTION_PAGE"),
+                        "Dang bat",
+                        0
+                ))));
 
-        var response = new VoucherService(client).getVouchers("", "ACTIVE");
+        var response = new VoucherService(client).getVouchers("", null, "ACTIVE");
 
         assertThat(response.items()).singleElement()
-                .extracting(item -> item.statusLabel())
-                .isEqualTo("Đang bật");
+                .extracting(VoucherResponse::code)
+                .isEqualTo("SAVE10");
     }
 }

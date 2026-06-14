@@ -30,8 +30,6 @@ public class ProductController {
     private final SearchProductsUseCase searchProductsUseCase;
     private final GetTopProductsUseCase getTopProductsUseCase;
     private final ChangeProductCategoryUseCase changeProductCategoryUseCase;
-    private final AssignProductCollectionUseCase assignProductCollectionUseCase;
-    private final RemoveProductCollectionUseCase removeProductCollectionUseCase;
     private final GetWeeklyFavoriteProductsUseCase getWeeklyFavoriteProductsUseCase;
 
     // ─── COMMANDS ────────────────────────────────────────────────────────────
@@ -94,26 +92,6 @@ public class ProductController {
                 .categoryId(request.getCategoryId())
                 .build();
         changeProductCategoryUseCase.execute(command);
-        return ResponseEntity.ok().build();
-    }
-
-    @PutMapping(name = "productId", value = "/{productId}/collection")
-    public ResponseEntity<Void> assignCollection(@PathVariable(name = "productId") UUID productId,
-            @RequestBody AssignProductCollectionRequest request) {
-        AssignProductCollectionCommand command = AssignProductCollectionCommand.builder()
-                .productId(productId)
-                .collectionId(request.getCollectionId())
-                .build();
-        assignProductCollectionUseCase.execute(command);
-        return ResponseEntity.ok().build();
-    }
-
-    @DeleteMapping(name = "productId", value = "/{productId}/collection")
-    public ResponseEntity<Void> removeCollection(@PathVariable(name = "productId") UUID productId) {
-        RemoveProductCollectionCommand command = RemoveProductCollectionCommand.builder()
-                .productId(productId)
-                .build();
-        removeProductCollectionUseCase.execute(command);
         return ResponseEntity.ok().build();
     }
 

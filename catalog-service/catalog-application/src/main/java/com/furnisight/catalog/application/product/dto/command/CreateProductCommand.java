@@ -14,7 +14,6 @@ import java.util.UUID;
 @NoArgsConstructor
 public class CreateProductCommand {
     private UUID categoryId;
-    private UUID collectionId;
     private String name;
     private String slug;
     private String description;

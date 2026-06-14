@@ -14,6 +14,7 @@ import com.furnisight.order.adapter.in.web.dto.response.OrderDetailResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderItemResponse;
 import com.furnisight.order.adapter.in.web.dto.response.PaymentDetailResponse;
 import com.furnisight.order.adapter.in.web.dto.response.PaymentTimelineResponse;
+import com.furnisight.order.adapter.in.web.dto.response.ProductPurchaseCheckResponse;
 import com.furnisight.order.domain.valueobjects.ProductSnapshot;
 import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import com.furnisight.order.domain.valueobjects.PaymentTimeline;
@@ -63,6 +64,17 @@ public class OrderController {
         }).collect(Collectors.toList());
 
         return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/user/products/{productId}/purchased")
+    public ResponseEntity<ProductPurchaseCheckResponse> checkPurchasedProduct(@PathVariable String productId) {
+        UUID userId = currentUserProvider.getCurrentUserId();
+        UUID orderItemId = getOrderQuery.getDeliveredOrderItemIdForProduct(userId, productId).orElse(null);
+
+        return ResponseEntity.ok(ProductPurchaseCheckResponse.builder()
+                .purchased(orderItemId != null)
+                .orderItemId(orderItemId != null ? orderItemId.toString() : null)
+                .build());
     }
 
     @GetMapping("/{orderCode}")

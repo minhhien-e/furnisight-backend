@@ -1,18 +1,23 @@
 package com.furnisight.admin.voucher.web.dto.response;
 
+import java.util.List;
+
 public record VoucherResponse(
         String id,
         String code,
         String name,
         String description,
         String icon,
+        String voucherType,
         String discountType,
-        double discountValue,
-        double maxDiscount,
-        double minOrder,
+        Double discountValue,
+        Double maxDiscount,
+        Double minOrder,
         String startDate,
         String endDate,
         boolean active,
-        String statusLabel
+        List<String> placements,
+        String statusLabel,
+        long issuedCount
 ) {
 }

@@ -15,9 +15,9 @@ spring:
   application:
     name: cart-service
 
-  mongodb:
-    uri: ${MONGODB_URI:mongodb://localhost:27017/furnisight_cart}
-    representation:
-      uuid: standard
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/furnisight_cart}
+      uuid-representation: standard
 
 

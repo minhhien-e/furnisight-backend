@@ -22,7 +22,6 @@ public class ProductDetailProjection {
     private Integer soldCount;
     private List<String> tags;
     private Boolean supports3d;
-    private String collection;
     private List<String> gallery;
     private List<String> features;
     private List<Review> reviews;

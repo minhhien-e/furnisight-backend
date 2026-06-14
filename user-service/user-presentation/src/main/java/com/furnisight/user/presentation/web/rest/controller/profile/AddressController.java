@@ -9,6 +9,7 @@ import com.furnisight.user.application.address.port.in.usecase.AddAddressUseCase
 import com.furnisight.user.application.address.port.in.usecase.DeleteAddressUseCase;
 import com.furnisight.user.application.address.port.in.usecase.GetAddressesUseCase;
 import com.furnisight.user.application.address.port.in.usecase.SetDefaultAddressUseCase;
+import com.furnisight.user.presentation.web.rest.dto.response.AddressResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -28,24 +29,28 @@ public class AddressController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    public ResponseEntity<List<AddressProjection>> getAddresses() {
+    public ResponseEntity<List<AddressResponse>> getAddresses() {
         UUID accountId = currentUserProvider.getCurrentUserId();
-        return ResponseEntity.ok(getAddressesUseCase.execute(accountId));
+        return ResponseEntity.ok(getAddressesUseCase.execute(accountId).stream()
+                .map(AddressResponse::from)
+                .toList());
     }
 
     @PostMapping
-    public ResponseEntity<AddressProjection> addAddress(@RequestBody AddAddressCommand command) {
+    public ResponseEntity<AddressResponse> addAddress(@RequestBody AddAddressCommand command) {
         UUID accountId = currentUserProvider.getCurrentUserId();
         command.setAccountId(accountId);
         AddressProjection newAddress = addAddressUseCase.execute(command);
-        return ResponseEntity.ok(newAddress);
+        return ResponseEntity.ok(AddressResponse.from(newAddress));
     }
 
     @PostMapping("/{id}/default")
-    public ResponseEntity<Void> setDefaultAddress(@PathVariable UUID id) {
+    public ResponseEntity<List<AddressResponse>> setDefaultAddress(@PathVariable UUID id) {
         UUID accountId = currentUserProvider.getCurrentUserId();
         setDefaultAddressUseCase.execute(new SetDefaultAddressCommand(accountId, id));
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(getAddressesUseCase.execute(accountId).stream()
+                .map(AddressResponse::from)
+                .toList());
     }
 
     @DeleteMapping("/{id}")

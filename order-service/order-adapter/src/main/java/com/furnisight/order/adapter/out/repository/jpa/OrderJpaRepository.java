@@ -60,4 +60,17 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
                    "GROUP BY oi.productSnapshot.productId " +
                    "ORDER BY SUM(oi.quantity) DESC")
     List<Object[]> findTopSellingProducts(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);
+
+    @Query("select oi.id " +
+           "from Order o join o.items oi " +
+           "where o.userId = :userId " +
+           "and o.status = :status " +
+           "and oi.productSnapshot.productId = :productId " +
+           "order by o.createdAt desc")
+    List<UUID> findDeliveredOrderItemIdsByUserIdAndProductId(
+            @Param("userId") UUID userId,
+            @Param("productId") String productId,
+            @Param("status") OrderStatus status,
+            Pageable pageable
+    );
 }

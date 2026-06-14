@@ -3,9 +3,9 @@ package com.furnisight.order.application.order.service;
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
 import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
-import com.furnisight.order.application.promotion.port.in.dto.ValidateVoucherCommand;
-import com.furnisight.order.application.promotion.port.in.dto.ValidateVoucherResponse;
-import com.furnisight.order.application.promotion.port.in.usecase.VoucherUseCase;
+import com.furnisight.order.application.promotion.port.out.PromotionValidationPort;
+import com.furnisight.order.application.promotion.port.out.dto.ValidateComboRequest;
+import com.furnisight.order.application.promotion.port.out.dto.ValidateOrderVouchersRequest;
 import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.services.OrderLifecycle;
@@ -25,7 +25,7 @@ public class CreateOrderService implements CreateOrderUseCase {
 
     private final OrderRepository orderRepository;
     private final OrderLifecycle orderLifecycle;
-    private final VoucherUseCase voucherUseCase;
+    private final PromotionValidationPort promotionValidationPort;
     private final PricingService pricingService;
 
     @Override
@@ -60,36 +60,40 @@ public class CreateOrderService implements CreateOrderUseCase {
         // Calculate subtotal for voucher validation using PricingService
         double subTotal = pricingService.calculateSubTotal(itemParams);
 
-        // Validate Shop Voucher
         double actualDiscountAmount = 0.0;
-        if (command.getShopVoucherCode() != null && !command.getShopVoucherCode().isEmpty()) {
-            ValidateVoucherResponse shopResp = voucherUseCase.validateVoucher(ValidateVoucherCommand.builder()
-                    .userId(command.getUserId())
-                    .code(command.getShopVoucherCode())
-                    .type("shop")
-                    .subtotal(subTotal)
-                    .build());
-            if (shopResp.isValid()) {
-                actualDiscountAmount = shopResp.getDiscount();
-            } else {
-                throw new IllegalArgumentException(shopResp.getMessage());
-            }
-        }
-
-        // Validate Shipping Voucher
         double actualShippingDiscount = 0.0;
-        if (command.getShippingVoucherCode() != null && !command.getShippingVoucherCode().isEmpty()) {
-            ValidateVoucherResponse shipResp = voucherUseCase.validateVoucher(ValidateVoucherCommand.builder()
+        double actualComboDiscount = 0.0;
+        if (hasText(command.getShopVoucherCode()) || hasText(command.getShippingVoucherCode())) {
+            var voucherResult = promotionValidationPort.validateOrderVouchers(ValidateOrderVouchersRequest.builder()
                     .userId(command.getUserId())
-                    .code(command.getShippingVoucherCode())
-                    .type("ship")
+                    .shopVoucherCode(command.getShopVoucherCode())
+                    .shippingVoucherCode(command.getShippingVoucherCode())
                     .subtotal(subTotal)
+                    .shippingFee(command.getShippingFee())
                     .build());
-            if (shipResp.isValid()) {
-                actualShippingDiscount = shipResp.getDiscount();
-            } else {
-                throw new IllegalArgumentException(shipResp.getMessage());
+            if (!voucherResult.isValid()) {
+                throw new IllegalArgumentException(voucherResult.getMessage());
             }
+            actualDiscountAmount = voucherResult.getDiscountAmount() != null ? voucherResult.getDiscountAmount() : 0.0;
+            actualShippingDiscount = voucherResult.getShippingDiscount() != null ? voucherResult.getShippingDiscount() : 0.0;
+        }
+        if (hasText(command.getComboId())) {
+            var comboResult = promotionValidationPort.validateCombo(ValidateComboRequest.builder()
+                    .userId(command.getUserId())
+                    .comboId(command.getComboId())
+                    .items(command.getItems() == null ? java.util.List.of() : command.getItems().stream()
+                            .map(item -> ValidateComboRequest.Item.builder()
+                                    .productId(item.getProductId())
+                                    .variantId(item.getVariantId())
+                                    .quantity(item.getQuantity())
+                                    .price(item.getPrice())
+                                    .build())
+                            .toList())
+                    .build());
+            if (!comboResult.isValid()) {
+                throw new IllegalArgumentException(comboResult.getMessage());
+            }
+            actualComboDiscount = comboResult.getComboDiscount() != null ? comboResult.getComboDiscount() : 0.0;
         }
 
         // Delegate core business logic to Domain Service
@@ -101,8 +105,10 @@ public class CreateOrderService implements CreateOrderUseCase {
                 itemParams,
                 command.getShopVoucherCode(),
                 command.getShippingVoucherCode(),
+                command.getComboId(),
                 actualDiscountAmount,
                 actualShippingDiscount,
+                actualComboDiscount,
                 command.getShippingFee(),
                 command.getInsuranceFee()
         );
@@ -114,5 +120,9 @@ public class CreateOrderService implements CreateOrderUseCase {
                 .orderCode(savedOrder.getOrderCode())
                 .status(savedOrder.getStatus().name())
                 .build();
+    }
+
+    private boolean hasText(String value) {
+        return value != null && !value.isBlank();
     }
 }

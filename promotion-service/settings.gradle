@@ -1,0 +1,6 @@
+rootProject.name = 'promotion-service'
+
+include 'promotion-domain'
+include 'promotion-application'
+include 'promotion-adapter'
+include 'promotion-bootstrap'

@@ -10,7 +10,6 @@ public enum ErrorCode {
     // --- CATALOG ERROR CODES ---
     PRODUCT_NOT_FOUND("Product not found"),
     CATEGORY_NOT_FOUND("Category not found"),
-    COLLECTION_NOT_FOUND("Collection not found"),
     PRODUCT_VARIANT_NOT_FOUND("Product variant not found"),
 
     DUPLICATE_PRODUCT_NAME("Product name already exists"),

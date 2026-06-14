@@ -130,7 +130,7 @@ services:
     container_name: furnisight_gateway
     <<: *common-service
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     env_file:
       - ./gateway/.env
     depends_on:
@@ -142,6 +142,7 @@ services:
       - notification-service
       - message-service
       - order-service
+      - promotion-service
       - media-service
       - ai-image-classifier
       - ai-image-reconstruction
@@ -182,6 +183,8 @@ services:
         condition: service_started
       order-service:
         condition: service_started
+      promotion-service:
+        condition: service_started
       catalog-service:
         condition: service_started
 
@@ -194,6 +197,9 @@ services:
       <<: *java-build
     env_file:
       - ./catalog-service/.env
+    expose:
+      - "8080"
+      - "9093"
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
 
@@ -242,6 +248,34 @@ services:
       - ./order-service/.env
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+
+  promotion-service:
+    <<: *java-service
+    image: furnisight-promotion-service:latest
+    container_name: furnisight_promotion_service
+    build:
+      context: ./promotion-service
+      <<: *java-build
+    expose:
+      - "8080"
+      - "9096"
+    env_file:
+      - ./promotion-service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
 
   ai-image-classifier:
     image: furnisight-ai-image-classifier:latest

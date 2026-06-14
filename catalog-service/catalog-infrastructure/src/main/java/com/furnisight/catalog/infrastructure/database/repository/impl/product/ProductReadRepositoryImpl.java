@@ -41,7 +41,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 SELECT
                     p.id AS product_id,
                     p.category_id,
-                    p.collection_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.description AS product_description,
@@ -55,13 +54,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
                     pc.slug AS parent_category_slug,
-                    col.name AS collection_name,
                     COALESCE(rv.avg_rating, 0) AS avg_rating,
                     COALESCE(rv.review_count, 0) AS review_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                LEFT JOIN collections col ON p.collection_id = col.id
                 LEFT JOIN (
                     SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
                     FROM reviews
@@ -96,7 +93,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 SELECT
                     p.id AS product_id,
                     p.category_id,
-                    p.collection_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.description AS product_description,
@@ -110,13 +106,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
                     pc.slug AS parent_category_slug,
-                    col.name AS collection_name,
                     COALESCE(rv.avg_rating, 0) AS avg_rating,
                     COALESCE(rv.review_count, 0) AS review_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                LEFT JOIN collections col ON p.collection_id = col.id
                 LEFT JOIN (
                     SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
                     FROM reviews
@@ -150,7 +144,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         appendStatusFilter(whereClause, params, queryParam);
         appendCategoryFilter(whereClause, params, queryParam);
         appendVariantFilters(whereClause, params, queryParam);
-        appendPriceFilters(whereClause, params, queryParam);
         appendRatingFilters(whereClause, params, queryParam);
 
         Long total = countProducts(whereClause, params);
@@ -577,80 +570,64 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
     private void appendVariantFilters(StringBuilder whereClause, Map<String, Object> params,
             SearchProductsQuery query) {
-        if (query.getColors() != null && !query.getColors().isEmpty()) {
-            whereClause.append("""
-                    AND EXISTS (
-                        SELECT 1
-                        FROM product_variants pv_color
-                        WHERE pv_color.product_id = p.id
-                        AND LOWER(pv_color.color) IN (:colors)
-                    )
-                    """);
+        boolean hasColors = query.getColors() != null && !query.getColors().isEmpty();
+        boolean hasMaterials = query.getMaterials() != null && !query.getMaterials().isEmpty();
+        List<String> priceConditions = new ArrayList<>();
 
-            params.put("colors", normalizeList(query.getColors()));
-        }
-
-        if (query.getMaterials() != null && !query.getMaterials().isEmpty()) {
-            whereClause.append("""
-                    AND EXISTS (
-                        SELECT 1
-                        FROM product_variants pv_material
-                        WHERE pv_material.product_id = p.id
-                        AND LOWER(pv_material.material) IN (:materials)
-                    )
-                    """);
-
-            params.put("materials", normalizeList(query.getMaterials()));
-        }
-    }
-
-    private void appendPriceFilters(StringBuilder whereClause, Map<String, Object> params, SearchProductsQuery query) {
         if (query.getPriceBands() != null && !query.getPriceBands().isEmpty()) {
-            List<String> conditions = new ArrayList<>();
-
             for (String band : query.getPriceBands()) {
                 switch (band) {
-                    case "lt5m" -> conditions.add("pv_price.price < 5000000");
-                    case "5-15m" -> conditions.add("(pv_price.price >= 5000000 AND pv_price.price <= 15000000)");
-                    case "15-30m" -> conditions.add("(pv_price.price >= 15000000 AND pv_price.price <= 30000000)");
-                    case "gt30m" -> conditions.add("pv_price.price > 30000000");
+                    case "lt5m" -> priceConditions.add("pv_filter.price < 5000000");
+                    case "5-15m" -> priceConditions.add("(pv_filter.price >= 5000000 AND pv_filter.price <= 15000000)");
+                    case "15-30m" -> priceConditions.add("(pv_filter.price >= 15000000 AND pv_filter.price <= 30000000)");
+                    case "gt30m" -> priceConditions.add("pv_filter.price > 30000000");
                     default -> {
                     }
                 }
             }
-
-            if (!conditions.isEmpty()) {
-                whereClause.append("""
-                        AND EXISTS (
-                            SELECT 1
-                            FROM product_variants pv_price
-                            WHERE pv_price.product_id = p.id
-                            AND (
-                        """);
-
-                whereClause.append(String.join(" OR ", conditions));
-                whereClause.append(")) ");
-            }
         }
 
+        Double sliderMaxPrice = null;
         if (query.getPriceSliderPct() != null && !query.getPriceSliderPct().isEmpty()) {
             Double pct = query.getPriceSliderPct().get(0);
-
             if (pct != null && pct < 100) {
-                double maxPrice = (pct / 100.0) * 50_000_000.0;
-
-                whereClause.append("""
-                        AND EXISTS (
-                            SELECT 1
-                            FROM product_variants pv_slider
-                            WHERE pv_slider.product_id = p.id
-                            AND pv_slider.price <= :maxPrice
-                        )
-                        """);
-
-                params.put("maxPrice", maxPrice);
+                sliderMaxPrice = (pct / 100.0) * 50_000_000.0;
             }
         }
+
+        if (!hasColors && !hasMaterials && priceConditions.isEmpty() && sliderMaxPrice == null) {
+            return;
+        }
+
+        whereClause.append("""
+                AND EXISTS (
+                    SELECT 1
+                    FROM product_variants pv_filter
+                    WHERE pv_filter.product_id = p.id
+                """);
+
+        if (hasColors) {
+            whereClause.append(" AND LOWER(pv_filter.color) IN (:colors) ");
+            params.put("colors", normalizeList(query.getColors()));
+        }
+
+        if (hasMaterials) {
+            whereClause.append(" AND LOWER(pv_filter.material) IN (:materials) ");
+            params.put("materials", normalizeList(query.getMaterials()));
+        }
+
+        if (!priceConditions.isEmpty()) {
+            whereClause.append(" AND (");
+            whereClause.append(String.join(" OR ", priceConditions));
+            whereClause.append(") ");
+        }
+
+        if (sliderMaxPrice != null) {
+            whereClause.append(" AND pv_filter.price <= :maxPrice ");
+            params.put("maxPrice", sliderMaxPrice);
+        }
+
+        whereClause.append(") ");
     }
 
     private void appendRatingFilters(StringBuilder whereClause, Map<String, Object> params, SearchProductsQuery query) {
@@ -761,7 +738,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .soldCount(rs.getInt("sold_count"))
                 .tags(List.of("new", "sale"))
                 .supports3d(rs.getBoolean("supports_3d"))
-                .collection(normalizeText(rs.getString("collection_name"), null))
                 .features(features)
                 .price(0.0)
                 .modelMediaId((UUID) rs.getObject("model_media_id"))
