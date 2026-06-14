@@ -21,6 +21,7 @@ public class PromotionDto {
     private Double minOrder;
     private LocalDateTime startDate;
     private LocalDateTime endDate;
+    private LocalDateTime createdAt;
     private boolean active;
     private List<String> placements;
     private boolean saved;

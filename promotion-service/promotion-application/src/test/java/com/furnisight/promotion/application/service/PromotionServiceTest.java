@@ -94,6 +94,21 @@ class PromotionServiceTest {
         assertThat(validate("MIN", "shop", 300.0, 0.0).isValid()).isFalse();
     }
 
+    @Test
+    void adminVouchersAreSortedByCreatedAtDescending() {
+        Promotion older = voucher("OLDER", DiscountType.PERCENT, 10.0, null, 0.0);
+        older.setCreatedAt(LocalDateTime.of(2026, 6, 13, 10, 0));
+        promotionRepository.save(older);
+
+        Promotion newer = voucher("NEWER", DiscountType.PERCENT, 10.0, null, 0.0);
+        newer.setCreatedAt(LocalDateTime.of(2026, 6, 14, 10, 0));
+        promotionRepository.save(newer);
+
+        assertThat(service.getAdminVouchers(null, null, null))
+                .extracting("code")
+                .containsExactly("NEWER", "OLDER");
+    }
+
     private com.furnisight.promotion.application.dto.ValidateVoucherResponse validate(
             String code,
             String type,

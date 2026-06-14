@@ -15,6 +15,7 @@ public record VoucherResponse(
         Double minOrder,
         String startDate,
         String endDate,
+        String createdAt,
         boolean active,
         List<String> placements,
         String statusLabel,

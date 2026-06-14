@@ -79,7 +79,14 @@ public class PromotionService {
                 .filter(p -> matchesQuery(p, normalizedQuery))
                 .filter(p -> matchesType(p, normalizedType))
                 .filter(p -> matchesStatus(p, normalizedStatus))
-                .sorted(Comparator.comparing(Promotion::getCode, Comparator.nullsLast(String::compareToIgnoreCase)))
+                .sorted((left, right) -> {
+                    LocalDateTime leftCreatedAt = left.getCreatedAt();
+                    LocalDateTime rightCreatedAt = right.getCreatedAt();
+                    if (leftCreatedAt == null && rightCreatedAt == null) return 0;
+                    if (leftCreatedAt == null) return 1;
+                    if (rightCreatedAt == null) return -1;
+                    return rightCreatedAt.compareTo(leftCreatedAt);
+                })
                 .map(p -> toDto(p, null))
                 .toList();
     }
@@ -285,6 +292,7 @@ public class PromotionService {
                 .minOrder(p.getMinOrder())
                 .startDate(p.getStartDate())
                 .endDate(p.getEndDate())
+                .createdAt(p.getCreatedAt())
                 .active(p.isActive())
                 .placements(split(p.getPlacements()))
                 .saved(userVoucher != null)
