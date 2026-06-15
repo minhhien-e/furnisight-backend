@@ -2,6 +2,7 @@ package com.furnisight.admin.audit.application;
 
 import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
 import com.furnisight.admin.user.AccountDetailResponse;
+import com.furnisight.admin.user.AccountDto;
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import com.furnisight.admin.audit.web.dto.response.AuditLogPageResponse;
 import com.furnisight.admin.audit.web.dto.response.AuditLogResponse;
@@ -23,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -44,7 +46,7 @@ public class AuditLogService {
         int safeSize = Math.min(Math.max(pageSize, 1), 100);
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AuditLog> logs = repository.findAll(buildSpec(search, type, result, period), pageable);
-        Map<UUID, String> actorNames = new HashMap<>();
+        Map<UUID, String> actorNames = resolveActorNames(logs.getContent());
 
         return new AuditLogPageResponse(
                 logs.getContent().stream().map(logEntry -> toResponse(logEntry, actorNames)).toList(),
@@ -170,7 +172,11 @@ public class AuditLogService {
     private String fetchActorName(UUID actorId) {
         try {
             AccountDetailResponse account = userClient.getAccountById(actorId);
-            String fullName = (safe(account.getFirstName(), "") + " " + safe(account.getLastName(), "")).trim();
+            String displayName = safe(account.getName(), "").trim();
+            if (!displayName.isBlank()) {
+                return displayName;
+            }
+            String fullName = (safe(account.getLastName(), "") + " " + safe(account.getFirstName(), "")).trim();
             if (!fullName.isBlank()) {
                 return fullName;
             }
@@ -183,6 +189,54 @@ public class AuditLogService {
             log.debug("Failed to resolve audit actor name {}", actorId, ex);
             return "";
         }
+    }
+
+    private Map<UUID, String> resolveActorNames(List<AuditLog> logs) {
+        Map<UUID, String> actorNames = new HashMap<>();
+        LinkedHashSet<UUID> unresolvedIds = logs.stream()
+                .map(AuditLog::getActorId)
+                .filter(java.util.Objects::nonNull)
+                .collect(java.util.stream.Collectors.toCollection(LinkedHashSet::new));
+        if (unresolvedIds.isEmpty()) {
+            return actorNames;
+        }
+
+        try {
+            int page = 1;
+            int totalPages;
+            do {
+                var response = userClient.getAccounts(page, 200, "", "");
+                response.getAccountsList().forEach(account -> putActorName(actorNames, unresolvedIds, account));
+                totalPages = Math.max(response.getTotalPages(), 1);
+                page++;
+            } while (!unresolvedIds.isEmpty() && page <= totalPages);
+        } catch (Exception ex) {
+            log.debug("Failed to resolve audit actor names from account list", ex);
+        }
+
+        unresolvedIds.forEach(actorId -> actorNames.put(actorId, fetchActorName(actorId)));
+        return actorNames;
+    }
+
+    private void putActorName(Map<UUID, String> actorNames, LinkedHashSet<UUID> unresolvedIds, AccountDto account) {
+        UUID accountId = parseUuid(account.getId());
+        if (accountId == null || !unresolvedIds.contains(accountId)) {
+            return;
+        }
+
+        String actorName = firstNotBlank(account.getName(), account.getUsername(), account.getEmail());
+        actorNames.put(accountId, actorName);
+        unresolvedIds.remove(accountId);
+    }
+
+    private String firstNotBlank(String... values) {
+        for (String value : values) {
+            String normalized = safe(value, "").trim();
+            if (!normalized.isBlank()) {
+                return normalized;
+            }
+        }
+        return "";
     }
 
     private List<UUID> resolveActorIdsBySearch(String query) {

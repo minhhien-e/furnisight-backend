@@ -72,7 +72,7 @@ public class AuthController {
     @PostMapping("/password/change")
     public ResponseEntity<?> changePassword(@RequestBody ChangePasswordRequest request) {
         UUID accountId = currentUserProvider.getCurrentUserId();
-        var command = new ChangePasswordCommand(accountId, request.newPassword());
+        var command = new ChangePasswordCommand(accountId, request.currentPassword(), request.newPassword());
         var result = changePasswordUseCase.execute(command);
         return ResponseEntity.ok(result);
     }

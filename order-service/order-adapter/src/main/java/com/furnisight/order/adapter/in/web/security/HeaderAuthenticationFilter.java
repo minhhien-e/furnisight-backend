@@ -13,7 +13,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Component
 public class HeaderAuthenticationFilter extends OncePerRequestFilter {
@@ -23,14 +22,25 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String userId = request.getHeader("X-User-Id");
+        String rolesHeader = request.getHeader("X-User-Roles");
         String permissionsHeader = request.getHeader("X-User-Permissions");
 
         if (userId != null && !userId.isBlank()) {
-            List<SimpleGrantedAuthority> authorities = List.of();
-            if (permissionsHeader != null && !permissionsHeader.isBlank()) {
-                authorities = Arrays.stream(permissionsHeader.split(","))
+            List<SimpleGrantedAuthority> authorities = new java.util.ArrayList<>();
+            if (rolesHeader != null && !rolesHeader.isBlank()) {
+                Arrays.stream(rolesHeader.split(","))
+                        .map(String::trim)
+                        .filter(role -> !role.isBlank())
+                        .map(role -> role.toUpperCase().startsWith("ROLE_") ? role.toUpperCase() : "ROLE_" + role.toUpperCase())
                         .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
+                        .forEach(authorities::add);
+            }
+            if (permissionsHeader != null && !permissionsHeader.isBlank()) {
+                Arrays.stream(permissionsHeader.split(","))
+                        .map(String::trim)
+                        .filter(permission -> !permission.isBlank())
+                        .map(SimpleGrantedAuthority::new)
+                        .forEach(authorities::add);
             }
 
             UsernamePasswordAuthenticationToken authentication =

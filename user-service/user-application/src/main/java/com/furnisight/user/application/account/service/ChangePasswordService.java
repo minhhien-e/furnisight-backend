@@ -23,7 +23,7 @@ public class ChangePasswordService implements ChangePasswordUseCase {
     public Void execute(ChangePasswordCommand command) {
         Account account = accountRepository.findById(command.accountId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
-        passwordService.changePassword(account, command.newPassword());
+        passwordService.changePassword(account, command.currentPassword(), command.newPassword());
         return null;
     }
 }

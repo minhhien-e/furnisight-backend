@@ -62,7 +62,7 @@ public class OrderService {
     private String toOrderTone(String status) {
         return switch (normalizeStatus(status)) {
             case "SHIPPING" -> "shipping";
-            case "DELIVERED", "SUCCESS" -> "success";
+            case "DELIVERED", "SUCCESS", "REFUNDED" -> "success";
             case "CANCELLED", "PAYMENT_FAILED" -> "cancel";
             case "REFUND_PENDING" -> "pending";
             default -> "pending";
@@ -76,6 +76,7 @@ public class OrderService {
             case "DELIVERED", "SUCCESS" -> "Hoàn tất";
             case "CANCELLED" -> "Đã hủy";
             case "REFUND_PENDING" -> "Chờ hoàn tiền";
+            case "REFUNDED" -> "Đã hoàn tiền";
             case "PAYMENT_FAILED" -> "Thanh toán lỗi";
             default -> "Chờ xác nhận";
         };

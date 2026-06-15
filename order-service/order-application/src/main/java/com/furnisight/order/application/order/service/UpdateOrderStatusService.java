@@ -31,6 +31,14 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     }
 
     @Override
+    public void refundOrder(String orderCode) {
+        Order order = orderRepository.findByOrderCode(orderCode)
+                .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));
+        order.markAsRefunded();
+        orderRepository.save(order);
+    }
+
+    @Override
     public void cancelOrder(String orderCode, java.util.UUID userId) {
         Order order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ValidationException(ErrorCode.ORDER_NOT_FOUND));

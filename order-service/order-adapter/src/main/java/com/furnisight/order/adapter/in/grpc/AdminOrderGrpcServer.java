@@ -226,6 +226,10 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             completeAction(responseObserver, () -> updateOrderStatusUseCase.deliverOrder(request.getOrderCode()), "Order delivered");
             return;
         }
+        if ("REFUNDED".equals(status)) {
+            completeAction(responseObserver, () -> updateOrderStatusUseCase.refundOrder(request.getOrderCode()), "Order refunded");
+            return;
+        }
         responseObserver.onNext(AdminActionResponse.newBuilder()
                 .setSuccess(false)
                 .setMessage("Unsupported admin order status: " + request.getStatus())
@@ -365,7 +369,10 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         if (lower.contains("giao")) {
             return "SHIPPING";
         }
-        if (lower.contains("hoàn tiền") || lower.contains("refund")) {
+        if (lower.contains("đã hoàn tiền") || lower.contains("refunded")) {
+            return "REFUNDED";
+        }
+        if (lower.contains("chờ hoàn tiền") || lower.contains("refund_pending") || lower.contains("pending refund")) {
             return "REFUND_PENDING";
         }
         if (lower.contains("hoàn") || lower.contains("thành công") || lower.contains("success")) {
@@ -410,6 +417,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             case "DELIVERED", "SUCCESS" -> "Hoàn tất";
             case "CANCELLED" -> "Đã hủy";
             case "REFUND_PENDING" -> "Chờ hoàn tiền";
+            case "REFUNDED" -> "Đã hoàn tiền";
             case "PAYMENT_FAILED" -> "Thanh toán lỗi";
             default -> "Chờ thanh toán";
         };

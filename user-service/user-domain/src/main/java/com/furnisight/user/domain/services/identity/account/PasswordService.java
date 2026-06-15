@@ -22,7 +22,14 @@ public class PasswordService {
     private final OtpHasher otpHasher;
     private final OtpVerificationRepository otpVerificationRepository;
 
-    public void changePassword(Account account, String newPassword) {
+    public void changePassword(Account account, String currentPassword, String newPassword) {
+        if (currentPassword == null
+                || currentPassword.isBlank()
+                || account.getPassword() == null
+                || account.getPassword().getHash() == null
+                || !passwordHasher.verify(currentPassword, account.getPassword().getHash())) {
+            throw new UnauthorizedException(ErrorCode.INVALID_PASSWORD);
+        }
         passwordPolicy.validate(newPassword);
         Password hashedPassword = new Password(passwordHasher.hash(newPassword));
         account.setPassword(hashedPassword);

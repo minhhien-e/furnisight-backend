@@ -20,6 +20,7 @@ import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import com.furnisight.order.domain.valueobjects.PaymentTimeline;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -37,6 +38,7 @@ public class OrderController {
     private final com.furnisight.order.application.common.port.in.CurrentUserProvider currentUserProvider;
 
     @PostMapping("/initiate")
+    @PreAuthorize("isAuthenticated() and !hasRole('ADMIN')")
     public ResponseEntity<OrderCreateProjection> initiateOrder(@RequestBody CreateOrderCommand command) {
         command.setUserId(currentUserProvider.getCurrentUserId());
         OrderCreateProjection projection = createOrderUseCase.createOrder(command);

@@ -176,7 +176,8 @@ public class Order extends DomainEntity {
         if (this.status == OrderStatus.SHIPPING
                 || this.status == OrderStatus.DELIVERED
                 || this.status == OrderStatus.CANCELLED
-                || this.status == OrderStatus.REFUND_PENDING) {
+                || this.status == OrderStatus.REFUND_PENDING
+                || this.status == OrderStatus.REFUNDED) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         this.status = this.status == OrderStatus.PAID ? OrderStatus.REFUND_PENDING : OrderStatus.CANCELLED;
@@ -184,5 +185,13 @@ public class Order extends DomainEntity {
         this.addDomainEvent(com.furnisight.order.domain.events.OrderCancelledEvent.builder()
                 .orderCode(this.orderCode)
                 .build());
+    }
+
+    public void markAsRefunded() {
+        if (this.status != OrderStatus.REFUND_PENDING) {
+            throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
+        }
+        this.status = OrderStatus.REFUNDED;
+        this.updatedAt = java.time.LocalDateTime.now();
     }
 }

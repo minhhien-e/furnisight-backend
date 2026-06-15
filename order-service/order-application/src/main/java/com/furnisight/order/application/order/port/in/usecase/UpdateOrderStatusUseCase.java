@@ -5,5 +5,7 @@ public interface UpdateOrderStatusUseCase {
 
     void deliverOrder(String orderCode);
 
+    void refundOrder(String orderCode);
+
     void cancelOrder(String orderCode, java.util.UUID userId);
 }

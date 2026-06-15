@@ -27,12 +27,17 @@ public class JwtClaimsToHeaderFilter implements GlobalFilter, Ordered {
                 .cast(Jwt.class)
                 .map(jwt -> {
                     String userId = jwt.getSubject();
+                    List<String> roles = jwt.getClaimAsStringList("roles");
                     List<String> permissions = jwt.getClaimAsStringList("permissions");
 
                     ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
 
                     if (userId != null) {
                         requestBuilder.header("X-User-Id", userId);
+                    }
+
+                    if (roles != null && !roles.isEmpty()) {
+                        requestBuilder.header("X-User-Roles", String.join(",", roles));
                     }
 
                     if (permissions != null && !permissions.isEmpty()) {

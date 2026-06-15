@@ -70,7 +70,9 @@ public class PaymentService implements CreatePaymentUseCase, ProcessPaymentCallb
         if (order.getStatus() == OrderStatus.PAID) {
             return true;
         }
-        if (order.getStatus() == OrderStatus.CANCELLED || order.getStatus() == OrderStatus.REFUND_PENDING) {
+        if (order.getStatus() == OrderStatus.CANCELLED
+                || order.getStatus() == OrderStatus.REFUND_PENDING
+                || order.getStatus() == OrderStatus.REFUNDED) {
             return false;
         }
         if (!ExpireUnpaidOrdersService.isPaymentWindowOpen(order, now)) {

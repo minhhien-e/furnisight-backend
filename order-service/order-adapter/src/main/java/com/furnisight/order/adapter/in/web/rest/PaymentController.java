@@ -7,6 +7,7 @@ import com.furnisight.order.application.payment.port.in.usecase.ProcessPaymentCa
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -22,6 +23,7 @@ public class PaymentController {
     private final ClientIpProvider clientIpProvider;
 
     @PostMapping("/{paymentMethod}/create")
+    @PreAuthorize("isAuthenticated() and !hasRole('ADMIN')")
     public ResponseEntity<String> createPayment(@PathVariable String paymentMethod, @RequestParam String orderCode,
             HttpServletRequest request) {
         String clientIp = clientIpProvider.getClientIp(request);
