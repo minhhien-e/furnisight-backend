@@ -52,6 +52,7 @@ message OrderDto {
     string first_product_image = 7;
     string customer = 8;
     int32 item_count = 9;
+    string tracking_code = 10;
 }
 
 message OrderStatsResponse {
@@ -155,6 +156,8 @@ message UpdateOrderStatusRequest {
     string admin_id = 1;
     string order_code = 2;
     string status = 3;
+    string tracking_code = 4;
+    string note = 5;
 }
 
 // Revenue summary
