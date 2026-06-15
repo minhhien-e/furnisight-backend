@@ -22,6 +22,7 @@ class OrderServiceTest {
                                 .setItemCount(2)
                                 .setTotalAmount(500_000)
                                 .setStatus("SHIPPING")
+                                .setTrackingCode("GHN123456")
                                 .setCreatedAt("2026-06-10T10:00:00")
                                 .build())
                         .setCurrentPage(1)
@@ -36,6 +37,7 @@ class OrderServiceTest {
             assertThat(order.status()).isEqualTo("shipping");
             assertThat(order.statusLabel()).isEqualTo("Đang giao");
             assertThat(order.date()).isEqualTo("10/06/2026");
+            assertThat(order.trackingCode()).isEqualTo("GHN123456");
         });
     }
 }

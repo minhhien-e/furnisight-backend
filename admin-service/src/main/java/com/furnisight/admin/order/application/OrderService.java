@@ -52,7 +52,7 @@ public class OrderService {
                 emptyFallback(order.getCustomer(), "Khách hàng"), order.getItemCount(),
                 order.getTotalAmount(), toOrderTone(order.getStatus()),
                 toOrderStatusLabel(order.getStatus()), formatDate(order.getCreatedAt()),
-                order.getPaymentMethod());
+                order.getPaymentMethod(), order.getTrackingCode());
     }
 
     private RecentOrderResponse toRecentOrderResponse(OrderDto order) {

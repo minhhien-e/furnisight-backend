@@ -70,7 +70,8 @@ public class OrderProcessingService {
         if (context.getTrackingCode() == null) {
             return;
         }
-        if (context.getOrder().getStatus() == OrderStatus.DELIVERED) {
+        if (context.getTargetStatus() != OrderStatus.SHIPPING
+                || context.getOrder().getStatus() == OrderStatus.DELIVERED) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         context.getOrder().updateTrackingCode(context.getTrackingCode());

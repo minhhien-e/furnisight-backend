@@ -8,6 +8,7 @@ public record OrderResponse(
         String status,
         String statusLabel,
         String date,
-        String paymentMethod
+        String paymentMethod,
+        String trackingCode
 ) {
 }
