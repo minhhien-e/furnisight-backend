@@ -37,8 +37,12 @@ public class OrderService {
                 .toList();
     }
 
-    public ActionResultResponse updateOrderStatus(UUID adminId, String orderCode, String status) {
-        AdminActionResponse response = orderClient.updateOrderStatus(adminId, orderCode, status);
+    public ActionResultResponse updateOrderStatus(
+            UUID adminId, String orderCode, String status, String trackingCode, String note
+    ) {
+        AdminActionResponse response = orderClient.updateOrderStatus(
+                adminId, orderCode, status, trackingCode, note
+        );
         return new ActionResultResponse(response.getSuccess(), response.getMessage());
     }
 

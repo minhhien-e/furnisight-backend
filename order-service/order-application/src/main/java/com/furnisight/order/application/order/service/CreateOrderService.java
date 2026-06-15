@@ -6,8 +6,11 @@ import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.application.promotion.port.out.PromotionValidationPort;
 import com.furnisight.order.application.promotion.port.out.dto.ValidateComboRequest;
 import com.furnisight.order.application.promotion.port.out.dto.ValidateOrderVouchersRequest;
-import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.entities.order.Order;
+import com.furnisight.order.domain.enums.PaymentType;
+import com.furnisight.order.application.processing.OrderOperation;
+import com.furnisight.order.application.processing.OrderProcessingCommand;
+import com.furnisight.order.application.processing.OrderProcessingService;
 import com.furnisight.order.domain.services.OrderLifecycle;
 import com.furnisight.order.domain.services.PricingService;
 import com.furnisight.order.domain.services.dto.OrderItemParam;
@@ -23,10 +26,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class CreateOrderService implements CreateOrderUseCase {
 
-    private final OrderRepository orderRepository;
     private final OrderLifecycle orderLifecycle;
     private final PromotionValidationPort promotionValidationPort;
     private final PricingService pricingService;
+    private final OrderProcessingService orderProcessingService;
 
     @Override
     @Transactional
@@ -113,7 +116,13 @@ public class CreateOrderService implements CreateOrderUseCase {
                 command.getInsuranceFee()
         );
 
-        Order savedOrder = orderRepository.save(order);
+        Order savedOrder = orderProcessingService.process(OrderProcessingCommand.builder()
+                .operation(OrderOperation.CREATE)
+                .order(order)
+                .paymentType(PaymentType.from(command.getPaymentMethod()))
+                .actorId(command.getUserId())
+                .actorType("CUSTOMER")
+                .build()).order();
 
         return OrderCreateProjection.builder()
                 .orderId(savedOrder.getId())

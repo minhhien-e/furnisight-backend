@@ -16,6 +16,7 @@ public class OrderDetailResponse {
     private Double totalAmount;
     private Double savedAmount;
     private String customerNote;
+    private String trackingCode;
     private Object fee;
     private Object shippingDetail;
     private PaymentDetailResponse paymentDetail;
@@ -24,4 +25,5 @@ public class OrderDetailResponse {
     private LocalDateTime createdAt;
     private LocalDateTime paymentExpiresAt;
     private Boolean canRetryPayment;
+    private List<OrderStatusHistoryResponse> statusHistory;
 }

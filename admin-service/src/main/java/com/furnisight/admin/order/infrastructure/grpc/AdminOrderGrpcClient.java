@@ -68,11 +68,15 @@ public class AdminOrderGrpcClient {
                 .build());
     }
 
-    public AdminActionResponse updateOrderStatus(UUID adminId, String orderCode, String status) {
+    public AdminActionResponse updateOrderStatus(
+            UUID adminId, String orderCode, String status, String trackingCode, String note
+    ) {
         return adminOrderServiceStub.updateOrderStatus(UpdateOrderStatusRequest.newBuilder()
                 .setAdminId(adminId == null ? "" : adminId.toString())
                 .setOrderCode(orderCode == null ? "" : orderCode)
                 .setStatus(status == null ? "" : status)
+                .setTrackingCode(trackingCode == null ? "" : trackingCode)
+                .setNote(note == null ? "" : note)
                 .build());
     }
 

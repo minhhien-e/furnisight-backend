@@ -11,6 +11,7 @@ import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.adapter.in.web.dto.response.OrderListResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderDetailResponse;
+import com.furnisight.order.adapter.in.web.dto.response.OrderStatusHistoryResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderItemResponse;
 import com.furnisight.order.adapter.in.web.dto.response.PaymentDetailResponse;
 import com.furnisight.order.adapter.in.web.dto.response.PaymentTimelineResponse;
@@ -18,6 +19,7 @@ import com.furnisight.order.adapter.in.web.dto.response.ProductPurchaseCheckResp
 import com.furnisight.order.domain.valueobjects.ProductSnapshot;
 import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import com.furnisight.order.domain.valueobjects.PaymentTimeline;
+import com.furnisight.order.domain.repository.order.OrderStatusHistoryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,6 +38,7 @@ public class OrderController {
     private final GetOrderQuery getOrderQuery;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
     private final com.furnisight.order.application.common.port.in.CurrentUserProvider currentUserProvider;
+    private final OrderStatusHistoryRepository orderStatusHistoryRepository;
 
     @PostMapping("/initiate")
     @PreAuthorize("isAuthenticated() and !hasRole('ADMIN')")
@@ -100,6 +103,7 @@ public class OrderController {
                 .totalAmount(order.getTotalAmount())
                 .savedAmount(order.getSavedAmount())
                 .customerNote(order.getCustomerNote())
+                .trackingCode(order.getTrackingCode())
                 .fee(order.getFee())
                 .shippingDetail(order.getShippingDetail())
                 .paymentDetail(toPaymentDetailResponse(order))
@@ -108,6 +112,16 @@ public class OrderController {
                 .createdAt(order.getCreatedAt())
                 .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
                 .canRetryPayment(canRetryPayment(order))
+                .statusHistory(orderStatusHistoryRepository.findByOrderId(order.getId()).stream()
+                        .map(history -> OrderStatusHistoryResponse.builder()
+                                .previousStatus(history.getPreviousStatus().name())
+                                .nextStatus(history.getNextStatus().name())
+                                .actorType(history.getActorType())
+                                .trackingCode(history.getTrackingCode())
+                                .note(history.getNote())
+                                .createdAt(history.getCreatedAt())
+                                .build())
+                        .toList())
                 .build();
 
         return ResponseEntity.ok(response);

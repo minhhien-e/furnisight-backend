@@ -107,6 +107,22 @@ public class AuditLogService {
     }
 
     @Transactional
+    public void recordOrderEvent(
+            UUID actorId, String orderCode, String previousStatus,
+            String nextStatus, String trackingCode, String note
+    ) {
+        String detail = "Trạng thái: " + safe(previousStatus, "") + " -> " + safe(nextStatus, "");
+        if (trackingCode != null && !trackingCode.isBlank()) {
+            detail += "; Mã vận đơn: " + trackingCode;
+        }
+        if (note != null && !note.isBlank()) {
+            detail += "; Ghi chú: " + note;
+        }
+        record(actorId, "update", "Cập nhật trạng thái đơn hàng", "ORDER",
+                orderCode, true, detail, null);
+    }
+
+    @Transactional
     public void record(UUID actorId,
                        String actionType,
                        String action,

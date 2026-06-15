@@ -35,6 +35,7 @@ public class Order extends DomainEntity {
 
     private Double savedAmount;
     private String customerNote;
+    private String trackingCode;
 
     @Embedded
     private ShippingDetail shippingDetail;
@@ -165,7 +166,9 @@ public class Order extends DomainEntity {
     }
 
     public void deliverOrder() {
-        if (this.status != OrderStatus.SHIPPING) {
+        boolean canCompleteCod = isCodOrder()
+                && (this.status == OrderStatus.UNPAID || this.status == OrderStatus.PAID);
+        if (this.status != OrderStatus.SHIPPING && !canCompleteCod) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         this.status = OrderStatus.DELIVERED;
@@ -180,7 +183,9 @@ public class Order extends DomainEntity {
                 || this.status == OrderStatus.REFUNDED) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
-        this.status = this.status == OrderStatus.PAID ? OrderStatus.REFUND_PENDING : OrderStatus.CANCELLED;
+        this.status = this.status == OrderStatus.PAID && !isCodOrder()
+                ? OrderStatus.REFUND_PENDING
+                : OrderStatus.CANCELLED;
         this.updatedAt = java.time.LocalDateTime.now();
         this.addDomainEvent(com.furnisight.order.domain.events.OrderCancelledEvent.builder()
                 .orderCode(this.orderCode)
@@ -193,5 +198,75 @@ public class Order extends DomainEntity {
         }
         this.status = OrderStatus.REFUNDED;
         this.updatedAt = java.time.LocalDateTime.now();
+    }
+
+    public void transitionTo(OrderStatus nextStatus) {
+        this.status = nextStatus;
+        this.updatedAt = java.time.LocalDateTime.now();
+    }
+
+    public void recordCancellation() {
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderCancelledEvent.builder()
+                .orderCode(this.orderCode)
+                .build());
+    }
+
+    public void recordPaymentInitiated(java.time.LocalDateTime initiatedAt) {
+        this.paymentTimeline = this.paymentTimeline == null
+                ? com.furnisight.order.domain.valueobjects.PaymentTimeline.builder()
+                    .orderCreatedAt(this.createdAt)
+                    .paymentInitiatedAt(initiatedAt)
+                    .build()
+                : this.paymentTimeline.initiatePayment(initiatedAt);
+        this.updatedAt = java.time.LocalDateTime.now();
+    }
+
+    public void recordPaymentSuccess(String method, Double amount, java.time.LocalDateTime paidAt) {
+        this.paymentDetail = PaymentDetail.builder()
+                .paymentMethod(method)
+                .paymentStatus("PAID")
+                .paidAmount(amount)
+                .paidAt(paidAt)
+                .build();
+        this.paymentTimeline = this.paymentTimeline == null
+                ? com.furnisight.order.domain.valueobjects.PaymentTimeline.builder()
+                    .orderCreatedAt(this.createdAt)
+                    .paymentCompletedAt(paidAt)
+                    .build()
+                : this.paymentTimeline.completePayment(paidAt);
+        this.updatedAt = java.time.LocalDateTime.now();
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderPaidEvent.builder()
+                .orderCode(this.orderCode)
+                .paidAmount(amount)
+                .paymentMethod(method)
+                .build());
+    }
+
+    public void recordPaymentFailure(String method, java.time.LocalDateTime failedAt) {
+        this.paymentDetail = PaymentDetail.builder()
+                .paymentMethod(method)
+                .paymentStatus("FAILED")
+                .paidAmount(0.0)
+                .build();
+        this.paymentTimeline = this.paymentTimeline == null
+                ? com.furnisight.order.domain.valueobjects.PaymentTimeline.builder()
+                    .orderCreatedAt(this.createdAt)
+                    .paymentFailedAt(failedAt)
+                    .build()
+                : this.paymentTimeline.failPayment(failedAt);
+        this.updatedAt = java.time.LocalDateTime.now();
+        this.addDomainEvent(com.furnisight.order.domain.events.OrderPaymentFailedEvent.builder()
+                .orderCode(this.orderCode)
+                .build());
+    }
+
+    public void updateTrackingCode(String trackingCode) {
+        this.trackingCode = trackingCode == null || trackingCode.isBlank() ? null : trackingCode.trim();
+        this.updatedAt = java.time.LocalDateTime.now();
+    }
+
+    public boolean isCodOrder() {
+        return this.paymentDetail != null
+                && "cod".equalsIgnoreCase(this.paymentDetail.getPaymentMethod());
     }
 }

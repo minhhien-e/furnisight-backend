@@ -26,6 +26,7 @@ import com.furnisight.admin.order.GetTopSellingProductsRequest;
 import com.furnisight.admin.order.TopSellingProductsResponse;
 import com.furnisight.admin.order.TopProductDto;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
+import com.furnisight.order.application.order.port.in.command.UpdateOrderStatusCommand;
 import com.furnisight.order.application.promotion.port.out.repository.PromotionRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
@@ -45,6 +46,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -55,6 +57,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final int DEFAULT_PAGE_SIZE = 20;
+    private static final Map<String, String> STATUS_ALIASES = Map.of("SUCCESS", "DELIVERED");
 
     private final OrderRepository orderRepository;
     private final PromotionRepository promotionRepository;
@@ -207,34 +210,30 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
 
     @Override
     public void shipOrder(ShipOrderRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        completeAction(responseObserver, () -> updateOrderStatusUseCase.shipOrder(request.getOrderCode()), "Order moved to shipping");
+        completeAction(responseObserver, () -> updateOrderStatusUseCase.updateOrderStatus(
+                adminStatusCommand(request.getAdminId(), request.getOrderCode(), OrderStatus.SHIPPING)
+        ), "Order moved to shipping");
     }
 
     @Override
     public void deliverOrder(DeliverOrderRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        completeAction(responseObserver, () -> updateOrderStatusUseCase.deliverOrder(request.getOrderCode()), "Order delivered");
+        completeAction(responseObserver, () -> updateOrderStatusUseCase.updateOrderStatus(
+                adminStatusCommand(request.getAdminId(), request.getOrderCode(), OrderStatus.DELIVERED)
+        ), "Order delivered");
     }
 
     @Override
     public void updateOrderStatus(UpdateOrderStatusRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        String status = normalizeStatus(request.getStatus());
-        if ("SHIPPING".equals(status)) {
-            completeAction(responseObserver, () -> updateOrderStatusUseCase.shipOrder(request.getOrderCode()), "Order moved to shipping");
-            return;
-        }
-        if ("DELIVERED".equals(status) || "SUCCESS".equals(status)) {
-            completeAction(responseObserver, () -> updateOrderStatusUseCase.deliverOrder(request.getOrderCode()), "Order delivered");
-            return;
-        }
-        if ("REFUNDED".equals(status)) {
-            completeAction(responseObserver, () -> updateOrderStatusUseCase.refundOrder(request.getOrderCode()), "Order refunded");
-            return;
-        }
-        responseObserver.onNext(AdminActionResponse.newBuilder()
-                .setSuccess(false)
-                .setMessage("Unsupported admin order status: " + request.getStatus())
-                .build());
-        responseObserver.onCompleted();
+        OrderStatus status = parseStatus(request.getStatus());
+        completeAction(responseObserver, () -> updateOrderStatusUseCase.updateOrderStatus(
+                adminStatusCommand(
+                        request.getAdminId(),
+                        request.getOrderCode(),
+                        status,
+                        request.getTrackingCode(),
+                        request.getNote()
+                )
+        ), "Order status updated");
     }
 
     @Override
@@ -350,6 +349,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
                 .setFirstProductImage(resolveFirstProductImage(order))
                 .setCustomer(resolveCustomer(order))
                 .setItemCount(resolveItemCount(order))
+                .setTrackingCode(safe(order.getTrackingCode()))
                 .build();
     }
 
@@ -358,33 +358,42 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         if (normalized.isBlank()) {
             return null;
         }
-        return OrderStatus.valueOf(normalized);
+        return OrderStatus.valueOf(STATUS_ALIASES.getOrDefault(normalized, normalized));
     }
 
     private String normalizeStatus(String rawStatus) {
         if (rawStatus == null || rawStatus.isBlank()) {
             return "";
         }
-        String lower = rawStatus.trim().toLowerCase();
-        if (lower.contains("giao")) {
-            return "SHIPPING";
-        }
-        if (lower.contains("đã hoàn tiền") || lower.contains("refunded")) {
-            return "REFUNDED";
-        }
-        if (lower.contains("chờ hoàn tiền") || lower.contains("refund_pending") || lower.contains("pending refund")) {
-            return "REFUND_PENDING";
-        }
-        if (lower.contains("hoàn") || lower.contains("thành công") || lower.contains("success")) {
-            return "DELIVERED";
-        }
-        if (lower.contains("hủy") || lower.contains("cancel")) {
-            return "CANCELLED";
-        }
         return rawStatus.trim()
                 .replace('-', '_')
                 .replace(' ', '_')
                 .toUpperCase();
+    }
+
+    private UpdateOrderStatusCommand adminStatusCommand(String adminId, String orderCode, OrderStatus status) {
+        return adminStatusCommand(adminId, orderCode, status, null, null);
+    }
+
+    private UpdateOrderStatusCommand adminStatusCommand(
+            String adminId, String orderCode, OrderStatus status, String trackingCode, String note
+    ) {
+        return UpdateOrderStatusCommand.builder()
+                .orderCode(orderCode)
+                .status(status.name())
+                .actorId(parseUuid(adminId))
+                .actorType("ADMIN")
+                .trackingCode(trackingCode)
+                .note(note)
+                .build();
+    }
+
+    private UUID parseUuid(String value) {
+        try {
+            return value == null || value.isBlank() ? null : UUID.fromString(value);
+        } catch (IllegalArgumentException ignored) {
+            return null;
+        }
     }
 
     private String resolveFirstProductImage(Order order) {

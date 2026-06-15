@@ -41,6 +41,49 @@ class OrderStatusTransitionTest {
         assertEquals(OrderStatus.SHIPPING, order.getStatus());
     }
 
+    @Test
+    void paidCodOrderCanMoveToShipping() {
+        Order order = order(OrderStatus.PAID, "cod");
+
+        order.shipOrder();
+
+        assertEquals(OrderStatus.SHIPPING, order.getStatus());
+    }
+
+    @Test
+    void cancellingPaidCodOrderDoesNotRequireRefund() {
+        Order order = order(OrderStatus.PAID, "cod");
+
+        order.cancelOrder();
+
+        assertEquals(OrderStatus.CANCELLED, order.getStatus());
+    }
+
+    @Test
+    void paidCodOrderCanBeCompletedDirectly() {
+        Order order = order(OrderStatus.PAID, "cod");
+
+        order.deliverOrder();
+
+        assertEquals(OrderStatus.DELIVERED, order.getStatus());
+    }
+
+    @Test
+    void legacyUnpaidCodOrderCanBeCompletedDirectly() {
+        Order order = order(OrderStatus.UNPAID, "cod");
+
+        order.deliverOrder();
+
+        assertEquals(OrderStatus.DELIVERED, order.getStatus());
+    }
+
+    @Test
+    void paidOnlineOrderCannotBeCompletedBeforeShipping() {
+        Order order = order(OrderStatus.PAID, "vnpay");
+
+        assertThrows(ValidationException.class, order::deliverOrder);
+    }
+
     private Order order(OrderStatus status, String paymentMethod) {
         return Order.builder()
                 .id(UUID.randomUUID())

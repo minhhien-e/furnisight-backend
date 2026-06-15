@@ -2,7 +2,11 @@ package com.furnisight.order.application.order.service;
 
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.enums.OrderStatus;
+import com.furnisight.order.domain.enums.PaymentType;
 import com.furnisight.order.domain.repository.order.OrderRepository;
+import com.furnisight.order.application.processing.OrderOperation;
+import com.furnisight.order.application.processing.OrderProcessingCommand;
+import com.furnisight.order.application.processing.OrderProcessingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -25,6 +29,7 @@ public class ExpireUnpaidOrdersService {
     );
 
     private final OrderRepository orderRepository;
+    private final OrderProcessingService orderProcessingService;
 
     @Scheduled(
             initialDelayString = "${orders.payment-expiration-initial-delay-ms:30000}",
@@ -43,8 +48,13 @@ public class ExpireUnpaidOrdersService {
         List<Order> overdueOrders = orderRepository.findAllByStatusesAndCreatedAtBefore(EXPIRABLE_STATUSES, cutoff);
 
         for (Order order : overdueOrders) {
-            order.cancelOrder();
-            orderRepository.save(order);
+            orderProcessingService.process(OrderProcessingCommand.builder()
+                    .operation(OrderOperation.CANCEL)
+                    .order(order)
+                    .paymentType(PaymentType.from(order.getPaymentDetail().getPaymentMethod()))
+                    .actorType("SYSTEM")
+                    .note("Payment window expired")
+                    .build());
         }
 
         return overdueOrders.size();
