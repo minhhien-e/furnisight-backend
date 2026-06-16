@@ -67,13 +67,18 @@ public class OrderProcessingService {
     }
 
     private void updateTrackingCode(OrderProcessingContext context) {
-        if (context.getTrackingCode() == null) {
+        String trackingCode = context.getTrackingCode();
+        if (trackingCode == null || trackingCode.isBlank()) {
             return;
         }
+        String normalizedTrackingCode = trackingCode.trim();
         if (context.getTargetStatus() != OrderStatus.SHIPPING
                 || context.getOrder().getStatus() == OrderStatus.DELIVERED) {
+            if (normalizedTrackingCode.equals(context.getOrder().getTrackingCode())) {
+                return;
+            }
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
-        context.getOrder().updateTrackingCode(context.getTrackingCode());
+        context.getOrder().updateTrackingCode(normalizedTrackingCode);
     }
 }
