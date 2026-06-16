@@ -2,8 +2,10 @@ package com.furnisight.admin.account.role.application;
 
 import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
 import com.furnisight.admin.account.role.web.dto.request.UpsertRoleRequest;
+import com.furnisight.admin.account.role.domain.Permission;
 import com.furnisight.admin.account.role.web.dto.response.RoleListResponse;
 import com.furnisight.admin.account.role.web.dto.response.RoleResponse;
+import com.furnisight.admin.account.role.web.dto.response.RolesAndPermissionsResponse;
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import com.furnisight.admin.user.AdminActionResponse;
 import com.furnisight.admin.user.RoleDto;
@@ -12,6 +14,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +25,14 @@ public class RoleService {
 
     public RoleListResponse getRoles() {
         return new RoleListResponse(toRoleResponses(userClient.getRoles().getRolesList()));
+    }
+
+    public RolesAndPermissionsResponse getRolesAndPermissions() {
+        List<RoleResponse> roles = toRoleResponses(userClient.getRoles().getRolesList());
+        List<String> permissions = Stream.of(Permission.values())
+                .map(Enum::name)
+                .toList();
+        return new RolesAndPermissionsResponse(roles, permissions);
     }
 
     public ActionResultResponse createRole(UpsertRoleRequest request) {

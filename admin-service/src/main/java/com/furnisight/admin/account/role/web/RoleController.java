@@ -4,6 +4,7 @@ import com.furnisight.admin.account.role.application.RoleService;
 import com.furnisight.admin.account.role.web.dto.request.UpdateUserRoleRequest;
 import com.furnisight.admin.account.role.web.dto.request.UpsertRoleRequest;
 import com.furnisight.admin.account.role.web.dto.response.RoleListResponse;
+import com.furnisight.admin.account.role.web.dto.response.RolesAndPermissionsResponse;
 import com.furnisight.admin.audit.application.AuditLogService;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
 import com.furnisight.admin.shared.web.ActionResultResponse;
@@ -28,6 +29,12 @@ public class RoleController {
     @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
     public ResponseEntity<RoleListResponse> getRoles() {
         return ResponseEntity.ok(roleService.getRoles());
+    }
+
+    @GetMapping("/roles/permissions")
+    @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
+    public ResponseEntity<RolesAndPermissionsResponse> getRolesAndPermissions() {
+        return ResponseEntity.ok(roleService.getRolesAndPermissions());
     }
 
     @PostMapping("/roles")

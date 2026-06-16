@@ -26,12 +26,6 @@ public class PermissionMapper {
             Map.entry("reports", Set.of("MANAGE_ROLES"))
     );
 
-    private static final Map<String, String> BACKEND_TO_FE = Map.of(
-            "MANAGE_USERS", "user_view",
-            "MANAGE_ROLES", "role_manage",
-            "MANAGE_BANS", "ban_manage",
-            "CAN_ORDERS", "order_view"
-    );
 
     public Set<String> toBackendPermissions(List<String> permissions) {
         if (permissions == null || permissions.isEmpty()) {
@@ -47,11 +41,25 @@ public class PermissionMapper {
     }
 
     public List<String> toFrontendPermissions(List<String> permissions) {
-        return permissions.stream()
-                .map(permission -> BACKEND_TO_FE.getOrDefault(
-                        normalize(permission), normalize(permission).toLowerCase(Locale.ROOT)))
-                .distinct()
-                .toList();
+        if (permissions == null || permissions.isEmpty()) {
+            return List.of();
+        }
+        java.util.Set<String> fePermissions = new java.util.HashSet<>();
+        for (String permission : permissions) {
+            String p = normalize(permission);
+            if ("MANAGE_USERS".equals(p)) {
+                fePermissions.addAll(List.of("dashboard", "user_view", "user_manage"));
+            } else if ("MANAGE_ROLES".equals(p)) {
+                fePermissions.addAll(List.of("role_manage", "product_create", "product_edit", "product_delete", "inventory", "reports"));
+            } else if ("CAN_ORDERS".equals(p)) {
+                fePermissions.addAll(List.of("order_view", "order_update"));
+            } else if ("MANAGE_BANS".equals(p)) {
+                fePermissions.add("ban_manage");
+            } else {
+                fePermissions.add(p.toLowerCase(Locale.ROOT));
+            }
+        }
+        return fePermissions.stream().sorted().toList();
     }
 
     private String normalize(String permission) {

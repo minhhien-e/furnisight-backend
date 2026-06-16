@@ -15,6 +15,6 @@ class PermissionMapperTest {
         assertThat(mapper.toBackendPermissions(List.of("user_view", "order_update")))
                 .containsExactlyInAnyOrder("MANAGE_USERS", "CAN_ORDERS");
         assertThat(mapper.toFrontendPermissions(List.of("MANAGE_USERS", "CAN_ORDERS")))
-                .containsExactly("user_view", "order_view");
+                .containsExactly("dashboard", "order_update", "order_view", "user_manage", "user_view");
     }
 }
