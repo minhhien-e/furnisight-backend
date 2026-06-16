@@ -379,7 +379,11 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error creating account", e);
-            responseObserver.onError(e);
+            responseObserver.onNext(AdminActionResponse.newBuilder()
+                    .setSuccess(false)
+                    .setMessage(e.getMessage())
+                    .build());
+            responseObserver.onCompleted();
         }
     }
 
