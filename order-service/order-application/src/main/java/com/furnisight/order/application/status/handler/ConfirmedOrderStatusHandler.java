@@ -8,12 +8,16 @@ import org.springframework.stereotype.Component;
 import java.util.Set;
 
 @Component
-public class PaidOrderStatusHandler extends AbstractOrderStatusHandler {
-    public PaidOrderStatusHandler(OrderStatusTransitionValidator validator) { super(validator); }
-    public OrderStatus status() { return OrderStatus.PAID; }
+public class ConfirmedOrderStatusHandler extends AbstractOrderStatusHandler {
+    public ConfirmedOrderStatusHandler(OrderStatusTransitionValidator validator) {
+        super(validator);
+    }
+
+    public OrderStatus status() {
+        return OrderStatus.CONFIRMED;
+    }
+
     protected Set<OrderStatus> allowedTargets(OrderProcessingContext context) {
-        return context.getOrder().isCodOrder()
-                ? Set.of(OrderStatus.SHIPPING, OrderStatus.CANCELLED)
-                : Set.of(OrderStatus.IN_TRANSIT, OrderStatus.REFUND_PENDING);
+        return Set.of(OrderStatus.SHIPPING, OrderStatus.CANCELLED);
     }
 }

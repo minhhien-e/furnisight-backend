@@ -46,8 +46,12 @@ public class ExpireUnpaidOrdersService {
     public int expireUnpaidOrders(LocalDateTime now) {
         LocalDateTime cutoff = now.minus(PAYMENT_TIMEOUT);
         List<Order> overdueOrders = orderRepository.findAllByStatusesAndCreatedAtBefore(EXPIRABLE_STATUSES, cutoff);
+        int expiredCount = 0;
 
         for (Order order : overdueOrders) {
+            if (order.isCodOrder()) {
+                continue;
+            }
             orderProcessingService.process(OrderProcessingCommand.builder()
                     .operation(OrderOperation.CANCEL)
                     .order(order)
@@ -55,9 +59,10 @@ public class ExpireUnpaidOrdersService {
                     .actorType("SYSTEM")
                     .note("Payment window expired")
                     .build());
+            expiredCount++;
         }
 
-        return overdueOrders.size();
+        return expiredCount;
     }
 
     public static boolean isPaymentWindowOpen(Order order, LocalDateTime now) {

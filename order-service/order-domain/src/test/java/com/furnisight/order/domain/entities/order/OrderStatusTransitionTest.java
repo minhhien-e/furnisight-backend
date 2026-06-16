@@ -33,26 +33,24 @@ class OrderStatusTransitionTest {
     }
 
     @Test
-    void unpaidCodOrderCanMoveToShipping() {
+    void confirmedCodOrderCanMoveToShipping() {
+        Order order = order(OrderStatus.CONFIRMED, "cod");
+
+        order.shipOrder();
+
+        assertEquals(OrderStatus.SHIPPING, order.getStatus());
+    }
+
+    @Test
+    void unpaidCodOrderCannotMoveToShippingBeforeConfirmation() {
         Order order = order(OrderStatus.UNPAID, "cod");
 
-        order.shipOrder();
-
-        assertEquals(OrderStatus.SHIPPING, order.getStatus());
+        assertThrows(ValidationException.class, order::shipOrder);
     }
 
     @Test
-    void paidCodOrderCanMoveToShipping() {
-        Order order = order(OrderStatus.PAID, "cod");
-
-        order.shipOrder();
-
-        assertEquals(OrderStatus.SHIPPING, order.getStatus());
-    }
-
-    @Test
-    void cancellingPaidCodOrderDoesNotRequireRefund() {
-        Order order = order(OrderStatus.PAID, "cod");
+    void cancellingConfirmedCodOrderDoesNotRequireRefund() {
+        Order order = order(OrderStatus.CONFIRMED, "cod");
 
         order.cancelOrder();
 
@@ -60,17 +58,15 @@ class OrderStatusTransitionTest {
     }
 
     @Test
-    void paidCodOrderCanBeCompletedDirectly() {
-        Order order = order(OrderStatus.PAID, "cod");
+    void confirmedCodOrderCannotBeCompletedBeforeShipping() {
+        Order order = order(OrderStatus.CONFIRMED, "cod");
 
-        order.deliverOrder();
-
-        assertEquals(OrderStatus.DELIVERED, order.getStatus());
+        assertThrows(ValidationException.class, order::deliverOrder);
     }
 
     @Test
-    void legacyUnpaidCodOrderCanBeCompletedDirectly() {
-        Order order = order(OrderStatus.UNPAID, "cod");
+    void shippingCodOrderCanBeCompleted() {
+        Order order = order(OrderStatus.SHIPPING, "cod");
 
         order.deliverOrder();
 

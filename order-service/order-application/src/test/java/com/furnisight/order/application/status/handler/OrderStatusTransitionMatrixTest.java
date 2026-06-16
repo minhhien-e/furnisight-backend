@@ -19,13 +19,23 @@ class OrderStatusTransitionMatrixTest {
     private final OrderStatusTransitionValidator validator = new OrderStatusTransitionValidator();
 
     @Test
-    void paidCodCanCompleteDirectly() {
+    void confirmedCodCanMoveToShipping() {
         Order order = order(true);
-        OrderProcessingContext context = context(order, OrderStatus.DELIVERED);
+        OrderProcessingContext context = context(order, OrderStatus.SHIPPING);
 
-        new PaidOrderStatusHandler(validator).handle(context);
+        new ConfirmedOrderStatusHandler(validator).handle(context);
 
-        verify(order).transitionTo(OrderStatus.DELIVERED);
+        verify(order).transitionTo(OrderStatus.SHIPPING);
+    }
+
+    @Test
+    void unpaidCodMovesToConfirmed() {
+        Order order = order(true);
+        OrderProcessingContext context = context(order, OrderStatus.CONFIRMED);
+
+        new UnpaidOrderStatusHandler(validator).handle(context);
+
+        verify(order).transitionTo(OrderStatus.CONFIRMED);
     }
 
     @Test
@@ -39,6 +49,16 @@ class OrderStatusTransitionMatrixTest {
         new PaidOrderStatusHandler(validator)
                 .handle(context(order, OrderStatus.REFUND_PENDING));
         verify(order).transitionTo(OrderStatus.REFUND_PENDING);
+    }
+
+    @Test
+    void legacyPaidCodCanStillMoveToShipping() {
+        Order order = order(true);
+        OrderProcessingContext context = context(order, OrderStatus.SHIPPING);
+
+        new PaidOrderStatusHandler(validator).handle(context);
+
+        verify(order).transitionTo(OrderStatus.SHIPPING);
     }
 
     @Test

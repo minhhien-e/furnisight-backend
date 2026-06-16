@@ -421,9 +421,11 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
 
     private String toStatusLabel(String status) {
         return switch (normalizeStatus(status)) {
+            case "CONFIRMED" -> "Xác nhận thành công";
             case "PAID" -> "Đã thanh toán";
+            case "IN_TRANSIT" -> "Đang vận chuyển";
             case "SHIPPING" -> "Đang giao";
-            case "DELIVERED", "SUCCESS" -> "Đã giao";
+            case "DELIVERED", "SUCCESS" -> "Hoàn thành";
             case "CANCELLED" -> "Đã hủy";
             case "REFUND_PENDING" -> "Chờ hoàn tiền";
             case "REFUNDED" -> "Đã hoàn tiền";

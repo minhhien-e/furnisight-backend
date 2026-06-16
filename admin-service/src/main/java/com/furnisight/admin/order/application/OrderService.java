@@ -66,7 +66,7 @@ public class OrderService {
     private String toOrderTone(String status) {
         return switch (normalizeStatus(status)) {
             case "SHIPPING" -> "shipping";
-            case "PAID", "DELIVERED", "SUCCESS", "REFUNDED" -> "success";
+            case "CONFIRMED", "PAID", "DELIVERED", "SUCCESS", "REFUNDED" -> "success";
             case "CANCELLED", "PAYMENT_FAILED" -> "cancel";
             case "REFUND_PENDING" -> "pending";
             default -> "pending";
@@ -75,13 +75,14 @@ public class OrderService {
 
     private String toOrderStatusLabel(OrderDto order) {
         String status = normalizeStatus(order.getStatus());
-        if ("PAID".equals(status) && isCodOrder(order)) {
-            return "Thanh toán khi nhận hàng";
+        if (isCodOrder(order) && ("CONFIRMED".equals(status) || "PAID".equals(status))) {
+            return "Xác nhận thành công";
         }
         return switch (status) {
+            case "CONFIRMED" -> "Xác nhận thành công";
             case "PAID" -> "Đã thanh toán";
             case "SHIPPING" -> "Đang giao";
-            case "DELIVERED", "SUCCESS" -> "Đã giao";
+            case "DELIVERED", "SUCCESS" -> "Hoàn thành";
             case "CANCELLED" -> "Đã hủy";
             case "REFUND_PENDING" -> "Chờ hoàn tiền";
             case "REFUNDED" -> "Đã hoàn tiền";

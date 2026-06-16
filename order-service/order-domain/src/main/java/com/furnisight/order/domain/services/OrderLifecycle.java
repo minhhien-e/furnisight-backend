@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import com.furnisight.order.domain.services.dto.OrderDraft;
 
 @Service
 @RequiredArgsConstructor
@@ -23,6 +24,29 @@ public class OrderLifecycle {
 
     private final OrderCodeGenerator orderCodeGenerator;
     private final PricingService pricingService;
+
+    public Order createPendingOrder(OrderDraft draft) {
+        if (draft.getItems() == null || draft.getItems().isEmpty()) {
+            throw new ValidationException(ErrorCode.ORDER_ITEM_EMPTY);
+        }
+
+        var pricing = draft.getPricingSummary();
+        return createPendingOrder(
+                draft.getUserId(),
+                draft.getCustomerNote(),
+                draft.getAddressInfo().toShippingDetail(),
+                draft.paymentDetailOrDefault(),
+                draft.getItems(),
+                draft.getShopVoucherCode(),
+                draft.getShippingVoucherCode(),
+                draft.getComboId(),
+                pricing != null ? pricing.getVoucherDiscount() : 0.0,
+                pricing != null ? pricing.getShippingDiscount() : 0.0,
+                pricing != null ? pricing.getComboDiscount() : 0.0,
+                pricing != null ? pricing.getShippingFee() : 0.0,
+                pricing != null ? pricing.getInsuranceFee() : 0.0
+        );
+    }
 
     public Order createPendingOrder(
             UUID userId,

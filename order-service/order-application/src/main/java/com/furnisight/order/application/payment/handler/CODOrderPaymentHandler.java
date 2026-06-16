@@ -8,7 +8,6 @@ import com.furnisight.order.domain.exceptions.ErrorCode;
 import com.furnisight.order.domain.exceptions.ValidationException;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
 import java.util.EnumMap;
 import java.util.Map;
 import java.util.function.Consumer;
@@ -19,7 +18,7 @@ public class CODOrderPaymentHandler implements OrderPaymentHandler {
             new EnumMap<>(OrderOperation.class);
 
     public CODOrderPaymentHandler() {
-        operations.put(OrderOperation.CREATE, this::markPaid);
+        operations.put(OrderOperation.CREATE, context -> { });
         operations.put(OrderOperation.CANCEL, this::prepareCancellation);
         operations.put(OrderOperation.TRANSITION_STATUS, context -> { });
     }
@@ -36,11 +35,6 @@ public class CODOrderPaymentHandler implements OrderPaymentHandler {
             throw new ValidationException(ErrorCode.INVALID_PAYMENT_METHOD);
         }
         operation.accept(context);
-    }
-
-    private void markPaid(OrderProcessingContext context) {
-        context.getOrder().recordPaymentSuccess("COD", context.getOrder().getTotalAmount(), LocalDateTime.now());
-        context.setTargetStatus(OrderStatus.PAID);
     }
 
     private void prepareCancellation(OrderProcessingContext context) {

@@ -43,7 +43,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void showsCodPaidOrderAsCashOnDelivery() {
+    void showsCodPaidOrderAsConfirmedForLegacyRows() {
         AdminOrderGrpcClient client = mock(AdminOrderGrpcClient.class);
         when(client.getOrders(1, 20, "", ""))
                 .thenReturn(OrderPageResponse.newBuilder()
@@ -62,7 +62,7 @@ class OrderServiceTest {
 
         assertThat(response.items()).singleElement().satisfies(order -> {
             assertThat(order.status()).isEqualTo("success");
-            assertThat(order.statusLabel()).isEqualTo("Thanh toán khi nhận hàng");
+            assertThat(order.statusLabel()).isEqualTo("Xác nhận thành công");
         });
     }
 
@@ -86,7 +86,7 @@ class OrderServiceTest {
 
         assertThat(response.items()).singleElement().satisfies(order -> {
             assertThat(order.status()).isEqualTo("success");
-            assertThat(order.statusLabel()).isEqualTo("Đã giao");
+            assertThat(order.statusLabel()).isEqualTo("Hoàn thành");
         });
     }
 }

@@ -187,6 +187,7 @@ public class OrderController {
 
     private boolean canRetryPayment(Order order) {
         return (order.getStatus() == OrderStatus.UNPAID || order.getStatus() == OrderStatus.PAYMENT_FAILED)
+                && "vnpay".equalsIgnoreCase(resolvePaymentMethod(order))
                 && ExpireUnpaidOrdersService.isPaymentWindowOpen(order, LocalDateTime.now());
     }
 
@@ -198,15 +199,27 @@ public class OrderController {
         if (order == null || order.getStatus() == null) {
             return "";
         }
-        if (order.getStatus() == OrderStatus.PAID && order.isCodOrder()) {
-            return "Thanh toán khi nhận hàng";
+        if (order.isCodOrder()) {
+            return switch (order.getStatus()) {
+                case UNPAID -> "Chờ xác nhận";
+                case CONFIRMED, PAID -> "Xác nhận thành công";
+                case SHIPPING -> "Đang giao";
+                case DELIVERED -> "Hoàn thành";
+                case CANCELLED -> "Đã hủy";
+                case REFUND_PENDING -> "Chờ hoàn tiền";
+                case REFUNDED -> "Đã hoàn tiền";
+                case PAYMENT_FAILED -> "Thanh toán thất bại";
+                case IN_TRANSIT -> "Đang vận chuyển";
+            };
         }
         return switch (order.getStatus()) {
+            case CONFIRMED -> "Xác nhận thành công";
             case UNPAID -> "Chờ thanh toán";
             case PAYMENT_FAILED -> "Thanh toán thất bại";
             case PAID -> "Đã thanh toán";
+            case IN_TRANSIT -> "Đang vận chuyển";
             case SHIPPING -> "Đang giao";
-            case DELIVERED -> "Đã giao";
+            case DELIVERED -> "Hoàn thành";
             case CANCELLED -> "Đã hủy";
             case REFUND_PENDING -> "Chờ hoàn tiền";
             case REFUNDED -> "Đã hoàn tiền";

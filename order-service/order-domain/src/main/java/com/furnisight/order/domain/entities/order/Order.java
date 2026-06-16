@@ -152,23 +152,21 @@ public class Order extends DomainEntity {
     }
 
     public void shipOrder() {
-        if (this.status != OrderStatus.PAID && !isUnpaidCodOrder()) {
+        if (this.status != OrderStatus.PAID && !isConfirmedCodOrder()) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         this.status = OrderStatus.SHIPPING;
         this.updatedAt = java.time.LocalDateTime.now();
     }
 
-    private boolean isUnpaidCodOrder() {
-        return this.status == OrderStatus.UNPAID
+    private boolean isConfirmedCodOrder() {
+        return this.status == OrderStatus.CONFIRMED
                 && this.paymentDetail != null
                 && "cod".equalsIgnoreCase(this.paymentDetail.getPaymentMethod());
     }
 
     public void deliverOrder() {
-        boolean canCompleteCod = isCodOrder()
-                && (this.status == OrderStatus.UNPAID || this.status == OrderStatus.PAID);
-        if (this.status != OrderStatus.SHIPPING && !canCompleteCod) {
+        if (this.status != OrderStatus.SHIPPING) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
         this.status = OrderStatus.DELIVERED;
