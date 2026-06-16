@@ -50,9 +50,12 @@ import java.util.Map;
 import java.util.Locale;
 import java.util.UUID;
 
+import org.springframework.transaction.annotation.Transactional;
+
 @Slf4j
 @GrpcService
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServiceImplBase {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;

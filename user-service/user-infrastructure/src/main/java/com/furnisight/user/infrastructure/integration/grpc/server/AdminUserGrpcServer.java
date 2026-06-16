@@ -366,6 +366,11 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     nameParts.firstName(),
                     nameParts.lastName()));
 
+            Account targetAccount = accountRepository.findById(accountToken.getAccountId())
+                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+            targetAccount.activate();
+            accountRepository.save(targetAccount);
+
             if (!request.getRoleId().isBlank()) {
                 AssignRoleCommand command = new AssignRoleCommand(
                         UUID.fromString(request.getAdminId()),

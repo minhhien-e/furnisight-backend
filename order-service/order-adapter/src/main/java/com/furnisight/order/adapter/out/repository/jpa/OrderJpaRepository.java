@@ -23,7 +23,6 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
     @EntityGraph(attributePaths = "items")
     List<Order> findAllByStatusOrderByCreatedAtDesc(OrderStatus status);
 
-    @EntityGraph(attributePaths = "items")
     List<Order> findAllByStatusOrderByCreatedAtDesc(OrderStatus status, Pageable pageable);
 
     @EntityGraph(attributePaths = "items")
@@ -33,7 +32,6 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
     @EntityGraph(attributePaths = "items")
     List<Order> findAllByOrderByCreatedAtDesc();
 
-    @EntityGraph(attributePaths = "items")
     List<Order> findAllByOrderByCreatedAtDesc(Pageable pageable);
 
     long countByStatus(OrderStatus status);

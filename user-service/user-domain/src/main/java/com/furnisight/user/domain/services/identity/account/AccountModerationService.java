@@ -69,21 +69,26 @@ public class AccountModerationService {
     public void deleteAccount(Account admin, Account target) {
         ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_USERS);
         target.registerEvent(new AccountDeletedEvent(
-            target.getId(),
-            target.getEmail() != null ? target.getEmail().getValue() : null,
-            LocalDateTime.now()
-        ));
+                target.getId(),
+                target.getEmail() != null ? target.getEmail().getValue() : null,
+                LocalDateTime.now()));
         accountRepository.save(target);
         accountRepository.delete(target);
 
     }
 
     private boolean canInteract(List<Role> rolesA, List<Role> rolesB, Permission permission) {
-        return rolesA.stream().anyMatch(
-            roleA -> roleA.hasPermission(permission) && rolesB.stream().anyMatch(
-                roleB -> roleA.getPosition() >= roleB.getPosition()
-            )
-        );
+        boolean hasPermission = rolesA.stream().anyMatch(role -> role.hasPermission(permission));
+        if (!hasPermission) {
+            return false;
+        }
+        if (rolesB.isEmpty()) {
+            return true;
+        }
+        return rolesA.stream()
+                .filter(role -> role.hasPermission(permission))
+                .anyMatch(roleA -> rolesB.stream().allMatch(
+                        roleB -> roleA.getPosition() <= roleB.getPosition()));
     }
 
     private void ensureInteract(UUID accountIdA, UUID accountIdB, Permission permission) {

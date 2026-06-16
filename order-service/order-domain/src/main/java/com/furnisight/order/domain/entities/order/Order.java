@@ -9,6 +9,7 @@ import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import com.furnisight.order.domain.valueobjects.ShippingDetail;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -47,6 +48,7 @@ public class Order extends DomainEntity {
     private com.furnisight.order.domain.valueobjects.PaymentTimeline paymentTimeline;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @BatchSize(size = 20)
     private List<OrderItem> items = new ArrayList<>();
 
     @Builder
