@@ -51,7 +51,7 @@ public class OrderService {
                 order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
                 emptyFallback(order.getCustomer(), "Khách hàng"), order.getItemCount(),
                 order.getTotalAmount(), toOrderTone(order.getStatus()),
-                toOrderStatusLabel(order.getStatus()), formatDate(order.getCreatedAt()),
+                toOrderStatusLabel(order), formatDate(order.getCreatedAt()),
                 order.getPaymentMethod(), order.getTrackingCode());
     }
 
@@ -60,30 +60,38 @@ public class OrderService {
                 order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
                 emptyFallback(order.getCustomer(), "Khách hàng"),
                 formatCurrency(order.getTotalAmount()), toOrderTone(order.getStatus()),
-                toOrderStatusLabel(order.getStatus()));
+                toOrderStatusLabel(order));
     }
 
     private String toOrderTone(String status) {
         return switch (normalizeStatus(status)) {
             case "SHIPPING" -> "shipping";
-            case "DELIVERED", "SUCCESS", "REFUNDED" -> "success";
+            case "PAID", "DELIVERED", "SUCCESS", "REFUNDED" -> "success";
             case "CANCELLED", "PAYMENT_FAILED" -> "cancel";
             case "REFUND_PENDING" -> "pending";
             default -> "pending";
         };
     }
 
-    private String toOrderStatusLabel(String status) {
-        return switch (normalizeStatus(status)) {
+    private String toOrderStatusLabel(OrderDto order) {
+        String status = normalizeStatus(order.getStatus());
+        if ("PAID".equals(status) && isCodOrder(order)) {
+            return "Thanh toán khi nhận hàng";
+        }
+        return switch (status) {
             case "PAID" -> "Đã thanh toán";
             case "SHIPPING" -> "Đang giao";
-            case "DELIVERED", "SUCCESS" -> "Hoàn tất";
+            case "DELIVERED", "SUCCESS" -> "Đã giao";
             case "CANCELLED" -> "Đã hủy";
             case "REFUND_PENDING" -> "Chờ hoàn tiền";
             case "REFUNDED" -> "Đã hoàn tiền";
             case "PAYMENT_FAILED" -> "Thanh toán lỗi";
             default -> "Chờ xác nhận";
         };
+    }
+
+    private boolean isCodOrder(OrderDto order) {
+        return "cod".equalsIgnoreCase(order.getPaymentMethod());
     }
 
     private String normalizeStatus(String status) {

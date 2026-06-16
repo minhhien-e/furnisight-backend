@@ -423,7 +423,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         return switch (normalizeStatus(status)) {
             case "PAID" -> "Đã thanh toán";
             case "SHIPPING" -> "Đang giao";
-            case "DELIVERED", "SUCCESS" -> "Hoàn tất";
+            case "DELIVERED", "SUCCESS" -> "Đã giao";
             case "CANCELLED" -> "Đã hủy";
             case "REFUND_PENDING" -> "Chờ hoàn tiền";
             case "REFUNDED" -> "Đã hoàn tiền";

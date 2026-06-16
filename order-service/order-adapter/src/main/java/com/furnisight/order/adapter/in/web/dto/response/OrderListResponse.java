@@ -11,6 +11,7 @@ public class OrderListResponse {
     private UUID id;
     private String orderCode;
     private String status;
+    private String statusLabel;
     private Double totalAmount;
     private LocalDateTime createdAt;
     private LocalDateTime paymentExpiresAt;

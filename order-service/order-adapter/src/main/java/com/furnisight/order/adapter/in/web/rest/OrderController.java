@@ -59,6 +59,7 @@ public class OrderController {
                     .id(order.getId())
                     .orderCode(order.getOrderCode())
                     .status(order.getStatus().name())
+                    .statusLabel(toStatusLabel(order))
                     .totalAmount(order.getTotalAmount())
                     .createdAt(order.getCreatedAt())
                     .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
@@ -99,6 +100,7 @@ public class OrderController {
                 .id(order.getId())
                 .orderCode(order.getOrderCode())
                 .status(order.getStatus().name())
+                .statusLabel(toStatusLabel(order))
                 .subTotal(order.getSubTotal())
                 .totalAmount(order.getTotalAmount())
                 .savedAmount(order.getSavedAmount())
@@ -137,6 +139,7 @@ public class OrderController {
                     .id(order.getId())
                     .orderCode(order.getOrderCode())
                     .status(order.getStatus().name())
+                    .statusLabel(toStatusLabel(order))
                     .totalAmount(order.getTotalAmount())
                     .createdAt(order.getCreatedAt())
                     .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
@@ -189,6 +192,25 @@ public class OrderController {
 
     private String resolvePaymentMethod(Order order) {
         return order.getPaymentDetail() != null ? order.getPaymentDetail().getPaymentMethod() : null;
+    }
+
+    private String toStatusLabel(Order order) {
+        if (order == null || order.getStatus() == null) {
+            return "";
+        }
+        if (order.getStatus() == OrderStatus.PAID && order.isCodOrder()) {
+            return "Thanh toán khi nhận hàng";
+        }
+        return switch (order.getStatus()) {
+            case UNPAID -> "Chờ thanh toán";
+            case PAYMENT_FAILED -> "Thanh toán thất bại";
+            case PAID -> "Đã thanh toán";
+            case SHIPPING -> "Đang giao";
+            case DELIVERED -> "Đã giao";
+            case CANCELLED -> "Đã hủy";
+            case REFUND_PENDING -> "Chờ hoàn tiền";
+            case REFUNDED -> "Đã hoàn tiền";
+        };
     }
 
     private PaymentDetailResponse toPaymentDetailResponse(Order order) {
