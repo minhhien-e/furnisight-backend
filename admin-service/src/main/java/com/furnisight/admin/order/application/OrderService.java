@@ -50,7 +50,7 @@ public class OrderService {
         return new OrderResponse(
                 order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
                 emptyFallback(order.getCustomer(), "Khách hàng"), order.getItemCount(),
-                order.getTotalAmount(), toOrderTone(order.getStatus()),
+                order.getTotalAmount(), normalizeStatus(order.getStatus()),
                 toOrderStatusLabel(order), formatDate(order.getCreatedAt()),
                 order.getPaymentMethod(), order.getTrackingCode());
     }
@@ -59,18 +59,8 @@ public class OrderService {
         return new RecentOrderResponse(
                 order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
                 emptyFallback(order.getCustomer(), "Khách hàng"),
-                formatCurrency(order.getTotalAmount()), toOrderTone(order.getStatus()),
-                toOrderStatusLabel(order));
-    }
-
-    private String toOrderTone(String status) {
-        return switch (normalizeStatus(status)) {
-            case "SHIPPING" -> "shipping";
-            case "CONFIRMED", "PAID", "DELIVERED", "SUCCESS", "REFUNDED" -> "success";
-            case "CANCELLED", "PAYMENT_FAILED" -> "cancel";
-            case "REFUND_PENDING" -> "pending";
-            default -> "pending";
-        };
+                formatCurrency(order.getTotalAmount()), normalizeStatus(order.getStatus()),
+                toOrderStatusLabel(order), order.getPaymentMethod());
     }
 
     private String toOrderStatusLabel(OrderDto order) {

@@ -134,19 +134,32 @@ services:
     env_file:
       - ./gateway/.env
     depends_on:
-      - redis
-      - zipkin
-      - user-service
-      - catalog-service
-      - cart-service
-      - notification-service
-      - message-service
-      - order-service
-      - promotion-service
-      - media-service
-      - ai-image-classifier
-      - ai-image-reconstruction
-      - admin-service
+      redis:
+        condition: service_started
+      zipkin:
+        condition: service_started
+      user-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      message-service:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+      promotion-service:
+        condition: service_started
+      media-service:
+        condition: service_started
+      ai-image-classifier:
+        condition: service_started
+      ai-image-reconstruction:
+        condition: service_started
+      admin-service:
+        condition: service_started
 
   user-service:
     <<: *java-service
@@ -162,6 +175,12 @@ services:
       - "9091"
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api/v1/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
 
   admin-service:
     <<: *java-service
@@ -344,6 +363,12 @@ services:
       - ./message-service/.env
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
 
 volumes:
   postgres_data:

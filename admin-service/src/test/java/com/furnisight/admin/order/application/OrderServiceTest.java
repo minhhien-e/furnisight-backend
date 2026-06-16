@@ -35,7 +35,7 @@ class OrderServiceTest {
 
         assertThat(response.items()).singleElement().satisfies(order -> {
             assertThat(order.id()).isEqualTo("ORD-1");
-            assertThat(order.status()).isEqualTo("shipping");
+            assertThat(order.status()).isEqualTo("SHIPPING");
             assertThat(order.statusLabel()).isEqualTo("Đang giao");
             assertThat(order.date()).isEqualTo("10/06/2026");
             assertThat(order.trackingCode()).isEqualTo("GHN123456");
@@ -61,7 +61,7 @@ class OrderServiceTest {
         var response = new OrderService(client).getOrders(1, 20, "", "");
 
         assertThat(response.items()).singleElement().satisfies(order -> {
-            assertThat(order.status()).isEqualTo("success");
+            assertThat(order.status()).isEqualTo("PAID");
             assertThat(order.statusLabel()).isEqualTo("Xác nhận thành công");
         });
     }
@@ -85,7 +85,7 @@ class OrderServiceTest {
         var response = new OrderService(client).getOrders(1, 20, "DELIVERED", "");
 
         assertThat(response.items()).singleElement().satisfies(order -> {
-            assertThat(order.status()).isEqualTo("success");
+            assertThat(order.status()).isEqualTo("DELIVERED");
             assertThat(order.statusLabel()).isEqualTo("Hoàn thành");
         });
     }

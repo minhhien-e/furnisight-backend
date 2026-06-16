@@ -5,6 +5,7 @@ public record RecentOrderResponse(
         String customer,
         String total,
         String status,
-        String statusLabel
+        String statusLabel,
+        String paymentMethod
 ) {
 }
