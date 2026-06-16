@@ -68,7 +68,13 @@ public class OrderProcessingService {
 
     private void updateTrackingCode(OrderProcessingContext context) {
         String trackingCode = context.getTrackingCode();
-        if (trackingCode == null || trackingCode.isBlank()) {
+        boolean isTrackingCodeMissing = trackingCode == null || trackingCode.isBlank() || "null".equalsIgnoreCase(trackingCode.trim());
+
+        if (context.getTargetStatus() == OrderStatus.SHIPPING && isTrackingCodeMissing) {
+            throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
+        }
+
+        if (isTrackingCodeMissing) {
             return;
         }
         String normalizedTrackingCode = trackingCode.trim();

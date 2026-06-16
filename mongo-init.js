@@ -58,28 +58,6 @@ db.notification_templates.insertMany([
     createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
   },
   {
-    _id: UUID("b2c3d4e5-f6a7-8901-bcde-f12345678902"),
-    code: "account-verify-current-phone",
-    name: "Verify Current Phone OTP Template",
-    variables: ["otpCode"],
-    titleTemplate: "Your Verification OTP",
-    bodyTemplate: "[FurniSight] Your OTP to verify your current phone number is: {{otpCode}}. Valid for 5 minutes. Do not share this code.",
-    type: "SYSTEM", channel: "SMS",
-    defaultImage: "", defaultActionUrl: "",
-    createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
-  },
-  {
-    _id: UUID("c3d4e5f6-a7b8-9012-cdef-123456789003"),
-    code: "account-phone-change",
-    name: "Phone Change OTP Template",
-    variables: ["otpCode"],
-    titleTemplate: "Your Phone Change OTP",
-    bodyTemplate: "[FurniSight] Your OTP to confirm your new phone number is: {{otpCode}}. Valid for 5 minutes. Do not share this code.",
-    type: "SYSTEM", channel: "SMS",
-    defaultImage: "", defaultActionUrl: "",
-    createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
-  },
-  {
     _id: UUID("d4e5f6a7-b8c9-0123-def0-234567890104"),
     code: "account-email-link",
     name: "Email Link OTP Template",
@@ -87,17 +65,6 @@ db.notification_templates.insertMany([
     titleTemplate: "[FurniSight] Link Your Email Address",
     bodyTemplate: `<!DOCTYPE html><html><head><style>body{font-family:Arial,sans-serif;background:#f4f4f4}.container{max-width:600px;margin:20px auto;background:#fff;padding:20px;border-radius:8px}.header{text-align:center;border-bottom:2px solid #ee4d2d;padding-bottom:10px;margin-bottom:20px}.header h2{color:#ee4d2d;margin:0;text-transform:uppercase;font-size:24px}.content{font-size:16px;color:#333;line-height:1.5}.verification-code{display:block;margin:30px 0;font-size:32px;font-weight:700;color:#ee4d2d;text-align:center;letter-spacing:5px;background:#fff5f5;padding:15px;border-radius:4px;border:1px dashed #ee4d2d}.footer{font-size:14px;color:#777;text-align:center;border-top:1px solid #eaeaea;padding-top:10px;margin-top:20px}</style></head><body><div class="container"><div class="header"><h2>FurniSight</h2></div><div class="content"><p>Hello,</p><p>You have requested to link this email address to your account. Please use the following OTP to confirm:</p><span class="verification-code">{{otpCode}}</span><p>This code is valid for 5 minutes. If you did not request this, please ignore this email.</p></div><div class="footer"><p>&copy; FurniSight. All rights reserved.</p></div></div></body></html>`,
     type: "SYSTEM", channel: "EMAIL",
-    defaultImage: "", defaultActionUrl: "",
-    createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
-  },
-  {
-    _id: UUID("e5f6a7b8-c9d0-1234-ef01-345678901205"),
-    code: "account-phone-link",
-    name: "Phone Link OTP Template",
-    variables: ["otpCode"],
-    titleTemplate: "Link Your Phone Number",
-    bodyTemplate: "[FurniSight] Your OTP to link your phone number is: {{otpCode}}. Valid for 5 minutes. Do not share this code.",
-    type: "SYSTEM", channel: "SMS",
     defaultImage: "", defaultActionUrl: "",
     createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
   },
