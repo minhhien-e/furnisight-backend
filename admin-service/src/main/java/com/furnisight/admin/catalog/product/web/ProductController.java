@@ -23,7 +23,7 @@ public class ProductController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ProductPageResponse> getProducts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -34,13 +34,13 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable String id) {
         return ResponseEntity.ok(productService.getProduct(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasAuthority('product_create') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createProduct(
             @RequestBody UpsertProductRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.createProduct(request);
@@ -50,7 +50,7 @@ public class ProductController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateProduct(
             @PathVariable String id, @RequestBody UpsertProductRequest request,
             HttpServletRequest httpRequest) {
@@ -61,7 +61,7 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_DELETE') or hasAuthority('product_delete') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteProduct(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.deleteProduct(id);

@@ -19,13 +19,13 @@ public class MarketingController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping("/campaigns")
-    @PreAuthorize("hasAuthority('ORDER_VIEW') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<Object> getCampaigns(@RequestParam(required = false) String query, @RequestParam(required = false) String status) {
         return ResponseEntity.ok(marketingService.getCampaigns(query, status));
     }
 
     @PostMapping("/campaigns")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createCampaign(@RequestBody Object request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.createCampaign(request);
         audit("create", "Tạo chiến dịch marketing", "MARKETING_CAMPAIGN", result, httpRequest);
@@ -33,7 +33,7 @@ public class MarketingController {
     }
 
     @PutMapping("/campaigns/{id}")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateCampaign(@PathVariable String id, @RequestBody Object request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.updateCampaign(id, request);
         audit("update", "Cập nhật chiến dịch marketing", "MARKETING_CAMPAIGN", result, httpRequest);
@@ -41,7 +41,7 @@ public class MarketingController {
     }
 
     @DeleteMapping("/campaigns/{id}")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteCampaign(@PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.deleteCampaign(id);
         audit("delete", "Xóa chiến dịch marketing", "MARKETING_CAMPAIGN", result, httpRequest);
@@ -49,13 +49,13 @@ public class MarketingController {
     }
 
     @GetMapping("/combos")
-    @PreAuthorize("hasAuthority('ORDER_VIEW') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<Object> getCombos(@RequestParam(required = false) String query, @RequestParam(required = false) String status) {
         return ResponseEntity.ok(marketingService.getCombos(query, status));
     }
 
     @PostMapping("/combos")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createCombo(@RequestBody Object request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.createCombo(request);
         audit("create", "Tạo combo khuyến mãi", "PROMOTION_COMBO", result, httpRequest);
@@ -63,7 +63,7 @@ public class MarketingController {
     }
 
     @PutMapping("/combos/{id}")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateCombo(@PathVariable String id, @RequestBody Object request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.updateCombo(id, request);
         audit("update", "Cập nhật combo khuyến mãi", "PROMOTION_COMBO", result, httpRequest);
@@ -71,7 +71,7 @@ public class MarketingController {
     }
 
     @DeleteMapping("/combos/{id}")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteCombo(@PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.deleteCombo(id);
         audit("delete", "Xóa combo khuyến mãi", "PROMOTION_COMBO", result, httpRequest);
@@ -79,13 +79,13 @@ public class MarketingController {
     }
 
     @GetMapping("/notifications")
-    @PreAuthorize("hasAuthority('ORDER_VIEW') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<Object> getNotifications(@RequestParam(required = false) String query, @RequestParam(required = false) String status) {
         return ResponseEntity.ok(marketingService.getNotifications(query, status));
     }
 
     @PostMapping("/notifications")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createNotification(@RequestBody Object request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.createNotification(request);
         audit("create", "Tạo thông báo marketing", "MARKETING_NOTIFICATION", result, httpRequest);
@@ -93,7 +93,7 @@ public class MarketingController {
     }
 
     @PutMapping("/notifications/{id}")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateNotification(@PathVariable String id, @RequestBody Object request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.updateNotification(id, request);
         audit("update", "Cập nhật thông báo marketing", "MARKETING_NOTIFICATION", result, httpRequest);
@@ -101,7 +101,7 @@ public class MarketingController {
     }
 
     @DeleteMapping("/notifications/{id}")
-    @PreAuthorize("hasAuthority('ORDER_UPDATE') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'CUSTOMER_SUPPORT\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteNotification(@PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.deleteNotification(id);
         audit("delete", "Xóa thông báo marketing", "MARKETING_NOTIFICATION", result, httpRequest);

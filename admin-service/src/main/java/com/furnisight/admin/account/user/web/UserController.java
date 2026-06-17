@@ -27,7 +27,7 @@ public class UserController {
     private final AuditLogService auditLogService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('MANAGE_USERS') or hasAuthority('USER_VIEW') or hasAuthority('user_view')")
+    @PreAuthorize("hasAuthority(\'ADMIN\')")
     public ResponseEntity<UserPageResponse> getUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
@@ -37,13 +37,13 @@ public class UserController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_USERS') or hasAuthority('USER_VIEW') or hasAuthority('user_view')")
+    @PreAuthorize("hasAuthority(\'ADMIN\')")
     public ResponseEntity<UserDetailResponse> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createUser(
             @RequestBody CreateUserRequest request, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
@@ -54,7 +54,7 @@ public class UserController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateUser(
             @PathVariable UUID id, @RequestBody UpdateUserRequest request,
             HttpServletRequest httpRequest) {
@@ -66,7 +66,7 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/status")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateUserStatus(
             @PathVariable UUID id, @RequestBody UpdateUserStatusRequest request,
             HttpServletRequest httpRequest) {
@@ -78,7 +78,7 @@ public class UserController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteUser(
             @PathVariable UUID id, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();

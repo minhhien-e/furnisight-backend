@@ -26,7 +26,6 @@ public class AdminAccountController {
     private final RevokeRoleUseCase revokeRoleUseCase;
     private final CurrentUserProvider currentUserProvider;
 
-
     @PutMapping("/{accountId}/activate")
     @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<?> activateAccount(
@@ -69,7 +68,7 @@ public class AdminAccountController {
     }
 
     @PutMapping("/{accountId}/roles/assign")
-//    @PreAuthorize("hasAuthority('MANAGE_USERS')")
+    // @PreAuthorize("hasAuthority('MANAGE_USERS')")
     public ResponseEntity<?> assignRole(
             @PathVariable UUID accountId,
             @RequestBody AssignRoleRequest request) {

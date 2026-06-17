@@ -26,19 +26,19 @@ public class RoleController {
     private final AuditLogService auditLogService;
 
     @GetMapping("/roles")
-    @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<RoleListResponse> getRoles() {
         return ResponseEntity.ok(roleService.getRoles());
     }
 
     @GetMapping("/roles/permissions")
-    @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<RolesAndPermissionsResponse> getRolesAndPermissions() {
         return ResponseEntity.ok(roleService.getRolesAndPermissions());
     }
 
     @PostMapping("/roles")
-    @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createRole(
             @RequestBody UpsertRoleRequest request, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
@@ -49,7 +49,7 @@ public class RoleController {
     }
 
     @PutMapping("/roles/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateRole(
             @PathVariable String id, @RequestBody UpsertRoleRequest request,
             HttpServletRequest httpRequest) {
@@ -61,7 +61,7 @@ public class RoleController {
     }
 
     @DeleteMapping("/roles/{id}")
-    @PreAuthorize("hasAuthority('MANAGE_ROLES') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteRole(
             @PathVariable String id, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
@@ -72,7 +72,7 @@ public class RoleController {
     }
 
     @PutMapping("/users/{id}/role")
-    @PreAuthorize("hasAuthority('MANAGE_ROLES')")
+    @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateUserRole(
             @PathVariable UUID id, @RequestBody UpdateUserRoleRequest request,
             HttpServletRequest httpRequest) {

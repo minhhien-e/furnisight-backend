@@ -14,6 +14,8 @@ import com.furnisight.user.domain.repository.identity.BanRepository;
 import com.furnisight.user.domain.repository.identity.RoleRepository;
 import com.furnisight.user.domain.services.identity.token.TokenLifeCycleService;
 import com.furnisight.user.domain.valueobjects.identity.BanReason;
+import com.furnisight.user.domain.valueobjects.identity.Email;
+import com.furnisight.user.domain.valueobjects.identity.Username;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -29,15 +31,16 @@ public class AccountModerationService {
     private final RoleRepository roleRepository;
     private final AccountRepository accountRepository;
     private final AccountRoleRepository accountRoleRepository;
+    private final AccountLifecycleService accountLifecycleService;
 
     public void activateAccount(Account admin, Account target) {
-        ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_USERS);
+        ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
 
         target.activate();
     }
 
     public Ban banAccount(Account admin, Account target, BanReason reason, LocalDateTime expiresAt) {
-        ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_BANS);
+        ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
 
         target.ban();
         tokenLifeCycleService.revokeAllAccountTokens(target);
@@ -46,7 +49,7 @@ public class AccountModerationService {
     }
 
     public void unbanAccount(Account admin, Account target) {
-        ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_BANS);
+        ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
 
         if (!target.isBanned()) {
             throw new InvalidOperationException(ErrorCode.ACCOUNT_NOT_BANNED);
@@ -57,17 +60,17 @@ public class AccountModerationService {
     }
 
     public AccountRole assignRole(Account admin, Account target, UUID roleId) {
-        ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_ROLES);
+        ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
         return accountRoleRepository.save(new AccountRole(target.getId(), roleId));
     }
 
     public void revokeRole(Account admin, Account target, AccountRole accountRole) {
-        ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_ROLES);
+        ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
         accountRoleRepository.delete(accountRole);
     }
 
     public void deleteAccount(Account admin, Account target) {
-        ensureInteract(admin.getId(), target.getId(), Permission.MANAGE_USERS);
+        ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
         target.registerEvent(new AccountDeletedEvent(
                 target.getId(),
                 target.getEmail() != null ? target.getEmail().getValue() : null,
@@ -75,6 +78,32 @@ public class AccountModerationService {
         accountRepository.save(target);
         accountRepository.delete(target);
 
+    }
+
+    public Account provisionAccount(Account admin, String emailStr, String password, Role targetRole) {
+        List<Role> adminRoles = roleRepository.findAllByAccountId(admin.getId());
+        boolean hasManageUsers = adminRoles.stream()
+                .anyMatch(role -> role.hasPermission(Permission.ACCOUNT_MANAGE));
+        if (!hasManageUsers) {
+            throw new InvalidOperationException(ErrorCode.NOT_ENOUGH_PERMISSION);
+        }
+
+        Email email = new Email(emailStr.trim());
+
+        Account targetAccount = accountLifecycleService.provision(email, password);
+
+        if (targetRole != null) {
+            int adminHighestPosition = adminRoles.stream()
+                    .mapToInt(Role::getPosition)
+                    .min()
+                    .orElse(Integer.MAX_VALUE);
+            if (targetRole.getPosition() < adminHighestPosition) {
+                throw new InvalidOperationException(ErrorCode.NOT_ENOUGH_PERMISSION);
+            }
+            accountRoleRepository.save(new AccountRole(targetAccount.getId(), targetRole.getId()));
+        }
+
+        return targetAccount;
     }
 
     private boolean canInteract(List<Role> rolesA, List<Role> rolesB, Permission permission) {

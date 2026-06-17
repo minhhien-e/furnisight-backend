@@ -14,7 +14,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/admin/roles")
 @RequiredArgsConstructor
-//@PreAuthorize("hasAuthority('MANAGE_ROLES')")
+// @PreAuthorize("hasAuthority('MANAGE_ROLES')")
 public class AdminRoleController {
 
     private final AddRoleUseCase addRoleUseCase;
@@ -52,7 +52,8 @@ public class AdminRoleController {
     }
 
     @PutMapping("/{roleId}/permissions/revoke")
-    public ResponseEntity<?> revokePermission(@PathVariable UUID roleId, @RequestBody RevokeRolePermissionRequest request) {
+    public ResponseEntity<?> revokePermission(@PathVariable UUID roleId,
+            @RequestBody RevokeRolePermissionRequest request) {
         var command = new RevokeRolePermissionCommand(roleId, request.permission());
         revokeRolePermissionUseCase.execute(command);
         return ResponseEntity.ok().build();

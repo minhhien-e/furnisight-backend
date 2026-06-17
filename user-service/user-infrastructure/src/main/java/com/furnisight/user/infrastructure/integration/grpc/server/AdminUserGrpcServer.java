@@ -51,7 +51,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     private final UnbanAccountUseCase unbanAccountUseCase;
     private final ActivateAccountUseCase activateAccountUseCase;
     private final DeleteAccountUseCase deleteAccountUseCase;
-    private final RegisterAccountUseCase registerAccountUseCase;
+    private final CreateAccountUseCase createAccountUseCase;
     private final AssignRoleUseCase assignRoleUseCase;
     private final RevokeRoleUseCase revokeRoleUseCase;
     private final AddRoleUseCase addRoleUseCase;
@@ -354,30 +354,18 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     @Override
     public void createAccount(CreateAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         try {
-            NameParts nameParts = splitName(request.getName());
-            String email = request.getEmail().trim();
-            String username = toUsername(email);
             String password = request.getPassword().isBlank() ? UUID.randomUUID().toString() : request.getPassword();
+            UUID roleId = request.getRoleId().isBlank() ? null : UUID.fromString(request.getRoleId());
 
-            var accountToken = registerAccountUseCase.execute(new RegisterAccountCommand(
-                    username,
-                    email,
+            CreateAccountCommand command = new CreateAccountCommand(
+                    UUID.fromString(request.getAdminId()),
+                    request.getEmail(),
                     password,
-                    nameParts.firstName(),
-                    nameParts.lastName()));
+                    request.getName(),
+                    roleId
+            );
 
-            Account targetAccount = accountRepository.findById(accountToken.getAccountId())
-                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
-            targetAccount.activate();
-            accountRepository.save(targetAccount);
-
-            if (!request.getRoleId().isBlank()) {
-                AssignRoleCommand command = new AssignRoleCommand(
-                        UUID.fromString(request.getAdminId()),
-                        accountToken.getAccountId(),
-                        UUID.fromString(request.getRoleId()));
-                assignRoleUseCase.execute(command);
-            }
+            createAccountUseCase.execute(command);
 
             responseObserver.onNext(AdminActionResponse.newBuilder().setSuccess(true)
                     .setMessage("Account created successfully").build());
@@ -471,17 +459,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
         return new NameParts(parts[0], parts[1]);
     }
 
-    private String toUsername(String email) {
-        if (email == null || email.isBlank()) {
-            return UUID.randomUUID().toString();
-        }
-        int atIndex = email.indexOf('@');
-        String base = atIndex > 0 ? email.substring(0, atIndex) : email;
-        if (base.length() < 3) {
-            base = base + UUID.randomUUID().toString().replace("-", "").substring(0, 3);
-        }
-        return base.length() > 100 ? base.substring(0, 100) : base;
-    }
 
     private String clean(String value) {
         return value == null ? "" : value.trim();

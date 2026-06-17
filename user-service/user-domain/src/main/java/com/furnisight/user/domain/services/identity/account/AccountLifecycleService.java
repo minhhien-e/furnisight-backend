@@ -31,7 +31,8 @@ public class AccountLifecycleService {
     private final PasswordHasher passwordHasher;
     private final VerificationService verificationService;
 
-    public Account register(Username username, Email email, String password) {
+    public Account register(Email email, String password) {
+        Username username = Username.fromEmail(email.getValue());
         if (accountRepository.existsAccount(username, email)) {
             throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALREADY_EXISTS);
         }
@@ -40,18 +41,31 @@ public class AccountLifecycleService {
         Account account = new Account(username, email, hashedPassword);
         account.registerEvent(new AccountCreatedEvent(account.getId(), email.getValue(), LocalDateTime.now()));
         account = accountRepository.save(account);
-        verificationService.requestVerification(account,account.getEmail().getValue());
+        verificationService.requestVerification(account, account.getEmail().getValue());
         return account;
     }
 
+    public Account provision(Email email, String password) {
+        Username username = Username.fromEmail(email.getValue());
+        if (accountRepository.existsAccount(username, email)) {
+            throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALREADY_EXISTS);
+        }
+        passwordPolicy.validate(password);
+        Password hashedPassword = new Password(passwordHasher.hash(password));
+        Account account = new Account(username, email, hashedPassword);
+        account.activate();
+        account.registerEvent(new AccountCreatedEvent(account.getId(), email.getValue(), LocalDateTime.now()));
+        return accountRepository.save(account);
+    }
+
     public Account LoginWithSocialAccount(
-        Optional<SocialAccount> existingSocialAccount,
-        SocialProvider provider,
-        String providerUserId,
-        Email email) {
+            Optional<SocialAccount> existingSocialAccount,
+            SocialProvider provider,
+            String providerUserId,
+            Email email) {
         if (existingSocialAccount.isPresent()) {
             return accountRepository.findById(existingSocialAccount.get().getAccountId())
-                .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
         }
         String rawUsername = (email != null) ? email.getValue() : UUID.randomUUID().toString();
         Username username = new Username(rawUsername);
@@ -62,18 +76,16 @@ public class AccountLifecycleService {
         Account account = new Account(username, email, hashedPassword);
         account.activate();
         account.registerEvent(new AccountCreatedEvent(
-            account.getId(),
-            email != null ? email.getValue() : null,
-            LocalDateTime.now()
-        ));
+                account.getId(),
+                email != null ? email.getValue() : null,
+                LocalDateTime.now()));
 
         if (email != null) {
             account.registerEvent(new SocialAccountCreatedEvent(
-                account.getId(),
-                email.getValue(),
-                randomPassword,
-                LocalDateTime.now()
-            ));
+                    account.getId(),
+                    email.getValue(),
+                    randomPassword,
+                    LocalDateTime.now()));
         }
 
         accountRepository.save(account);
@@ -84,10 +96,9 @@ public class AccountLifecycleService {
 
     public void deleteAccount(Account account) {
         account.registerEvent(new AccountDeletedEvent(
-            account.getId(),
-            account.getEmail() != null ? account.getEmail().getValue() : null,
-            LocalDateTime.now()
-        ));
+                account.getId(),
+                account.getEmail() != null ? account.getEmail().getValue() : null,
+                LocalDateTime.now()));
         accountRepository.save(account);
         accountRepository.delete(account);
     }

@@ -37,11 +37,9 @@ public class AuthController {
     @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
         var command = new RegisterAccountCommand(
-            request.username(),
             request.email(),
             request.password(),
-            request.firstName(),
-            request.lastName()
+            request.fullName()
         );
         var result = registerAccountUseCase.execute(command);
         return ResponseEntity.ok(com.furnisight.user.presentation.web.rest.dto.response.AuthResponse.from(result));

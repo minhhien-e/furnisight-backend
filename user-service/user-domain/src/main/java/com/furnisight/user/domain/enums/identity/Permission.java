@@ -7,14 +7,11 @@ import java.util.List;
 
 @Getter
 public enum Permission {
-    // 1 << 0 = 1
-    MANAGE_USERS(1L),
-    // 1 << 1 = 2
-    MANAGE_ROLES(1L << 1),
-    // 1 << 2 = 4
-    MANAGE_BANS(1L << 2),
-    // 1 << 3 = 8
-    CAN_ORDERS(1L << 3);
+    PRODUCT_MANAGE(1L),
+    ORDER_MANAGE(1L << 1),
+    VOUCHER_MANAGE(1L << 2),
+    ACCOUNT_MANAGE(1L << 3),
+    CUSTOMER_SUPPORT(1L << 4);
 
     private final long bit;
 

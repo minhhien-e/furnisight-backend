@@ -28,17 +28,11 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
             List<SimpleGrantedAuthority> authorities = List.of();
             if (permissionsHeader != null && !permissionsHeader.isBlank()) {
                 java.util.Set<String> expanded = new java.util.HashSet<>();
+                expanded.add("ADMIN");
                 for (String permission : permissionsHeader.split(",")) {
                     String p = permission.trim().toUpperCase();
-                    expanded.add(p);
-                    if ("MANAGE_USERS".equals(p)) {
-                        expanded.addAll(List.of("MANAGE_USERS", "VIEW_DASHBOARD", "dashboard", "USER_VIEW", "user_view", "USER_MANAGE", "user_manage"));
-                    } else if ("MANAGE_ROLES".equals(p)) {
-                        expanded.addAll(List.of("MANAGE_ROLES", "ROLE_MANAGE", "role_manage", "PRODUCT_VIEW", "product_view", "PRODUCT_CREATE", "product_create", "PRODUCT_EDIT", "product_edit", "PRODUCT_DELETE", "product_delete", "INVENTORY", "inventory", "REPORTS", "reports"));
-                    } else if ("CAN_ORDERS".equals(p)) {
-                        expanded.addAll(List.of("CAN_ORDERS", "ORDER_VIEW", "order_view", "ORDER_UPDATE", "order_update", "MANAGE_ORDERS"));
-                    } else if ("MANAGE_BANS".equals(p)) {
-                        expanded.addAll(List.of("MANAGE_BANS", "BAN_MANAGE", "ban_manage"));
+                    if (!p.isBlank()) {
+                        expanded.add(p);
                     }
                 }
                 authorities = expanded.stream()
@@ -46,8 +40,8 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
                         .collect(Collectors.toList());
             }
 
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(userId, null, authorities);
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userId, null,
+                    authorities);
 
             SecurityContextHolder.getContext().setAuthentication(authentication);
         }

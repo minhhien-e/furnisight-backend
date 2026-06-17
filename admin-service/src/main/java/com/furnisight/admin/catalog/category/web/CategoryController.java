@@ -22,13 +22,13 @@ public class CategoryController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<CategoryListResponse> getCategories(@RequestParam(required = false) String query) {
         return ResponseEntity.ok(categoryService.getCategories(query));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('PRODUCT_CREATE') or hasAuthority('product_create') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> createCategory(
             @RequestBody UpsertCategoryRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.createCategory(request);
@@ -38,7 +38,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_EDIT') or hasAuthority('product_edit') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> updateCategory(
             @PathVariable String id, @RequestBody UpsertCategoryRequest request,
             HttpServletRequest httpRequest) {
@@ -49,7 +49,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('PRODUCT_DELETE') or hasAuthority('product_delete') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> deleteCategory(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.deleteCategory(id);
@@ -59,7 +59,7 @@ public class CategoryController {
     }
 
     @GetMapping("/icon-options")
-    @PreAuthorize("hasAuthority('PRODUCT_VIEW') or hasAuthority('product_view') or hasAuthority('MANAGE_PRODUCTS') or hasAuthority('MANAGE_USERS')")
+    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<CategoryListResponse> getCategoryIconOptions() {
         return ResponseEntity.ok(new CategoryListResponse(java.util.List.of()));
     }

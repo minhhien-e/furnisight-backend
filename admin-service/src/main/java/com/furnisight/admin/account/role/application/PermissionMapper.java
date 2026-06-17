@@ -12,18 +12,11 @@ import java.util.stream.Collectors;
 public class PermissionMapper {
 
     private static final Map<String, Set<String>> FE_TO_BACKEND = Map.ofEntries(
-            Map.entry("dashboard", Set.of("MANAGE_USERS")),
-            Map.entry("user_view", Set.of("MANAGE_USERS")),
-            Map.entry("user_manage", Set.of("MANAGE_USERS")),
-            Map.entry("role_manage", Set.of("MANAGE_ROLES")),
-            Map.entry("ban_manage", Set.of("MANAGE_BANS")),
-            Map.entry("order_view", Set.of("CAN_ORDERS")),
-            Map.entry("order_update", Set.of("CAN_ORDERS")),
-            Map.entry("product_create", Set.of("MANAGE_ROLES")),
-            Map.entry("product_edit", Set.of("MANAGE_ROLES")),
-            Map.entry("product_delete", Set.of("MANAGE_ROLES")),
-            Map.entry("inventory", Set.of("MANAGE_ROLES")),
-            Map.entry("reports", Set.of("MANAGE_ROLES"))
+            Map.entry("product_manage", Set.of("PRODUCT_MANAGE")),
+            Map.entry("order_manage", Set.of("ORDER_MANAGE")),
+            Map.entry("voucher_manage", Set.of("VOUCHER_MANAGE")),
+            Map.entry("account_manage", Set.of("ACCOUNT_MANAGE")),
+            Map.entry("customer_support", Set.of("CUSTOMER_SUPPORT"))
     );
 
 
@@ -36,7 +29,7 @@ public class PermissionMapper {
                         .getOrDefault(normalize(permission).toLowerCase(Locale.ROOT), Set.of(normalize(permission)))
                         .stream())
                 .filter(permission -> Set.of(
-                        "MANAGE_USERS", "MANAGE_ROLES", "MANAGE_BANS", "CAN_ORDERS").contains(permission))
+                        "PRODUCT_MANAGE", "ORDER_MANAGE", "VOUCHER_MANAGE", "ACCOUNT_MANAGE", "CUSTOMER_SUPPORT").contains(permission))
                 .collect(Collectors.toSet());
     }
 
@@ -47,15 +40,7 @@ public class PermissionMapper {
         java.util.Set<String> fePermissions = new java.util.HashSet<>();
         for (String permission : permissions) {
             String p = normalize(permission);
-            if ("MANAGE_USERS".equals(p)) {
-                fePermissions.addAll(List.of("dashboard", "user_view", "user_manage"));
-            } else if ("MANAGE_ROLES".equals(p)) {
-                fePermissions.addAll(List.of("role_manage", "product_create", "product_edit", "product_delete", "inventory", "reports"));
-            } else if ("CAN_ORDERS".equals(p)) {
-                fePermissions.addAll(List.of("order_view", "order_update"));
-            } else if ("MANAGE_BANS".equals(p)) {
-                fePermissions.add("ban_manage");
-            } else {
+            if (Set.of("PRODUCT_MANAGE", "ORDER_MANAGE", "VOUCHER_MANAGE", "ACCOUNT_MANAGE", "CUSTOMER_SUPPORT").contains(p)) {
                 fePermissions.add(p.toLowerCase(Locale.ROOT));
             }
         }

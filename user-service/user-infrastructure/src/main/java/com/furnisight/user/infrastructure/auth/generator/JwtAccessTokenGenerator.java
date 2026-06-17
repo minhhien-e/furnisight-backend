@@ -38,10 +38,14 @@ public class JwtAccessTokenGenerator implements AccessTokenGenerator {
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
         List<Role> roles = roleRepository.findAllByAccountId(account.getId());
 
+        List<String> permissionNames = getPermissions(account, roles).stream()
+            .map(Permission::name).toList();
+
         JwtClaimsSet claims = JwtClaimsSet.builder()
             .subject(account.getId().toString())
             .claim("roles", roles.stream().map(role -> role.getName().getValue()).toList())
-            .claim("permissions", getPermissions(account, roles).stream().map(Permission::name).toList())
+            .claim("permissions", permissionNames)
+            .claim("isAdmin", !permissionNames.isEmpty())
             .issuedAt(now)
             .expiresAt(expiresAt)
             .build();
@@ -54,8 +58,6 @@ public class JwtAccessTokenGenerator implements AccessTokenGenerator {
 
     private Set<Permission> getPermissions(Account account, List<Role> roles) {
         if (account.isBanned() || account.isLocked()) return Set.of();
-        Set<Permission> permissions = roles.stream().flatMap(role -> role.getPermissions().stream()).collect(Collectors.toSet());
-        if (account.isVerified()) permissions.add(Permission.CAN_ORDERS);
-        return permissions;
+        return roles.stream().flatMap(role -> role.getPermissions().stream()).collect(Collectors.toSet());
     }
 }
