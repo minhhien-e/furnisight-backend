@@ -15,14 +15,15 @@ public class NotificationProfileProjection {
     private boolean promotionsEnabled;
     private boolean walletUpdatesEnabled;
     private boolean socialUpdatesEnabled;
+
     public static NotificationProfileProjection from(NotificationProfile preference) {
         return NotificationProfileProjection.builder()
-            .id(preference.getId())
-            .userId(preference.getUserId())
-            .orderUpdatesEnabled(preference.isOrderUpdatesEnabled())
-            .promotionsEnabled(preference.isPromotionsEnabled())
-            .walletUpdatesEnabled(preference.isWalletUpdatesEnabled())
-            .socialUpdatesEnabled(preference.isSocialUpdatesEnabled())
-            .build();
+                .id(preference.getId())
+                .userId(preference.getUserId())
+                .orderUpdatesEnabled(preference.isOrderUpdatesEnabled())
+                .promotionsEnabled(preference.isPromotionsEnabled())
+                .walletUpdatesEnabled(preference.isWalletUpdatesEnabled())
+                .socialUpdatesEnabled(preference.isSocialUpdatesEnabled())
+                .build();
     }
 }

@@ -10,6 +10,9 @@ grpc:
     promotion-service:
       address: "static://${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
       negotiation-type: plaintext
+    user-service:
+      address: "static://${USER_SERVICE_GRPC_HOST:localhost}:${USER_SERVICE_GRPC_PORT:9091}"
+      negotiation-type: plaintext
 spring:
   application:
     name: order-service

@@ -70,6 +70,30 @@ public class OrderEventToOutboxListener {
                 "inventory-reserve",
                 objectMapper.writeValueAsString(payload)
         ));
+
+        Map<String, Object> orderPlacedPayload = new HashMap<>();
+        orderPlacedPayload.put("orderCode", order.getOrderCode());
+        orderPlacedPayload.put("userId", order.getUserId().toString());
+        orderPlacedPayload.put("customerEmail", order.getCustomerEmail());
+        orderPlacedPayload.put("totalAmount", order.getTotalAmount());
+        orderPlacedPayload.put("createdAt", order.getCreatedAt() != null ? order.getCreatedAt().toString() : "");
+
+        List<Map<String, Object>> itemsList = new ArrayList<>();
+        for (OrderItem item : order.getItems()) {
+            Map<String, Object> itemMap = new HashMap<>();
+            itemMap.put("productName", item.getProductSnapshot().getProductName());
+            itemMap.put("quantity", item.getQuantity());
+            itemMap.put("price", item.getPrice());
+            itemsList.add(itemMap);
+        }
+        orderPlacedPayload.put("items", itemsList);
+
+        outboxMessageRepository.save(new OutboxMessage(
+                AGGREGATE_TYPE,
+                event.getOrderCode(),
+                "order-placed",
+                objectMapper.writeValueAsString(orderPlacedPayload)
+        ));
     }
 
     @SneakyThrows

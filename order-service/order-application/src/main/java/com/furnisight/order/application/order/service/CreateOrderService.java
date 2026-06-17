@@ -5,6 +5,7 @@ import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase
 import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.application.order.pricing.OrderPricingService;
 import com.furnisight.order.application.order.validator.OrderItemValidationService;
+import com.furnisight.order.application.user.port.out.UserEmailPort;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.enums.PaymentType;
 import com.furnisight.order.application.processing.OrderOperation;
@@ -26,6 +27,7 @@ public class CreateOrderService implements CreateOrderUseCase {
     private final OrderItemValidationService itemValidationService;
     private final OrderPricingService orderPricingService;
     private final OrderProcessingService orderProcessingService;
+    private final UserEmailPort userEmailPort;
 
     @Override
     @Transactional
@@ -38,8 +40,15 @@ public class CreateOrderService implements CreateOrderUseCase {
                 .build();
         var itemResult = itemValidationService.validate(command);
         var pricingSummary = orderPricingService.calculate(command, itemResult);
+
+        String customerEmail = userEmailPort.getEmailByUserId(command.getUserId());
+        if (customerEmail == null || customerEmail.isBlank()) {
+            customerEmail = command.getCustomerEmail();
+        }
+
         Order order = orderLifecycle.createPendingOrder(OrderDraft.builder()
                 .userId(command.getUserId())
+                .customerEmail(customerEmail)
                 .customerNote(command.getCustomerNote())
                 .addressInfo(addressInfo)
                 .items(itemResult.getItems())

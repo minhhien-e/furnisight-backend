@@ -35,6 +35,7 @@ public class Order extends DomainEntity {
     private OrderFee fee;
 
     private Double savedAmount;
+    private String customerEmail;
     private String customerNote;
     private String trackingCode;
 
@@ -52,7 +53,7 @@ public class Order extends DomainEntity {
     private List<OrderItem> items = new ArrayList<>();
 
     @Builder
-    public Order(UUID id, UUID userId, String orderCode, OrderStatus status, OrderFee fee, String customerNote,
+    public Order(UUID id, UUID userId, String orderCode, OrderStatus status, OrderFee fee, String customerEmail, String customerNote,
                  ShippingDetail shippingDetail, PaymentDetail paymentDetail, com.furnisight.order.domain.valueobjects.PaymentTimeline paymentTimeline, List<OrderItem> items) {
 
         if (items == null || items.isEmpty()) {
@@ -65,6 +66,7 @@ public class Order extends DomainEntity {
         this.orderCode = orderCode;
         this.status = status;
         this.fee = fee;
+        this.customerEmail = customerEmail;
         this.customerNote = customerNote;
         this.shippingDetail = shippingDetail;
         this.paymentDetail = paymentDetail;

@@ -26,13 +26,13 @@ public class CreateDefaultNotificationProfileService implements CreateDefaultNot
         }
 
         NotificationProfile preference = NotificationProfile.builder()
-            .id(command.getUserId())
-            .userId(command.getUserId())
-            .orderUpdatesEnabled(true)
-            .promotionsEnabled(true)
-            .walletUpdatesEnabled(true)
-            .socialUpdatesEnabled(true)
-            .build();
+                .id(command.getUserId())
+                .userId(command.getUserId())
+                .orderUpdatesEnabled(true)
+                .promotionsEnabled(true)
+                .walletUpdatesEnabled(true)
+                .socialUpdatesEnabled(true)
+                .build();
 
         NotificationProfile saved = notificationProfileRepository.save(preference);
         return NotificationProfileProjection.from(saved);

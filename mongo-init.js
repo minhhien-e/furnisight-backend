@@ -89,6 +89,17 @@ db.notification_templates.insertMany([
     type: "REVIEW", channel: "IN_APP",
     defaultImage: "", defaultActionUrl: "",
     createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
+  },
+  {
+    _id: UUID("33333333-3333-3333-3333-333333333333"),
+    code: "order-placed",
+    name: "Order Placed Email Template",
+    variables: ["orderCode", "totalAmount"],
+    titleTemplate: "[FurniSight] Đặt hàng thành công - Đơn hàng #{{orderCode}}",
+    bodyTemplate: `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0}.container{max-width:600px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.1)}.header{text-align:center;border-bottom:2px solid #ee4d2d;padding-bottom:10px;margin-bottom:20px}.header h2{color:#ee4d2d;margin:0;text-transform:uppercase;font-size:24px}.content{font-size:16px;color:#333;line-height:1.5}.footer{font-size:14px;color:#777;text-align:center;border-top:1px solid #eaeaea;padding-top:10px;margin-top:20px}</style></head><body><div class="container"><div class="header"><h2>FurniSight</h2></div><div class="content"><p>Xin chào,</p><p>Cảm ơn bạn đã đặt hàng tại FurniSight. Đơn hàng <strong>#{{orderCode}}</strong> của bạn đã được tiếp nhận thành công.</p><p>Tổng số tiền thanh toán: <strong>{{totalAmount}} VND</strong></p><p>Chúng tôi sẽ xử lý đơn hàng và giao hàng trong thời gian sớm nhất.</p></div><div class="footer"><p>&copy; FurniSight. All rights reserved.</p></div></div></body></html>`,
+    type: "SYSTEM", channel: "EMAIL",
+    defaultImage: "", defaultActionUrl: "",
+    createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
   }
 ]);
 

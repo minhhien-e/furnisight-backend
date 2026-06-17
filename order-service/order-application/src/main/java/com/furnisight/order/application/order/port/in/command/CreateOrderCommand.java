@@ -19,6 +19,7 @@ public class CreateOrderCommand {
     private String shippingAddressDetail;
     private String shippingMethod;
     private String customerNote;
+    private String customerEmail;
     private String paymentMethod;
     private String shopVoucherCode;
     private String shippingVoucherCode;

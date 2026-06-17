@@ -33,6 +33,7 @@ public class OrderLifecycle {
         var pricing = draft.getPricingSummary();
         return createPendingOrder(
                 draft.getUserId(),
+                draft.getCustomerEmail(),
                 draft.getCustomerNote(),
                 draft.getAddressInfo().toShippingDetail(),
                 draft.paymentDetailOrDefault(),
@@ -50,6 +51,7 @@ public class OrderLifecycle {
 
     public Order createPendingOrder(
             UUID userId,
+            String customerEmail,
             String customerNote,
             ShippingDetail shippingDetail,
             PaymentDetail paymentDetail,
@@ -110,6 +112,7 @@ public class OrderLifecycle {
                         .shippingVoucherCode(shippingVoucherCode)
                         .comboId(comboId)
                         .build())
+                .customerEmail(customerEmail)
                 .customerNote(customerNote)
                 .shippingDetail(shippingDetail)
                 .paymentDetail(paymentDetail)

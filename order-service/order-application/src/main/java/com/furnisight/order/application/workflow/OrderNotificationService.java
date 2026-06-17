@@ -22,6 +22,7 @@ public class OrderNotificationService {
     public void enqueue(OrderProcessingContext context, OrderStatus previousStatus) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("userId", context.getOrder().getUserId());
+        payload.put("customerEmail", context.getOrder().getCustomerEmail());
         payload.put("orderCode", context.getOrder().getOrderCode());
         payload.put("previousStatus", previousStatus);
         payload.put("nextStatus", context.getOrder().getStatus());

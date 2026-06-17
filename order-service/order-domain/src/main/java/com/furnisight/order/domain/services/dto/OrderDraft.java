@@ -11,6 +11,7 @@ import java.util.UUID;
 @Builder
 public class OrderDraft {
     UUID userId;
+    String customerEmail;
     String customerNote;
     OrderAddressInfo addressInfo;
     List<OrderItemParam> items;
