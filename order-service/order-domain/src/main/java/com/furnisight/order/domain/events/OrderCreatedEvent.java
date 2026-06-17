@@ -15,6 +15,7 @@ public class OrderCreatedEvent implements DomainEvent {
     private final LocalDateTime occurredOn = LocalDateTime.now();
     
     private final String orderCode;
+    private final String customerEmail;
 
     @Override
     public UUID eventId() { return eventId; }

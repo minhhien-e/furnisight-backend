@@ -74,7 +74,7 @@ public class OrderEventToOutboxListener {
         Map<String, Object> orderPlacedPayload = new HashMap<>();
         orderPlacedPayload.put("orderCode", order.getOrderCode());
         orderPlacedPayload.put("userId", order.getUserId().toString());
-        orderPlacedPayload.put("customerEmail", order.getCustomerEmail());
+        orderPlacedPayload.put("customerEmail", event.getCustomerEmail());
         orderPlacedPayload.put("totalAmount", order.getTotalAmount());
         orderPlacedPayload.put("createdAt", order.getCreatedAt() != null ? order.getCreatedAt().toString() : "");
 

@@ -35,7 +35,7 @@ public class Order extends DomainEntity {
     private OrderFee fee;
 
     private Double savedAmount;
-    private String customerEmail;
+
     private String customerNote;
     private String trackingCode;
 
@@ -66,7 +66,7 @@ public class Order extends DomainEntity {
         this.orderCode = orderCode;
         this.status = status;
         this.fee = fee;
-        this.customerEmail = customerEmail;
+
         this.customerNote = customerNote;
         this.shippingDetail = shippingDetail;
         this.paymentDetail = paymentDetail;
@@ -83,6 +83,7 @@ public class Order extends DomainEntity {
         
         this.addDomainEvent(com.furnisight.order.domain.events.OrderCreatedEvent.builder()
                 .orderCode(this.orderCode)
+                .customerEmail(customerEmail)
                 .build());
     }
 

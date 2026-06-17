@@ -6,6 +6,7 @@ import com.furnisight.order.application.processing.OrderProcessingContext;
 import com.furnisight.order.domain.entities.OutboxMessage;
 import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.repository.OutboxMessageRepository;
+import com.furnisight.order.application.user.port.out.UserEmailPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,11 +19,12 @@ import java.util.Map;
 public class OrderNotificationService {
     private final OutboxMessageRepository repository;
     private final ObjectMapper objectMapper;
+    private final UserEmailPort userEmailPort;
 
     public void enqueue(OrderProcessingContext context, OrderStatus previousStatus) {
         Map<String, Object> payload = new LinkedHashMap<>();
         payload.put("userId", context.getOrder().getUserId());
-        payload.put("customerEmail", context.getOrder().getCustomerEmail());
+        payload.put("customerEmail", userEmailPort.getEmailByUserId(context.getOrder().getUserId()));
         payload.put("orderCode", context.getOrder().getOrderCode());
         payload.put("previousStatus", previousStatus);
         payload.put("nextStatus", context.getOrder().getStatus());
