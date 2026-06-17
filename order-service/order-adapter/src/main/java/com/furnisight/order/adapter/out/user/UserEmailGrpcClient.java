@@ -4,13 +4,11 @@ import com.furnisight.admin.user.AdminUserServiceGrpc;
 import com.furnisight.admin.user.GetAccountByIdRequest;
 import com.furnisight.admin.user.AccountDetailResponse;
 import com.furnisight.order.application.user.port.out.UserEmailPort;
-import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;
 
-@Slf4j
 @Component
 public class UserEmailGrpcClient implements UserEmailPort {
 
@@ -20,17 +18,12 @@ public class UserEmailGrpcClient implements UserEmailPort {
     @Override
     public String getEmailByUserId(UUID userId) {
         if (userId == null) {
-            return "";
+            throw new IllegalArgumentException("userId cannot be null");
         }
-        try {
-            GetAccountByIdRequest request = GetAccountByIdRequest.newBuilder()
-                    .setId(userId.toString())
-                    .build();
-            AccountDetailResponse response = adminUserStub.getAccountById(request);
-            return response.getEmail();
-        } catch (Exception e) {
-            log.error("Failed to fetch email for userId {} from user-service: {}", userId, e.getMessage());
-            return "";
-        }
+        GetAccountByIdRequest request = GetAccountByIdRequest.newBuilder()
+                .setId(userId.toString())
+                .build();
+        AccountDetailResponse response = adminUserStub.getAccountById(request);
+        return response.getEmail();
     }
 }

@@ -9,11 +9,7 @@ public record InventoryItemResponse(
         String variantLabel,
         int stock,
         int threshold,
-        int stockPercent,
-        String stockClass,
         String lastImport,
-        String exportMonth,
-        String status,
-        String statusLabel
+        String exportMonth
 ) {
 }

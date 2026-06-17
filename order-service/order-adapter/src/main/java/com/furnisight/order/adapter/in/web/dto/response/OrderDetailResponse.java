@@ -12,7 +12,6 @@ public class OrderDetailResponse {
     private UUID id;
     private String orderCode;
     private String status;
-    private String statusLabel;
     private Double subTotal;
     private Double totalAmount;
     private Double savedAmount;
@@ -24,7 +23,5 @@ public class OrderDetailResponse {
     private PaymentTimelineResponse paymentTimeline;
     private List<?> items;
     private LocalDateTime createdAt;
-    private LocalDateTime paymentExpiresAt;
-    private Boolean canRetryPayment;
     private List<OrderStatusHistoryResponse> statusHistory;
 }

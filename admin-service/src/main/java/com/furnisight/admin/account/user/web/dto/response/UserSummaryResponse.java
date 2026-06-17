@@ -9,12 +9,8 @@ public record UserSummaryResponse(
         String name,
         String email,
         String status,
-        String statusLabel,
-        String role,
         List<RoleResponse> roles,
         String phone,
-        String createdAt,
-        String avTone,
-        String av
+        String createdAt
 ) {
 }

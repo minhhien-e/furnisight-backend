@@ -10,11 +10,7 @@ import com.furnisight.admin.shared.web.ActionResultResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.text.NumberFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -48,64 +44,29 @@ public class OrderService {
 
     private OrderResponse toOrderResponse(OrderDto order) {
         return new OrderResponse(
-                order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
-                emptyFallback(order.getCustomer(), "Khách hàng"), order.getItemCount(),
-                order.getTotalAmount(), normalizeStatus(order.getStatus()),
-                toOrderStatusLabel(order), formatDate(order.getCreatedAt()),
-                order.getPaymentMethod(), order.getTrackingCode());
+                order.getId(),
+                order.getOrderCode(),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getCreatedAt(),
+                order.getPaymentMethod(),
+                order.getFirstProductImage(),
+                order.getCustomer(),
+                order.getItemCount(),
+                order.getTrackingCode());
     }
 
     private RecentOrderResponse toRecentOrderResponse(OrderDto order) {
         return new RecentOrderResponse(
-                order.getOrderCode().isBlank() ? order.getId() : order.getOrderCode(),
-                emptyFallback(order.getCustomer(), "Khách hàng"),
-                formatCurrency(order.getTotalAmount()), normalizeStatus(order.getStatus()),
-                toOrderStatusLabel(order), order.getPaymentMethod());
-    }
-
-    private String toOrderStatusLabel(OrderDto order) {
-        String status = normalizeStatus(order.getStatus());
-        if (isCodOrder(order) && ("CONFIRMED".equals(status) || "PAID".equals(status))) {
-            return "Xác nhận thành công";
-        }
-        return switch (status) {
-            case "CONFIRMED" -> "Xác nhận thành công";
-            case "PAID" -> "Đã thanh toán";
-            case "SHIPPING" -> "Đang giao";
-            case "DELIVERED", "SUCCESS" -> "Hoàn thành";
-            case "CANCELLED" -> "Đã hủy";
-            case "REFUND_PENDING" -> "Chờ hoàn tiền";
-            case "REFUNDED" -> "Đã hoàn tiền";
-            case "PAYMENT_FAILED" -> "Thanh toán lỗi";
-            default -> "Chờ xác nhận";
-        };
-    }
-
-    private boolean isCodOrder(OrderDto order) {
-        return "cod".equalsIgnoreCase(order.getPaymentMethod());
-    }
-
-    private String normalizeStatus(String status) {
-        return status == null || status.isBlank() ? ""
-                : status.trim().replace('-', '_').replace(' ', '_').toUpperCase(Locale.ROOT);
-    }
-
-    private String formatDate(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
-        }
-        try {
-            return LocalDateTime.parse(value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        } catch (Exception ignored) {
-            return value;
-        }
-    }
-
-    private String formatCurrency(double value) {
-        return NumberFormat.getInstance(Locale.forLanguageTag("vi-VN")).format(value) + "đ";
-    }
-
-    private String emptyFallback(String value, String fallback) {
-        return value == null || value.isBlank() ? fallback : value;
+                order.getId(),
+                order.getOrderCode(),
+                order.getStatus(),
+                order.getTotalAmount(),
+                order.getCreatedAt(),
+                order.getPaymentMethod(),
+                order.getFirstProductImage(),
+                order.getCustomer(),
+                order.getItemCount(),
+                order.getTrackingCode());
     }
 }

@@ -17,7 +17,7 @@ import static org.mockito.Mockito.when;
 class UserServiceTest {
 
     @Test
-    void mapsUserStatusAndRolesWithoutChangingResponseShape() {
+    void copiesUserFieldsWithoutPresentationMapping() {
         AdminUserGrpcClient client = mock(AdminUserGrpcClient.class);
         RoleService roleService = mock(RoleService.class);
         when(client.getAccounts(1, 10, "minh", "ACTIVE"))
@@ -40,10 +40,9 @@ class UserServiceTest {
                 .getUsers(1, 10, "minh", "ACTIVE");
 
         assertThat(response.accounts()).singleElement().satisfies(user -> {
-            assertThat(user.status()).isEqualTo("active");
-            assertThat(user.statusLabel()).isEqualTo("Hoạt động");
-            assertThat(user.role()).isEqualTo("Admin");
-            assertThat(user.createdAt()).isEqualTo("10/06/2026");
+            assertThat(user.status()).isEqualTo("ACTIVE");
+            assertThat(user.roles()).containsExactly(new RoleResponse("role-1", "Admin", List.of("user_view")));
+            assertThat(user.createdAt()).isEqualTo("2026-06-10T10:00:00");
         });
     }
 }

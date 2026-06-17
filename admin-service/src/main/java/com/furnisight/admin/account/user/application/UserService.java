@@ -15,12 +15,8 @@ import com.furnisight.admin.user.AdminActionResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Locale;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -41,14 +37,10 @@ public class UserService {
         AccountDetailResponse account = userClient.getAccountById(id);
         String firstName = account.getFirstName();
         String lastName = account.getLastName();
-        String fullName = (firstName + " " + lastName).trim();
-        if (fullName.isBlank()) {
-            fullName = account.getUsername();
-        }
         return new UserDetailResponse(
                 account.getId(), account.getEmail(), account.getUsername(),
-                toAccountTone(account.getStatus()), toAccountStatusLabel(account.getStatus()),
-                formatDate(account.getCreatedAt()), firstName, lastName, fullName,
+                account.getStatus(),
+                account.getCreatedAt(), firstName, lastName, account.getName(), account.getPhone(),
                 account.getAvatarUrl(), roleService.toRoleResponses(account.getRolesList()));
     }
 
@@ -108,46 +100,9 @@ public class UserService {
 
     private UserSummaryResponse toSummaryResponse(AccountDto account) {
         List<RoleResponse> roles = roleService.toRoleResponses(account.getRolesList());
-        String roleLabel = roles.stream().map(RoleResponse::name).collect(Collectors.joining(", "));
-        String name = account.getName().isBlank() ? account.getUsername() : account.getName();
         return new UserSummaryResponse(
-                account.getId(), name, account.getEmail(), toAccountTone(account.getStatus()),
-                toAccountStatusLabel(account.getStatus()), roleLabel.isBlank() ? "User" : roleLabel,
-                roles, account.getPhone(), formatDate(account.getCreatedAt()), "blue",
-                name.isBlank() ? "U" : name.substring(0, 1).toUpperCase());
-    }
-
-    private String toAccountTone(String status) {
-        return switch (normalizeStatus(status)) {
-            case "ACTIVE" -> "active";
-            case "BANNED", "LOCKED" -> "blocked";
-            default -> "inactive";
-        };
-    }
-
-    private String toAccountStatusLabel(String status) {
-        return switch (normalizeStatus(status)) {
-            case "ACTIVE" -> "Hoạt động";
-            case "BANNED" -> "Bị khóa";
-            case "LOCKED" -> "Tạm khóa";
-            case "UNVERIFIED" -> "Chưa xác thực";
-            default -> "Không hoạt động";
-        };
-    }
-
-    private String normalizeStatus(String status) {
-        return status == null ? "" : status.trim().toUpperCase(Locale.ROOT);
-    }
-
-    private String formatDate(String value) {
-        if (value == null || value.isBlank()) {
-            return "";
-        }
-        try {
-            return LocalDateTime.parse(value).format(DateTimeFormatter.ofPattern("dd/MM/yyyy"));
-        } catch (Exception ignored) {
-            return value;
-        }
+                account.getId(), account.getName(), account.getEmail(), account.getStatus(),
+                roles, account.getPhone(), account.getCreatedAt());
     }
 
     private ActionResultResponse toActionResult(AdminActionResponse response) {

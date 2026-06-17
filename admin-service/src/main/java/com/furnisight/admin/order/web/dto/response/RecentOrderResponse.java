@@ -2,10 +2,14 @@ package com.furnisight.admin.order.web.dto.response;
 
 public record RecentOrderResponse(
         String id,
-        String customer,
-        String total,
+        String orderCode,
         String status,
-        String statusLabel,
-        String paymentMethod
+        double totalAmount,
+        String createdAt,
+        String paymentMethod,
+        String firstProductImage,
+        String customer,
+        int itemCount,
+        String trackingCode
 ) {
 }

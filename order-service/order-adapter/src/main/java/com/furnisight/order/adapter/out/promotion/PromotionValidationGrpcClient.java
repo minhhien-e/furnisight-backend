@@ -19,13 +19,23 @@ public class PromotionValidationGrpcClient implements PromotionValidationPort {
 
     @Override
     public ValidateOrderVouchersResult validateOrderVouchers(ValidateOrderVouchersRequest request) {
-        var response = promotionStub.validateOrderVouchers(com.furnisight.admin.promotion.ValidateOrderVouchersRequest.newBuilder()
-                .setUserId(request.getUserId() == null ? "" : request.getUserId().toString())
-                .setShopVoucherCode(value(request.getShopVoucherCode()))
-                .setShippingVoucherCode(value(request.getShippingVoucherCode()))
-                .setSubtotal(number(request.getSubtotal()))
-                .setShippingFee(number(request.getShippingFee()))
-                .build());
+        var builder = com.furnisight.admin.promotion.ValidateOrderVouchersRequest.newBuilder();
+        if (request.getUserId() != null) {
+            builder.setUserId(request.getUserId().toString());
+        }
+        if (request.getShopVoucherCode() != null) {
+            builder.setShopVoucherCode(request.getShopVoucherCode());
+        }
+        if (request.getShippingVoucherCode() != null) {
+            builder.setShippingVoucherCode(request.getShippingVoucherCode());
+        }
+        if (request.getSubtotal() != null) {
+            builder.setSubtotal(request.getSubtotal());
+        }
+        if (request.getShippingFee() != null) {
+            builder.setShippingFee(request.getShippingFee());
+        }
+        var response = promotionStub.validateOrderVouchers(builder.build());
         ValidateOrderVouchersResult result = new ValidateOrderVouchersResult();
         result.setValid(response.getValid());
         result.setMessage(response.getMessage());
@@ -36,16 +46,30 @@ public class PromotionValidationGrpcClient implements PromotionValidationPort {
 
     @Override
     public ValidateComboResult validateCombo(ValidateComboRequest request) {
-        ValidateOrderComboRequest.Builder builder = ValidateOrderComboRequest.newBuilder()
-                .setUserId(request.getUserId() == null ? "" : request.getUserId().toString())
-                .setComboId(value(request.getComboId()));
+        ValidateOrderComboRequest.Builder builder = ValidateOrderComboRequest.newBuilder();
+        if (request.getUserId() != null) {
+            builder.setUserId(request.getUserId().toString());
+        }
+        if (request.getComboId() != null) {
+            builder.setComboId(request.getComboId());
+        }
         if (request.getItems() != null) {
-            request.getItems().forEach(item -> builder.addItems(ValidateOrderComboItem.newBuilder()
-                    .setProductId(value(item.getProductId()))
-                    .setVariantId(value(item.getVariantId()))
-                    .setQuantity(item.getQuantity() == null ? 0 : item.getQuantity())
-                    .setPrice(number(item.getPrice()))
-                    .build()));
+            request.getItems().forEach(item -> {
+                ValidateOrderComboItem.Builder itemBuilder = ValidateOrderComboItem.newBuilder();
+                if (item.getProductId() != null) {
+                    itemBuilder.setProductId(item.getProductId());
+                }
+                if (item.getVariantId() != null) {
+                    itemBuilder.setVariantId(item.getVariantId());
+                }
+                if (item.getQuantity() != null) {
+                    itemBuilder.setQuantity(item.getQuantity());
+                }
+                if (item.getPrice() != null) {
+                    itemBuilder.setPrice(item.getPrice());
+                }
+                builder.addItems(itemBuilder.build());
+            });
         }
         var response = promotionStub.validateOrderCombo(builder.build());
         ValidateComboResult result = new ValidateComboResult();
@@ -57,13 +81,5 @@ public class PromotionValidationGrpcClient implements PromotionValidationPort {
         result.setComboDiscount(response.getComboDiscount());
         result.setMessage(response.getMessage());
         return result;
-    }
-
-    private String value(String value) {
-        return value == null ? "" : value;
-    }
-
-    private double number(Double value) {
-        return value == null ? 0.0 : value;
     }
 }

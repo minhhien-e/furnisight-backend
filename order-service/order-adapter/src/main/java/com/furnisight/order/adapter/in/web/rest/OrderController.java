@@ -1,13 +1,10 @@
 package com.furnisight.order.adapter.in.web.rest;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
-import com.furnisight.order.application.order.service.ExpireUnpaidOrdersService;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
 import com.furnisight.order.application.order.port.in.usecase.GetOrderQuery;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
 import com.furnisight.order.domain.entities.order.Order;
-import com.furnisight.order.domain.entities.order.OrderItem;
-import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
 import com.furnisight.order.adapter.in.web.dto.response.OrderListResponse;
 import com.furnisight.order.adapter.in.web.dto.response.OrderDetailResponse;
@@ -16,7 +13,6 @@ import com.furnisight.order.adapter.in.web.dto.response.OrderItemResponse;
 import com.furnisight.order.adapter.in.web.dto.response.PaymentDetailResponse;
 import com.furnisight.order.adapter.in.web.dto.response.PaymentTimelineResponse;
 import com.furnisight.order.adapter.in.web.dto.response.ProductPurchaseCheckResponse;
-import com.furnisight.order.domain.valueobjects.ProductSnapshot;
 import com.furnisight.order.domain.valueobjects.PaymentDetail;
 import com.furnisight.order.domain.valueobjects.PaymentTimeline;
 import com.furnisight.order.domain.repository.order.OrderStatusHistoryRepository;
@@ -25,10 +21,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @RestController
 @RequiredArgsConstructor
@@ -53,21 +47,16 @@ public class OrderController {
         UUID userId = currentUserProvider.getCurrentUserId();
         List<Order> orders = getOrderQuery.getUserOrders(userId);
 
-        List<OrderListResponse> response = orders.stream().map(order -> {
-            String firstImage = resolveFirstProductImage(order);
-            return OrderListResponse.builder()
+        List<OrderListResponse> response = orders.stream()
+                .map(order -> OrderListResponse.builder()
                     .id(order.getId())
                     .orderCode(order.getOrderCode())
-                    .status(order.getStatus().name())
-                    .statusLabel(toStatusLabel(order))
+                    .status(order.getStatus() == null ? null : order.getStatus().name())
                     .totalAmount(order.getTotalAmount())
                     .createdAt(order.getCreatedAt())
-                    .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
                     .paymentMethod(resolvePaymentMethod(order))
-                    .canRetryPayment(canRetryPayment(order))
-                    .firstProductImage(firstImage)
-                    .build();
-        }).collect(Collectors.toList());
+                    .build())
+                .toList();
 
         return ResponseEntity.ok(response);
     }
@@ -94,13 +83,12 @@ public class OrderController {
                         .price(item.getPrice())
                         .quantity(item.getQuantity())
                         .build())
-                .collect(Collectors.toList());
+                .toList();
 
         OrderDetailResponse response = OrderDetailResponse.builder()
                 .id(order.getId())
                 .orderCode(order.getOrderCode())
-                .status(order.getStatus().name())
-                .statusLabel(toStatusLabel(order))
+                .status(order.getStatus() == null ? null : order.getStatus().name())
                 .subTotal(order.getSubTotal())
                 .totalAmount(order.getTotalAmount())
                 .savedAmount(order.getSavedAmount())
@@ -112,12 +100,10 @@ public class OrderController {
                 .paymentTimeline(toPaymentTimelineResponse(order))
                 .items(itemResponses)
                 .createdAt(order.getCreatedAt())
-                .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
-                .canRetryPayment(canRetryPayment(order))
                 .statusHistory(orderStatusHistoryRepository.findByOrderId(order.getId()).stream()
                         .map(history -> OrderStatusHistoryResponse.builder()
-                                .previousStatus(history.getPreviousStatus().name())
-                                .nextStatus(history.getNextStatus().name())
+                                .previousStatus(history.getPreviousStatus() == null ? null : history.getPreviousStatus().name())
+                                .nextStatus(history.getNextStatus() == null ? null : history.getNextStatus().name())
                                 .actorType(history.getActorType())
                                 .trackingCode(history.getTrackingCode())
                                 .note(history.getNote())
@@ -133,21 +119,16 @@ public class OrderController {
     public ResponseEntity<List<OrderListResponse>> getAdminOrders(@RequestParam(required = false) String status) {
         List<Order> orders = getOrderQuery.getAdminOrders(status);
 
-        List<OrderListResponse> response = orders.stream().map(order -> {
-            String firstImage = resolveFirstProductImage(order);
-            return OrderListResponse.builder()
+        List<OrderListResponse> response = orders.stream()
+                .map(order -> OrderListResponse.builder()
                     .id(order.getId())
                     .orderCode(order.getOrderCode())
-                    .status(order.getStatus().name())
-                    .statusLabel(toStatusLabel(order))
+                    .status(order.getStatus() == null ? null : order.getStatus().name())
                     .totalAmount(order.getTotalAmount())
                     .createdAt(order.getCreatedAt())
-                    .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
                     .paymentMethod(resolvePaymentMethod(order))
-                    .canRetryPayment(canRetryPayment(order))
-                    .firstProductImage(firstImage)
-                    .build();
-        }).collect(Collectors.toList());
+                    .build())
+                .toList();
 
         return ResponseEntity.ok(response);
     }
@@ -171,71 +152,14 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
-    private String resolveFirstProductImage(Order order) {
-        if (order.getItems() == null || order.getItems().isEmpty()) {
-            return null;
-        }
-
-        OrderItem firstItem = order.getItems().get(0);
-        if (firstItem == null) {
-            return null;
-        }
-
-        ProductSnapshot productSnapshot = firstItem.getProductSnapshot();
-        return productSnapshot != null ? productSnapshot.getImageUrl() : null;
-    }
-
-    private boolean canRetryPayment(Order order) {
-        return (order.getStatus() == OrderStatus.UNPAID || order.getStatus() == OrderStatus.PAYMENT_FAILED)
-                && "vnpay".equalsIgnoreCase(resolvePaymentMethod(order))
-                && ExpireUnpaidOrdersService.isPaymentWindowOpen(order, LocalDateTime.now());
-    }
-
     private String resolvePaymentMethod(Order order) {
         return order.getPaymentDetail() != null ? order.getPaymentDetail().getPaymentMethod() : null;
-    }
-
-    private String toStatusLabel(Order order) {
-        if (order == null || order.getStatus() == null) {
-            return "";
-        }
-        if (order.isCodOrder()) {
-            return switch (order.getStatus()) {
-                case UNPAID -> "Chờ xác nhận";
-                case CONFIRMED, PAID -> "Xác nhận thành công";
-                case SHIPPING -> "Đang giao";
-                case DELIVERED -> "Hoàn thành";
-                case CANCELLED -> "Đã hủy";
-                case REFUND_PENDING -> "Chờ hoàn tiền";
-                case REFUNDED -> "Đã hoàn tiền";
-                case PAYMENT_FAILED -> "Thanh toán thất bại";
-                case IN_TRANSIT -> "Đang vận chuyển";
-            };
-        }
-        return switch (order.getStatus()) {
-            case CONFIRMED -> "Xác nhận thành công";
-            case UNPAID -> "Chờ thanh toán";
-            case PAYMENT_FAILED -> "Thanh toán thất bại";
-            case PAID -> "Đã thanh toán";
-            case IN_TRANSIT -> "Đang vận chuyển";
-            case SHIPPING -> "Đang giao";
-            case DELIVERED -> "Hoàn thành";
-            case CANCELLED -> "Đã hủy";
-            case REFUND_PENDING -> "Chờ hoàn tiền";
-            case REFUNDED -> "Đã hoàn tiền";
-        };
     }
 
     private PaymentDetailResponse toPaymentDetailResponse(Order order) {
         PaymentDetail paymentDetail = order.getPaymentDetail();
         if (paymentDetail == null) {
-            return PaymentDetailResponse.builder()
-                    .paymentMethod(null)
-                    .paymentStatus(null)
-                    .paidAmount(0.0)
-                    .paidAt(null)
-                    .transactionCode(order.getOrderCode())
-                    .build();
+            return null;
         }
 
         return PaymentDetailResponse.builder()
@@ -243,18 +167,19 @@ public class OrderController {
                 .paymentStatus(paymentDetail.getPaymentStatus())
                 .paidAmount(paymentDetail.getPaidAmount())
                 .paidAt(paymentDetail.getPaidAt())
-                .transactionCode(order.getOrderCode())
                 .build();
     }
 
     private PaymentTimelineResponse toPaymentTimelineResponse(Order order) {
         PaymentTimeline timeline = order.getPaymentTimeline();
+        if (timeline == null) {
+            return null;
+        }
         return PaymentTimelineResponse.builder()
-                .orderCreatedAt(timeline != null && timeline.getOrderCreatedAt() != null ? timeline.getOrderCreatedAt() : order.getCreatedAt())
-                .paymentInitiatedAt(timeline != null ? timeline.getPaymentInitiatedAt() : null)
-                .paymentCompletedAt(timeline != null ? timeline.getPaymentCompletedAt() : null)
-                .paymentFailedAt(timeline != null ? timeline.getPaymentFailedAt() : null)
-                .paymentExpiresAt(ExpireUnpaidOrdersService.paymentExpiresAt(order))
+                .orderCreatedAt(timeline.getOrderCreatedAt())
+                .paymentInitiatedAt(timeline.getPaymentInitiatedAt())
+                .paymentCompletedAt(timeline.getPaymentCompletedAt())
+                .paymentFailedAt(timeline.getPaymentFailedAt())
                 .build();
     }
 }

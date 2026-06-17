@@ -12,5 +12,4 @@ public class PaymentTimelineResponse {
     private LocalDateTime paymentInitiatedAt;
     private LocalDateTime paymentCompletedAt;
     private LocalDateTime paymentFailedAt;
-    private LocalDateTime paymentExpiresAt;
 }

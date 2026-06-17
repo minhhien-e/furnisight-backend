@@ -9,11 +9,11 @@ public record UserDetailResponse(
         String email,
         String username,
         String status,
-        String statusLabel,
         String createdAt,
         String firstName,
         String lastName,
         String name,
+        String phone,
         String avatarUrl,
         List<RoleResponse> roles
 ) {

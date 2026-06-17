@@ -3,11 +3,8 @@ package com.furnisight.order.adapter.in.grpc;
 import com.furnisight.admin.order.AdminActionResponse;
 import com.furnisight.admin.order.AdminOrderServiceGrpc;
 import com.furnisight.admin.order.ChartPoint;
-import com.furnisight.admin.order.CreateVoucherRequest;
-import com.furnisight.admin.order.DeleteVoucherRequest;
 import com.furnisight.admin.order.DeliverOrderRequest;
 import com.furnisight.admin.order.GetAdminOrdersRequest;
-import com.furnisight.admin.order.GetAdminVouchersRequest;
 import com.furnisight.admin.order.GetRecentOrdersRequest;
 import com.furnisight.admin.order.GetRevenueSummaryRequest;
 import com.furnisight.admin.order.MonthlyRevenue;
@@ -19,19 +16,13 @@ import com.furnisight.admin.order.RecentOrderListResponse;
 import com.furnisight.admin.order.RevenueSummaryResponse;
 import com.furnisight.admin.order.ShipOrderRequest;
 import com.furnisight.admin.order.UpdateOrderStatusRequest;
-import com.furnisight.admin.order.UpdateVoucherRequest;
-import com.furnisight.admin.order.VoucherDto;
-import com.furnisight.admin.order.VoucherListResponse;
 import com.furnisight.admin.order.GetTopSellingProductsRequest;
 import com.furnisight.admin.order.TopSellingProductsResponse;
 import com.furnisight.admin.order.TopProductDto;
 import com.furnisight.order.application.order.port.in.usecase.UpdateOrderStatusUseCase;
 import com.furnisight.order.application.order.port.in.command.UpdateOrderStatusCommand;
-import com.furnisight.order.application.promotion.port.out.repository.PromotionRepository;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
-import com.furnisight.order.domain.entities.promotion.Promotion;
-import com.furnisight.order.domain.enums.DiscountType;
 import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.valueobjects.ProductSnapshot;
@@ -44,10 +35,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
-import java.util.Map;
-import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -60,10 +48,8 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
     private static final int DEFAULT_PAGE_SIZE = 20;
-    private static final Map<String, String> STATUS_ALIASES = Map.of("SUCCESS", "DELIVERED");
 
     private final OrderRepository orderRepository;
-    private final PromotionRepository promotionRepository;
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
 
     @Override
@@ -158,58 +144,6 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         }
     }
 
-    @Override
-    public void getAdminVouchers(GetAdminVouchersRequest request, StreamObserver<VoucherListResponse> responseObserver) {
-        try {
-            String query = normalizeText(request.getQuery());
-            String status = normalizeText(request.getStatus());
-            VoucherListResponse response = VoucherListResponse.newBuilder()
-                    .addAllVouchers(promotionRepository.findAll().stream()
-                            .filter(promotion -> matchesVoucherQuery(promotion, query))
-                            .filter(promotion -> matchesVoucherStatus(promotion, status))
-                            .sorted(Comparator.comparing(Promotion::getCode, Comparator.nullsLast(String::compareToIgnoreCase)))
-                            .map(this::toVoucherDto)
-                            .toList())
-                    .build();
-            responseObserver.onNext(response);
-            responseObserver.onCompleted();
-        } catch (Exception ex) {
-            log.error("Failed to get admin vouchers", ex);
-            responseObserver.onError(ex);
-        }
-    }
-
-    @Override
-    public void createVoucher(CreateVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        completeAction(responseObserver, () -> {
-            String code = requireText(request.getCode(), "Thiếu mã voucher.").toUpperCase(Locale.ROOT);
-            if (promotionRepository.findByCode(code).isPresent()) {
-                throw new IllegalArgumentException("Mã voucher đã tồn tại.");
-            }
-            promotionRepository.save(applyVoucher(Promotion.builder().id(UUID.randomUUID()).code(code).build(), request, code));
-        }, "Voucher created");
-    }
-
-    @Override
-    public void updateVoucher(UpdateVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        completeAction(responseObserver, () -> {
-            UUID id = UUID.fromString(request.getId());
-            Promotion promotion = promotionRepository.findById(id)
-                    .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher."));
-            String code = requireText(request.getCode(), "Thiếu mã voucher.").toUpperCase(Locale.ROOT);
-            promotionRepository.findByCode(code)
-                    .filter(existing -> !existing.getId().equals(id))
-                    .ifPresent(existing -> {
-                        throw new IllegalArgumentException("Mã voucher đã tồn tại.");
-                    });
-            promotionRepository.save(applyVoucher(promotion, request, code));
-        }, "Voucher updated");
-    }
-
-    @Override
-    public void deleteVoucher(DeleteVoucherRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        completeAction(responseObserver, () -> promotionRepository.deleteById(UUID.fromString(request.getId())), "Voucher deleted");
-    }
 
     @Override
     public void shipOrder(ShipOrderRequest request, StreamObserver<AdminActionResponse> responseObserver) {
@@ -342,18 +276,40 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     private OrderDto toOrderDto(Order order) {
-        return OrderDto.newBuilder()
-                .setId(safe(order.getOrderCode()))
-                .setOrderCode(safe(order.getOrderCode()))
-                .setStatus(order.getStatus() == null ? "" : order.getStatus().name())
-                .setTotalAmount(order.getTotalAmount() == null ? 0D : order.getTotalAmount())
-                .setCreatedAt(order.getCreatedAt() == null ? "" : order.getCreatedAt().toString())
-                .setPaymentMethod(order.getPaymentDetail() == null ? "" : safe(order.getPaymentDetail().getPaymentMethod()))
-                .setFirstProductImage(resolveFirstProductImage(order))
-                .setCustomer(resolveCustomer(order))
-                .setItemCount(resolveItemCount(order))
-                .setTrackingCode(safe(order.getTrackingCode()))
-                .build();
+        OrderDto.Builder builder = OrderDto.newBuilder();
+        if (order.getId() != null) {
+            builder.setId(order.getId().toString());
+        }
+        if (order.getOrderCode() != null) {
+            builder.setOrderCode(order.getOrderCode());
+        }
+        if (order.getStatus() != null) {
+            builder.setStatus(order.getStatus().name());
+        }
+        if (order.getTotalAmount() != null) {
+            builder.setTotalAmount(order.getTotalAmount());
+        }
+        if (order.getCreatedAt() != null) {
+            builder.setCreatedAt(order.getCreatedAt().toString());
+        }
+        if (order.getPaymentDetail() != null && order.getPaymentDetail().getPaymentMethod() != null) {
+            builder.setPaymentMethod(order.getPaymentDetail().getPaymentMethod());
+        }
+        String firstProductImage = resolveFirstProductImage(order);
+        if (firstProductImage != null) {
+            builder.setFirstProductImage(firstProductImage);
+        }
+        String customer = resolveCustomer(order);
+        if (customer != null) {
+            builder.setCustomer(customer);
+        }
+        if (order.getItems() != null) {
+            builder.setItemCount(resolveItemCount(order));
+        }
+        if (order.getTrackingCode() != null) {
+            builder.setTrackingCode(order.getTrackingCode());
+        }
+        return builder.build();
     }
 
     private OrderStatus parseStatus(String rawStatus) {
@@ -361,7 +317,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         if (normalized.isBlank()) {
             return null;
         }
-        return OrderStatus.valueOf(STATUS_ALIASES.getOrDefault(normalized, normalized));
+        return OrderStatus.valueOf(normalized);
     }
 
     private String normalizeStatus(String rawStatus) {
@@ -392,19 +348,18 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     private UUID parseUuid(String value) {
-        try {
-            return value == null || value.isBlank() ? null : UUID.fromString(value);
-        } catch (IllegalArgumentException ignored) {
-            return null;
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("adminId cannot be empty");
         }
+        return UUID.fromString(value);
     }
 
     private String resolveFirstProductImage(Order order) {
         if (order.getItems() == null || order.getItems().isEmpty()) {
-            return "";
+            return null;
         }
         ProductSnapshot productSnapshot = order.getItems().get(0).getProductSnapshot();
-        return productSnapshot == null ? "" : safe(productSnapshot.getImageUrl());
+        return productSnapshot == null ? null : productSnapshot.getImageUrl();
     }
 
     private int resolveItemCount(Order order) {
@@ -416,10 +371,9 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
 
     private String resolveCustomer(Order order) {
         if (order.getShippingDetail() == null) {
-            return "";
+            return null;
         }
-        String fullName = order.getShippingDetail().getShippingAddressName();
-        return fullName == null ? "" : fullName;
+        return order.getShippingDetail().getShippingAddressName();
     }
 
     private String toStatusLabel(String status) {
@@ -437,133 +391,4 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
         };
     }
 
-    private String safe(String value) {
-        return value == null ? "" : value;
-    }
-
-    private VoucherDto toVoucherDto(Promotion promotion) {
-        return VoucherDto.newBuilder()
-                .setId(promotion.getId() == null ? "" : promotion.getId().toString())
-                .setCode(safe(promotion.getCode()))
-                .setName(safe(promotion.getName()))
-                .setDescription(safe(promotion.getDescription()))
-                .setIcon(safe(promotion.getIcon()))
-                .setDiscountType(promotion.getDiscountType() == null ? "" : promotion.getDiscountType().name())
-                .setDiscountValue(promotion.getDiscountValue() == null ? 0D : promotion.getDiscountValue())
-                .setMaxDiscount(promotion.getMaxDiscount() == null ? 0D : promotion.getMaxDiscount())
-                .setMinOrder(promotion.getMinOrder() == null ? 0D : promotion.getMinOrder())
-                .setStartDate(promotion.getStartDate() == null ? "" : promotion.getStartDate().toString())
-                .setEndDate(promotion.getEndDate() == null ? "" : promotion.getEndDate().toString())
-                .setActive(promotion.isActive())
-                .setStatusLabel(voucherStatusLabel(promotion))
-                .build();
-    }
-
-    private Promotion applyVoucher(Promotion promotion, CreateVoucherRequest request, String code) {
-        promotion.setCode(code);
-        promotion.setName(requireText(request.getName(), "Thiếu tên voucher."));
-        promotion.setDescription(safe(request.getDescription()).trim());
-        promotion.setIcon(defaultText(request.getIcon(), "badgePercent"));
-        promotion.setDiscountType(toDiscountType(request.getDiscountType()));
-        promotion.setDiscountValue(nonNegative(request.getDiscountValue()));
-        promotion.setMaxDiscount(nonNegativeOrNull(request.getMaxDiscount()));
-        promotion.setMinOrder(nonNegativeOrNull(request.getMinOrder()));
-        promotion.setStartDate(parseDateTime(request.getStartDate()));
-        promotion.setEndDate(parseDateTime(request.getEndDate()));
-        promotion.setActive(request.getActive());
-        return promotion;
-    }
-
-    private Promotion applyVoucher(Promotion promotion, UpdateVoucherRequest request, String code) {
-        promotion.setCode(code);
-        promotion.setName(requireText(request.getName(), "Thiếu tên voucher."));
-        promotion.setDescription(safe(request.getDescription()).trim());
-        promotion.setIcon(defaultText(request.getIcon(), "badgePercent"));
-        promotion.setDiscountType(toDiscountType(request.getDiscountType()));
-        promotion.setDiscountValue(nonNegative(request.getDiscountValue()));
-        promotion.setMaxDiscount(nonNegativeOrNull(request.getMaxDiscount()));
-        promotion.setMinOrder(nonNegativeOrNull(request.getMinOrder()));
-        promotion.setStartDate(parseDateTime(request.getStartDate()));
-        promotion.setEndDate(parseDateTime(request.getEndDate()));
-        promotion.setActive(request.getActive());
-        return promotion;
-    }
-
-    private boolean matchesVoucherQuery(Promotion promotion, String query) {
-        return query == null
-                || normalizedText(promotion.getCode()).contains(query)
-                || normalizedText(promotion.getName()).contains(query);
-    }
-
-    private boolean matchesVoucherStatus(Promotion promotion, String status) {
-        if (status == null || status.isBlank()) {
-            return true;
-        }
-        return switch (status) {
-            case "active" -> promotion.isActive() && !isExpired(promotion);
-            case "inactive" -> !promotion.isActive();
-            case "expired" -> isExpired(promotion);
-            default -> true;
-        };
-    }
-
-    private String voucherStatusLabel(Promotion promotion) {
-        if (!promotion.isActive()) {
-            return "Đã tắt";
-        }
-        return isExpired(promotion) ? "Hết hạn" : "Đang bật";
-    }
-
-    private boolean isExpired(Promotion promotion) {
-        return promotion.getEndDate() != null && promotion.getEndDate().isBefore(LocalDateTime.now());
-    }
-
-    private DiscountType toDiscountType(String value) {
-        try {
-            return DiscountType.valueOf(defaultText(value, "PERCENT").toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException ex) {
-            throw new IllegalArgumentException("Loại giảm giá không hợp lệ.");
-        }
-    }
-
-    private LocalDateTime parseDateTime(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        return LocalDateTime.parse(value);
-    }
-
-    private String normalizeText(String value) {
-        return value == null || value.isBlank() ? null : value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String normalizedText(String value) {
-        return value == null || value.isBlank() ? "" : value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private String requireText(String value, String message) {
-        if (value == null || value.isBlank()) {
-            throw new IllegalArgumentException(message);
-        }
-        return value.trim();
-    }
-
-    private String defaultText(String value, String fallback) {
-        String text = safe(value).trim();
-        return text.isBlank() ? fallback : text;
-    }
-
-    private double nonNegative(double value) {
-        if (value < 0) {
-            throw new IllegalArgumentException("Giá trị giảm không được âm.");
-        }
-        return value;
-    }
-
-    private Double nonNegativeOrNull(double value) {
-        if (value < 0) {
-            throw new IllegalArgumentException("Giá trị cấu hình không được âm.");
-        }
-        return value == 0D ? null : value;
-    }
 }

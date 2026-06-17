@@ -63,17 +63,11 @@ public class InventoryService {
     }
 
     private InventoryItemResponse toInventoryItem(ProductDto product, ProductVariantDto variant) {
-        int stock = variant.getStock();
-        int threshold = validator.validThreshold(variant.getLowStockThreshold());
-        String status = stock <= 0 ? "cancel" : stock <= threshold ? "low" : "success";
-        String statusLabel = stock <= 0 ? "Hết hàng" : stock <= threshold ? "Sắp hết" : "Đủ hàng";
-        int stockPercent = Math.min(100, Math.max(0, stock * 100 / 50));
-        String label = variant.getLabel().isBlank() ? variant.getId() : variant.getLabel();
         return new InventoryItemResponse(
                 product.getId(), variant.getId(),
-                variant.getSku().isBlank() ? variant.getId() : variant.getSku(),
-                product.getName(), product.getCategory(), label, stock, threshold, stockPercent,
-                status, "", "", status, statusLabel);
+                variant.getSku(),
+                product.getName(), product.getCategory(), variant.getLabel(),
+                variant.getStock(), variant.getLowStockThreshold(), "", "");
     }
 
     private LowStockItemResponse toLowStockResponse(LowStockProductDto product) {

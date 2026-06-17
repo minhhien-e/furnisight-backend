@@ -12,5 +12,4 @@ public class PaymentDetailResponse {
     private String paymentStatus;
     private Double paidAmount;
     private LocalDateTime paidAt;
-    private String transactionCode;
 }

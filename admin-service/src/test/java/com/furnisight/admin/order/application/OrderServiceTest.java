@@ -12,17 +12,19 @@ import static org.mockito.Mockito.when;
 class OrderServiceTest {
 
     @Test
-    void keepsOrderResponseShapeAndStatusMapping() {
+    void copiesOrderResponseFieldsWithoutPresentationMapping() {
         AdminOrderGrpcClient client = mock(AdminOrderGrpcClient.class);
         when(client.getOrders(1, 20, "SHIPPING", "ORD"))
                 .thenReturn(OrderPageResponse.newBuilder()
                         .addOrders(OrderDto.newBuilder()
+                                .setId("order-id-1")
                                 .setOrderCode("ORD-1")
-                                .setCustomer("Minh")
+                                .setCustomer("")
                                 .setItemCount(2)
                                 .setTotalAmount(500_000)
                                 .setStatus("SHIPPING")
                                 .setPaymentMethod("vnpay")
+                                .setFirstProductImage("https://example.com/image.png")
                                 .setTrackingCode("GHN123456")
                                 .setCreatedAt("2026-06-10T10:00:00")
                                 .build())
@@ -34,16 +36,20 @@ class OrderServiceTest {
         var response = new OrderService(client).getOrders(1, 20, "SHIPPING", "ORD");
 
         assertThat(response.items()).singleElement().satisfies(order -> {
-            assertThat(order.id()).isEqualTo("ORD-1");
+            assertThat(order.id()).isEqualTo("order-id-1");
+            assertThat(order.orderCode()).isEqualTo("ORD-1");
             assertThat(order.status()).isEqualTo("SHIPPING");
-            assertThat(order.statusLabel()).isEqualTo("Đang giao");
-            assertThat(order.date()).isEqualTo("10/06/2026");
+            assertThat(order.createdAt()).isEqualTo("2026-06-10T10:00:00");
+            assertThat(order.totalAmount()).isEqualTo(500_000);
+            assertThat(order.customer()).isEmpty();
+            assertThat(order.itemCount()).isEqualTo(2);
+            assertThat(order.firstProductImage()).isEqualTo("https://example.com/image.png");
             assertThat(order.trackingCode()).isEqualTo("GHN123456");
         });
     }
 
     @Test
-    void showsCodPaidOrderAsConfirmedForLegacyRows() {
+    void keepsCodPaidStatusUnchanged() {
         AdminOrderGrpcClient client = mock(AdminOrderGrpcClient.class);
         when(client.getOrders(1, 20, "", ""))
                 .thenReturn(OrderPageResponse.newBuilder()
@@ -62,12 +68,12 @@ class OrderServiceTest {
 
         assertThat(response.items()).singleElement().satisfies(order -> {
             assertThat(order.status()).isEqualTo("PAID");
-            assertThat(order.statusLabel()).isEqualTo("Xác nhận thành công");
+            assertThat(order.paymentMethod()).isEqualTo("cod");
         });
     }
 
     @Test
-    void showsDeliveredOrderAsDeliveredToCustomer() {
+    void copiesDeliveredStatusWithoutLabelMapping() {
         AdminOrderGrpcClient client = mock(AdminOrderGrpcClient.class);
         when(client.getOrders(1, 20, "DELIVERED", ""))
                 .thenReturn(OrderPageResponse.newBuilder()
@@ -86,7 +92,7 @@ class OrderServiceTest {
 
         assertThat(response.items()).singleElement().satisfies(order -> {
             assertThat(order.status()).isEqualTo("DELIVERED");
-            assertThat(order.statusLabel()).isEqualTo("Hoàn thành");
+            assertThat(order.customer()).isEqualTo("Minh");
         });
     }
 }

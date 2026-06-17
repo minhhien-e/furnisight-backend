@@ -771,32 +771,6 @@ WHERE id IN (
 )
 OR order_code IN ('ORD-A1B2C3D4', 'ORD-X9Y8Z7W6');
 
-DELETE FROM user_vouchers
-WHERE promotion_id IN (
-  '71000000-0000-0000-0000-000000000001',
-  '71000000-0000-0000-0000-000000000002',
-  '71000000-0000-0000-0000-000000000003'
-);
-
-DELETE FROM promotions
-WHERE id IN (
-  '71000000-0000-0000-0000-000000000001',
-  '71000000-0000-0000-0000-000000000002',
-  '71000000-0000-0000-0000-000000000003'
-)
-OR code IN ('WELCOME10', 'FREESHIP', 'FURNI500K');
-
-INSERT INTO promotions (
-  id, code, name, description, icon, discount_type, discount_value,
-  max_discount, min_order, start_date, end_date, active, created_at, updated_at
-) VALUES
-  ('71000000-0000-0000-0000-000000000001', 'WELCOME10', 'Ưu đãi khách hàng mới', 'Giảm 10% cho đơn hàng đầu tiên.', 'percent', 'PERCENT', 10, 500000, 3000000, NOW() - INTERVAL '30 days', NOW() + INTERVAL '180 days', TRUE, NOW(), NOW()),
-  ('71000000-0000-0000-0000-000000000002', 'FREESHIP', 'Miễn phí vận chuyển', 'Giảm tối đa 100.000đ phí vận chuyển.', 'truck', 'SHIPPING_CAP', 100000, 100000, 1000000, NOW() - INTERVAL '30 days', NOW() + INTERVAL '180 days', TRUE, NOW(), NOW()),
-  ('71000000-0000-0000-0000-000000000003', 'FURNI500K', 'Giảm 500.000đ', 'Giảm trực tiếp 500.000đ cho đơn nội thất từ 10 triệu.', 'ticket', 'FIXED', 500000, 500000, 10000000, NOW() - INTERVAL '30 days', NOW() + INTERVAL '90 days', TRUE, NOW(), NOW());
-
-INSERT INTO user_vouchers (id, user_id, promotion_id, is_used, used_at, saved_at) VALUES
-  ('72000000-0000-0000-0000-000000000001', '52379d96-5238-4fd9-8383-bae82736bb3b', '71000000-0000-0000-0000-000000000001', FALSE, NULL, NOW() - INTERVAL '3 days'),
-  ('72000000-0000-0000-0000-000000000002', '52379d96-5238-4fd9-8383-bae82736bb3b', '71000000-0000-0000-0000-000000000002', FALSE, NULL, NOW() - INTERVAL '2 days');
 
 -- Mock Orders cho minhhien7840@gmail.com
 INSERT INTO orders (
