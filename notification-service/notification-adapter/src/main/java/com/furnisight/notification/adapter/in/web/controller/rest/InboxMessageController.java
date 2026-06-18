@@ -6,7 +6,7 @@ import com.furnisight.notification.application.inbox.port.in.dto.command.DeleteI
 import com.furnisight.notification.application.inbox.port.in.dto.command.MarkAllInboxMessagesAsReadCommand;
 import com.furnisight.notification.application.inbox.port.in.dto.command.MarkInboxMessageAsReadCommand;
 import com.furnisight.notification.application.inbox.port.in.dto.command.SaveInboxMessageCommand;
-import com.furnisight.notification.application.inbox.port.in.dto.projection.InboxMessageProjection;
+import com.furnisight.notification.application.inbox.port.in.dto.response.InboxMessageResponse;
 import com.furnisight.notification.application.inbox.port.in.dto.query.GetInboxMessageQuery;
 import com.furnisight.notification.application.inbox.port.in.usecase.*;
 import jakarta.validation.Valid;
@@ -33,7 +33,7 @@ public class InboxMessageController {
     private final CurrentUserProvider currentUserProvider;
 
     @PostMapping
-    public ResponseEntity<InboxMessageProjection> saveMessage(@Valid @RequestBody SaveInboxMessageRequest request) {
+    public ResponseEntity<InboxMessageResponse> saveMessage(@Valid @RequestBody SaveInboxMessageRequest request) {
         SaveInboxMessageCommand command = SaveInboxMessageCommand.builder()
             .userId(currentUserProvider.getCurrentUserId())
             .title(request.getTitle())
@@ -67,7 +67,7 @@ public class InboxMessageController {
     }
 
     @GetMapping
-    public ResponseEntity<List<InboxMessageProjection>> getAllMessages(
+    public ResponseEntity<List<InboxMessageResponse>> getAllMessages(
         @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
         @RequestParam(value = "isDeleted", defaultValue = "false") boolean isDeleted,
         @RequestParam(value = "limit", defaultValue = "20") int limit

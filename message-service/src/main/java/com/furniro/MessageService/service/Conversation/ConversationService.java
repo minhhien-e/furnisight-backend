@@ -1,6 +1,5 @@
 package com.furniro.MessageService.service.Conversation;
 
-import java.util.Map;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
@@ -15,6 +14,7 @@ import com.furniro.MessageService.database.repository.ConversationRepository;
 import com.furniro.MessageService.database.repository.MessageRepository;
 import com.furniro.MessageService.dto.API.AType;
 import com.furniro.MessageService.dto.API.ApiType;
+import com.furniro.MessageService.dto.event.UploadActiveEvent;
 import com.furniro.MessageService.dto.req.Message.ConversationReq;
 import com.furniro.MessageService.exception.imp.MessageException;
 import com.furniro.MessageService.service.kafka.KafkaProducer;
@@ -61,10 +61,7 @@ public class ConversationService {
                 .build();
 
             if (MessageType.IMAGE.equals(req.getMessageType())) {
-            Map<String, Object> payload = Map.of(
-                "fileID", req.getFileId()
-            );
-            kafkaProducer.send("upload.active", payload);
+                kafkaProducer.send("upload.active", new UploadActiveEvent(req.getFileId()));
             }
 
             existingConversation.setLastMessageContent(req.getMessage());
@@ -101,10 +98,7 @@ public class ConversationService {
         // 3 if message type is Image , send kafka active image
         if (MessageType.IMAGE.equals(req.getMessageType())) {
             // send kafka active image
-            Map<String, Object> payload = Map.of(
-                    "fileID", req.getFileId()
-            );
-            kafkaProducer.send("upload.active", payload);
+            kafkaProducer.send("upload.active", new UploadActiveEvent(req.getFileId()));
 
         }
         

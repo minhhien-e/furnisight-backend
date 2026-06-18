@@ -7,9 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Slf4j
 @Component
@@ -31,14 +29,15 @@ public class KafkaInventoryEventPublisher implements InventoryEventPublisherPort
 
     private void publishEvent(String topic, String orderCode, List<StockItem> items) {
         try {
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("orderCode", orderCode);
-            payload.put("items", items);
+            InventoryEventPayload payload = new InventoryEventPayload(orderCode, items);
 
             String jsonPayload = objectMapper.writeValueAsString(payload);
             kafkaTemplate.send(topic, orderCode, jsonPayload);
         } catch (Exception e) {
             log.error("Failed to publish event to topic: {}", topic, e);
         }
+    }
+
+    private record InventoryEventPayload(String orderCode, List<StockItem> items) {
     }
 }

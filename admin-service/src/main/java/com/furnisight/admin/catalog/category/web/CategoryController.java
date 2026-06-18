@@ -3,7 +3,7 @@ package com.furnisight.admin.catalog.category.web;
 import com.furnisight.admin.audit.application.AuditLogService;
 import com.furnisight.admin.catalog.category.application.CategoryService;
 import com.furnisight.admin.catalog.category.web.dto.request.UpsertCategoryRequest;
-import com.furnisight.admin.catalog.category.web.dto.response.CategoryListResponse;
+import com.furnisight.admin.catalog.category.web.dto.response.CategoryResponse;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/categories")
@@ -23,7 +25,7 @@ public class CategoryController {
 
     @GetMapping
     @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
-    public ResponseEntity<CategoryListResponse> getCategories(@RequestParam(required = false) String query) {
+    public ResponseEntity<List<CategoryResponse>> getCategories(@RequestParam(required = false) String query) {
         return ResponseEntity.ok(categoryService.getCategories(query));
     }
 
@@ -60,7 +62,7 @@ public class CategoryController {
 
     @GetMapping("/icon-options")
     @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
-    public ResponseEntity<CategoryListResponse> getCategoryIconOptions() {
-        return ResponseEntity.ok(new CategoryListResponse(java.util.List.of()));
+    public ResponseEntity<List<CategoryResponse>> getCategoryIconOptions() {
+        return ResponseEntity.ok(List.of());
     }
 }

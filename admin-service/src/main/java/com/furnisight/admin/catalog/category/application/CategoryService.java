@@ -4,12 +4,13 @@ import com.furnisight.admin.catalog.CategoryDto;
 import com.furnisight.admin.catalog.CreateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.category.web.dto.request.UpsertCategoryRequest;
-import com.furnisight.admin.catalog.category.web.dto.response.CategoryListResponse;
 import com.furnisight.admin.catalog.category.web.dto.response.CategoryResponse;
 import com.furnisight.admin.catalog.infrastructure.grpc.AdminCatalogGrpcClient;
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,11 +18,11 @@ public class CategoryService {
 
     private final AdminCatalogGrpcClient catalogClient;
 
-    public CategoryListResponse getCategories(String query) {
+    public List<CategoryResponse> getCategories(String query) {
         com.furnisight.admin.catalog.CategoryListResponse response = catalogClient.getCategories(query);
-        return new CategoryListResponse(response.getCategoriesList().stream()
+        return response.getCategoriesList().stream()
                 .map(this::toResponse)
-                .toList());
+                .toList();
     }
 
     public ActionResultResponse createCategory(UpsertCategoryRequest request) {

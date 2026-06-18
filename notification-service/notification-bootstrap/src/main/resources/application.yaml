@@ -9,6 +9,8 @@ grpc:
 spring:
   application:
     name: notification-service
+  jackson:
+    default-property-inclusion: non_null
 
   mail:
     host: ${MAIL_HOST}

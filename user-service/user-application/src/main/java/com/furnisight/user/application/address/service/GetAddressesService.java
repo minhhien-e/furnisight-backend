@@ -1,6 +1,6 @@
 package com.furnisight.user.application.address.service;
 
-import com.furnisight.user.application.address.port.in.projection.AddressProjection;
+import com.furnisight.user.application.address.port.in.response.AddressResponse;
 import com.furnisight.user.application.address.port.in.usecase.GetAddressesUseCase;
 import com.furnisight.user.domain.entities.profile.UserAddress;
 import com.furnisight.user.domain.repository.profile.UserAddressRepository;
@@ -20,15 +20,15 @@ public class GetAddressesService implements GetAddressesUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<AddressProjection> execute(UUID accountId) {
+    public List<AddressResponse> execute(UUID accountId) {
         return addressRepository.findByAccountId(accountId)
                 .stream()
-                .map(this::mapToProjection)
+                .map(this::mapToResponse)
                 .collect(Collectors.toList());
     }
 
-    private AddressProjection mapToProjection(UserAddress address) {
-        return AddressProjection.builder()
+    private AddressResponse mapToResponse(UserAddress address) {
+        return AddressResponse.builder()
                 .id(address.getId())
                 .fullName(address.getFullName())
                 .phone(address.getPhone())

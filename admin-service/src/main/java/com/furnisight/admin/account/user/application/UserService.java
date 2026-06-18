@@ -5,10 +5,9 @@ import com.furnisight.admin.account.role.application.RoleService;
 import com.furnisight.admin.account.role.web.dto.response.RoleResponse;
 import com.furnisight.admin.account.user.web.dto.request.CreateUserRequest;
 import com.furnisight.admin.account.user.web.dto.request.UpdateUserRequest;
-import com.furnisight.admin.account.user.web.dto.response.UserDetailResponse;
-import com.furnisight.admin.account.user.web.dto.response.UserPageResponse;
-import com.furnisight.admin.account.user.web.dto.response.UserSummaryResponse;
+import com.furnisight.admin.account.user.web.dto.response.UserResponse;
 import com.furnisight.admin.shared.web.ActionResultResponse;
+import com.furnisight.admin.shared.web.PageResponse;
 import com.furnisight.admin.user.AccountDetailResponse;
 import com.furnisight.admin.user.AccountDto;
 import com.furnisight.admin.user.AdminActionResponse;
@@ -25,19 +24,19 @@ public class UserService {
     private final AdminUserGrpcClient userClient;
     private final RoleService roleService;
 
-    public UserPageResponse getUsers(int page, int size, String query, String status) {
+    public PageResponse<UserResponse> getUsers(int page, int size, String query, String status) {
         com.furnisight.admin.user.AccountPageResponse response =
                 userClient.getAccounts(page, size, query, status);
-        return new UserPageResponse(
-                response.getAccountsList().stream().map(this::toSummaryResponse).toList(),
+        return new PageResponse<>(
+                response.getAccountsList().stream().map(this::toUserResponse).toList(),
                 response.getTotalPages(), response.getTotalElements(), response.getCurrentPage());
     }
 
-    public UserDetailResponse getUserById(UUID id) {
+    public UserResponse getUserById(UUID id) {
         AccountDetailResponse account = userClient.getAccountById(id);
         String firstName = account.getFirstName();
         String lastName = account.getLastName();
-        return new UserDetailResponse(
+        return new UserResponse(
                 account.getId(), account.getEmail(), account.getUsername(),
                 account.getStatus(),
                 account.getCreatedAt(), firstName, lastName, account.getName(), account.getPhone(),
@@ -98,11 +97,11 @@ public class UserService {
                 request.getPassword(), parseUuid(request.getRole())));
     }
 
-    private UserSummaryResponse toSummaryResponse(AccountDto account) {
+    private UserResponse toUserResponse(AccountDto account) {
         List<RoleResponse> roles = roleService.toRoleResponses(account.getRolesList());
-        return new UserSummaryResponse(
-                account.getId(), account.getName(), account.getEmail(), account.getStatus(),
-                roles, account.getPhone(), account.getCreatedAt());
+        return new UserResponse(
+                account.getId(), account.getEmail(), null, account.getStatus(), account.getCreatedAt(),
+                null, null, account.getName(), account.getPhone(), null, roles);
     }
 
     private ActionResultResponse toActionResult(AdminActionResponse response) {

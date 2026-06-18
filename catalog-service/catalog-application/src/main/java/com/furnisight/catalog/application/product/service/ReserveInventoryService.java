@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReserveInventoryService implements ReserveInventoryUseCase {
 
     private final ProductRepository productRepository;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -35,6 +36,7 @@ public class ReserveInventoryService implements ReserveInventoryUseCase {
 
             variant.decreaseStock(item.getQuantity());
             productRepository.save(product);
+            productUpdateEventService.enqueue(product);
         }
 
         return null;

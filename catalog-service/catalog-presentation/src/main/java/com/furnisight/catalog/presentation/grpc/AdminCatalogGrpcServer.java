@@ -27,7 +27,7 @@ import com.furnisight.admin.catalog.UpdateProductRequest;
 import com.furnisight.admin.catalog.UpdateVariantThresholdRequest;
 import com.furnisight.catalog.application.category.dto.command.CreateCategoryCommand;
 import com.furnisight.catalog.application.category.dto.command.UpdateCategoryCommand;
-import com.furnisight.catalog.application.category.dto.projection.CategoryDetailProjection;
+import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import com.furnisight.catalog.application.category.port.in.usecase.CreateCategoryUseCase;
 import com.furnisight.catalog.application.category.port.in.usecase.UpdateCategoryUseCase;
 import com.furnisight.catalog.application.category.port.out.CategoryReadRepository;
@@ -36,9 +36,7 @@ import com.furnisight.catalog.application.product.dto.command.CreateProductComma
 import com.furnisight.catalog.application.product.dto.command.UpdateInventoryCommand;
 import com.furnisight.catalog.application.product.dto.command.UpdateProductInfoCommand;
 import com.furnisight.catalog.application.product.dto.command.UpdateProductStatusCommand;
-import com.furnisight.catalog.application.product.dto.projection.AdminProductProjection;
-import com.furnisight.catalog.application.product.dto.projection.LowStockProductProjection;
-import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.in.usecase.ChangeProductCategoryUseCase;
 import com.furnisight.catalog.application.product.port.in.usecase.CreateProductUseCase;
 import com.furnisight.catalog.application.product.port.in.usecase.ReleaseInventoryUseCase;
@@ -96,7 +94,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         try {
             int page = Math.max(request.getPage() - 1, 0);
             int size = request.getSize() > 0 ? request.getSize() : DEFAULT_PAGE_SIZE;
-            List<AdminProductProjection> products = productReadRepository.findAdminProducts(
+            List<ProductResponse> products = productReadRepository.findAdminProducts(
                     emptyToNull(request.getQuery()),
                     productStatusForQuery(request.getStatus()),
                     emptyToNull(request.getCategory()),
@@ -124,7 +122,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     @Override
     public void getProductDetail(GetProductDetailRequest request, StreamObserver<ProductDto> responseObserver) {
         try {
-            ProductDetailProjection detail = findProductDetail(request.getId());
+            ProductResponse detail = findProductDetail(request.getId());
             responseObserver.onNext(toProductDto(detail));
             responseObserver.onCompleted();
         } catch (Exception ex) {
@@ -294,7 +292,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     @Override
     public void getCategoryDetail(GetCategoryDetailRequest request, StreamObserver<CategoryDto> responseObserver) {
         try {
-            CategoryDetailProjection category = categoryReadRepository.findCategoryDetailById(UUID.fromString(request.getId()))
+            CategoryResponse category = categoryReadRepository.findCategoryDetailById(UUID.fromString(request.getId()))
                     .orElseThrow(() -> new IllegalArgumentException("Category not found"));
             responseObserver.onNext(toCategoryDto(category));
             responseObserver.onCompleted();
@@ -355,7 +353,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         responseObserver.onCompleted();
     }
 
-    private ProductDto toProductDto(AdminProductProjection product) {
+    private ProductDto toProductDto(ProductResponse product) {
         ModelMedia model = readModelMetadata(product.getModelMediaId(), product.getModelUrl());
         return ProductDto.newBuilder()
                 .setId(product.getId().toString())
@@ -374,35 +372,6 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setModel3DSize(model.sizeBytes())
                 .addAllImageUrls(product.getImageUrls() == null ? List.of() : product.getImageUrls())
                 .addAllVariants(fetchAdminVariantDtos(product.getId()))
-                .build();
-    }
-
-    private ProductDto toProductDto(ProductDetailProjection product) {
-        int stock = product.getVariants() == null ? 0 : product.getVariants().stream()
-                .mapToInt(variant -> variant.getStockQuantity() == null ? 0 : variant.getStockQuantity())
-                .sum();
-        double price = product.getPrice() == null ? 0D : product.getPrice();
-        String category = product.getCategory() == null ? "" : product.getCategory().getLabel();
-        ModelMedia model = readModelMetadata(product.getModelMediaId(), product.getModelUrl());
-        return ProductDto.newBuilder()
-                .setId(product.getId().toString())
-                .setName(safe(product.getName()))
-                .setSlug(safe(product.getSlug()))
-                .setSku(safe(product.getSlug()))
-                .setCategory(safe(category))
-                .setPrice(price)
-                .setStock(stock)
-                .setStatus(toProductTone(product.getStatus(), stock))
-                .setStatusLabel(toProductStatusLabel(product.getStatus(), stock))
-                .setModelUrl(model.url())
-                .setModelMediaId(product.getModelMediaId() == null ? "" : product.getModelMediaId().toString())
-                .setSupports3D(Boolean.TRUE.equals(product.getSupports3d()))
-                .setModel3DFileName(model.filename())
-                .setModel3DSize(model.sizeBytes())
-                .addAllImageUrls(product.getGallery() == null ? List.of() : product.getGallery())
-                .addAllVariants(product.getVariants() == null ? List.of() : product.getVariants().stream()
-                        .map(this::toVariantDto)
-                        .toList())
                 .build();
     }
 
@@ -491,7 +460,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     }
 
     private List<ProductVariantDto> fetchAdminVariantDtos(UUID productId) {
-        List<ProductDetailProjection.VariantDto> variants = findProductDetail(productId.toString()).getVariants();
+        List<ProductResponse.VariantDto> variants = findProductDetail(productId.toString()).getVariants();
         if (variants == null) {
             return List.of();
         }
@@ -500,7 +469,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .toList();
     }
 
-    private ProductVariantDto toVariantDto(ProductDetailProjection.VariantDto variant) {
+    private ProductVariantDto toVariantDto(ProductResponse.VariantDto variant) {
         return ProductVariantDto.newBuilder()
                 .setId(variant.getId() == null ? "" : variant.getId().toString())
                 .setSku(safe(variant.getSku()))
@@ -609,7 +578,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     private record ModelMedia(UUID mediaId, String url, String filename, long sizeBytes) {
     }
 
-    private String variantLabel(ProductDetailProjection.VariantDto variant) {
+    private String variantLabel(ProductResponse.VariantDto variant) {
         String color = safe(variant.getColor());
         String material = safe(variant.getMaterial());
         if (!color.isBlank() && !material.isBlank()) {
@@ -646,7 +615,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         });
     }
 
-    private LowStockProductDto toLowStockDto(LowStockProductProjection product) {
+    private LowStockProductDto toLowStockDto(ProductResponse product) {
         int stock = product.getStock() == null ? 0 : product.getStock();
         return LowStockProductDto.newBuilder()
                 .setId(product.getId().toString())
@@ -657,7 +626,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .build();
     }
 
-    private CategoryDto toCategoryDto(CategoryDetailProjection category) {
+    private CategoryDto toCategoryDto(CategoryResponse category) {
         return CategoryDto.newBuilder()
                 .setId(category.getId().toString())
                 .setName(safe(category.getName()))
@@ -672,7 +641,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .build();
     }
 
-    private ProductDetailProjection findProductDetail(String idOrSlug) {
+    private ProductResponse findProductDetail(String idOrSlug) {
         try {
             return productReadRepository.findProductDetailById(UUID.fromString(idOrSlug))
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
@@ -695,7 +664,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .filter(category -> normalized.equalsIgnoreCase(category.getName())
                         || normalized.equalsIgnoreCase(category.getSlug())
                         || normalized.equalsIgnoreCase(category.getId().toString()))
-                .map(CategoryDetailProjection::getId)
+                .map(CategoryResponse::getId)
                 .findFirst()
                 .orElse(null);
     }

@@ -1,7 +1,7 @@
 package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.application.dto.MarketingComboDto;
-import com.furnisight.promotion.application.dto.MarketingListResponse;
+import com.furnisight.promotion.application.dto.PageResponse;
 import com.furnisight.promotion.application.dto.ValidateComboCommand;
 import com.furnisight.promotion.application.dto.ValidateComboResponse;
 import com.furnisight.promotion.application.service.MarketingService;
@@ -28,7 +28,7 @@ public class ComboController {
     }
 
     @GetMapping
-    public ResponseEntity<MarketingListResponse<MarketingComboDto>> getPublicCombos(
+    public ResponseEntity<PageResponse<MarketingComboDto>> getPublicCombos(
             @RequestParam(required = false) String placement,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) Integer page,

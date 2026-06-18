@@ -5,6 +5,8 @@ server:
 spring:
   application:
     name: gateway
+  jackson:
+    default-property-inclusion: non_null
   reactor:
     context-propagation: auto
   security:

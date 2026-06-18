@@ -3,7 +3,6 @@ package com.furnisight.admin.account.role.application;
 import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
 import com.furnisight.admin.account.role.web.dto.request.UpsertRoleRequest;
 import com.furnisight.admin.account.role.domain.Permission;
-import com.furnisight.admin.account.role.web.dto.response.RoleListResponse;
 import com.furnisight.admin.account.role.web.dto.response.RoleResponse;
 import com.furnisight.admin.account.role.web.dto.response.RolesAndPermissionsResponse;
 import com.furnisight.admin.shared.web.ActionResultResponse;
@@ -23,8 +22,8 @@ public class RoleService {
     private final AdminUserGrpcClient userClient;
     private final PermissionMapper permissionMapper;
 
-    public RoleListResponse getRoles() {
-        return new RoleListResponse(toRoleResponses(userClient.getRoles().getRolesList()));
+    public List<RoleResponse> getRoles() {
+        return toRoleResponses(userClient.getRoles().getRolesList());
     }
 
     public RolesAndPermissionsResponse getRolesAndPermissions() {

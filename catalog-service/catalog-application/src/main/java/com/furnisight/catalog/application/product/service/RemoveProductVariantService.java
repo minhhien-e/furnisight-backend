@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class RemoveProductVariantService implements RemoveProductVariantUseCase {
     private final ProductRepository productRepository;
     private final ProductLifecycleService productLifecycleService;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -26,5 +27,6 @@ public class RemoveProductVariantService implements RemoveProductVariantUseCase 
         productLifecycleService.removeVariant(product, command.getVariantId());
 
         productRepository.save(product);
+        productUpdateEventService.enqueue(product);
     }
 }

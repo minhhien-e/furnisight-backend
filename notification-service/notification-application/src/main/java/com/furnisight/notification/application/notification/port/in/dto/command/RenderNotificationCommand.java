@@ -1,12 +1,11 @@
 package com.furnisight.notification.application.notification.port.in.dto.command;
+import com.furnisight.notification.domain.service.TemplateData;
 import lombok.Builder;
 import lombok.Data;
-
-import java.util.Map;
 
 @Data
 @Builder
 public class RenderNotificationCommand {
     private String templateCode;
-    private Map<String, Object> data;
+    private TemplateData data;
 }

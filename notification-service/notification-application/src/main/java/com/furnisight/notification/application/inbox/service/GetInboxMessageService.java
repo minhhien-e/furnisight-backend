@@ -1,6 +1,6 @@
 package com.furnisight.notification.application.inbox.service;
 
-import com.furnisight.notification.application.inbox.port.in.dto.projection.InboxMessageProjection;
+import com.furnisight.notification.application.inbox.port.in.dto.response.InboxMessageResponse;
 import com.furnisight.notification.application.inbox.port.in.dto.query.GetInboxMessageQuery;
 import com.furnisight.notification.application.inbox.port.in.usecase.GetInboxMessageUseCase;
 import com.furnisight.notification.application.inbox.port.out.repository.InboxMessageRepository;
@@ -16,8 +16,8 @@ public class GetInboxMessageService implements GetInboxMessageUseCase {
     private final InboxMessageRepository inboxMessageRepository;
 
     @Override
-    public List<InboxMessageProjection> execute(GetInboxMessageQuery command) {
+    public List<InboxMessageResponse> execute(GetInboxMessageQuery command) {
         List<InboxMessage> messages = inboxMessageRepository.findAllByUserId(command.getUserId(), command.isDeleted(),command.getStartDate(), command.getLimit());
-        return messages.stream().map(InboxMessageProjection::from).toList();
+        return messages.stream().map(InboxMessageResponse::from).toList();
     }
 }

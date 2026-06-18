@@ -2,7 +2,7 @@ package com.furnisight.notification.application.template.service;
 
 import com.furnisight.notification.application.template.port.in.dto.command.CreateNotificationTemplateCommand;
 import com.furnisight.notification.application.template.port.in.usecase.CreateNotificationTemplateUseCase;
-import com.furnisight.notification.application.template.port.in.dto.projection.NotificationTemplateProjection;
+import com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse;
 import com.furnisight.notification.application.template.port.out.repository.NotificationTemplateRepository;
 import com.furnisight.notification.domain.model.entity.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class CreateNotificationTemplateService implements CreateNotificationTemp
 
     @Override
     @Transactional
-    public NotificationTemplateProjection execute(CreateNotificationTemplateCommand command) {
+    public NotificationTemplateResponse execute(CreateNotificationTemplateCommand command) {
         NotificationTemplate template = NotificationTemplate.builder()
                 .code(command.getCode())
                 .name(command.getName())
@@ -30,6 +30,6 @@ public class CreateNotificationTemplateService implements CreateNotificationTemp
                 .build();
 
         NotificationTemplate saved = notificationTemplateRepository.save(template);
-        return NotificationTemplateProjection.from(saved);
+        return NotificationTemplateResponse.from(saved);
     }
 }

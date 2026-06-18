@@ -57,7 +57,7 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
                    "WHERE o.status NOT IN :statuses " +
                    "GROUP BY oi.productSnapshot.productId " +
                    "ORDER BY SUM(oi.quantity) DESC")
-    List<Object[]> findTopSellingProducts(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);
+    List<TopSellingProductRow> findTopSellingProducts(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);
 
     @Query("select oi.id " +
            "from Order o join o.items oi " +

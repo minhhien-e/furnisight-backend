@@ -1,8 +1,9 @@
 package com.furnisight.catalog.presentation.web.rest.controller;
 
 import com.furnisight.catalog.application.product.dto.command.*;
+import com.furnisight.catalog.application.common.dto.PageResponse;
 import com.furnisight.catalog.application.product.dto.query.GetProductDetailQuery;
-import com.furnisight.catalog.application.product.dto.projection.*;
+import com.furnisight.catalog.application.product.dto.response.*;
 import com.furnisight.catalog.application.product.port.in.usecase.*;
 import com.furnisight.catalog.presentation.web.rest.dto.request.product.*;
 import lombok.RequiredArgsConstructor;
@@ -142,7 +143,7 @@ public class ProductController {
     // ─── QUERIES ─────────────────────────────────────────────────────────────
 
     @GetMapping
-    public ResponseEntity<SearchProductsProjection> searchProducts(
+    public ResponseEntity<PageResponse<ProductResponse>> searchProducts(
             @RequestParam(name = "q", required = false) String q,
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(name = "sort", required = false) String sort,
@@ -173,28 +174,28 @@ public class ProductController {
                 .size(size)
                 .build();
 
-        SearchProductsProjection results = searchProductsUseCase.execute(queryParam);
+        PageResponse<ProductResponse> results = searchProductsUseCase.execute(queryParam);
         return ResponseEntity.ok(results);
     }
 
     @GetMapping(name = "slug", value = "/{slug}")
-    public ResponseEntity<ProductDetailProjection> getProductDetail(@PathVariable(name = "slug") String slug) {
+    public ResponseEntity<ProductResponse> getProductDetail(@PathVariable(name = "slug") String slug) {
         GetProductDetailQuery query = new GetProductDetailQuery(slug);
-        ProductDetailProjection result = getProductDetailQueryUseCase.execute(query);
+        ProductResponse result = getProductDetailQueryUseCase.execute(query);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/top")
-    public ResponseEntity<List<ProductSummaryProjection>> getTopProducts(
+    public ResponseEntity<List<ProductResponse>> getTopProducts(
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
-        List<ProductSummaryProjection> results = getTopProductsUseCase.execute(limit);
+        List<ProductResponse> results = getTopProductsUseCase.execute(limit);
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/favorite-weekly")
-    public ResponseEntity<List<ProductSummaryProjection>> getWeeklyFavoriteProducts(
+    public ResponseEntity<List<ProductResponse>> getWeeklyFavoriteProducts(
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
-        List<ProductSummaryProjection> results = getWeeklyFavoriteProductsUseCase.execute(limit);
+        List<ProductResponse> results = getWeeklyFavoriteProductsUseCase.execute(limit);
         return ResponseEntity.ok(results);
     }
 }

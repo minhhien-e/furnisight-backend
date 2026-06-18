@@ -1,9 +1,9 @@
 package com.furnisight.notification.application.media.port.out.repository;
 
-import com.furnisight.notification.application.media.dto.projection.MediaProjection;
+import com.furnisight.notification.application.media.dto.response.MediaResponse;
 
 import java.util.UUID;
 
 public interface MediaRepository {
-    MediaProjection getById(UUID mediaId);
+    MediaResponse getById(UUID mediaId);
 }

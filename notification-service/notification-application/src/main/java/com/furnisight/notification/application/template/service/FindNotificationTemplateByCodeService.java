@@ -2,7 +2,7 @@ package com.furnisight.notification.application.template.service;
 
 import com.furnisight.notification.application.template.port.in.usecase.FindNotificationTemplateByCodeUseCase;
 import com.furnisight.notification.application.template.port.in.dto.query.FindNotificationTemplateByCodeQuery;
-import com.furnisight.notification.application.template.port.in.dto.projection.NotificationTemplateProjection;
+import com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse;
 import com.furnisight.notification.application.template.port.out.repository.NotificationTemplateRepository;
 import com.furnisight.notification.domain.model.entity.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +17,7 @@ public class FindNotificationTemplateByCodeService implements FindNotificationTe
 
     @Override
     @Transactional(readOnly = true)
-    public NotificationTemplateProjection execute(FindNotificationTemplateByCodeQuery query) {
-        return NotificationTemplateProjection.from(notificationTemplateRepository.findByCode(query.getCode()));
+    public NotificationTemplateResponse execute(FindNotificationTemplateByCodeQuery query) {
+        return NotificationTemplateResponse.from(notificationTemplateRepository.findByCode(query.getCode()));
     }
 }

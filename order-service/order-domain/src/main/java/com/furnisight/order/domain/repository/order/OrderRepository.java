@@ -23,6 +23,6 @@ public interface OrderRepository {
     long countByStatusCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
     double sumTotalAmount();
     double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end);
-    List<Object[]> findTopSellingProducts(int limit);
+    List<TopSellingProductQuery> findTopSellingProducts(int limit);
     Optional<UUID> findDeliveredOrderItemIdByUserIdAndProductId(UUID userId, String productId);
 }

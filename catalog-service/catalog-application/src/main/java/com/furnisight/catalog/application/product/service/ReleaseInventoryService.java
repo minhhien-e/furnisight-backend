@@ -18,6 +18,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ReleaseInventoryService implements ReleaseInventoryUseCase {
 
     private final ProductRepository productRepository;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -35,6 +36,7 @@ public class ReleaseInventoryService implements ReleaseInventoryUseCase {
 
             variant.addStock(item.getQuantity());
             productRepository.save(product);
+            productUpdateEventService.enqueue(product);
         }
 
         return null;

@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UpdateProductStatusService implements UpdateProductStatusUseCase {
     private final ProductRepository productRepository;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -27,5 +28,6 @@ public class UpdateProductStatusService implements UpdateProductStatusUseCase {
         }
 
         productRepository.save(product);
+        productUpdateEventService.enqueue(product);
     }
 }

@@ -4,11 +4,11 @@ import com.furnisight.admin.account.user.application.UserService;
 import com.furnisight.admin.account.user.web.dto.request.CreateUserRequest;
 import com.furnisight.admin.account.user.web.dto.request.UpdateUserRequest;
 import com.furnisight.admin.account.user.web.dto.request.UpdateUserStatusRequest;
-import com.furnisight.admin.account.user.web.dto.response.UserDetailResponse;
-import com.furnisight.admin.account.user.web.dto.response.UserPageResponse;
+import com.furnisight.admin.account.user.web.dto.response.UserResponse;
 import com.furnisight.admin.audit.application.AuditLogService;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
 import com.furnisight.admin.shared.web.ActionResultResponse;
+import com.furnisight.admin.shared.web.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -28,7 +28,7 @@ public class UserController {
 
     @GetMapping
     @PreAuthorize("hasAuthority(\'ADMIN\')")
-    public ResponseEntity<UserPageResponse> getUsers(
+    public ResponseEntity<PageResponse<UserResponse>> getUsers(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String query,
@@ -38,7 +38,7 @@ public class UserController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasAuthority(\'ADMIN\')")
-    public ResponseEntity<UserDetailResponse> getUserById(@PathVariable UUID id) {
+    public ResponseEntity<UserResponse> getUserById(@PathVariable UUID id) {
         return ResponseEntity.ok(userService.getUserById(id));
     }
 

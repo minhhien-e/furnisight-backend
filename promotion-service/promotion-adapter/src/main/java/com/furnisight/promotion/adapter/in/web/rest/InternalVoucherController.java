@@ -1,9 +1,9 @@
 package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.adapter.in.web.dto.ActionResponse;
-import com.furnisight.promotion.adapter.in.web.dto.PromotionListResponse;
 import com.furnisight.promotion.adapter.in.web.dto.SavePromotionRequest;
 import com.furnisight.promotion.application.dto.SavePromotionCommand;
+import com.furnisight.promotion.application.dto.PromotionDto;
 import com.furnisight.promotion.application.dto.ValidateOrderVouchersCommand;
 import com.furnisight.promotion.application.dto.ValidateOrderVouchersResponse;
 import com.furnisight.promotion.application.dto.ValidateComboCommand;
@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -33,11 +34,11 @@ public class InternalVoucherController {
     private final MarketingService marketingService;
 
     @GetMapping("/internal/admin/vouchers")
-    public ResponseEntity<PromotionListResponse> getAdminVouchers(
+    public ResponseEntity<List<PromotionDto>> getAdminVouchers(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(new PromotionListResponse(promotionService.getAdminVouchers(query, type, status)));
+        return ResponseEntity.ok(promotionService.getAdminVouchers(query, type, status));
     }
 
     @GetMapping("/internal/admin/vouchers/stats")

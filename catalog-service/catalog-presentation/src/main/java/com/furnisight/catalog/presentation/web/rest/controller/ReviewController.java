@@ -1,6 +1,6 @@
 package com.furnisight.catalog.presentation.web.rest.controller;
 
-import com.furnisight.catalog.application.review.dto.ReviewProjection;
+import com.furnisight.catalog.application.review.dto.response.ReviewResponse;
 import com.furnisight.catalog.application.review.port.in.security.CurrentUserProvider;
 import com.furnisight.catalog.application.review.port.in.usecase.CreateReviewUseCase;
 import com.furnisight.catalog.application.review.port.in.usecase.DeleteReviewUseCase;
@@ -51,7 +51,7 @@ public class ReviewController {
     }
 
     @GetMapping("/product/{productId}")
-    public ResponseEntity<List<ReviewProjection>> getByProductId(
+    public ResponseEntity<List<ReviewResponse>> getByProductId(
         @PathVariable UUID productId,
         @RequestParam(defaultValue = "0") int page,
         @RequestParam(defaultValue = "10") int size
@@ -60,7 +60,7 @@ public class ReviewController {
     }
 
     @GetMapping("/top-random")
-    public ResponseEntity<List<ReviewProjection>> getTopRandomReviews(
+    public ResponseEntity<List<ReviewResponse>> getTopRandomReviews(
         @RequestParam(defaultValue = "3") int limit
     ) {
         return ResponseEntity.ok(getTopRandomReviewsUseCase.getTopRandomReviews(limit));

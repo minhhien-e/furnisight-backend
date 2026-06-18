@@ -11,6 +11,8 @@ grpc:
 spring:
   application:
     name: promotion-service
+  jackson:
+    default-property-inclusion: non_null
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/furnisight_promotion_db}
     username: ${SPRING_DATASOURCE_USERNAME:postgres}

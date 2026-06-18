@@ -1,6 +1,6 @@
 package com.furnisight.catalog.infrastructure.database.repository.impl.review;
 
-import com.furnisight.catalog.application.review.dto.ReviewProjection;
+import com.furnisight.catalog.application.review.dto.response.ReviewResponse;
 import com.furnisight.catalog.application.review.port.out.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,7 +20,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
     private final RemoteMediaUrlResolver mediaUrlResolver;
 
     @Override
-    public List<ReviewProjection> findByProductId(UUID productId, Integer page, Integer size) {
+    public List<ReviewResponse> findByProductId(UUID productId, Integer page, Integer size) {
         int pageNum = (page != null) ? page : 0;
         int pageSize = (size != null) ? size : 10;
         int offset = pageNum * pageSize;
@@ -44,7 +44,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
             if (mediaId != null) {
                 avatarUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
             }
-            return new ReviewProjection(
+            return new ReviewResponse(
                 rs.getObject("id", UUID.class),
                 rs.getObject("user_id", UUID.class),
                 rs.getString("user_name"),
@@ -60,7 +60,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
     }
 
     @Override
-    public List<ReviewProjection> findTopRandomReviews(int limit) {
+    public List<ReviewResponse> findTopRandomReviews(int limit) {
         String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, title, content_text, rating, status, created_at " +
                 "FROM reviews " +
                 "WHERE rating >= 4 AND status::text = 'VISIBLE' " +
@@ -75,7 +75,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
             if (mediaId != null) {
                 avatarUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
             }
-            return new ReviewProjection(
+            return new ReviewResponse(
                 rs.getObject("id", UUID.class),
                 rs.getObject("user_id", UUID.class),
                 rs.getString("user_name"),

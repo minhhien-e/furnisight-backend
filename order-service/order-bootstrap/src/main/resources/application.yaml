@@ -16,6 +16,8 @@ grpc:
 spring:
   application:
     name: order-service
+  jackson:
+    default-property-inclusion: non_null
 
   datasource:
     url: ${SPRING_DATASOURCE_URL}

@@ -1,7 +1,7 @@
 package com.furnisight.notification.application.profile.service;
 
 import com.furnisight.notification.application.profile.port.in.command.CreateDefaultNotificationProfileCommand;
-import com.furnisight.notification.application.profile.port.in.dto.projection.NotificationProfileProjection;
+import com.furnisight.notification.application.profile.port.in.dto.response.NotificationProfileResponse;
 import com.furnisight.notification.application.profile.port.in.usecase.CreateDefaultNotificationProfileUseCase;
 import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
 import com.furnisight.notification.domain.exception.NotificationProfileNotFoundException;
@@ -18,9 +18,9 @@ public class CreateDefaultNotificationProfileService implements CreateDefaultNot
 
     @Override
     @Transactional
-    public NotificationProfileProjection execute(CreateDefaultNotificationProfileCommand command) {
+    public NotificationProfileResponse execute(CreateDefaultNotificationProfileCommand command) {
         try {
-            return NotificationProfileProjection.from(notificationProfileRepository.findByUserId(command.getUserId()));
+            return NotificationProfileResponse.from(notificationProfileRepository.findByUserId(command.getUserId()));
         } catch (NotificationProfileNotFoundException ignored) {
             // Create the default profile below.
         }
@@ -35,6 +35,6 @@ public class CreateDefaultNotificationProfileService implements CreateDefaultNot
                 .build();
 
         NotificationProfile saved = notificationProfileRepository.save(preference);
-        return NotificationProfileProjection.from(saved);
+        return NotificationProfileResponse.from(saved);
     }
 }

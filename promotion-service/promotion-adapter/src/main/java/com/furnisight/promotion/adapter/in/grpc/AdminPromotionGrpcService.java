@@ -20,7 +20,7 @@ import com.furnisight.admin.promotion.ValidateOrderVouchersRequest;
 import com.furnisight.admin.promotion.ValidateOrderVouchersResponse;
 import com.furnisight.admin.promotion.VoucherDto;
 import com.furnisight.admin.promotion.VoucherListResponse;
-import com.furnisight.promotion.application.dto.MarketingListResponse;
+import com.furnisight.promotion.application.dto.PageResponse;
 import com.furnisight.promotion.application.dto.PublishVoucherCommand;
 import com.furnisight.promotion.application.dto.SaveMarketingCampaignCommand;
 import com.furnisight.promotion.application.dto.SaveMarketingComboCommand;
@@ -245,7 +245,7 @@ public class AdminPromotionGrpcService extends AdminPromotionServiceGrpc.AdminPr
                 .build();
     }
 
-    private MarketingJsonResponse json(MarketingListResponse<?> response) {
+    private MarketingJsonResponse json(PageResponse<?> response) {
         try {
             return MarketingJsonResponse.newBuilder()
                     .setPayloadJson(objectMapper.writeValueAsString(response))

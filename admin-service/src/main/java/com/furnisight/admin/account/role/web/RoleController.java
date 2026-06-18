@@ -3,7 +3,7 @@ package com.furnisight.admin.account.role.web;
 import com.furnisight.admin.account.role.application.RoleService;
 import com.furnisight.admin.account.role.web.dto.request.UpdateUserRoleRequest;
 import com.furnisight.admin.account.role.web.dto.request.UpsertRoleRequest;
-import com.furnisight.admin.account.role.web.dto.response.RoleListResponse;
+import com.furnisight.admin.account.role.web.dto.response.RoleResponse;
 import com.furnisight.admin.account.role.web.dto.response.RolesAndPermissionsResponse;
 import com.furnisight.admin.audit.application.AuditLogService;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin")
@@ -27,7 +28,7 @@ public class RoleController {
 
     @GetMapping("/roles")
     @PreAuthorize("hasAuthority(\'ACCOUNT_MANAGE\') or hasAuthority(\'ADMIN\')")
-    public ResponseEntity<RoleListResponse> getRoles() {
+    public ResponseEntity<List<RoleResponse>> getRoles() {
         return ResponseEntity.ok(roleService.getRoles());
     }
 

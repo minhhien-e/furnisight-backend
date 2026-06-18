@@ -1,7 +1,7 @@
 package com.furnisight.notification.application.inbox.service;
 
 import com.furnisight.notification.application.inbox.port.in.dto.command.SaveInboxMessageCommand;
-import com.furnisight.notification.application.inbox.port.in.dto.projection.InboxMessageProjection;
+import com.furnisight.notification.application.inbox.port.in.dto.response.InboxMessageResponse;
 import com.furnisight.notification.application.inbox.port.in.usecase.SaveInboxMessageUseCase;
 import com.furnisight.notification.application.inbox.port.out.repository.InboxMessageRepository;
 import com.furnisight.notification.application.outbox.port.in.usecase.AddOutboxEventUseCase;
@@ -21,7 +21,7 @@ public class SaveInboxMessageService implements SaveInboxMessageUseCase {
 
     @Override
     @Transactional
-    public InboxMessageProjection execute(SaveInboxMessageCommand command) {
+    public InboxMessageResponse execute(SaveInboxMessageCommand command) {
         InboxMessage message = InboxMessage.builder()
             .id(UUID.randomUUID())
             .userId(command.getUserId())
@@ -36,6 +36,6 @@ public class SaveInboxMessageService implements SaveInboxMessageUseCase {
         message.clearDomainEvents();
 
         var saved = inboxMessageRepository.save(message);
-        return InboxMessageProjection.from(saved);
+        return InboxMessageResponse.from(saved);
     }
 }

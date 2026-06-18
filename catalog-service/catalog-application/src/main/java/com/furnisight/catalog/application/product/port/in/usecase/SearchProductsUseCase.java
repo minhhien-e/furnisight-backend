@@ -1,8 +1,9 @@
 package com.furnisight.catalog.application.product.port.in.usecase;
 
-import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
+import com.furnisight.catalog.application.common.dto.PageResponse;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 
 public interface SearchProductsUseCase {
-    SearchProductsProjection execute(SearchProductsQuery query);
+    PageResponse<ProductResponse> execute(SearchProductsQuery query);
 }

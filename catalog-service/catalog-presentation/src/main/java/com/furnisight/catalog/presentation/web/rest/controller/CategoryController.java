@@ -2,7 +2,7 @@ package com.furnisight.catalog.presentation.web.rest.controller;
 
 import com.furnisight.catalog.application.category.dto.command.CreateCategoryCommand;
 import com.furnisight.catalog.application.category.dto.command.UpdateCategoryCommand;
-import com.furnisight.catalog.application.category.dto.projection.CategoryDetailProjection;
+import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import com.furnisight.catalog.application.category.dto.query.GetCategoryDetailQuery;
 import com.furnisight.catalog.application.category.port.in.usecase.*;
 import com.furnisight.catalog.presentation.web.rest.dto.request.category.CreateCategoryRequest;
@@ -63,27 +63,27 @@ public class CategoryController {
     // ─── QUERIES ─────────────────────────────────────────────────────────────
 
     @GetMapping
-    public ResponseEntity<List<CategoryDetailProjection>> listCategories() {
-        List<CategoryDetailProjection> results = listCategoriesUseCase.execute();
+    public ResponseEntity<List<CategoryResponse>> listCategories() {
+        List<CategoryResponse> results = listCategoriesUseCase.execute();
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/roots")
-    public ResponseEntity<List<CategoryDetailProjection>> listRootCategories() {
-        List<CategoryDetailProjection> results = listRootCategoriesUseCase.execute();
+    public ResponseEntity<List<CategoryResponse>> listRootCategories() {
+        List<CategoryResponse> results = listRootCategoriesUseCase.execute();
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/{slug}/subcategories")
-    public ResponseEntity<List<CategoryDetailProjection>> listSubcategories(@PathVariable String slug) {
-        List<CategoryDetailProjection> results = listSubcategoriesUseCase.execute(slug);
+    public ResponseEntity<List<CategoryResponse>> listSubcategories(@PathVariable String slug) {
+        List<CategoryResponse> results = listSubcategoriesUseCase.execute(slug);
         return ResponseEntity.ok(results);
     }
 
     @GetMapping(name = "slug", value = "/{slug}")
-    public ResponseEntity<CategoryDetailProjection> getCategoryDetail(@PathVariable String slug){
+    public ResponseEntity<CategoryResponse> getCategoryDetail(@PathVariable String slug){
         GetCategoryDetailQuery query = new GetCategoryDetailQuery(slug);
-        CategoryDetailProjection result = getCategoryDetailUseCase.execute(query);
+        CategoryResponse result = getCategoryDetailUseCase.execute(query);
         return ResponseEntity.ok(result);
     }
 }

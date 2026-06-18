@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ChangeProductCategoryService implements ChangeProductCategoryUseCase {
     private final ProductRepository productRepository;
     private final ProductLifecycleService productLifecycleService;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -25,5 +26,6 @@ public class ChangeProductCategoryService implements ChangeProductCategoryUseCas
         productLifecycleService.changeCategory(product, command.getCategoryId());
 
         productRepository.save(product);
+        productUpdateEventService.enqueue(product);
     }
 }

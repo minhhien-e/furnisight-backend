@@ -24,6 +24,7 @@ import java.util.Locale;
 public class AddProductVariantService implements AddProductVariantUseCase {
     private final ProductRepository productRepository;
     private final ProductLifecycleService productLifecycleService;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -65,5 +66,6 @@ public class AddProductVariantService implements AddProductVariantUseCase {
         productLifecycleService.addVariant(product, variant);
 
         productRepository.save(product);
+        productUpdateEventService.enqueue(product);
     }
 }

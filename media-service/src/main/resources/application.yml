@@ -6,6 +6,8 @@ server:
 spring:
   application:
     name: media-service
+  jackson:
+    default-property-inclusion: non_null
   datasource:
     driver-class-name: org.postgresql.Driver
     url: ${DATASOURCE_URL:jdbc:postgresql://localhost:5432/furnisight_media_db}

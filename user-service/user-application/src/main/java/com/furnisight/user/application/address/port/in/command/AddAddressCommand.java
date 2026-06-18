@@ -22,6 +22,5 @@ public class AddAddressCommand {
     private String wardName;
     private String detail;
     private String type;
-    @com.fasterxml.jackson.annotation.JsonProperty("isDefault")
     private boolean isDefault;
 }

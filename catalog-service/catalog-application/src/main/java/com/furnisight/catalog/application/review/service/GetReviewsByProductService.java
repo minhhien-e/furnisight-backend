@@ -1,6 +1,6 @@
 package com.furnisight.catalog.application.review.service;
 
-import com.furnisight.catalog.application.review.dto.ReviewProjection;
+import com.furnisight.catalog.application.review.dto.response.ReviewResponse;
 import com.furnisight.catalog.application.review.port.in.usecase.GetReviewsByProductUseCase;
 import com.furnisight.catalog.application.review.port.out.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class GetReviewsByProductService implements GetReviewsByProductUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<ReviewProjection> getReviewsByProduct(UUID productId, Integer page, Integer size) {
+    public List<ReviewResponse> getReviewsByProduct(UUID productId, Integer page, Integer size) {
         return reviewQueryRepository.findByProductId(productId, page, size);
     }
 }

@@ -32,8 +32,7 @@ public class OutboxEventProcessor {
 
         for (OutboxMessage message : messages) {
             try {
-                // Topic naming convention: aggregateType-event (e.g., product-event)
-                String topic = message.getAggregateType().toLowerCase() + "-event";
+                String topic = message.getType();
                 eventPublisher.publish(message.getPayload(), topic);
                 message.markAsProcessed();
             } catch (Exception e) {

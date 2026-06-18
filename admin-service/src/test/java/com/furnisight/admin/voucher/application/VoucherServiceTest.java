@@ -1,7 +1,6 @@
 package com.furnisight.admin.voucher.application;
 
 import com.furnisight.admin.voucher.infrastructure.PromotionAdminClient;
-import com.furnisight.admin.voucher.web.dto.response.VoucherListResponse;
 import com.furnisight.admin.voucher.web.dto.response.VoucherResponse;
 import org.junit.jupiter.api.Test;
 
@@ -17,7 +16,7 @@ class VoucherServiceTest {
     void forwardsVoucherListFromPromotionService() {
         PromotionAdminClient client = mock(PromotionAdminClient.class);
         when(client.getVouchers("", null, "ACTIVE"))
-                .thenReturn(new VoucherListResponse(List.of(new VoucherResponse(
+                .thenReturn(List.of(new VoucherResponse(
                         "voucher-1",
                         "SAVE10",
                         "Save",
@@ -35,11 +34,11 @@ class VoucherServiceTest {
                         List.of("PROMOTION_PAGE"),
                         "Dang bat",
                         0
-                ))));
+                )));
 
         var response = new VoucherService(client).getVouchers("", null, "ACTIVE");
 
-        assertThat(response.items()).singleElement()
+        assertThat(response).singleElement()
                 .extracting(VoucherResponse::code)
                 .isEqualTo("SAVE10");
     }

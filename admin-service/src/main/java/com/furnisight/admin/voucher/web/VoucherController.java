@@ -4,14 +4,17 @@ import com.furnisight.admin.audit.application.AuditLogService;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import com.furnisight.admin.voucher.application.VoucherService;
+import com.furnisight.admin.voucher.web.dto.request.PublishVoucherRequest;
 import com.furnisight.admin.voucher.web.dto.request.UpsertVoucherRequest;
-import com.furnisight.admin.voucher.web.dto.response.VoucherListResponse;
+import com.furnisight.admin.voucher.web.dto.response.VoucherResponse;
 import com.furnisight.admin.voucher.web.dto.response.VoucherStatsResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/admin/vouchers")
@@ -24,7 +27,7 @@ public class VoucherController {
 
     @GetMapping
     @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
-    public ResponseEntity<VoucherListResponse> getVouchers(
+    public ResponseEntity<List<VoucherResponse>> getVouchers(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status) {
@@ -71,7 +74,7 @@ public class VoucherController {
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
     public ResponseEntity<ActionResultResponse> publishVoucher(
-            @PathVariable String id, @RequestBody Object request, HttpServletRequest httpRequest) {
+            @PathVariable String id, @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.publishVoucher(id, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), "send", "Phát hành voucher", "VOUCHER_PUBLISH",
                 id, result, "Voucher id: " + id, httpRequest);

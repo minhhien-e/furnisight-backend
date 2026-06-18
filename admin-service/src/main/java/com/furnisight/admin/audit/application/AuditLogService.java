@@ -4,9 +4,9 @@ import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
 import com.furnisight.admin.user.AccountDetailResponse;
 import com.furnisight.admin.user.AccountDto;
 import com.furnisight.admin.shared.web.ActionResultResponse;
-import com.furnisight.admin.audit.web.dto.response.AuditLogPageResponse;
 import com.furnisight.admin.audit.web.dto.response.AuditLogResponse;
 import com.furnisight.admin.audit.infrastructure.persistence.AuditLog;
+import com.furnisight.admin.shared.web.PageResponse;
 import com.furnisight.admin.audit.infrastructure.persistence.AuditLogRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -41,19 +41,19 @@ public class AuditLogService {
     private final AdminUserGrpcClient userClient;
 
     @Transactional(readOnly = true)
-    public AuditLogPageResponse getLogs(String search, String type, String result, String period, int page, int pageSize) {
+    public PageResponse<AuditLogResponse> getLogs(String search, String type, String result, String period, int page, int pageSize) {
         int safePage = Math.max(page, 1);
         int safeSize = Math.min(Math.max(pageSize, 1), 100);
         Pageable pageable = PageRequest.of(safePage - 1, safeSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<AuditLog> logs = repository.findAll(buildSpec(search, type, result, period), pageable);
         Map<UUID, String> actorNames = resolveActorNames(logs.getContent());
 
-        return new AuditLogPageResponse(
+        return new PageResponse<>(
                 logs.getContent().stream().map(logEntry -> toResponse(logEntry, actorNames)).toList(),
+                logs.getTotalPages(),
                 logs.getTotalElements(),
                 safePage,
-                safeSize,
-                logs.getTotalPages());
+                safeSize);
     }
 
     private Specification<AuditLog> buildSpec(String search, String type, String result, String period) {

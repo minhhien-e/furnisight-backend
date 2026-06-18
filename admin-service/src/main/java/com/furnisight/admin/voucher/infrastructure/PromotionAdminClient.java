@@ -1,7 +1,6 @@
 package com.furnisight.admin.voucher.infrastructure;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.admin.promotion.AdminActionResponse;
 import com.furnisight.admin.promotion.AdminPromotionServiceGrpc;
@@ -14,9 +13,15 @@ import com.furnisight.admin.promotion.PublishVoucherRequest;
 import com.furnisight.admin.promotion.SaveVoucherRequest;
 import com.furnisight.admin.promotion.UpdateMarketingJsonRequest;
 import com.furnisight.admin.promotion.UpdateVoucherRequest;
+import com.furnisight.admin.marketing.web.dto.MarketingCampaignRequest;
+import com.furnisight.admin.marketing.web.dto.MarketingCampaignResponse;
+import com.furnisight.admin.marketing.web.dto.MarketingComboRequest;
+import com.furnisight.admin.marketing.web.dto.MarketingComboResponse;
+import com.furnisight.admin.marketing.web.dto.MarketingNotificationRequest;
+import com.furnisight.admin.marketing.web.dto.MarketingNotificationResponse;
 import com.furnisight.admin.shared.web.ActionResultResponse;
+import com.furnisight.admin.shared.web.PageResponse;
 import com.furnisight.admin.voucher.web.dto.request.UpsertVoucherRequest;
-import com.furnisight.admin.voucher.web.dto.response.VoucherListResponse;
 import com.furnisight.admin.voucher.web.dto.response.VoucherResponse;
 import com.furnisight.admin.voucher.web.dto.response.VoucherStatsResponse;
 import com.google.protobuf.Empty;
@@ -26,12 +31,10 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestClient;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class PromotionAdminClient {
-    private static final TypeReference<Map<String, Object>> MAP_TYPE = new TypeReference<>() {};
-
     private final ObjectMapper objectMapper;
     private final RestClient promotionRestClient;
 
@@ -47,7 +50,7 @@ public class PromotionAdminClient {
                 .build();
     }
 
-    public VoucherListResponse getVouchers(String query, String type, String status) {
+    public List<VoucherResponse> getVouchers(String query, String type, String status) {
         PromotionListPayload response = promotionRestClient.get()
                 .uri(uri -> uri.path("/internal/admin/vouchers")
                         .queryParam("query", value(query))
@@ -56,8 +59,9 @@ public class PromotionAdminClient {
                         .build())
                 .retrieve()
                 .body(PromotionListPayload.class);
-        List<PromotionPayload> items = response == null || response.items() == null ? List.of() : response.items();
-        return new VoucherListResponse(items.stream()
+        List<PromotionPayload> items = Objects.requireNonNull(response, "Promotion voucher response is missing").items();
+        Objects.requireNonNull(items, "Promotion voucher items are missing");
+        return items.stream()
                 .map(voucher -> new VoucherResponse(
                         voucher.id(),
                         voucher.code(),
@@ -73,10 +77,10 @@ public class PromotionAdminClient {
                         voucher.endDate(),
                         voucher.createdAt(),
                         voucher.active(),
-                        voucher.placements() == null ? List.of() : voucher.placements(),
+                        voucher.placements(),
                         voucher.statusLabel(),
                         voucher.issuedCount()))
-                .toList());
+                .toList();
     }
 
     public VoucherStatsResponse getStats() {
@@ -117,22 +121,22 @@ public class PromotionAdminClient {
         return response == null ? new ActionResultResponse(true, "Voucher deleted") : response;
     }
 
-    public ActionResultResponse publishVoucher(String id, Object request) {
+    public ActionResultResponse publishVoucher(String id, com.furnisight.admin.voucher.web.dto.request.PublishVoucherRequest request) {
         return action(promotionStub.publishVoucher(PublishVoucherRequest.newBuilder()
                 .setId(value(id))
                 .setPayloadJson(toJson(request))
                 .build()));
     }
 
-    public Object getMarketingCampaigns(String query, String status) {
-        return marketingList(promotionStub.getMarketingCampaigns(listRequest(query, status)).getPayloadJson());
+    public PageResponse<MarketingCampaignResponse> getMarketingCampaigns(String query, String status) {
+        return marketingList(promotionStub.getMarketingCampaigns(listRequest(query, status)).getPayloadJson(), MarketingCampaignResponse.class);
     }
 
-    public ActionResultResponse createMarketingCampaign(Object request) {
+    public ActionResultResponse createMarketingCampaign(MarketingCampaignRequest request) {
         return action(promotionStub.createMarketingCampaign(jsonRequest(request)));
     }
 
-    public ActionResultResponse updateMarketingCampaign(String id, Object request) {
+    public ActionResultResponse updateMarketingCampaign(String id, MarketingCampaignRequest request) {
         return action(promotionStub.updateMarketingCampaign(updateJsonRequest(id, request)));
     }
 
@@ -140,15 +144,15 @@ public class PromotionAdminClient {
         return action(promotionStub.deleteMarketingCampaign(deleteRequest(id)));
     }
 
-    public Object getMarketingCombos(String query, String status) {
-        return marketingList(promotionStub.getMarketingCombos(listRequest(query, status)).getPayloadJson());
+    public PageResponse<MarketingComboResponse> getMarketingCombos(String query, String status) {
+        return marketingList(promotionStub.getMarketingCombos(listRequest(query, status)).getPayloadJson(), MarketingComboResponse.class);
     }
 
-    public ActionResultResponse createMarketingCombo(Object request) {
+    public ActionResultResponse createMarketingCombo(MarketingComboRequest request) {
         return action(promotionStub.createMarketingCombo(jsonRequest(request)));
     }
 
-    public ActionResultResponse updateMarketingCombo(String id, Object request) {
+    public ActionResultResponse updateMarketingCombo(String id, MarketingComboRequest request) {
         return action(promotionStub.updateMarketingCombo(updateJsonRequest(id, request)));
     }
 
@@ -156,15 +160,15 @@ public class PromotionAdminClient {
         return action(promotionStub.deleteMarketingCombo(deleteRequest(id)));
     }
 
-    public Object getMarketingNotifications(String query, String status) {
-        return marketingList(promotionStub.getMarketingNotifications(listRequest(query, status)).getPayloadJson());
+    public PageResponse<MarketingNotificationResponse> getMarketingNotifications(String query, String status) {
+        return marketingList(promotionStub.getMarketingNotifications(listRequest(query, status)).getPayloadJson(), MarketingNotificationResponse.class);
     }
 
-    public ActionResultResponse createMarketingNotification(Object request) {
+    public ActionResultResponse createMarketingNotification(MarketingNotificationRequest request) {
         return action(promotionStub.createMarketingNotification(jsonRequest(request)));
     }
 
-    public ActionResultResponse updateMarketingNotification(String id, Object request) {
+    public ActionResultResponse updateMarketingNotification(String id, MarketingNotificationRequest request) {
         return action(promotionStub.updateMarketingNotification(updateJsonRequest(id, request)));
     }
 
@@ -204,13 +208,39 @@ public class PromotionAdminClient {
                 .build();
     }
 
-    private MarketingJsonRequest jsonRequest(Object request) {
+    private MarketingJsonRequest jsonRequest(MarketingCampaignRequest request) {
         return MarketingJsonRequest.newBuilder()
                 .setPayloadJson(toJson(request))
                 .build();
     }
 
-    private UpdateMarketingJsonRequest updateJsonRequest(String id, Object request) {
+    private MarketingJsonRequest jsonRequest(MarketingComboRequest request) {
+        return MarketingJsonRequest.newBuilder()
+                .setPayloadJson(toJson(request))
+                .build();
+    }
+
+    private MarketingJsonRequest jsonRequest(MarketingNotificationRequest request) {
+        return MarketingJsonRequest.newBuilder()
+                .setPayloadJson(toJson(request))
+                .build();
+    }
+
+    private UpdateMarketingJsonRequest updateJsonRequest(String id, MarketingCampaignRequest request) {
+        return UpdateMarketingJsonRequest.newBuilder()
+                .setId(value(id))
+                .setPayloadJson(toJson(request))
+                .build();
+    }
+
+    private UpdateMarketingJsonRequest updateJsonRequest(String id, MarketingComboRequest request) {
+        return UpdateMarketingJsonRequest.newBuilder()
+                .setId(value(id))
+                .setPayloadJson(toJson(request))
+                .build();
+    }
+
+    private UpdateMarketingJsonRequest updateJsonRequest(String id, MarketingNotificationRequest request) {
         return UpdateMarketingJsonRequest.newBuilder()
                 .setId(value(id))
                 .setPayloadJson(toJson(request))
@@ -225,17 +255,34 @@ public class PromotionAdminClient {
         return new ActionResultResponse(response.getSuccess(), response.getMessage());
     }
 
-    private Map<String, Object> marketingList(String payloadJson) {
+    private <T> PageResponse<T> marketingList(String payloadJson, Class<T> itemType) {
         try {
-            return objectMapper.readValue(value(payloadJson).isBlank() ? "{}" : payloadJson, MAP_TYPE);
+            var type = objectMapper.getTypeFactory().constructParametricType(PageResponse.class, itemType);
+            return objectMapper.readValue(value(payloadJson).isBlank() ? "{}" : payloadJson, type);
         } catch (JsonProcessingException ex) {
             throw new IllegalStateException("Unable to parse promotion gRPC response", ex);
         }
     }
 
-    private String toJson(Object request) {
+    private String toJson(MarketingCampaignRequest request) {
+        return writeJson(request);
+    }
+
+    private String toJson(MarketingComboRequest request) {
+        return writeJson(request);
+    }
+
+    private String toJson(MarketingNotificationRequest request) {
+        return writeJson(request);
+    }
+
+    private String toJson(com.furnisight.admin.voucher.web.dto.request.PublishVoucherRequest request) {
+        return writeJson(request);
+    }
+
+    private String writeJson(Object request) {
         try {
-            return objectMapper.writeValueAsString(request == null ? Map.of() : request);
+            return objectMapper.writeValueAsString(Objects.requireNonNull(request, "Promotion request is missing"));
         } catch (JsonProcessingException ex) {
             throw new IllegalArgumentException("Unable to serialize promotion request", ex);
         }

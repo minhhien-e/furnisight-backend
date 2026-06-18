@@ -2,7 +2,7 @@ package com.furnisight.catalog.infrastructure.database.repository.impl.product;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.furnisight.catalog.application.product.dto.projection.ProductSummaryProjection;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.FavoriteProductReadRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,7 +24,7 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
     private final ObjectMapper objectMapper;
 
     @Override
-    public List<ProductSummaryProjection> findTopFavoritedProductsSince(LocalDateTime since, int limit) {
+    public List<ProductResponse> findTopFavoritedProductsSince(LocalDateTime since, int limit) {
         if (since == null || limit <= 0) {
             return List.of();
         }
@@ -86,7 +86,7 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
 
                     List<String> tags = extractTags(metadata);
 
-                    return ProductSummaryProjection.builder()
+                    return ProductResponse.builder()
                             .id(id)
                             .slug(slug)
                             .name(name)

@@ -2,12 +2,8 @@ package com.furnisight.catalog.infrastructure.database.repository.impl.product;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
-import com.furnisight.catalog.application.product.dto.projection.ProductSummaryProjection;
-import com.furnisight.catalog.application.product.dto.projection.AdminProductProjection;
-import com.furnisight.catalog.application.product.dto.projection.LowStockProductProjection;
-import com.furnisight.catalog.application.product.dto.projection.RecommendedProductProjection;
-import com.furnisight.catalog.application.product.dto.projection.SearchProductsProjection;
+import com.furnisight.catalog.application.common.dto.PageResponse;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +14,6 @@ import org.springframework.stereotype.Repository;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Repository
@@ -32,7 +27,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     private final ObjectMapper objectMapper;
 
     @Override
-    public Optional<ProductDetailProjection> findProductDetailBySlug(String slug) {
+    public Optional<ProductResponse> findProductDetailBySlug(String slug) {
         if (slug == null || slug.isBlank()) {
             return Optional.empty();
         }
@@ -77,14 +72,14 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         return Optional.empty();
                     }
 
-                    ProductDetailProjection dto = mapRowToProductDetail(rs);
+                    ProductResponse dto = mapRowToProductDetail(rs);
                     hydrateProductDetail(dto);
                     return Optional.of(dto);
                 });
     }
 
     @Override
-    public Optional<ProductDetailProjection> findProductDetailById(UUID productId) {
+    public Optional<ProductResponse> findProductDetailById(UUID productId) {
         if (productId == null) {
             return Optional.empty();
         }
@@ -129,14 +124,14 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         return Optional.empty();
                     }
 
-                    ProductDetailProjection dto = mapRowToProductDetail(rs);
+                    ProductResponse dto = mapRowToProductDetail(rs);
                     hydrateProductDetail(dto);
                     return Optional.of(dto);
                 });
     }
 
     @Override
-    public SearchProductsProjection searchProducts(SearchProductsQuery queryParam) {
+    public PageResponse<ProductResponse> searchProducts(SearchProductsQuery queryParam) {
         StringBuilder whereClause = new StringBuilder(" WHERE 1 = 1 ");
         Map<String, Object> params = new HashMap<>();
 
@@ -195,21 +190,14 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LIMIT :limit OFFSET :offset
                 """;
 
-        List<ProductSummaryProjection> products = jdbcTemplate.query(mainSql, params, this::mapRowToProductSummary);
+        List<ProductResponse> products = jdbcTemplate.query(mainSql, params, this::mapRowToProductSummary);
+        int totalPages = size <= 0 ? 0 : (int) Math.ceil((double) total / size);
 
-        SearchProductsProjection.Facets facets = buildFacets(products);
-
-        return SearchProductsProjection.builder()
-                .products(products)
-                .total(total)
-                .page(page + 1)
-                .pageSize(size)
-                .facets(facets)
-                .build();
+        return new PageResponse<>(products, totalPages, total, page + 1, size);
     }
 
     @Override
-    public List<RecommendedProductProjection> findRecommendedProducts(
+    public List<ProductResponse> findRecommendedProducts(
             String categorySlug, String status, int limit) {
         if (categorySlug == null || categorySlug.isBlank() || limit <= 0) {
             return List.of();
@@ -274,7 +262,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         "categorySlug", categorySlug.trim().toLowerCase(),
                         "status", normalizeText(status, "ACTIVE").toUpperCase(),
                         "limit", limit),
-                (rs, rowNum) -> RecommendedProductProjection.builder()
+                (rs, rowNum) -> ProductResponse.builder()
                         .id((UUID) rs.getObject("product_id"))
                         .slug(normalizeText(rs.getString("product_slug"), ""))
                         .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
@@ -291,7 +279,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
-    public List<ProductSummaryProjection> findTopProducts(int limit) {
+    public List<ProductResponse> findTopProducts(int limit) {
         if (limit <= 0) {
             return List.of();
         }
@@ -343,7 +331,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
-    public List<AdminProductProjection> findAdminProducts(String query, String status, String category, int page, int size) {
+    public List<ProductResponse> findAdminProducts(String query, String status, String category, int page, int size) {
         Map<String, Object> params = new HashMap<>();
         String whereClause = buildAdminProductWhereClause(query, status, category, params);
         params.put("limit", Math.max(size, 1));
@@ -431,7 +419,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
-    public List<LowStockProductProjection> findLowStockProducts(int threshold, int limit) {
+    public List<ProductResponse> findLowStockProducts(int threshold, int limit) {
         String sql = """
                 SELECT
                     p.id AS product_id,
@@ -451,7 +439,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         return jdbcTemplate.query(
                 sql,
                 Map.of("limit", Math.max(limit, 1)),
-                (rs, rowNum) -> LowStockProductProjection.builder()
+                (rs, rowNum) -> ProductResponse.builder()
                         .id((UUID) rs.getObject("product_id"))
                         .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
                         .categoryName(normalizeText(rs.getString("category_name"), "Sản phẩm"))
@@ -491,10 +479,10 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         return whereClause.toString();
     }
 
-    private AdminProductProjection mapRowToAdminProduct(ResultSet rs, int rowNum) throws SQLException {
+    private ProductResponse mapRowToAdminProduct(ResultSet rs, int rowNum) throws SQLException {
         UUID id = (UUID) rs.getObject("product_id");
         String slug = normalizeText(rs.getString("product_slug"), id.toString());
-        return AdminProductProjection.builder()
+        return ProductResponse.builder()
                 .id(id)
                 .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
                 .slug(slug)
@@ -669,8 +657,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         };
     }
 
-    private void hydrateProductDetail(ProductDetailProjection dto) {
-        List<ProductDetailProjection.VariantDto> variants = fetchVariants(dto.getId());
+    private void hydrateProductDetail(ProductResponse dto) {
+        List<ProductResponse.VariantDto> variants = fetchVariants(dto.getId());
         dto.setVariants(variants);
 
         if (!variants.isEmpty()) {
@@ -680,7 +668,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         dto.setGallery(fetchGallery(dto.getId()));
     }
 
-    private ProductSummaryProjection mapRowToProductSummary(ResultSet rs, int rowNum) throws SQLException {
+    private ProductResponse mapRowToProductSummary(ResultSet rs, int rowNum) throws SQLException {
         UUID id = (UUID) rs.getObject("product_id");
 
         String slug = normalizeText(rs.getString("product_slug"), id.toString());
@@ -694,7 +682,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
         String imageUrl = normalizeText(rs.getString("product_image"), null);
 
-        return ProductSummaryProjection.builder()
+        return ProductResponse.builder()
                 .id(id)
                 .slug(slug)
                 .name(name)
@@ -708,7 +696,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .build();
     }
 
-    private ProductDetailProjection mapRowToProductDetail(ResultSet rs) throws SQLException {
+    private ProductResponse mapRowToProductDetail(ResultSet rs) throws SQLException {
         UUID id = (UUID) rs.getObject("product_id");
         UUID categoryId = (UUID) rs.getObject("category_id");
 
@@ -723,10 +711,10 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     "Bảo hành 12 tháng");
         }
 
-        return ProductDetailProjection.builder()
+        return ProductResponse.builder()
                 .id(id)
                 .slug(normalizeText(rs.getString("product_slug"), id.toString()))
-                .category(ProductDetailProjection.CategoryInfo.builder()
+                .category(ProductResponse.CategoryInfo.builder()
                         .id(categorySlug != null ? categorySlug : categoryId != null ? categoryId.toString() : null)
                         .label(categoryName)
                         .build())
@@ -746,7 +734,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .build();
     }
 
-    private List<ProductDetailProjection.VariantDto> fetchVariants(UUID productId) {
+    private List<ProductResponse.VariantDto> fetchVariants(UUID productId) {
         String sql = """
                 SELECT
                     id,
@@ -769,7 +757,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         return jdbcTemplate.query(
                 sql,
                 Map.of("productId", productId),
-                (rs, rowNum) -> ProductDetailProjection.VariantDto.builder()
+                (rs, rowNum) -> ProductResponse.VariantDto.builder()
                         .id((UUID) rs.getObject("id"))
                         .price(getNullableDouble(rs, "price"))
                         .stockQuantity(rs.getInt("stock_quantity"))
@@ -797,94 +785,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 sql,
                 Map.of("productId", productId),
                 (rs, rowNum) -> rs.getString("image_url"));
-    }
-
-    private SearchProductsProjection.Facets buildFacets(List<ProductSummaryProjection> products) {
-        Map<String, Long> categoryCounts = products.stream()
-                .filter(product -> product.getCategoryName() != null)
-                .collect(Collectors.groupingBy(
-                        ProductSummaryProjection::getCategoryName,
-                        Collectors.counting()));
-
-        List<SearchProductsProjection.CategoryFacet> categories = categoryCounts.entrySet().stream()
-                .map(entry -> SearchProductsProjection.CategoryFacet.builder()
-                        .id(toSlug(entry.getKey()))
-                        .slug(toSlug(entry.getKey()))
-                        .label(entry.getKey())
-                        .count(entry.getValue())
-                        .build())
-                .toList();
-
-        List<SearchProductsProjection.MaterialFacet> materials = fetchMaterialFacets();
-        List<SearchProductsProjection.ColorFacet> colors = fetchColorFacets();
-        Map<Integer, Long> ratings = buildRatingFacets(products);
-
-        return SearchProductsProjection.Facets.builder()
-                .categories(categories)
-                .materials(materials)
-                .colors(colors)
-                .ratings(ratings)
-                .build();
-    }
-
-    private Map<Integer, Long> buildRatingFacets(List<ProductSummaryProjection> products) {
-        Map<Integer, Long> facets = new HashMap<>();
-
-        for (int star = 5; star >= 1; star--) {
-            final int minStar = star;
-            long count = products.stream()
-                    .filter(p -> p.getRating() != null && p.getRating() >= minStar)
-                    .count();
-
-            facets.put(star, count);
-        }
-
-        return facets;
-    }
-
-    private List<SearchProductsProjection.MaterialFacet> fetchMaterialFacets() {
-        String sql = """
-                SELECT DISTINCT material
-                FROM product_variants
-                WHERE material IS NOT NULL
-                AND material != ''
-                ORDER BY material ASC
-                """;
-
-        return jdbcTemplate.query(
-                sql,
-                Map.of(),
-                (rs, rowNum) -> {
-                    String material = rs.getString("material");
-
-                    return SearchProductsProjection.MaterialFacet.builder()
-                            .id(material.toLowerCase())
-                            .label(capitalize(material))
-                            .build();
-                });
-    }
-
-    private List<SearchProductsProjection.ColorFacet> fetchColorFacets() {
-        String sql = """
-                SELECT DISTINCT color
-                FROM product_variants
-                WHERE color IS NOT NULL
-                AND color != ''
-                ORDER BY color ASC
-                """;
-
-        return jdbcTemplate.query(
-                sql,
-                Map.of(),
-                (rs, rowNum) -> {
-                    String color = rs.getString("color");
-
-                    return SearchProductsProjection.ColorFacet.builder()
-                            .id(color.toLowerCase())
-                            .label(capitalize(color))
-                            .hex(getColorHex(color))
-                            .build();
-                });
     }
 
     private List<String> parseJsonList(String json) {

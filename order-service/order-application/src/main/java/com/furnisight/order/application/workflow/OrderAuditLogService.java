@@ -10,8 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -20,15 +19,15 @@ public class OrderAuditLogService {
     private final ObjectMapper objectMapper;
 
     public void enqueue(OrderProcessingContext context, OrderStatus previousStatus) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("actorId", context.getActorId());
-        payload.put("actorType", context.getActorType());
-        payload.put("orderCode", context.getOrder().getOrderCode());
-        payload.put("previousStatus", previousStatus);
-        payload.put("nextStatus", context.getOrder().getStatus());
-        payload.put("trackingCode", context.getOrder().getTrackingCode());
-        payload.put("note", context.getNote());
-        payload.put("occurredAt", LocalDateTime.now());
+        OrderAuditPayload payload = new OrderAuditPayload(
+                context.getActorId(),
+                context.getActorType(),
+                context.getOrder().getOrderCode(),
+                previousStatus,
+                context.getOrder().getStatus(),
+                context.getOrder().getTrackingCode(),
+                context.getNote(),
+                LocalDateTime.now());
         repository.save(new OutboxMessage(
                 "Order",
                 context.getOrder().getOrderCode(),
@@ -37,11 +36,23 @@ public class OrderAuditLogService {
         ));
     }
 
-    private String toJson(Map<String, Object> payload) {
+    private String toJson(OrderAuditPayload payload) {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Cannot serialize order audit event", exception);
         }
+    }
+
+    private record OrderAuditPayload(
+            UUID actorId,
+            String actorType,
+            String orderCode,
+            OrderStatus previousStatus,
+            OrderStatus nextStatus,
+            String trackingCode,
+            String note,
+            LocalDateTime occurredAt
+    ) {
     }
 }

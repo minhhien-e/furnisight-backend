@@ -2,7 +2,7 @@ package com.furnisight.notification.application.template.service;
 
 import com.furnisight.notification.application.template.port.in.usecase.UpdateNotificationTemplateUseCase;
 import com.furnisight.notification.application.template.port.in.dto.command.UpdateNotificationTemplateCommand;
-import com.furnisight.notification.application.template.port.in.dto.projection.NotificationTemplateProjection;
+import com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse;
 import com.furnisight.notification.application.template.port.out.repository.NotificationTemplateRepository;
 import com.furnisight.notification.domain.model.entity.NotificationTemplate;
 import com.furnisight.notification.domain.exception.NotificationTemplateNotFoundException;
@@ -19,7 +19,7 @@ public class UpdateNotificationTemplateService implements UpdateNotificationTemp
 
     @Override
     @Transactional
-    public NotificationTemplateProjection execute(UpdateNotificationTemplateCommand command) {
+    public NotificationTemplateResponse execute(UpdateNotificationTemplateCommand command) {
         NotificationTemplate template = notificationTemplateRepository.findById(command.getTemplateId())
                 .orElseThrow(() -> new NotificationTemplateNotFoundException(command.getTemplateId()));
 
@@ -34,6 +34,6 @@ public class UpdateNotificationTemplateService implements UpdateNotificationTemp
         }
 
         NotificationTemplate saved = notificationTemplateRepository.save(template);
-        return NotificationTemplateProjection.from(saved);
+        return NotificationTemplateResponse.from(saved);
     }
 }

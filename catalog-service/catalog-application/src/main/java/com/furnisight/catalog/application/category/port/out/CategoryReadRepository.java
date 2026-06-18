@@ -1,19 +1,19 @@
 package com.furnisight.catalog.application.category.port.out;
 
-import com.furnisight.catalog.application.category.dto.projection.CategoryDetailProjection;
+import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import java.util.List;
 import java.util.Optional;
 
 public interface CategoryReadRepository {
-    Optional<CategoryDetailProjection> findCategoryDetailBySlug(String slug);
+    Optional<CategoryResponse> findCategoryDetailBySlug(String slug);
 
-    List<CategoryDetailProjection> findAllCategories();
+    List<CategoryResponse> findAllCategories();
 
-    List<CategoryDetailProjection> findRootCategories();
+    List<CategoryResponse> findRootCategories();
 
-    List<CategoryDetailProjection> findSubcategoriesByParentSlug(String parentSlug);
+    List<CategoryResponse> findSubcategoriesByParentSlug(String parentSlug);
 
-    Optional<CategoryDetailProjection> findCategoryDetailById(java.util.UUID id);
+    Optional<CategoryResponse> findCategoryDetailById(java.util.UUID id);
 
     long countCategories();
 }

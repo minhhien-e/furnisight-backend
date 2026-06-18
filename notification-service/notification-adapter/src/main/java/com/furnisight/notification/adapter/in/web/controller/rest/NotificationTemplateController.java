@@ -2,7 +2,7 @@ package com.furnisight.notification.adapter.in.web.controller.rest;
 
 import com.furnisight.notification.adapter.in.web.dto.template.CreateNotificationTemplateRequest;
 import com.furnisight.notification.adapter.in.web.dto.template.UpdateNotificationTemplateRequest;
-import com.furnisight.notification.application.template.port.in.dto.projection.NotificationTemplateProjection;
+import com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse;
 import com.furnisight.notification.application.template.port.in.dto.command.CreateNotificationTemplateCommand;
 import com.furnisight.notification.application.template.port.in.dto.command.DeleteNotificationTemplateCommand;
 import com.furnisight.notification.application.template.port.in.dto.command.UpdateNotificationTemplateCommand;
@@ -32,7 +32,7 @@ public class NotificationTemplateController {
     private final FindNotificationTemplateByCodeUseCase findNotificationTemplateByCodeUseCase;
 
     @PostMapping
-    public ResponseEntity<NotificationTemplateProjection> createTemplate(@Valid @RequestBody CreateNotificationTemplateRequest request) {
+    public ResponseEntity<NotificationTemplateResponse> createTemplate(@Valid @RequestBody CreateNotificationTemplateRequest request) {
         CreateNotificationTemplateCommand command = CreateNotificationTemplateCommand.builder()
                 .code(request.getCode())
                 .name(request.getName())
@@ -44,7 +44,7 @@ public class NotificationTemplateController {
                 .defaultActionUrl(request.getDefaultActionUrl())
                 .build();
 
-        NotificationTemplateProjection createdTemplate = createNotificationTemplateUseCase.execute(command);
+        NotificationTemplateResponse createdTemplate = createNotificationTemplateUseCase.execute(command);
         return new ResponseEntity<>(createdTemplate, HttpStatus.CREATED);
     }
 
@@ -56,7 +56,7 @@ public class NotificationTemplateController {
     }
 
     @PutMapping("/{templateId}")
-    public ResponseEntity<NotificationTemplateProjection> updateTemplate(
+    public ResponseEntity<NotificationTemplateResponse> updateTemplate(
             @PathVariable UUID templateId,
             @Valid @RequestBody UpdateNotificationTemplateRequest request) {
         UpdateNotificationTemplateCommand command = UpdateNotificationTemplateCommand.builder()
@@ -65,12 +65,12 @@ public class NotificationTemplateController {
                 .titleTemplate(request.getTitleTemplate())
                 .bodyTemplate(request.getBodyTemplate())
                 .build();
-        NotificationTemplateProjection updatedTemplate = updateNotificationTemplateUseCase.execute(command);
+        NotificationTemplateResponse updatedTemplate = updateNotificationTemplateUseCase.execute(command);
         return ResponseEntity.ok(updatedTemplate);
     }
 
     @GetMapping
-    public ResponseEntity<List<NotificationTemplateProjection>> filterTemplates(
+    public ResponseEntity<List<NotificationTemplateResponse>> filterTemplates(
             @RequestParam(required = false) String name,
             @RequestParam(required = false) NotificationChannel channel,
             @RequestParam(required = false) NotificationType type) {
@@ -79,16 +79,16 @@ public class NotificationTemplateController {
                 .channel(channel)
                 .type(type)
                 .build();
-        List<NotificationTemplateProjection> templates = filterNotificationTemplateUseCase.execute(query);
+        List<NotificationTemplateResponse> templates = filterNotificationTemplateUseCase.execute(query);
         return ResponseEntity.ok(templates);
     }
 
     @GetMapping("/code/{code}")
-    public ResponseEntity<NotificationTemplateProjection> findTemplateByCode(@PathVariable String code) {
+    public ResponseEntity<NotificationTemplateResponse> findTemplateByCode(@PathVariable String code) {
         FindNotificationTemplateByCodeQuery query = FindNotificationTemplateByCodeQuery.builder()
                 .code(code)
                 .build();
-        NotificationTemplateProjection template = findNotificationTemplateByCodeUseCase.execute(query);
+        NotificationTemplateResponse template = findNotificationTemplateByCodeUseCase.execute(query);
         return ResponseEntity.ok(template);
     }
 }

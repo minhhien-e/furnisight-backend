@@ -1,7 +1,6 @@
 package com.furnisight.user.presentation.web.rest.dto.response;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.furnisight.user.application.address.port.in.projection.AddressProjection;
 import lombok.Builder;
 import lombok.Data;
 
@@ -23,7 +22,7 @@ public class AddressResponse {
     @JsonProperty("isDefault")
     private boolean defaultAddress;
 
-    public static AddressResponse from(AddressProjection address) {
+    public static AddressResponse from(com.furnisight.user.application.address.port.in.response.AddressResponse address) {
         return AddressResponse.builder()
                 .id(address.getId())
                 .fullName(address.getFullName())

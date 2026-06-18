@@ -27,14 +27,14 @@ public class MarketingService {
     private final MarketingNotificationGateway notificationGateway;
     private final MarketingTargetGateway targetGateway;
 
-    public MarketingListResponse<MarketingCampaignDto> getCampaigns(String query, String status) {
+    public PageResponse<MarketingCampaignDto> getCampaigns(String query, String status) {
         List<MarketingCampaignDto> items = campaignRepository.findAll().stream()
                 .filter(c -> matches(c.getName(), query) || matches(voucherCode(c.getVoucherId()), query))
                 .filter(c -> matchesStatus(c.getStatus().name(), status))
                 .sorted(Comparator.comparing(MarketingCampaign::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(this::toCampaignDto)
                 .toList();
-        return new MarketingListResponse<>(items, items.size());
+        return unpaged(items);
     }
 
     @Transactional
@@ -65,14 +65,14 @@ public class MarketingService {
         campaignRepository.deleteById(id);
     }
 
-    public MarketingListResponse<MarketingComboDto> getCombos(String query, String status) {
+    public PageResponse<MarketingComboDto> getCombos(String query, String status) {
         List<MarketingComboDto> items = comboRepository.findAll().stream()
                 .filter(c -> matches(c.getName(), query))
                 .filter(c -> matchesStatus(comboStatus(c), status))
                 .sorted(Comparator.comparing(PromotionCombo::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(this::toComboDto)
                 .toList();
-        return new MarketingListResponse<>(items, items.size());
+        return unpaged(items);
     }
 
     public List<MarketingComboDto> getActiveCombos() {
@@ -82,7 +82,7 @@ public class MarketingService {
                 .toList();
     }
 
-    public MarketingListResponse<MarketingComboDto> getPublicCombos(String placement, String sort, Integer page, Integer size) {
+    public PageResponse<MarketingComboDto> getPublicCombos(String placement, String sort, Integer page, Integer size) {
         List<MarketingComboDto> allItems = comboRepository.findActive().stream()
                 .filter(this::isWithinWindow)
                 .filter(combo -> matchesPlacement(combo.getPlacements(), placement))
@@ -93,7 +93,8 @@ public class MarketingService {
         int safeSize = Math.max(1, Math.min(24, size == null ? 6 : size));
         int from = Math.min(allItems.size(), safePage * safeSize);
         int to = Math.min(allItems.size(), from + safeSize);
-        return new MarketingListResponse<>(allItems.subList(from, to), allItems.size());
+        int totalPages = (int) Math.ceil((double) allItems.size() / safeSize);
+        return new PageResponse<>(allItems.subList(from, to), totalPages, allItems.size(), safePage, safeSize);
     }
 
     public ValidateComboResponse validateCombo(ValidateComboCommand command) {
@@ -170,14 +171,18 @@ public class MarketingService {
         comboRepository.deleteById(id);
     }
 
-    public MarketingListResponse<MarketingNotificationDto> getNotifications(String query, String status) {
+    public PageResponse<MarketingNotificationDto> getNotifications(String query, String status) {
         List<MarketingNotificationDto> items = notificationRepository.findAll().stream()
                 .filter(n -> matches(n.getTitle(), query))
                 .filter(n -> matchesStatus(n.getStatus().name(), status))
                 .sorted(Comparator.comparing(MarketingNotification::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder())))
                 .map(this::toNotificationDto)
                 .toList();
-        return new MarketingListResponse<>(items, items.size());
+        return unpaged(items);
+    }
+
+    private <T> PageResponse<T> unpaged(List<T> items) {
+        return new PageResponse<>(items, 1, items.size(), 1, items.size());
     }
 
     @Transactional

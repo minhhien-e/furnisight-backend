@@ -1,6 +1,7 @@
 package com.furnisight.catalog.application.product.port.out;
 
-import com.furnisight.catalog.application.product.dto.projection.*;
+import com.furnisight.catalog.application.product.dto.response.*;
+import com.furnisight.catalog.application.common.dto.PageResponse;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -8,16 +9,16 @@ import java.util.UUID;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 
 public interface ProductReadRepository {
-    Optional<ProductDetailProjection> findProductDetailBySlug(String slug);
-    Optional<ProductDetailProjection> findProductDetailById(UUID productId);
-    SearchProductsProjection searchProducts(SearchProductsQuery query);
-    List<RecommendedProductProjection> findRecommendedProducts(
+    Optional<ProductResponse> findProductDetailBySlug(String slug);
+    Optional<ProductResponse> findProductDetailById(UUID productId);
+    PageResponse<ProductResponse> searchProducts(SearchProductsQuery query);
+    List<ProductResponse> findRecommendedProducts(
             String categorySlug, String status, int limit);
-    List<ProductSummaryProjection> findTopProducts(int limit);
-    List<AdminProductProjection> findAdminProducts(String query, String status, String category, int page, int size);
+    List<ProductResponse> findTopProducts(int limit);
+    List<ProductResponse> findAdminProducts(String query, String status, String category, int page, int size);
     long countAdminProducts(String query, String status, String category);
     long countProductsByStatus(String status);
     long countLowStockProducts(int threshold);
     long countOutOfStockProducts();
-    List<LowStockProductProjection> findLowStockProducts(int threshold, int limit);
+    List<ProductResponse> findLowStockProducts(int threshold, int limit);
 }

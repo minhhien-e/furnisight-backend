@@ -2,6 +2,7 @@ package com.furnisight.order.adapter.out.repository.jpa.impl;
 
 import com.furnisight.order.adapter.out.repository.jpa.OrderJpaRepository;
 import com.furnisight.order.domain.repository.order.OrderRepository;
+import com.furnisight.order.domain.repository.order.TopSellingProductQuery;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.enums.OrderStatus;
 import lombok.RequiredArgsConstructor;
@@ -96,11 +97,20 @@ public class OrderRepositoryImpl implements OrderRepository {
     }
 
     @Override
-    public List<Object[]> findTopSellingProducts(int limit) {
+    public List<TopSellingProductQuery> findTopSellingProducts(int limit) {
         return jpaRepository.findTopSellingProducts(
             List.of(OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED, OrderStatus.REFUND_PENDING, OrderStatus.REFUNDED),
             PageRequest.of(0, Math.max(limit, 1))
-        );
+        ).stream()
+                .map(row -> new TopSellingProductQuery(
+                        row.getProductId(),
+                        row.getProductName(),
+                        row.getCategoryName(),
+                        row.getImageUrl(),
+                        row.getPrice(),
+                        row.getSoldCount() == null ? null : row.getSoldCount().intValue(),
+                        row.getTotalRevenue()))
+                .toList();
     }
 
     @Override

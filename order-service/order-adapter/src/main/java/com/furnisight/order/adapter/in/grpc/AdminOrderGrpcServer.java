@@ -25,6 +25,7 @@ import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
 import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.repository.order.OrderRepository;
+import com.furnisight.order.domain.repository.order.TopSellingProductQuery;
 import com.furnisight.order.domain.valueobjects.ProductSnapshot;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -113,7 +114,6 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             Arrays.stream(OrderStatus.values())
                     .map(status -> OrderStatusCount.newBuilder()
                             .setStatus(status.name())
-                            .setLabel(toStatusLabel(status.name()))
                             .setCount(orderRepository.countByStatus(status))
                             .build())
                     .forEach(builder::addOrdersByStatus);
@@ -121,7 +121,6 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             Arrays.stream(OrderStatus.values())
                     .map(status -> OrderStatusCount.newBuilder()
                             .setStatus(status.name())
-                            .setLabel(toStatusLabel(status.name()))
                             .setCount(orderRepository.countByStatusCreatedAtBetween(status, monthStart, nextMonthStart))
                             .build())
                     .forEach(builder::addOrdersThisMonthByStatus);
@@ -233,27 +232,33 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     public void getTopSellingProducts(GetTopSellingProductsRequest request, StreamObserver<TopSellingProductsResponse> responseObserver) {
         try {
             int limit = request.getLimit() > 0 ? request.getLimit() : 5;
-            List<Object[]> queryResults = orderRepository.findTopSellingProducts(limit);
+            List<TopSellingProductQuery> queryResults = orderRepository.findTopSellingProducts(limit);
 
             TopSellingProductsResponse.Builder builder = TopSellingProductsResponse.newBuilder();
-            for (Object[] row : queryResults) {
-                String productId = row[0] == null ? "" : row[0].toString();
-                String productName = row[1] == null ? "" : row[1].toString();
-                String categoryName = row[2] == null ? "" : row[2].toString();
-                String imageUrl = row[3] == null ? "" : row[3].toString();
-                double price = row[4] == null ? 0D : ((Number) row[4]).doubleValue();
-                int soldCount = row[5] == null ? 0 : ((Number) row[5]).intValue();
-                double totalRevenue = row[6] == null ? 0D : ((Number) row[6]).doubleValue();
-
-                builder.addProducts(TopProductDto.newBuilder()
-                        .setProductId(productId)
-                        .setProductName(productName)
-                        .setCategoryName(categoryName)
-                        .setImageUrl(imageUrl)
-                        .setPrice(price)
-                        .setSoldCount(soldCount)
-                        .setTotalRevenue(totalRevenue)
-                        .build());
+            for (TopSellingProductQuery product : queryResults) {
+                TopProductDto.Builder productBuilder = TopProductDto.newBuilder();
+                if (product.productId() != null) {
+                    productBuilder.setProductId(product.productId());
+                }
+                if (product.productName() != null) {
+                    productBuilder.setProductName(product.productName());
+                }
+                if (product.categoryName() != null) {
+                    productBuilder.setCategoryName(product.categoryName());
+                }
+                if (product.imageUrl() != null) {
+                    productBuilder.setImageUrl(product.imageUrl());
+                }
+                if (product.price() != null) {
+                    productBuilder.setPrice(product.price());
+                }
+                if (product.soldCount() != null) {
+                    productBuilder.setSoldCount(product.soldCount());
+                }
+                if (product.totalRevenue() != null) {
+                    productBuilder.setTotalRevenue(product.totalRevenue());
+                }
+                builder.addProducts(productBuilder.build());
             }
 
             responseObserver.onNext(builder.build());
@@ -313,21 +318,10 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     private OrderStatus parseStatus(String rawStatus) {
-        String normalized = normalizeStatus(rawStatus);
-        if (normalized.isBlank()) {
+        if (rawStatus == null || rawStatus.isBlank()) {
             return null;
         }
-        return OrderStatus.valueOf(normalized);
-    }
-
-    private String normalizeStatus(String rawStatus) {
-        if (rawStatus == null || rawStatus.isBlank()) {
-            return "";
-        }
-        return rawStatus.trim()
-                .replace('-', '_')
-                .replace(' ', '_')
-                .toUpperCase();
+        return OrderStatus.valueOf(rawStatus.trim().toUpperCase());
     }
 
     private UpdateOrderStatusCommand adminStatusCommand(String adminId, String orderCode, OrderStatus status) {
@@ -374,21 +368,6 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             return null;
         }
         return order.getShippingDetail().getShippingAddressName();
-    }
-
-    private String toStatusLabel(String status) {
-        return switch (normalizeStatus(status)) {
-            case "CONFIRMED" -> "Xác nhận thành công";
-            case "PAID" -> "Đã thanh toán";
-            case "IN_TRANSIT" -> "Đang vận chuyển";
-            case "SHIPPING" -> "Đang giao";
-            case "DELIVERED", "SUCCESS" -> "Hoàn thành";
-            case "CANCELLED" -> "Đã hủy";
-            case "REFUND_PENDING" -> "Chờ hoàn tiền";
-            case "REFUNDED" -> "Đã hoàn tiền";
-            case "PAYMENT_FAILED" -> "Thanh toán lỗi";
-            default -> "Chờ thanh toán";
-        };
     }
 
 }

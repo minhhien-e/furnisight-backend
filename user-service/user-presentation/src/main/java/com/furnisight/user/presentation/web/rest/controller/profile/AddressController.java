@@ -4,7 +4,6 @@ import com.furnisight.user.application.common.port.in.CurrentUserProvider;
 import com.furnisight.user.application.address.port.in.command.AddAddressCommand;
 import com.furnisight.user.application.address.port.in.command.DeleteAddressCommand;
 import com.furnisight.user.application.address.port.in.command.SetDefaultAddressCommand;
-import com.furnisight.user.application.address.port.in.projection.AddressProjection;
 import com.furnisight.user.application.address.port.in.usecase.AddAddressUseCase;
 import com.furnisight.user.application.address.port.in.usecase.DeleteAddressUseCase;
 import com.furnisight.user.application.address.port.in.usecase.GetAddressesUseCase;
@@ -40,7 +39,7 @@ public class AddressController {
     public ResponseEntity<AddressResponse> addAddress(@RequestBody AddAddressCommand command) {
         UUID accountId = currentUserProvider.getCurrentUserId();
         command.setAccountId(accountId);
-        AddressProjection newAddress = addAddressUseCase.execute(command);
+        var newAddress = addAddressUseCase.execute(command);
         return ResponseEntity.ok(AddressResponse.from(newAddress));
     }
 

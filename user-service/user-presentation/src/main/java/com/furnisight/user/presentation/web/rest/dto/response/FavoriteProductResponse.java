@@ -1,7 +1,6 @@
 package com.furnisight.user.presentation.web.rest.dto.response;
 
 import com.furnisight.user.application.favorite.dto.CatalogFavoriteProductSummary;
-import com.furnisight.user.application.favorite.dto.FavoriteProductProjection;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
@@ -11,19 +10,21 @@ public record FavoriteProductResponse(
     UUID accountId,
     UUID productId,
     LocalDateTime createdAt,
-    ProductSummaryResponse product
+    ProductResponse product
 ) {
-    public static FavoriteProductResponse from(FavoriteProductProjection favoriteProduct) {
+    public static FavoriteProductResponse from(
+        com.furnisight.user.application.favorite.dto.FavoriteProductResponse favoriteProduct
+    ) {
         return new FavoriteProductResponse(
             favoriteProduct.id(),
             favoriteProduct.accountId(),
             favoriteProduct.productId(),
             favoriteProduct.createdAt(),
-            ProductSummaryResponse.from(favoriteProduct.product())
+            ProductResponse.from(favoriteProduct.product())
         );
     }
 
-    public record ProductSummaryResponse(
+    public record ProductResponse(
         UUID id,
         String slug,
         String name,
@@ -32,12 +33,12 @@ public record FavoriteProductResponse(
         Double price,
         Integer soldCount
     ) {
-        public static ProductSummaryResponse from(CatalogFavoriteProductSummary product) {
+        public static ProductResponse from(CatalogFavoriteProductSummary product) {
             if (product == null) {
                 return null;
             }
 
-            return new ProductSummaryResponse(
+            return new ProductResponse(
                 product.id(),
                 product.slug(),
                 product.name(),

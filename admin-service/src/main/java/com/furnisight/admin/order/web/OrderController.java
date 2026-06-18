@@ -2,9 +2,10 @@ package com.furnisight.admin.order.web;
 
 import com.furnisight.admin.order.application.OrderService;
 import com.furnisight.admin.order.web.dto.request.UpdateOrderRequest;
-import com.furnisight.admin.order.web.dto.response.OrderPageResponse;
+import com.furnisight.admin.order.web.dto.response.OrderResponse;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
 import com.furnisight.admin.shared.web.ActionResultResponse;
+import com.furnisight.admin.shared.web.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,7 +23,7 @@ public class OrderController {
 
     @GetMapping
     @PreAuthorize("hasAuthority(\'ORDER_MANAGE\') or hasAuthority(\'ADMIN\')")
-    public ResponseEntity<OrderPageResponse> getOrders(
+    public ResponseEntity<PageResponse<OrderResponse>> getOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String status,

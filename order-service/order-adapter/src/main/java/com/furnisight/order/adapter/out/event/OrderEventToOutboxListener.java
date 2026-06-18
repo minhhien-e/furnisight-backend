@@ -11,6 +11,7 @@ import com.furnisight.order.domain.repository.order.OrderRepository;
 import com.furnisight.order.domain.entities.reservation.StockReservation;
 import com.furnisight.order.domain.entities.order.Order;
 import com.furnisight.order.domain.entities.order.OrderItem;
+import com.furnisight.order.application.user.port.out.UserEmailPort;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +19,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import java.util.ArrayList;
 
@@ -32,6 +31,7 @@ public class OrderEventToOutboxListener {
     private final OutboxMessageRepository outboxMessageRepository;
     private final StockReservationRepository stockReservationRepository;
     private final OrderRepository orderRepository;
+    private final UserEmailPort userEmailPort;
     private final ObjectMapper objectMapper;
     private static final String AGGREGATE_TYPE = "Order";
 
@@ -39,10 +39,13 @@ public class OrderEventToOutboxListener {
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handle(OrderCreatedEvent event) {
         log.info("Handling OrderCreatedEvent to outbox for order: {}", event.getOrderCode());
-        Order order = orderRepository.findByOrderCode(event.getOrderCode()).orElse(null);
-        if (order == null || order.getItems() == null || order.getItems().isEmpty()) return;
+        Order order = orderRepository.findByOrderCode(event.getOrderCode())
+                .orElseThrow(() -> new IllegalStateException("Order not found for event: " + event.getOrderCode()));
+        if (order.getItems() == null || order.getItems().isEmpty()) {
+            throw new IllegalStateException("Order has no items for event: " + event.getOrderCode());
+        }
 
-        List<Map<String, Object>> stockItems = new ArrayList<>();
+        List<InventoryStockItemPayload> stockItems = new ArrayList<>();
         for (OrderItem item : order.getItems()) {
             // Save stock reservation
             StockReservation reservation = StockReservation.builder()
@@ -53,16 +56,13 @@ public class OrderEventToOutboxListener {
                     .build();
             stockReservationRepository.save(reservation);
 
-            Map<String, Object> stockItem = new HashMap<>();
-            stockItem.put("productId", item.getProductSnapshot().getProductId());
-            stockItem.put("variantId", item.getProductSnapshot().getVariantId());
-            stockItem.put("quantity", item.getQuantity());
-            stockItems.add(stockItem);
+            stockItems.add(new InventoryStockItemPayload(
+                    item.getProductSnapshot().getProductId(),
+                    item.getProductSnapshot().getVariantId(),
+                    item.getQuantity()));
         }
 
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("orderCode", event.getOrderCode());
-        payload.put("items", stockItems);
+        InventoryStockPayload payload = new InventoryStockPayload(event.getOrderCode(), stockItems);
 
         outboxMessageRepository.save(new OutboxMessage(
                 AGGREGATE_TYPE,
@@ -71,22 +71,19 @@ public class OrderEventToOutboxListener {
                 objectMapper.writeValueAsString(payload)
         ));
 
-        Map<String, Object> orderPlacedPayload = new HashMap<>();
-        orderPlacedPayload.put("orderCode", order.getOrderCode());
-        orderPlacedPayload.put("userId", order.getUserId().toString());
-        orderPlacedPayload.put("customerEmail", event.getCustomerEmail());
-        orderPlacedPayload.put("totalAmount", order.getTotalAmount());
-        orderPlacedPayload.put("createdAt", order.getCreatedAt() != null ? order.getCreatedAt().toString() : "");
-
-        List<Map<String, Object>> itemsList = new ArrayList<>();
-        for (OrderItem item : order.getItems()) {
-            Map<String, Object> itemMap = new HashMap<>();
-            itemMap.put("productName", item.getProductSnapshot().getProductName());
-            itemMap.put("quantity", item.getQuantity());
-            itemMap.put("price", item.getPrice());
-            itemsList.add(itemMap);
-        }
-        orderPlacedPayload.put("items", itemsList);
+        List<OrderPlacedItemPayload> itemsList = order.getItems().stream()
+                .map(item -> new OrderPlacedItemPayload(
+                        item.getProductSnapshot().getProductName(),
+                        item.getQuantity(),
+                        item.getPrice()))
+                .toList();
+        OrderPlacedPayload orderPlacedPayload = new OrderPlacedPayload(
+                order.getOrderCode(),
+                order.getUserId() == null ? null : order.getUserId().toString(),
+                event.getCustomerEmail(),
+                order.getTotalAmount(),
+                order.getCreatedAt() == null ? null : order.getCreatedAt().toString(),
+                itemsList);
 
         outboxMessageRepository.save(new OutboxMessage(
                 AGGREGATE_TYPE,
@@ -106,11 +103,15 @@ public class OrderEventToOutboxListener {
     @SneakyThrows
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
     public void handle(OrderPaidEvent event) {
-        
-        Map<String, Object> payload = new HashMap<>();
-        payload.put("orderCode", event.getOrderCode());
-        payload.put("paidAmount", event.getPaidAmount());
-        payload.put("paymentMethod", event.getPaymentMethod());
+        Order order = orderRepository.findByOrderCode(event.getOrderCode())
+                .orElseThrow(() -> new IllegalStateException("Order not found for event: " + event.getOrderCode()));
+
+        OrderPaidPayload payload = new OrderPaidPayload(
+                event.getOrderCode(),
+                order.getUserId() == null ? null : order.getUserId().toString(),
+                userEmailPort.getEmailByUserId(order.getUserId()),
+                event.getPaidAmount(),
+                event.getPaymentMethod());
 
         outboxMessageRepository.save(new OutboxMessage(
                 AGGREGATE_TYPE,
@@ -123,18 +124,15 @@ public class OrderEventToOutboxListener {
     private void releaseStock(String orderCode) throws Exception {
         List<StockReservation> reservations = stockReservationRepository.findByOrderCode(orderCode);
         if (reservations != null && !reservations.isEmpty()) {
-            List<Map<String, Object>> stockItems = new ArrayList<>();
+            List<InventoryStockItemPayload> stockItems = new ArrayList<>();
             for (StockReservation res : reservations) {
-                Map<String, Object> stockItem = new HashMap<>();
-                stockItem.put("productId", res.getProductId());
-                stockItem.put("variantId", res.getProductVariantId());
-                stockItem.put("quantity", res.getQuantity());
-                stockItems.add(stockItem);
+                stockItems.add(new InventoryStockItemPayload(
+                        res.getProductId() == null ? null : res.getProductId().toString(),
+                        res.getProductVariantId() == null ? null : res.getProductVariantId().toString(),
+                        res.getQuantity()));
             }
 
-            Map<String, Object> payload = new HashMap<>();
-            payload.put("orderCode", orderCode);
-            payload.put("items", stockItems);
+            InventoryStockPayload payload = new InventoryStockPayload(orderCode, stockItems);
 
             outboxMessageRepository.save(new OutboxMessage(
                     AGGREGATE_TYPE,
@@ -145,5 +143,27 @@ public class OrderEventToOutboxListener {
 
             stockReservationRepository.deleteByOrderCode(orderCode);
         }
+    }
+
+    private record InventoryStockPayload(String orderCode, List<InventoryStockItemPayload> items) {
+    }
+
+    private record InventoryStockItemPayload(String productId, String variantId, Integer quantity) {
+    }
+
+    private record OrderPlacedPayload(
+            String orderCode,
+            String userId,
+            String customerEmail,
+            Double totalAmount,
+            String createdAt,
+            List<OrderPlacedItemPayload> items
+    ) {
+    }
+
+    private record OrderPlacedItemPayload(String productName, Integer quantity, Double price) {
+    }
+
+    private record OrderPaidPayload(String orderCode, String userId, String customerEmail, Double paidAmount, String paymentMethod) {
     }
 }

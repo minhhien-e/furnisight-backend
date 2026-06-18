@@ -1,7 +1,7 @@
 package com.furnisight.user.application.address.service;
 
 import com.furnisight.user.application.address.port.in.command.AddAddressCommand;
-import com.furnisight.user.application.address.port.in.projection.AddressProjection;
+import com.furnisight.user.application.address.port.in.response.AddressResponse;
 import com.furnisight.user.application.address.port.in.usecase.AddAddressUseCase;
 import com.furnisight.user.domain.entities.profile.UserAddress;
 import com.furnisight.user.domain.repository.profile.UserAddressRepository;
@@ -19,7 +19,7 @@ public class AddAddressService implements AddAddressUseCase {
 
     @Override
     @Transactional
-    public AddressProjection execute(AddAddressCommand command) {
+    public AddressResponse execute(AddAddressCommand command) {
         List<UserAddress> existingAddresses = addressRepository.findByAccountId(command.getAccountId());
         
         boolean isDefault = command.isDefault() || existingAddresses.isEmpty();
@@ -47,11 +47,11 @@ public class AddAddressService implements AddAddressUseCase {
         );
 
         addressRepository.save(newAddress);
-        return mapToProjection(newAddress);
+        return mapToResponse(newAddress);
     }
 
-    private AddressProjection mapToProjection(UserAddress address) {
-        return AddressProjection.builder()
+    private AddressResponse mapToResponse(UserAddress address) {
+        return AddressResponse.builder()
                 .id(address.getId())
                 .fullName(address.getFullName())
                 .phone(address.getPhone())

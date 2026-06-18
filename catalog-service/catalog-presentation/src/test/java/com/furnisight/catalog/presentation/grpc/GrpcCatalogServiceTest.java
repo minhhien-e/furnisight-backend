@@ -6,8 +6,7 @@ import com.furnisight.catalog.GetProductSummaryItem;
 import com.furnisight.catalog.RecommendedProduct;
 import com.furnisight.catalog.SearchRecommendedProductsRequest;
 import com.furnisight.catalog.SearchRecommendedProductsResponse;
-import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
-import com.furnisight.catalog.application.product.dto.projection.RecommendedProductProjection;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
@@ -28,7 +27,7 @@ class GrpcCatalogServiceTest {
         UUID productId = UUID.randomUUID();
         UUID variantId = UUID.randomUUID();
         when(repository.findRecommendedProducts("bedroom", "ACTIVE", 6))
-                .thenReturn(List.of(RecommendedProductProjection.builder()
+                .thenReturn(List.of(ProductResponse.builder()
                         .id(productId)
                         .slug("bed")
                         .name("Bed")
@@ -59,7 +58,7 @@ class GrpcCatalogServiceTest {
     void recommendationWithoutVariantKeepsPriceAbsent() {
         ProductReadRepository repository = mock(ProductReadRepository.class);
         when(repository.findRecommendedProducts("bedroom", "ACTIVE", 6))
-                .thenReturn(List.of(RecommendedProductProjection.builder()
+                .thenReturn(List.of(ProductResponse.builder()
                         .id(UUID.randomUUID())
                         .slug("bed")
                         .name("Bed")
@@ -86,11 +85,11 @@ class GrpcCatalogServiceTest {
         UUID productId = UUID.randomUUID();
         UUID firstVariantId = UUID.randomUUID();
         when(repository.findProductDetailById(productId))
-                .thenReturn(Optional.of(ProductDetailProjection.builder()
+                .thenReturn(Optional.of(ProductResponse.builder()
                         .id(productId)
                         .slug("bed")
                         .name("Bed")
-                        .variants(List.of(ProductDetailProjection.VariantDto.builder()
+                        .variants(List.of(ProductResponse.VariantDto.builder()
                                 .id(firstVariantId)
                                 .price(100D)
                                 .build()))

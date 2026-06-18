@@ -12,8 +12,7 @@ import com.furnisight.catalog.ProductSummaryVariant;
 import com.furnisight.catalog.RecommendedProduct;
 import com.furnisight.catalog.SearchRecommendedProductsRequest;
 import com.furnisight.catalog.SearchRecommendedProductsResponse;
-import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
-import com.furnisight.catalog.application.product.dto.projection.RecommendedProductProjection;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
@@ -163,7 +162,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         }
     }
 
-    private ProductSummary toProductSummary(ProductDetailProjection detail, String selectedVariantId) {
+    private ProductSummary toProductSummary(ProductResponse detail, String selectedVariantId) {
         ProductSummary.Builder builder = ProductSummary.newBuilder()
                 .setId(detail.getId().toString())
                 .setSlug(defaultString(detail.getSlug()))
@@ -187,7 +186,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         return builder.build();
     }
 
-    private FavoriteProductSummary toFavoriteProductSummary(ProductDetailProjection detail) {
+    private FavoriteProductSummary toFavoriteProductSummary(ProductResponse detail) {
         FavoriteProductSummary.Builder builder = FavoriteProductSummary.newBuilder()
                 .setId(detail.getId().toString())
                 .setSlug(defaultString(detail.getSlug()))
@@ -206,8 +205,8 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         return builder.build();
     }
 
-    private List<ProductDetailProjection.VariantDto> orderedVariants(
-            ProductDetailProjection detail,
+    private List<ProductResponse.VariantDto> orderedVariants(
+            ProductResponse detail,
             String selectedVariantId
     ) {
         if (detail.getVariants() == null || detail.getVariants().isEmpty()) {
@@ -223,7 +222,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
                 .toList();
     }
 
-    private ProductSummaryVariant toProductSummaryVariant(ProductDetailProjection.VariantDto variant) {
+    private ProductSummaryVariant toProductSummaryVariant(ProductResponse.VariantDto variant) {
         ProductSummaryVariant.Builder variantBuilder = ProductSummaryVariant.newBuilder()
                 .setId(variant.getId() != null ? variant.getId().toString() : "")
                 .setColor(defaultString(variant.getColor()))
@@ -252,7 +251,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         return variantBuilder.build();
     }
 
-    private boolean matchesSelectedVariant(ProductDetailProjection.VariantDto variant, String selectedVariantId) {
+    private boolean matchesSelectedVariant(ProductResponse.VariantDto variant, String selectedVariantId) {
         return variant.getId() != null && variant.getId().toString().equals(selectedVariantId);
     }
 
@@ -265,7 +264,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         return variants.isEmpty() ? "" : defaultString(variants.get(0).getId());
     }
 
-    private RecommendedProduct toRecommendedProduct(RecommendedProductProjection product) {
+    private RecommendedProduct toRecommendedProduct(ProductResponse product) {
         RecommendedProduct.Builder builder = RecommendedProduct.newBuilder()
                 .setId(product.getId().toString())
                 .setSlug(defaultString(product.getSlug()))

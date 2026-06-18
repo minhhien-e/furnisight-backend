@@ -2,7 +2,7 @@ package com.furnisight.order.application.order.service;
 
 import com.furnisight.order.application.order.port.in.command.CreateOrderCommand;
 import com.furnisight.order.application.order.port.in.usecase.CreateOrderUseCase;
-import com.furnisight.order.application.order.port.in.dto.OrderCreateProjection;
+import com.furnisight.order.application.order.port.in.dto.OrderResponse;
 import com.furnisight.order.application.order.pricing.OrderPricingService;
 import com.furnisight.order.application.order.validator.OrderItemValidationService;
 import com.furnisight.order.application.user.port.out.UserEmailPort;
@@ -31,7 +31,7 @@ public class CreateOrderService implements CreateOrderUseCase {
 
     @Override
     @Transactional
-    public OrderCreateProjection createOrder(CreateOrderCommand command) {
+    public OrderResponse createOrder(CreateOrderCommand command) {
         var addressInfo = OrderAddressInfo.builder()
                 .receiverName(command.getShippingAddressName())
                 .receiverPhone(command.getShippingAddressPhone())
@@ -43,7 +43,7 @@ public class CreateOrderService implements CreateOrderUseCase {
 
         String customerEmail = userEmailPort.getEmailByUserId(command.getUserId());
         if (customerEmail == null || customerEmail.isBlank()) {
-            customerEmail = command.getCustomerEmail();
+            throw new IllegalStateException("User email is missing for userId " + command.getUserId());
         }
 
         Order order = orderLifecycle.createPendingOrder(OrderDraft.builder()
@@ -67,11 +67,7 @@ public class CreateOrderService implements CreateOrderUseCase {
                 .actorType("CUSTOMER")
                 .build()).order();
 
-        return OrderCreateProjection.builder()
-                .orderId(savedOrder.getId())
-                .orderCode(savedOrder.getOrderCode())
-                .status(savedOrder.getStatus().name())
-                .build();
+        return OrderResponse.created(savedOrder);
     }
 
     private PaymentDetail initialPaymentDetail(CreateOrderCommand command) {

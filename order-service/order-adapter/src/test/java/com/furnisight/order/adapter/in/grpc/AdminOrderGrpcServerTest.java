@@ -155,7 +155,7 @@ class AdminOrderGrpcServerTest {
         @Override public long countByStatusCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end) { throw new UnsupportedOperationException(); }
         @Override public double sumTotalAmount() { throw new UnsupportedOperationException(); }
         @Override public double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end) { throw new UnsupportedOperationException(); }
-        @Override public List<Object[]> findTopSellingProducts(int limit) { throw new UnsupportedOperationException(); }
+        @Override public List<com.furnisight.order.domain.repository.order.TopSellingProductQuery> findTopSellingProducts(int limit) { throw new UnsupportedOperationException(); }
         @Override public Optional<UUID> findDeliveredOrderItemIdByUserIdAndProductId(UUID userId, String productId) { throw new UnsupportedOperationException(); }
     }
 

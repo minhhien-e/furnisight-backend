@@ -1,7 +1,7 @@
 package com.furnisight.user.application.favorite.service;
 
 import com.furnisight.user.application.favorite.dto.CatalogFavoriteProductSummary;
-import com.furnisight.user.application.favorite.dto.FavoriteProductProjection;
+import com.furnisight.user.application.favorite.dto.FavoriteProductResponse;
 import com.furnisight.user.application.favorite.port.in.usecase.GetFavoriteProductsUseCase;
 import com.furnisight.user.application.favorite.port.out.CatalogFavoriteProductService;
 import com.furnisight.user.domain.entities.favorite.FavoriteProduct;
@@ -22,7 +22,7 @@ public class GetFavoriteProductsService implements GetFavoriteProductsUseCase {
 
     @Override
     @Transactional(readOnly = true)
-    public List<FavoriteProductProjection> execute(UUID accountId) {
+    public List<FavoriteProductResponse> execute(UUID accountId) {
         List<FavoriteProduct> favorites = favoriteProductRepository.findAllByAccountId(accountId);
         Map<UUID, CatalogFavoriteProductSummary> products = catalogFavoriteProductService.getFavoriteProductSummaries(
             favorites.stream()
@@ -31,7 +31,7 @@ public class GetFavoriteProductsService implements GetFavoriteProductsUseCase {
         );
 
         return favorites.stream()
-            .map(favorite -> FavoriteProductProjection.from(favorite, products.get(favorite.getProductId())))
+            .map(favorite -> FavoriteProductResponse.from(favorite, products.get(favorite.getProductId())))
             .toList();
     }
 }

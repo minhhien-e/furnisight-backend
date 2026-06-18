@@ -3,6 +3,7 @@ package com.furnisight.media.service;
 import com.cloudinary.Cloudinary;
 import com.furnisight.media.dto.request.CompleteUploadRequest;
 import com.furnisight.media.dto.request.InitUploadRequest;
+import com.furnisight.media.dto.response.CloudinaryUploadFields;
 import com.furnisight.media.dto.response.InitUploadResponse;
 import com.furnisight.media.dto.response.MediaResponse;
 import com.furnisight.media.entity.MediaAsset;
@@ -52,29 +53,26 @@ public class MediaService {
         mediaAssetRepository.save(asset);
 
         long timestamp = Instant.now().getEpochSecond();
-        Map<String, Object> fields = new LinkedHashMap<>();
-        fields.put("api_key", cloudinary.config.apiKey);
-        fields.put("timestamp", timestamp);
-        fields.put("public_id", publicId);
-
-        if (request.getFolder() != null && !request.getFolder().isBlank()) {
-            fields.put("folder", request.getFolder());
-        }
-
         Map<String, Object> paramsToSign = new LinkedHashMap<>();
         paramsToSign.put("public_id", publicId);
         paramsToSign.put("timestamp", timestamp);
         if (request.getFolder() != null && !request.getFolder().isBlank()) {
             paramsToSign.put("folder", request.getFolder());
         }
-        fields.put("signature", cloudinary.apiSignRequest(paramsToSign, cloudinary.config.apiSecret));
+        String signature = cloudinary.apiSignRequest(paramsToSign, cloudinary.config.apiSecret);
 
         String uploadUrl = String.format(
                 "https://api.cloudinary.com/v1_1/%s/%s/upload",
                 cloudinary.config.cloudName,
                 toResourceType(mediaType));
 
-        return new InitUploadResponse(asset.getId(), uploadUrl, asset.getState().name(), fields);
+        return new InitUploadResponse(asset.getId(), uploadUrl, asset.getState().name(),
+                new CloudinaryUploadFields(
+                        cloudinary.config.apiKey,
+                        timestamp,
+                        publicId,
+                        request.getFolder(),
+                        signature));
     }
 
     @Transactional

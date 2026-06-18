@@ -1,7 +1,7 @@
 package com.furnisight.user.application.favorite.service;
 
 import com.furnisight.user.application.favorite.dto.FavoriteProductCommand;
-import com.furnisight.user.application.favorite.dto.FavoriteProductProjection;
+import com.furnisight.user.application.favorite.dto.FavoriteProductResponse;
 import com.furnisight.user.application.favorite.port.in.usecase.FavoriteProductUseCase;
 import com.furnisight.user.application.favorite.port.out.CatalogFavoriteProductService;
 import com.furnisight.user.domain.entities.favorite.FavoriteProduct;
@@ -20,7 +20,7 @@ public class FavoriteProductService implements FavoriteProductUseCase {
 
     @Override
     @Transactional
-    public FavoriteProductProjection execute(FavoriteProductCommand command) {
+    public FavoriteProductResponse execute(FavoriteProductCommand command) {
         FavoriteProduct favorite = favoriteProductRepository
             .findByAccountIdAndProductId(command.accountId(), command.productId())
             .orElseGet(() -> favoriteProductRepository.save(
@@ -28,6 +28,6 @@ public class FavoriteProductService implements FavoriteProductUseCase {
             ));
 
         var products = catalogFavoriteProductService.getFavoriteProductSummaries(List.of(favorite.getProductId()));
-        return FavoriteProductProjection.from(favorite, products.get(favorite.getProductId()));
+        return FavoriteProductResponse.from(favorite, products.get(favorite.getProductId()));
     }
 }

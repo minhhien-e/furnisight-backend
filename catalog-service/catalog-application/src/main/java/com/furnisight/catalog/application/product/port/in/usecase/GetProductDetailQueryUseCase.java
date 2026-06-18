@@ -1,8 +1,8 @@
 package com.furnisight.catalog.application.product.port.in.usecase;
 
 import com.furnisight.catalog.application.product.dto.query.GetProductDetailQuery;
-import com.furnisight.catalog.application.product.dto.projection.ProductDetailProjection;
+import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 
 public interface GetProductDetailQueryUseCase {
-    ProductDetailProjection execute(GetProductDetailQuery query);
+    ProductResponse execute(GetProductDetailQuery query);
 }

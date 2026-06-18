@@ -2,7 +2,7 @@ package com.furnisight.notification.application.template.service;
 
 import com.furnisight.notification.application.template.port.in.usecase.FilterNotificationTemplateUseCase;
 import com.furnisight.notification.application.template.port.in.dto.query.FilterNotificationTemplateQuery;
-import com.furnisight.notification.application.template.port.in.dto.projection.NotificationTemplateProjection;
+import com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse;
 import com.furnisight.notification.application.template.port.out.repository.NotificationTemplateRepository;
 import com.furnisight.notification.domain.model.entity.NotificationTemplate;
 import lombok.RequiredArgsConstructor;
@@ -20,10 +20,10 @@ public class FilterNotificationTemplateService implements FilterNotificationTemp
 
     @Override
     @Transactional(readOnly = true)
-    public List<NotificationTemplateProjection> execute(FilterNotificationTemplateQuery query) {
+    public List<NotificationTemplateResponse> execute(FilterNotificationTemplateQuery query) {
         return notificationTemplateRepository.filter(query.getName(), query.getChannel(), query.getType())
             .stream()
-            .map(NotificationTemplateProjection::from)
+            .map(NotificationTemplateResponse::from)
             .collect(Collectors.toList());
     }
 }

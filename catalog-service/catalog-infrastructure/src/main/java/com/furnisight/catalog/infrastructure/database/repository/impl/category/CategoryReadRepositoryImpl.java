@@ -1,6 +1,6 @@
 package com.furnisight.catalog.infrastructure.database.repository.impl.category;
 
-import com.furnisight.catalog.application.category.dto.projection.CategoryDetailProjection;
+import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import com.furnisight.catalog.application.category.port.out.CategoryReadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -20,7 +20,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     @Override
-    public Optional<CategoryDetailProjection> findCategoryDetailBySlug(String slug) {
+    public Optional<CategoryResponse> findCategoryDetailBySlug(String slug) {
         if (slug == null || slug.isBlank()) {
             return Optional.empty();
         }
@@ -46,7 +46,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     @Override
-    public List<CategoryDetailProjection> findAllCategories() {
+    public List<CategoryResponse> findAllCategories() {
         String sql = """
                 SELECT *
                 FROM categories
@@ -57,7 +57,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     @Override
-    public List<CategoryDetailProjection> findRootCategories() {
+    public List<CategoryResponse> findRootCategories() {
         String sql = """
                 SELECT *
                 FROM categories
@@ -69,7 +69,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     @Override
-    public List<CategoryDetailProjection> findSubcategoriesByParentSlug(String parentSlug) {
+    public List<CategoryResponse> findSubcategoriesByParentSlug(String parentSlug) {
         if (parentSlug == null || parentSlug.isBlank()) {
             return List.of();
         }
@@ -89,7 +89,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     @Override
-    public Optional<CategoryDetailProjection> findCategoryDetailById(UUID id) {
+    public Optional<CategoryResponse> findCategoryDetailById(UUID id) {
         if (id == null) {
             return Optional.empty();
         }
@@ -118,8 +118,8 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
         return total == null ? 0L : total;
     }
 
-    private CategoryDetailProjection mapRowToDto(ResultSet rs) throws SQLException {
-        return CategoryDetailProjection.builder()
+    private CategoryResponse mapRowToDto(ResultSet rs) throws SQLException {
+        return CategoryResponse.builder()
                 .id((UUID) rs.getObject("id"))
                 .name(rs.getString("name"))
                 .slug(rs.getString("slug"))

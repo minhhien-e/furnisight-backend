@@ -1,7 +1,8 @@
 package com.furnisight.admin.audit.web;
 
-import com.furnisight.admin.audit.web.dto.response.AuditLogPageResponse;
 import com.furnisight.admin.audit.application.AuditLogService;
+import com.furnisight.admin.audit.web.dto.response.AuditLogResponse;
+import com.furnisight.admin.shared.web.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -19,7 +20,7 @@ public class AuditLogController {
 
     @GetMapping
     @PreAuthorize("hasAuthority(\'ADMIN\')")
-    public ResponseEntity<AuditLogPageResponse> getAuditLogs(
+    public ResponseEntity<PageResponse<AuditLogResponse>> getAuditLogs(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String result,

@@ -16,7 +16,7 @@ public class InternalMarketingController {
     private final MarketingService marketingService;
 
     @GetMapping("/campaigns")
-    public ResponseEntity<MarketingListResponse<MarketingCampaignDto>> getCampaigns(
+    public ResponseEntity<PageResponse<MarketingCampaignDto>> getCampaigns(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status) {
         return ResponseEntity.ok(marketingService.getCampaigns(query, status));
@@ -41,7 +41,7 @@ public class InternalMarketingController {
     }
 
     @GetMapping("/combos")
-    public ResponseEntity<MarketingListResponse<MarketingComboDto>> getCombos(
+    public ResponseEntity<PageResponse<MarketingComboDto>> getCombos(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status) {
         return ResponseEntity.ok(marketingService.getCombos(query, status));
@@ -66,7 +66,7 @@ public class InternalMarketingController {
     }
 
     @GetMapping("/notifications")
-    public ResponseEntity<MarketingListResponse<MarketingNotificationDto>> getNotifications(
+    public ResponseEntity<PageResponse<MarketingNotificationDto>> getNotifications(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status) {
         return ResponseEntity.ok(marketingService.getNotifications(query, status));

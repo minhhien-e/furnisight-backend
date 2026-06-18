@@ -3,10 +3,10 @@ package com.furnisight.admin.catalog.product.web;
 import com.furnisight.admin.audit.application.AuditLogService;
 import com.furnisight.admin.catalog.product.application.ProductService;
 import com.furnisight.admin.catalog.product.web.dto.request.UpsertProductRequest;
-import com.furnisight.admin.catalog.product.web.dto.response.ProductPageResponse;
 import com.furnisight.admin.catalog.product.web.dto.response.ProductResponse;
 import com.furnisight.admin.shared.security.CurrentUserProvider;
 import com.furnisight.admin.shared.web.ActionResultResponse;
+import com.furnisight.admin.shared.web.PageResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ public class ProductController {
 
     @GetMapping
     @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
-    public ResponseEntity<ProductPageResponse> getProducts(
+    public ResponseEntity<PageResponse<ProductResponse>> getProducts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(required = false) String query,

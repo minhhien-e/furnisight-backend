@@ -11,8 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -22,13 +21,13 @@ public class OrderNotificationService {
     private final UserEmailPort userEmailPort;
 
     public void enqueue(OrderProcessingContext context, OrderStatus previousStatus) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("userId", context.getOrder().getUserId());
-        payload.put("customerEmail", userEmailPort.getEmailByUserId(context.getOrder().getUserId()));
-        payload.put("orderCode", context.getOrder().getOrderCode());
-        payload.put("previousStatus", previousStatus);
-        payload.put("nextStatus", context.getOrder().getStatus());
-        payload.put("occurredAt", LocalDateTime.now());
+        OrderStatusChangedPayload payload = new OrderStatusChangedPayload(
+                context.getOrder().getUserId(),
+                userEmailPort.getEmailByUserId(context.getOrder().getUserId()),
+                context.getOrder().getOrderCode(),
+                previousStatus,
+                context.getOrder().getStatus(),
+                LocalDateTime.now());
         repository.save(new OutboxMessage(
                 "Order",
                 context.getOrder().getOrderCode(),
@@ -37,11 +36,21 @@ public class OrderNotificationService {
         ));
     }
 
-    private String toJson(Map<String, Object> payload) {
+    private String toJson(OrderStatusChangedPayload payload) {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException exception) {
             throw new IllegalStateException("Cannot serialize order notification event", exception);
         }
+    }
+
+    private record OrderStatusChangedPayload(
+            UUID userId,
+            String customerEmail,
+            String orderCode,
+            OrderStatus previousStatus,
+            OrderStatus nextStatus,
+            LocalDateTime occurredAt
+    ) {
     }
 }

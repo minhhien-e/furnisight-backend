@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class UpdateProductInfoService implements UpdateProductInfoUseCase {
     private final ProductRepository productRepository;
     private final ProductLifecycleService productLifecycleService;
+    private final ProductUpdateEventService productUpdateEventService;
 
     @Override
     @Transactional
@@ -37,5 +38,6 @@ public class UpdateProductInfoService implements UpdateProductInfoUseCase {
                 command.getFeatures());
 
         productRepository.save(product);
+        productUpdateEventService.enqueue(product);
     }
 }

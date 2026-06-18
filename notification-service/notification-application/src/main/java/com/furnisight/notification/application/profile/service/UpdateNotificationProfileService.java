@@ -1,7 +1,7 @@
 package com.furnisight.notification.application.profile.service;
 
 import com.furnisight.notification.application.profile.port.in.command.UpdateNotificationProfileCommand;
-import com.furnisight.notification.application.profile.port.in.dto.projection.NotificationProfileProjection;
+import com.furnisight.notification.application.profile.port.in.dto.response.NotificationProfileResponse;
 import com.furnisight.notification.application.profile.port.in.usecase.UpdateNotificationProfileUseCase;
 import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
 import com.furnisight.notification.domain.model.entity.NotificationProfile;
@@ -17,10 +17,10 @@ public class UpdateNotificationProfileService implements UpdateNotificationProfi
 
     @Override
     @Transactional
-    public NotificationProfileProjection execute(UpdateNotificationProfileCommand command) {
+    public NotificationProfileResponse execute(UpdateNotificationProfileCommand command) {
         NotificationProfile preference = notificationProfileRepository.findByUserId(command.getUserId());
 
         NotificationProfile saved = notificationProfileRepository.save(preference);
-        return NotificationProfileProjection.from(saved);
+        return NotificationProfileResponse.from(saved);
     }
 }
