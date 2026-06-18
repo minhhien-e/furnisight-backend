@@ -1,5 +1,6 @@
 package com.furnisight.promotion.adapter.in.web.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -7,28 +8,51 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                .body(new ApiError("BAD_REQUEST", ex.getMessage()));
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(NoResourceFoundException.class)
-    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(new ApiError("NOT_FOUND", ex.getMessage()));
+    public ResponseEntity<ApiError> handleNoResourceFound(NoResourceFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleException(Exception ex) {
+    public ResponseEntity<ApiError> handleException(Exception ex, HttpServletRequest request) {
         log.error("Unhandled promotion service error", ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiError("INTERNAL_ERROR", "An unexpected error occurred"));
+        return buildResponse(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                "INTERNAL_SERVER_ERROR",
+                "An unexpected error occurred",
+                request.getRequestURI()
+        );
     }
 
-    public record ApiError(String code, String message) {
+    private ResponseEntity<ApiError> buildResponse(HttpStatus status, String code, String message, String path) {
+        return ResponseEntity.status(status)
+                .body(new ApiError(
+                        LocalDateTime.now(),
+                        status.value(),
+                        status.getReasonPhrase(),
+                        code,
+                        message != null ? message : status.getReasonPhrase(),
+                        path
+                ));
+    }
+
+    public record ApiError(
+            LocalDateTime timestamp,
+            int status,
+            String error,
+            String code,
+            String message,
+            String path
+    ) {
     }
 }

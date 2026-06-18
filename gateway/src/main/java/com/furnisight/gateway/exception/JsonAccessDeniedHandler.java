@@ -15,7 +15,7 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -38,11 +38,13 @@ public class JsonAccessDeniedHandler
         try {
 
             byte[] bytes = objectMapper.writeValueAsBytes(
-                Map.of(
-                    "status", 403,
-                    "error", "Forbidden",
-                    "message", denied.getMessage(),
-                    "path", exchange.getRequest().getPath().value()
+                new ApiError(
+                    LocalDateTime.now(),
+                    403,
+                    "Forbidden",
+                    "FORBIDDEN",
+                    "Bạn không có quyền thực hiện thao tác này.",
+                    exchange.getRequest().getPath().value()
                 )
             );
 

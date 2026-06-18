@@ -1,40 +1,40 @@
 package com.furnisight.media.exception;
 
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.time.Instant;
-import java.util.Map;
+import java.time.LocalDateTime;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(MediaNotFoundException.class)
-    public ResponseEntity<Map<String, Object>> handleNotFound(MediaNotFoundException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(error(HttpStatus.NOT_FOUND, ex.getMessage()));
+    public ResponseEntity<ApiError> handleNotFound(MediaNotFoundException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.NOT_FOUND, "MEDIA_NOT_FOUND", ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<Map<String, Object>> handleBadRequest(IllegalArgumentException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-            .body(error(HttpStatus.BAD_REQUEST, ex.getMessage()));
+    public ResponseEntity<ApiError> handleBadRequest(IllegalArgumentException ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), request.getRequestURI());
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, Object>> handleGeneric(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(error(HttpStatus.INTERNAL_SERVER_ERROR, "Internal server error"));
+    public ResponseEntity<ApiError> handleGeneric(Exception ex, HttpServletRequest request) {
+        return buildResponse(HttpStatus.INTERNAL_SERVER_ERROR, "INTERNAL_SERVER_ERROR", "An unexpected error occurred", request.getRequestURI());
     }
 
-    private Map<String, Object> error(HttpStatus status, String message) {
-        return Map.of(
-            "timestamp", Instant.now().toString(),
-            "status",    status.value(),
-            "error",     status.getReasonPhrase(),
-            "message",   message != null ? message : ""
-        );
+    private ResponseEntity<ApiError> buildResponse(HttpStatus status, String code, String message, String path) {
+        ApiError apiError = ApiError.builder()
+            .timestamp(LocalDateTime.now())
+            .status(status.value())
+            .error(status.getReasonPhrase())
+            .code(code)
+            .message(message != null ? message : status.getReasonPhrase())
+            .path(path)
+            .build();
+        return ResponseEntity.status(status).body(apiError);
     }
 }

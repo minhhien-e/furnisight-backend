@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 
-import java.util.Map;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -40,11 +40,13 @@ public class JsonAuthenticationEntryPoint
         try {
 
             bytes = objectMapper.writeValueAsBytes(
-                Map.of(
-                    "status", 401,
-                    "error", "Unauthorized",
-                    "message", ex.getMessage(),
-                    "path", request.getPath().value()
+                new ApiError(
+                    LocalDateTime.now(),
+                    401,
+                    "Unauthorized",
+                    "UNAUTHORIZED",
+                    "Vui lòng đăng nhập để tiếp tục.",
+                    request.getPath().value()
                 )
             );
 
