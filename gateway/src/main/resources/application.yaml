@@ -64,7 +64,7 @@ spring:
         - id: message-service-websocket
           uri: ${MESSAGE_SERVICE_WS_URL:ws://message-service:8080}
           predicates:
-            - Path=/messages/ws/**
+            - Path=/messages/ws/*/*/websocket
           filters:
             - name: RewritePath
               args:
