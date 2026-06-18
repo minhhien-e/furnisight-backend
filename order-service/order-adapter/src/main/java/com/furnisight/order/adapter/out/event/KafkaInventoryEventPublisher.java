@@ -14,7 +14,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class KafkaInventoryEventPublisher implements InventoryEventPublisherPort {
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
     private final ObjectMapper objectMapper;
 
     @Override

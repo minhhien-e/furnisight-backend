@@ -702,6 +702,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
         String categoryName = normalizeText(rs.getString("category_name"), "Sản phẩm");
         String categorySlug = normalizeText(rs.getString("category_slug"), null);
+        String parentCategoryName = normalizeText(rs.getString("parent_category_name"), null);
+        String parentCategorySlug = normalizeText(rs.getString("parent_category_slug"), null);
+        String categoryPath = parentCategorySlug != null && categorySlug != null
+                ? parentCategorySlug + "/" + categorySlug
+                : categorySlug;
 
         List<String> features = parseJsonList(rs.getString("product_features"));
         if (features.isEmpty()) {
@@ -717,6 +722,9 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .category(ProductResponse.CategoryInfo.builder()
                         .id(categorySlug != null ? categorySlug : categoryId != null ? categoryId.toString() : null)
                         .label(categoryName)
+                        .path(categoryPath)
+                        .parentId(parentCategorySlug)
+                        .parentLabel(parentCategoryName)
                         .build())
                 .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
                 .description(normalizeText(rs.getString("product_description"), ""))

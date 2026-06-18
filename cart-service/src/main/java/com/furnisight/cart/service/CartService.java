@@ -92,7 +92,9 @@ public class CartService {
 
     private CartResponse saveAndRespond(Cart cart) {
         Cart savedCart = saveCart(cart);
-        return toResponse(enrichCart(savedCart));
+        Cart enrichedCart = enrichCart(savedCart);
+        clampCartQuantities(enrichedCart);
+        return toResponse(saveCart(enrichedCart));
     }
 
     private Cart saveCart(Cart cart) {
@@ -310,6 +312,21 @@ public class CartService {
         item.setColor(nonBlank(variant.getColor(), item.getColor()));
         item.setMaterial(nonBlank(variant.getMaterial(), item.getMaterial()));
         item.setWarranty(nonBlank(variant.getWarranty(), item.getWarranty()));
+    }
+
+    private void clampCartQuantities(Cart cart) {
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
+            return;
+        }
+
+        cart.getItems().forEach(item -> {
+            int quantity = item.getQuantity() == null ? 1 : Math.max(1, item.getQuantity());
+            Integer stockQuantity = item.getStockQuantity();
+            if (stockQuantity != null && stockQuantity > 0) {
+                quantity = Math.min(quantity, stockQuantity);
+            }
+            item.setQuantity(quantity);
+        });
     }
 
     private List<CartItemVariantResponse> toVariantResponses(List<CartItemVariant> variants) {

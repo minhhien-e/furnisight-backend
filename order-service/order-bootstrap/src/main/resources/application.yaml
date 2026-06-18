@@ -13,6 +13,9 @@ grpc:
     user-service:
       address: "static://${USER_SERVICE_GRPC_HOST:localhost}:${USER_SERVICE_GRPC_PORT:9091}"
       negotiation-type: plaintext
+    catalog-service:
+      address: "static://${CATALOG_SERVICE_GRPC_HOST:localhost}:${CATALOG_SERVICE_GRPC_PORT:9093}"
+      negotiation-type: plaintext
 spring:
   application:
     name: order-service
@@ -45,7 +48,7 @@ spring:
         spring.json.trusted.packages: "*"
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
     listener:
       missing-topics-fatal: false
 

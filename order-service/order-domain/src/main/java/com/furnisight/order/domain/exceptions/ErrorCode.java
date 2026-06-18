@@ -16,6 +16,7 @@ public enum ErrorCode {
     INVALID_PAYMENT_METHOD("Payment method cannot be empty"),
     INVALID_SHIPPING_INFO("Shipping information cannot be empty"),
     INVALID_PRODUCT_INFO("Product information cannot be empty"),
+    INSUFFICIENT_STOCK("Insufficient stock for requested product quantity"),
     INVALID_PRODUCT_DIMENSIONS("Product dimensions must be greater than zero"),
     PAYMENT_FAILED("Payment failed"),
     INVALID_SIGNATURE("Invalid signature"),

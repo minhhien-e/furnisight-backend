@@ -10,7 +10,6 @@ import com.furnisight.order.domain.enums.PaymentType;
 import com.furnisight.order.domain.exceptions.ErrorCode;
 import com.furnisight.order.domain.exceptions.ValidationException;
 import com.furnisight.order.domain.repository.order.OrderRepository;
-import com.furnisight.order.domain.repository.reservation.StockReservationRepository;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -23,18 +22,15 @@ import java.util.function.Consumer;
 public class VNPayOrderPaymentHandler implements OrderPaymentHandler {
     private final PaymentGatewayPort gateway;
     private final OrderRepository orderRepository;
-    private final StockReservationRepository stockReservationRepository;
     private final Map<OrderOperation, Consumer<OrderProcessingContext>> operations =
             new EnumMap<>(OrderOperation.class);
 
     public VNPayOrderPaymentHandler(
             PaymentGatewayRegistry gateways,
-            OrderRepository orderRepository,
-            StockReservationRepository stockReservationRepository
+            OrderRepository orderRepository
     ) {
         this.gateway = gateways.resolve(PaymentType.VNPAY);
         this.orderRepository = orderRepository;
-        this.stockReservationRepository = stockReservationRepository;
         operations.put(OrderOperation.CREATE, context -> { });
         operations.put(OrderOperation.INITIATE_PAYMENT, this::initiate);
         operations.put(OrderOperation.PROCESS_CALLBACK, this::callback);
@@ -102,11 +98,10 @@ public class VNPayOrderPaymentHandler implements OrderPaymentHandler {
         }
         context.getOrder().recordPaymentSuccess("VNPAY", result.getAmount(), result.getPaidAt());
         context.setTargetStatus(OrderStatus.PAID);
-        stockReservationRepository.deleteByOrderCode(result.getOrderCode());
     }
 
     private void prepareCancellation(OrderProcessingContext context) {
-        context.setTargetStatus(context.getOrder().getStatus() == OrderStatus.PAID
+        context.setTargetStatus(Set.of(OrderStatus.PAID, OrderStatus.IN_TRANSIT).contains(context.getOrder().getStatus())
                 ? OrderStatus.REFUND_PENDING
                 : OrderStatus.CANCELLED);
     }

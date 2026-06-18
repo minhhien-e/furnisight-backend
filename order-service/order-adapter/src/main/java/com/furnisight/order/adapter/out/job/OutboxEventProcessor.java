@@ -17,7 +17,7 @@ import java.util.List;
 public class OutboxEventProcessor {
 
     private final OutboxMessageRepository outboxMessageRepository;
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final KafkaTemplate<String, String> kafkaTemplate;
 
     @Scheduled(fixedDelay = 5000)
     @Transactional

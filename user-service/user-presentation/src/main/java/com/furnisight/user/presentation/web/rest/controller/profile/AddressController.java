@@ -4,10 +4,12 @@ import com.furnisight.user.application.common.port.in.CurrentUserProvider;
 import com.furnisight.user.application.address.port.in.command.AddAddressCommand;
 import com.furnisight.user.application.address.port.in.command.DeleteAddressCommand;
 import com.furnisight.user.application.address.port.in.command.SetDefaultAddressCommand;
+import com.furnisight.user.application.address.port.in.command.UpdateAddressCommand;
 import com.furnisight.user.application.address.port.in.usecase.AddAddressUseCase;
 import com.furnisight.user.application.address.port.in.usecase.DeleteAddressUseCase;
 import com.furnisight.user.application.address.port.in.usecase.GetAddressesUseCase;
 import com.furnisight.user.application.address.port.in.usecase.SetDefaultAddressUseCase;
+import com.furnisight.user.application.address.port.in.usecase.UpdateAddressUseCase;
 import com.furnisight.user.presentation.web.rest.dto.response.AddressResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -25,6 +27,7 @@ public class AddressController {
     private final GetAddressesUseCase getAddressesUseCase;
     private final SetDefaultAddressUseCase setDefaultAddressUseCase;
     private final DeleteAddressUseCase deleteAddressUseCase;
+    private final UpdateAddressUseCase updateAddressUseCase;
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
@@ -41,6 +44,17 @@ public class AddressController {
         command.setAccountId(accountId);
         var newAddress = addAddressUseCase.execute(command);
         return ResponseEntity.ok(AddressResponse.from(newAddress));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<AddressResponse> updateAddress(
+            @PathVariable UUID id,
+            @RequestBody UpdateAddressCommand command) {
+        UUID accountId = currentUserProvider.getCurrentUserId();
+        command.setAccountId(accountId);
+        command.setAddressId(id);
+        var updatedAddress = updateAddressUseCase.execute(command);
+        return ResponseEntity.ok(AddressResponse.from(updatedAddress));
     }
 
     @PostMapping("/{id}/default")

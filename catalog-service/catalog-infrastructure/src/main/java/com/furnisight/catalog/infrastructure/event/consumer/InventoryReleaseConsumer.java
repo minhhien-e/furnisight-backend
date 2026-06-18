@@ -23,7 +23,7 @@ public class InventoryReleaseConsumer {
     @KafkaListener(topics = TOPIC)
     public void handle(String payload) {
         try {
-            InventoryEvent event = objectMapper.readValue(payload, InventoryEvent.class);
+            InventoryEvent event = InventoryEventParser.parse(objectMapper, payload);
             
             UpdateInventoryCommand command = UpdateInventoryCommand.builder()
                     .orderCode(event.orderCode())

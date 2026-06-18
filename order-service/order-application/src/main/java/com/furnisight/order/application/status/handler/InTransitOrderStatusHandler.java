@@ -12,6 +12,6 @@ public class InTransitOrderStatusHandler extends AbstractOrderStatusHandler {
     public InTransitOrderStatusHandler(OrderStatusTransitionValidator validator) { super(validator); }
     public OrderStatus status() { return OrderStatus.IN_TRANSIT; }
     protected Set<OrderStatus> allowedTargets(OrderProcessingContext context) {
-        return Set.of(OrderStatus.SHIPPING);
+        return Set.of(OrderStatus.SHIPPING, OrderStatus.REFUND_PENDING);
     }
 }

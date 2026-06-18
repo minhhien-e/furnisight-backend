@@ -4,7 +4,9 @@ import com.furnisight.catalog.FavoriteProductSummary;
 import com.furnisight.user.application.favorite.dto.CatalogFavoriteProductSummary;
 import com.furnisight.user.application.favorite.port.out.CatalogFavoriteProductService;
 import com.furnisight.user.infrastructure.integration.grpc.GrpcCatalogClient;
+import io.grpc.StatusRuntimeException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Collection;
@@ -14,6 +16,7 @@ import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class RemoteCatalogFavoriteProductService implements CatalogFavoriteProductService {
     private final GrpcCatalogClient grpcCatalogClient;
 
@@ -23,12 +26,17 @@ public class RemoteCatalogFavoriteProductService implements CatalogFavoriteProdu
             return Map.of();
         }
 
-        Map<UUID, CatalogFavoriteProductSummary> products = new LinkedHashMap<>();
-        for (FavoriteProductSummary product : grpcCatalogClient.getFavoriteProductSummaries(productIds).getProductsList()) {
-            UUID productId = UUID.fromString(product.getId());
-            products.put(productId, toSummary(productId, product));
+        try {
+            Map<UUID, CatalogFavoriteProductSummary> products = new LinkedHashMap<>();
+            for (FavoriteProductSummary product : grpcCatalogClient.getFavoriteProductSummaries(productIds).getProductsList()) {
+                UUID productId = UUID.fromString(product.getId());
+                products.put(productId, toSummary(productId, product));
+            }
+            return products;
+        } catch (StatusRuntimeException e) {
+            log.warn("Catalog favorite summaries are temporarily unavailable: {}", e.getStatus());
+            return Map.of();
         }
-        return products;
     }
 
     private CatalogFavoriteProductSummary toSummary(UUID productId, FavoriteProductSummary product) {
