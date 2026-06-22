@@ -31,7 +31,6 @@ class VoucherServiceTest {
                         null,
                         "2026-06-14T10:00:00",
                         true,
-                        List.of("PROMOTION_PAGE"),
                         "Dang bat",
                         0
                 )));

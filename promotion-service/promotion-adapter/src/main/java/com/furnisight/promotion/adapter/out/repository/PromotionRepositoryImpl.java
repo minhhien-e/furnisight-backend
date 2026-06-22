@@ -2,10 +2,15 @@ package com.furnisight.promotion.adapter.out.repository;
 
 import com.furnisight.promotion.adapter.out.repository.jpa.PromotionJpaRepository;
 import com.furnisight.promotion.application.port.PromotionRepository;
+import com.furnisight.promotion.application.dto.PageResponse;
 import com.furnisight.promotion.domain.entities.Promotion;
+import com.furnisight.promotion.domain.enums.DiscountType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -33,6 +38,16 @@ public class PromotionRepositoryImpl implements PromotionRepository {
     @Override
     public List<Promotion> findAllActive() {
         return jpaRepository.findAllActive();
+    }
+
+    @Override
+    public PageResponse<Promotion> findPublicActivePage(LocalDateTime now, LocalDateTime expiresBefore,
+                                                        boolean shippingOnly, int page, int size) {
+        var pageable = PageRequest.of(page, size, Sort.by(
+                Sort.Order.asc("endDate").nullsLast(), Sort.Order.asc("code"), Sort.Order.asc("id")));
+        var result = jpaRepository.findPublicActivePage(now, expiresBefore, shippingOnly,
+                DiscountType.SHIPPING_CAP, pageable);
+        return new PageResponse<>(result.getContent(), result.getTotalPages(), result.getTotalElements(), page, size);
     }
 
     @Override

@@ -2,6 +2,9 @@ package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.application.common.CurrentUserProvider;
 import com.furnisight.promotion.application.dto.PromotionDto;
+import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.application.dto.RecommendVouchersCommand;
+import com.furnisight.promotion.application.dto.RecommendVouchersResponse;
 import com.furnisight.promotion.application.dto.ValidateVoucherCommand;
 import com.furnisight.promotion.application.dto.ValidateVoucherResponse;
 import com.furnisight.promotion.application.service.PromotionService;
@@ -34,9 +37,16 @@ public class VoucherController {
     }
 
     @GetMapping("/public")
-    public ResponseEntity<List<PromotionDto>> getPublicVouchers(
-            @RequestParam(required = false) String placement) {
-        return ResponseEntity.ok(promotionService.getPublicVouchers(currentUserIdOrNull(), placement));
+    public ResponseEntity<PageResponse<PromotionDto>> getPublicVouchers(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size,
+            @RequestParam(required = false, defaultValue = "all") String filter) {
+        return ResponseEntity.ok(promotionService.getPublicVouchers(currentUserIdOrNull(), page, size, filter));
+    }
+
+    @PostMapping("/recommend")
+    public ResponseEntity<RecommendVouchersResponse> recommendVouchers(@RequestBody RecommendVouchersCommand command) {
+        return ResponseEntity.ok(promotionService.recommendVouchers(currentUserProvider.getCurrentUserId(), command));
     }
 
     @PostMapping("/validate")

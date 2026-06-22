@@ -39,7 +39,7 @@ class UserServiceTest {
         var response = new UserService(client, roleService)
                 .getUsers(1, 10, "minh", "ACTIVE");
 
-        assertThat(response.accounts()).singleElement().satisfies(user -> {
+        assertThat(response.items()).singleElement().satisfies(user -> {
             assertThat(user.status()).isEqualTo("ACTIVE");
             assertThat(user.roles()).containsExactly(new RoleResponse("role-1", "Admin", List.of("user_view")));
             assertThat(user.createdAt()).isEqualTo("2026-06-10T10:00:00");

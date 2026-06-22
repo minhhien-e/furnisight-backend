@@ -1,6 +1,8 @@
 package com.furnisight.promotion.application.service;
 
 import com.furnisight.promotion.application.dto.ValidateVoucherCommand;
+import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.application.dto.RecommendVouchersCommand;
 import com.furnisight.promotion.application.port.MarketingCampaignRepository;
 import com.furnisight.promotion.application.port.PromotionRepository;
 import com.furnisight.promotion.application.port.PromotionComboRepository;
@@ -23,6 +25,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 class PromotionServiceTest {
+    private static final UUID USER_ID = UUID.randomUUID();
 
     private final InMemoryPromotionRepository promotionRepository = new InMemoryPromotionRepository();
     private final InMemoryUserVoucherRepository userVoucherRepository = new InMemoryUserVoucherRepository();
@@ -73,6 +76,44 @@ class PromotionServiceTest {
     }
 
     @Test
+    void rejectsVoucherNotOwnedByUserOrAlreadyUsed() {
+        Promotion promotion = promotionRepository.save(voucher("OWNED", DiscountType.FIXED, 50.0, null, 0.0));
+        var unowned = service.validateVoucher(ValidateVoucherCommand.builder()
+                .userId(USER_ID).code("OWNED").type("shop").subtotal(100.0).shippingFee(0.0).build());
+        assertThat(unowned.isValid()).isFalse();
+
+        UserVoucher used = UserVoucher.builder().id(UUID.randomUUID()).userId(USER_ID)
+                .promotionId(promotion.getId()).used(true).build();
+        used.setPromotion(promotion);
+        userVoucherRepository.save(used);
+        assertThat(service.validateVoucher(ValidateVoucherCommand.builder()
+                .userId(USER_ID).code("OWNED").type("shop").subtotal(100.0).shippingFee(0.0).build()).isValid()).isFalse();
+    }
+
+    @Test
+    void recommendationPrefersRequestedCodeAndChoosesBestOtherType() {
+        Promotion preferred = promotionRepository.save(voucher("TARGET", DiscountType.FIXED, 10.0, null, 0.0));
+        Promotion betterShop = promotionRepository.save(voucher("BEST", DiscountType.FIXED, 40.0, null, 0.0));
+        Promotion shipping = promotionRepository.save(voucher("SHIP", DiscountType.SHIPPING_CAP, 30.0, null, 0.0));
+        for (Promotion promotion : List.of(preferred, betterShop, shipping)) {
+            UserVoucher owned = UserVoucher.builder().id(UUID.randomUUID()).userId(USER_ID)
+                    .promotionId(promotion.getId()).used(false).build();
+            owned.setPromotion(promotion);
+            userVoucherRepository.save(owned);
+        }
+        RecommendVouchersCommand command = new RecommendVouchersCommand();
+        command.setSubtotal(100.0);
+        command.setShippingFee(20.0);
+        command.setPreferredVoucherCode("TARGET");
+
+        var result = service.recommendVouchers(USER_ID, command);
+
+        assertThat(result.getShopVoucher().getCode()).isEqualTo("TARGET");
+        assertThat(result.getShippingVoucher().getCode()).isEqualTo("SHIP");
+        assertThat(result.getShippingDiscount()).isEqualTo(20.0);
+    }
+
+    @Test
     void rejectsInactiveExpiredNotStartedAndMinOrder() {
         Promotion inactive = voucher("OFF", DiscountType.PERCENT, 10.0, null, 0.0);
         inactive.setActive(false);
@@ -115,7 +156,16 @@ class PromotionServiceTest {
             double subtotal,
             double shippingFee
     ) {
+        promotionRepository.findByCode(code).ifPresent(promotion -> {
+            if (userVoucherRepository.findByUserIdAndPromotionId(USER_ID, promotion.getId()).isEmpty()) {
+                UserVoucher owned = UserVoucher.builder().id(UUID.randomUUID()).userId(USER_ID)
+                        .promotionId(promotion.getId()).used(false).build();
+                owned.setPromotion(promotion);
+                userVoucherRepository.save(owned);
+            }
+        });
         return service.validateVoucher(ValidateVoucherCommand.builder()
+                .userId(USER_ID)
                 .code(code)
                 .type(type)
                 .subtotal(subtotal)
@@ -169,6 +219,19 @@ class PromotionServiceTest {
         }
 
         @Override
+        public PageResponse<Promotion> findPublicActivePage(LocalDateTime now, LocalDateTime expiresBefore,
+                                                            boolean shippingOnly, int page, int size) {
+            List<Promotion> items = promotions.stream().filter(Promotion::isActive)
+                    .filter(p -> p.getVoucherType() == VoucherType.PUBLIC)
+                    .filter(p -> !shippingOnly || p.getDiscountType() == DiscountType.SHIPPING_CAP)
+                    .filter(p -> expiresBefore == null || (p.getEndDate() != null && !p.getEndDate().isAfter(expiresBefore)))
+                    .toList();
+            int from = Math.min(items.size(), page * size);
+            int to = Math.min(items.size(), from + size);
+            return new PageResponse<>(items.subList(from, to), (int) Math.ceil((double) items.size() / size), items.size(), page, size);
+        }
+
+        @Override
         public Promotion save(Promotion promotion) {
             promotions.removeIf(p -> p.getId().equals(promotion.getId()));
             promotions.add(promotion);
@@ -187,6 +250,11 @@ class PromotionServiceTest {
         @Override
         public List<UserVoucher> findByUserId(UUID userId) {
             return userVouchers.stream().filter(v -> v.getUserId().equals(userId)).toList();
+        }
+
+        @Override
+        public List<UserVoucher> findUsableByUserId(UUID userId, LocalDateTime now) {
+            return findByUserId(userId).stream().filter(v -> !v.isUsed()).toList();
         }
 
         @Override
@@ -249,6 +317,11 @@ class PromotionServiceTest {
         @Override
         public List<PromotionCombo> findActive() {
             return List.of();
+        }
+
+        @Override
+        public PageResponse<PromotionCombo> findActivePage(LocalDateTime now, int page, int size, String sort) {
+            return new PageResponse<>(List.of(), 0, 0, page, size);
         }
 
         @Override

@@ -14,9 +14,11 @@ Promotion Service owns LuxNest promotion data. It implements voucher management,
 Client-facing routes are exposed by the gateway under `/promotions/**` and rewritten to `/api/v1/**`.
 
 - `GET /api/v1/vouchers/user`
+- `GET /api/v1/vouchers/public?page=0&size=6&filter=all|freeship|expiring`
+- `POST /api/v1/vouchers/recommend`
 - `POST /api/v1/vouchers/validate`
 - `POST /api/v1/vouchers/{code}/save`
-- `GET /api/v1/combos/active`
+- `GET /api/v1/combos?page=0&size=6&sort=save-desc&availableOnly=false`
 - `POST /api/v1/combos/validate`
 
 Internal service/admin routes:
@@ -36,6 +38,7 @@ Internal service/admin routes:
 ## Validation Rules
 
 - Code must exist and be active.
+- Checkout voucher codes must belong to the user and remain unused.
 - `startDate` and `endDate` must include the current time when present.
 - Subtotal must satisfy `minOrder`.
 - Shop vouchers accept `PERCENT` and `FIXED`.
@@ -47,6 +50,7 @@ Internal service/admin routes:
 - Scheduled dispatch is scanned by a Spring scheduled job.
 - Voucher publish grants `user_vouchers`, writes `marketing_dispatch_logs`, and dispatches notification messages.
 - Combos store item snapshots and calculate `originalAmount`, `finalAmount`, and `savedAmount` in the service.
+- Public combo responses enrich items with live catalog stock in one batch and expose combo/item availability.
 
 ## Cross-Service Integration
 

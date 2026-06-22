@@ -9,6 +9,7 @@ import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.time.LocalDateTime;
 
 @Component
 @RequiredArgsConstructor
@@ -18,6 +19,11 @@ public class UserVoucherRepositoryImpl implements UserVoucherRepository {
     @Override
     public List<UserVoucher> findByUserId(UUID userId) {
         return jpaRepository.findByUserId(userId);
+    }
+
+    @Override
+    public List<UserVoucher> findUsableByUserId(UUID userId, LocalDateTime now) {
+        return jpaRepository.findUsableByUserId(userId, now);
     }
 
     @Override

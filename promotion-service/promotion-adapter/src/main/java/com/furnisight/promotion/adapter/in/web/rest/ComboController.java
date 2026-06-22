@@ -29,11 +29,11 @@ public class ComboController {
 
     @GetMapping
     public ResponseEntity<PageResponse<MarketingComboDto>> getPublicCombos(
-            @RequestParam(required = false) String placement,
+            @RequestParam(required = false, defaultValue = "false") boolean availableOnly,
             @RequestParam(required = false) String sort,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
-        return ResponseEntity.ok(marketingService.getPublicCombos(placement, sort, page, size));
+        return ResponseEntity.ok(marketingService.getPublicCombos(availableOnly, sort, page, size));
     }
 
     @PostMapping("/validate")

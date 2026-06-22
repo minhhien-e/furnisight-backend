@@ -20,7 +20,6 @@ public class MarketingComboDto {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
-    private List<String> placements;
     private List<Item> items;
     private int itemCount;
     private double originalAmount;
@@ -28,6 +27,7 @@ public class MarketingComboDto {
     private double savedAmount;
     private long usedCount;
     private String status;
+    private boolean available;
     private LocalDateTime createdAt;
 
     @Data
@@ -42,5 +42,7 @@ public class MarketingComboDto {
         private double price;
         private int quantity;
         private boolean snapshotMissing;
+        private Integer stockQuantity;
+        private boolean available;
     }
 }

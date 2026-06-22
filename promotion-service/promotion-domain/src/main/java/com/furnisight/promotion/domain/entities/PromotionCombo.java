@@ -28,8 +28,6 @@ public class PromotionCombo {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
-    @Column(columnDefinition = "TEXT")
-    private String placements;
     private double originalAmount;
     private double finalAmount;
     private double savedAmount;

@@ -2073,6 +2073,43 @@
                     }
                 },
                 {
+                    "name": "Get Public Vouchers (Paged)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/vouchers/public?page=0&size=6&filter=all",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "vouchers", "public"],
+                            "query": [
+                                {"key": "page", "value": "0"},
+                                {"key": "size", "value": "6"},
+                                {"key": "filter", "value": "all"}
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Get Public Combos (Available Home)",
+                    "request": {
+                        "method": "GET",
+                        "header": [],
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/combos?availableOnly=true&page=0&size=3&sort=save-desc",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "combos"],
+                            "query": [
+                                {"key": "availableOnly", "value": "true"},
+                                {"key": "page", "value": "0"},
+                                {"key": "size", "value": "3"},
+                                {"key": "sort", "value": "save-desc"}
+                            ]
+                        }
+                    },
+                    "response": []
+                },
+                {
                     "name": "Get User Vouchers",
                     "request": {
                         "auth": {
@@ -2088,14 +2125,13 @@
                         "method": "GET",
                         "header": [],
                         "url": {
-                            "raw": "{{base_url}}/api/v1/orders/vouchers/user",
+                            "raw": "{{base_url}}/api/v1/vouchers/user",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
                                 "v1",
-                                "orders",
                                 "vouchers",
                                 "user"
                             ]
@@ -2133,17 +2169,38 @@
                             }
                         },
                         "url": {
-                            "raw": "{{base_url}}/api/v1/orders/vouchers/validate",
+                            "raw": "{{base_url}}/api/v1/vouchers/validate",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
                                 "v1",
-                                "orders",
                                 "vouchers",
                                 "validate"
                             ]
+                        }
+                    },
+                    "response": []
+                },
+                {
+                    "name": "Recommend Checkout Vouchers",
+                    "request": {
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [{"key": "token", "value": "{{user_token}}", "type": "string"}]
+                        },
+                        "method": "POST",
+                        "header": [{"key": "Content-Type", "value": "application/json"}],
+                        "body": {
+                            "mode": "raw",
+                            "raw": "{\n  \"subtotal\": 1000000,\n  \"shippingFee\": 30000,\n  \"preferredVoucherCode\": \"SUMMER_SALE_2026\"\n}",
+                            "options": {"raw": {"language": "json"}}
+                        },
+                        "url": {
+                            "raw": "{{base_url}}/api/v1/vouchers/recommend",
+                            "host": ["{{base_url}}"],
+                            "path": ["api", "v1", "vouchers", "recommend"]
                         }
                     },
                     "response": []
@@ -2164,14 +2221,13 @@
                         "method": "POST",
                         "header": [],
                         "url": {
-                            "raw": "{{base_url}}/api/v1/orders/vouchers/SUMMER_SALE_2026/save",
+                            "raw": "{{base_url}}/api/v1/vouchers/SUMMER_SALE_2026/save",
                             "host": [
                                 "{{base_url}}"
                             ],
                             "path": [
                                 "api",
                                 "v1",
-                                "orders",
                                 "vouchers",
                                 "SUMMER_SALE_2026",
                                 "save"

@@ -53,8 +53,6 @@ public class Promotion {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private boolean active;
-    @Column(columnDefinition = "TEXT")
-    private String placements;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

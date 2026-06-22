@@ -17,7 +17,6 @@ public class SaveMarketingComboCommand {
     private LocalDateTime startDate;
     private LocalDateTime endDate;
     private Boolean active;
-    private List<String> placements;
     private List<Item> items;
 
     @Data

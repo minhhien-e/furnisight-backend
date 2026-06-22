@@ -51,17 +51,15 @@ public class PromotionAdminClient {
     }
 
     public List<VoucherResponse> getVouchers(String query, String type, String status) {
-        PromotionListPayload response = promotionRestClient.get()
+        PromotionPayload[] response = promotionRestClient.get()
                 .uri(uri -> uri.path("/internal/admin/vouchers")
                         .queryParam("query", value(query))
                         .queryParam("type", value(type))
                         .queryParam("status", value(status))
                         .build())
                 .retrieve()
-                .body(PromotionListPayload.class);
-        List<PromotionPayload> items = Objects.requireNonNull(response, "Promotion voucher response is missing").items();
-        Objects.requireNonNull(items, "Promotion voucher items are missing");
-        return items.stream()
+                .body(PromotionPayload[].class);
+        return java.util.Arrays.stream(Objects.requireNonNull(response, "Promotion voucher response is missing"))
                 .map(voucher -> new VoucherResponse(
                         voucher.id(),
                         voucher.code(),
@@ -77,7 +75,6 @@ public class PromotionAdminClient {
                         voucher.endDate(),
                         voucher.createdAt(),
                         voucher.active(),
-                        voucher.placements(),
                         voucher.statusLabel(),
                         voucher.issuedCount()))
                 .toList();
@@ -297,8 +294,6 @@ public class PromotionAdminClient {
         return value.endsWith("/") ? value.substring(0, value.length() - 1) : value;
     }
 
-    private record PromotionListPayload(List<PromotionPayload> items) {}
-
     private record PromotionPayload(
             String id,
             String code,
@@ -314,7 +309,6 @@ public class PromotionAdminClient {
             String endDate,
             String createdAt,
             boolean active,
-            List<String> placements,
             String statusLabel,
             long issuedCount
     ) {}

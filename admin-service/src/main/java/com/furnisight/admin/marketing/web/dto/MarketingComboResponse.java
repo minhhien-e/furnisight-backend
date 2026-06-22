@@ -15,7 +15,6 @@ public record MarketingComboResponse(
         LocalDateTime startDate,
         LocalDateTime endDate,
         Boolean active,
-        List<String> placements,
         List<Item> items,
         Integer itemCount,
         Double originalAmount,
@@ -23,6 +22,7 @@ public record MarketingComboResponse(
         Double savedAmount,
         Long usedCount,
         String status,
+        Boolean available,
         LocalDateTime createdAt
 ) {
     public record Item(
@@ -34,7 +34,9 @@ public record MarketingComboResponse(
             String image,
             Double price,
             Integer quantity,
-            Boolean snapshotMissing
+            Boolean snapshotMissing,
+            Integer stockQuantity,
+            Boolean available
     ) {
     }
 }

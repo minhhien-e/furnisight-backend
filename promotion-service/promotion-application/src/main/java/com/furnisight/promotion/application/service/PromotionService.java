@@ -1,6 +1,9 @@
 package com.furnisight.promotion.application.service;
 
 import com.furnisight.promotion.application.dto.PromotionDto;
+import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.application.dto.RecommendVouchersCommand;
+import com.furnisight.promotion.application.dto.RecommendVouchersResponse;
 import com.furnisight.promotion.application.dto.SavePromotionCommand;
 import com.furnisight.promotion.application.dto.ValidateOrderVouchersCommand;
 import com.furnisight.promotion.application.dto.ValidateOrderVouchersResponse;
@@ -20,7 +23,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -39,36 +41,28 @@ public class PromotionService {
 
     @Transactional(readOnly = true)
     public List<PromotionDto> getAvailableVouchers(UUID userId) {
-        Map<UUID, UserVoucher> userVouchers = userVoucherMap(userId);
-        List<Promotion> result = new ArrayList<>(promotionRepository.findAllActive().stream()
-                .filter(p -> p.getVoucherType() == VoucherType.PUBLIC)
-                .toList());
-        if (userId != null) {
-            for (UserVoucher uv : userVoucherRepository.findByUserId(userId)) {
-                Promotion promotion = uv.getPromotion();
-                if (promotion != null && promotion.isActive() && !uv.isUsed()
-                        && result.stream().noneMatch(p -> p.getId().equals(promotion.getId()))) {
-                    result.add(promotion);
-                }
-            }
-        }
-        return result.stream()
-                .filter(this::isWithinWindow)
-                .sorted(Comparator.comparing(Promotion::getCode, Comparator.nullsLast(String::compareToIgnoreCase)))
-                .map(p -> toDto(p, userVouchers.get(p.getId())))
+        if (userId == null) return List.of();
+        return userVoucherRepository.findUsableByUserId(userId, LocalDateTime.now()).stream()
+                .map(uv -> toDto(uv.getPromotion(), uv))
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<PromotionDto> getPublicVouchers(UUID userId, String placement) {
+    public PageResponse<PromotionDto> getPublicVouchers(UUID userId, Integer page, Integer size, String filter) {
+        int safePage = Math.max(0, page == null ? 0 : page);
+        int safeSize = Math.max(1, Math.min(24, size == null ? 6 : size));
+        String normalizedFilter = filter == null || filter.isBlank() ? "all" : filter.trim().toLowerCase(Locale.ROOT);
+        if (!List.of("all", "freeship", "expiring").contains(normalizedFilter)) {
+            throw new IllegalArgumentException("Filter voucher không hợp lệ.");
+        }
         Map<UUID, UserVoucher> userVouchers = userVoucherMap(userId);
-        return promotionRepository.findAllActive().stream()
-                .filter(p -> p.getVoucherType() == VoucherType.PUBLIC)
-                .filter(this::isWithinWindow)
-                .filter(p -> matchesPlacement(p.getPlacements(), placement))
-                .sorted(Comparator.comparing(Promotion::getEndDate, Comparator.nullsLast(Comparator.naturalOrder())))
+        LocalDateTime now = LocalDateTime.now();
+        var result = promotionRepository.findPublicActivePage(now,
+                "expiring".equals(normalizedFilter) ? now.plusDays(7) : null,
+                "freeship".equals(normalizedFilter), safePage, safeSize);
+        return new PageResponse<>(result.items().stream()
                 .map(p -> toDto(p, userVouchers.get(p.getId())))
-                .toList();
+                .toList(), result.totalPages(), result.totalElements(), safePage, safeSize);
     }
 
     public List<PromotionDto> getAdminVouchers(String query, String type, String status) {
@@ -123,6 +117,9 @@ public class PromotionService {
         }
 
         Promotion p = promotionOpt.get();
+        if (!isOwnedUnusedVoucher(command.getUserId(), p.getId())) {
+            return invalid("Voucher không thuộc người dùng hoặc đã được sử dụng.");
+        }
         String validationMessage = validatePromotion(p, command.getType(), amount(command.getSubtotal()));
         if (validationMessage != null) {
             return invalid(validationMessage);
@@ -134,6 +131,32 @@ public class PromotionService {
                 .message("Áp dụng mã giảm giá thành công.")
                 .voucher(toDto(p, null))
                 .discount(discount)
+                .build();
+    }
+
+    @Transactional(readOnly = true)
+    public RecommendVouchersResponse recommendVouchers(UUID userId, RecommendVouchersCommand command) {
+        double subtotal = amount(command.getSubtotal());
+        double shippingFee = amount(command.getShippingFee());
+        List<UserVoucher> usable = userId == null ? List.of()
+                : userVoucherRepository.findUsableByUserId(userId, LocalDateTime.now());
+        List<Promotion> promotions = usable.stream().map(UserVoucher::getPromotion)
+                .filter(p -> p != null && (p.getMinOrder() == null || subtotal >= p.getMinOrder()))
+                .toList();
+        String preferredCode = normalizeCode(command.getPreferredVoucherCode());
+        Promotion preferred = promotions.stream()
+                .filter(p -> preferredCode != null && preferredCode.equalsIgnoreCase(p.getCode()))
+                .findFirst().orElse(null);
+
+        Promotion shop = chooseBest(promotions, false, preferred, subtotal, shippingFee);
+        Promotion shipping = chooseBest(promotions, true, preferred, subtotal, shippingFee);
+        double shopDiscount = shop == null ? 0 : calculateDiscount(shop, subtotal, shippingFee);
+        double shippingDiscount = shipping == null ? 0 : calculateDiscount(shipping, subtotal, shippingFee);
+        return RecommendVouchersResponse.builder()
+                .shopVoucher(shop == null ? null : toDto(shop, usableVoucher(usable, shop.getId())))
+                .shopDiscount(shopDiscount)
+                .shippingVoucher(shipping == null ? null : toDto(shipping, usableVoucher(usable, shipping.getId())))
+                .shippingDiscount(shippingDiscount)
                 .build();
     }
 
@@ -219,6 +242,9 @@ public class PromotionService {
         }
         Promotion promotion = promotionRepository.findByCode(requireCode(code))
                 .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy voucher."));
+        if (promotion.getVoucherType() != VoucherType.PUBLIC || !promotion.isActive() || !isWithinWindow(promotion)) {
+            throw new IllegalArgumentException("Voucher không thể lưu tại thời điểm này.");
+        }
         if (userVoucherRepository.findByUserIdAndPromotionId(userId, promotion.getId()).isPresent()) {
             return;
         }
@@ -244,7 +270,6 @@ public class PromotionService {
         promotion.setStartDate(command.getStartDate());
         promotion.setEndDate(command.getEndDate());
         promotion.setActive(command.getActive() == null || command.getActive());
-        promotion.setPlacements(join(command.getPlacements()));
         return promotion;
     }
 
@@ -294,7 +319,6 @@ public class PromotionService {
                 .endDate(p.getEndDate())
                 .createdAt(p.getCreatedAt())
                 .active(p.isActive())
-                .placements(split(p.getPlacements()))
                 .saved(userVoucher != null)
                 .used(userVoucher != null && userVoucher.isUsed())
                 .statusLabel(statusLabel(p))
@@ -313,10 +337,24 @@ public class PromotionService {
         return result;
     }
 
-    private boolean matchesPlacement(String placements, String placement) {
-        if (!hasText(placement)) return true;
-        List<String> values = split(placements);
-        return values.isEmpty() || values.stream().anyMatch(value -> value.equalsIgnoreCase(placement.trim()));
+    private boolean isOwnedUnusedVoucher(UUID userId, UUID promotionId) {
+        return userId != null && userVoucherRepository.findByUserIdAndPromotionId(userId, promotionId)
+                .filter(uv -> !uv.isUsed()).isPresent();
+    }
+
+    private Promotion chooseBest(List<Promotion> promotions, boolean shipping, Promotion preferred,
+                                 double subtotal, double shippingFee) {
+        if (preferred != null && (preferred.getDiscountType() == DiscountType.SHIPPING_CAP) == shipping) return preferred;
+        return promotions.stream()
+                .filter(p -> (p.getDiscountType() == DiscountType.SHIPPING_CAP) == shipping)
+                .max(Comparator.comparingDouble((Promotion p) -> calculateDiscount(p, subtotal, shippingFee))
+                        .thenComparing(Promotion::getEndDate, Comparator.nullsFirst(Comparator.reverseOrder()))
+                        .thenComparing(Promotion::getCode, Comparator.nullsLast(Comparator.reverseOrder())))
+                .orElse(null);
+    }
+
+    private UserVoucher usableVoucher(List<UserVoucher> vouchers, UUID promotionId) {
+        return vouchers.stream().filter(uv -> promotionId.equals(uv.getPromotionId())).findFirst().orElse(null);
     }
 
     private boolean isWithinWindow(Promotion p) {
@@ -409,16 +447,6 @@ public class PromotionService {
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
-    }
-
-    private String join(List<String> values) {
-        if (values == null || values.isEmpty()) return "";
-        return String.join(",", values.stream().filter(this::hasText).map(String::trim).distinct().toList());
-    }
-
-    private List<String> split(String value) {
-        if (!hasText(value)) return List.of();
-        return java.util.Arrays.stream(value.split(",")).map(String::trim).filter(this::hasText).toList();
     }
 
     private String normalize(String value) {

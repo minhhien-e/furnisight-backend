@@ -11,10 +11,10 @@ class PermissionMapperTest {
     private final PermissionMapper mapper = new PermissionMapper();
 
     @Test
-    void preservesExistingFrontendBackendMapping() {
-        assertThat(mapper.toBackendPermissions(List.of("user_view", "order_update")))
-                .containsExactlyInAnyOrder("MANAGE_USERS", "CAN_ORDERS");
-        assertThat(mapper.toFrontendPermissions(List.of("MANAGE_USERS", "CAN_ORDERS")))
-                .containsExactly("dashboard", "order_update", "order_view", "user_manage", "user_view");
+    void mapsCurrentFrontendBackendPermissions() {
+        assertThat(mapper.toBackendPermissions(List.of("product_manage", "order_manage")))
+                .containsExactlyInAnyOrder("PRODUCT_MANAGE", "ORDER_MANAGE");
+        assertThat(mapper.toFrontendPermissions(List.of("PRODUCT_MANAGE", "ORDER_MANAGE")))
+                .containsExactly("order_manage", "product_manage");
     }
 }

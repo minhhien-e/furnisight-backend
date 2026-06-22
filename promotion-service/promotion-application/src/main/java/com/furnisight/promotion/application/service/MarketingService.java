@@ -26,6 +26,7 @@ public class MarketingService {
     private final UserVoucherRepository userVoucherRepository;
     private final MarketingNotificationGateway notificationGateway;
     private final MarketingTargetGateway targetGateway;
+    private final CatalogStockPort catalogStockPort;
 
     public PageResponse<MarketingCampaignDto> getCampaigns(String query, String status) {
         List<MarketingCampaignDto> items = campaignRepository.findAll().stream()
@@ -76,25 +77,41 @@ public class MarketingService {
     }
 
     public List<MarketingComboDto> getActiveCombos() {
-        return comboRepository.findActive().stream()
-                .filter(this::isWithinWindow)
-                .map(this::toComboDto)
-                .toList();
+        List<MarketingComboDto> result = new ArrayList<>();
+        int page = 0;
+        while (true) {
+            var dbPage = comboRepository.findActivePage(LocalDateTime.now(), page, 24, "default");
+            result.addAll(enrichStock(dbPage.items()));
+            page++;
+            if (page >= dbPage.totalPages()) return result;
+        }
     }
 
-    public PageResponse<MarketingComboDto> getPublicCombos(String placement, String sort, Integer page, Integer size) {
-        List<MarketingComboDto> allItems = comboRepository.findActive().stream()
-                .filter(this::isWithinWindow)
-                .filter(combo -> matchesPlacement(combo.getPlacements(), placement))
-                .sorted(comboComparator(sort))
-                .map(this::toComboDto)
-                .toList();
+    public PageResponse<MarketingComboDto> getPublicCombos(boolean availableOnly, String sort, Integer page, Integer size) {
         int safePage = Math.max(0, page == null ? 0 : page);
         int safeSize = Math.max(1, Math.min(24, size == null ? 6 : size));
-        int from = Math.min(allItems.size(), safePage * safeSize);
-        int to = Math.min(allItems.size(), from + safeSize);
-        int totalPages = (int) Math.ceil((double) allItems.size() / safeSize);
-        return new PageResponse<>(allItems.subList(from, to), totalPages, allItems.size(), safePage, safeSize);
+        LocalDateTime now = LocalDateTime.now();
+        if (!availableOnly) {
+            var dbPage = comboRepository.findActivePage(now, safePage, safeSize, sort);
+            return new PageResponse<>(enrichStock(dbPage.items()), dbPage.totalPages(), dbPage.totalElements(), safePage, safeSize);
+        }
+
+        int wantedFrom = safePage * safeSize;
+        int availableCount = 0;
+        int scanPage = 0;
+        List<MarketingComboDto> requested = new ArrayList<>();
+        while (true) {
+            var dbPage = comboRepository.findActivePage(now, scanPage, 24, sort);
+            for (MarketingComboDto combo : enrichStock(dbPage.items())) {
+                if (!combo.isAvailable()) continue;
+                if (availableCount >= wantedFrom && requested.size() < safeSize) requested.add(combo);
+                availableCount++;
+            }
+            scanPage++;
+            if (scanPage >= dbPage.totalPages()) break;
+        }
+        return new PageResponse<>(requested, (int) Math.ceil((double) availableCount / safeSize),
+                availableCount, safePage, safeSize);
     }
 
     public ValidateComboResponse validateCombo(ValidateComboCommand command) {
@@ -131,6 +148,15 @@ public class MarketingService {
         });
         if (!hasRequiredItems) {
             return invalidCombo(combo.getId().toString(), "Cart does not contain all combo items");
+        }
+        Map<String, CatalogStockPort.StockItem> stock = lookupStock(requiredItems);
+        boolean hasStock = requiredItems.stream().allMatch(item -> {
+            var live = stock.get(stockKey(item.getProductId(), item.getVariantId()));
+            return live != null && live.stockQuantity() != null
+                    && live.stockQuantity() >= Math.max(1, item.getQuantity());
+        });
+        if (!hasStock) {
+            return invalidCombo(combo.getId().toString(), "Combo items are out of stock");
         }
         return ValidateComboResponse.builder()
                 .valid(true)
@@ -329,7 +355,6 @@ public class MarketingService {
         combo.setStartDate(command.getStartDate());
         combo.setEndDate(command.getEndDate());
         combo.setActive(command.getActive() == null || command.getActive());
-        combo.setPlacements(join(command.getPlacements()));
     }
 
     private void saveComboItems(PromotionCombo combo, SaveMarketingComboCommand command) {
@@ -414,7 +439,12 @@ public class MarketingService {
     }
 
     private MarketingComboDto toComboDto(PromotionCombo combo) {
-        List<MarketingComboDto.Item> items = comboItemRepository.findByComboId(combo.getId()).stream()
+        return toComboDto(combo, comboItemRepository.findByComboId(combo.getId()), Map.of());
+    }
+
+    private MarketingComboDto toComboDto(PromotionCombo combo, List<PromotionComboItem> comboItems,
+                                          Map<String, CatalogStockPort.StockItem> stock) {
+        List<MarketingComboDto.Item> items = comboItems.stream()
                 .map(item -> MarketingComboDto.Item.builder()
                         .productId(item.getProductId())
                         .variantId(item.getVariantId())
@@ -425,6 +455,8 @@ public class MarketingService {
                         .price(item.getPrice())
                         .quantity(item.getQuantity())
                         .snapshotMissing(item.isSnapshotMissing())
+                        .stockQuantity(stockQuantity(stock, item))
+                        .available(itemAvailable(stock, item))
                         .build())
                 .toList();
         return MarketingComboDto.builder()
@@ -438,7 +470,6 @@ public class MarketingService {
                 .startDate(combo.getStartDate())
                 .endDate(combo.getEndDate())
                 .active(combo.isActive())
-                .placements(split(combo.getPlacements()))
                 .items(items)
                 .itemCount(items.size())
                 .originalAmount(combo.getOriginalAmount())
@@ -446,8 +477,40 @@ public class MarketingService {
                 .savedAmount(combo.getSavedAmount())
                 .usedCount(combo.getUsedCount())
                 .status(comboStatus(combo))
+                .available(!items.isEmpty() && items.stream().allMatch(MarketingComboDto.Item::isAvailable))
                 .createdAt(combo.getCreatedAt())
                 .build();
+    }
+
+    private List<MarketingComboDto> enrichStock(List<PromotionCombo> combos) {
+        if (combos == null || combos.isEmpty()) return List.of();
+        Set<UUID> ids = combos.stream().map(PromotionCombo::getId).collect(java.util.stream.Collectors.toSet());
+        Map<UUID, List<PromotionComboItem>> itemsByCombo = comboItemRepository.findByComboIds(ids).stream()
+                .collect(java.util.stream.Collectors.groupingBy(PromotionComboItem::getComboId));
+        List<PromotionComboItem> allItems = itemsByCombo.values().stream().flatMap(Collection::stream).toList();
+        Map<String, CatalogStockPort.StockItem> stock = lookupStock(allItems);
+        return combos.stream().map(combo -> toComboDto(combo,
+                itemsByCombo.getOrDefault(combo.getId(), List.of()), stock)).toList();
+    }
+
+    private Map<String, CatalogStockPort.StockItem> lookupStock(Collection<PromotionComboItem> items) {
+        return catalogStockPort.getStockItems(items.stream()
+                .map(item -> new CatalogStockPort.LookupItem(item.getProductId(), item.getVariantId()))
+                .distinct().toList());
+    }
+
+    private Integer stockQuantity(Map<String, CatalogStockPort.StockItem> stock, PromotionComboItem item) {
+        var live = stock.get(stockKey(item.getProductId(), item.getVariantId()));
+        return live == null ? null : live.stockQuantity();
+    }
+
+    private boolean itemAvailable(Map<String, CatalogStockPort.StockItem> stock, PromotionComboItem item) {
+        Integer quantity = stockQuantity(stock, item);
+        return quantity != null && quantity >= Math.max(1, item.getQuantity());
+    }
+
+    private String stockKey(String productId, String variantId) {
+        return defaultText(productId, "") + "::" + defaultText(variantId, "");
     }
 
     private List<MarketingNotificationGateway.Recipient> resolveRecipients(String targetType, List<String> targetUserIds, String segmentKey) {
@@ -516,22 +579,6 @@ public class MarketingService {
         LocalDateTime now = LocalDateTime.now();
         return (combo.getStartDate() == null || !combo.getStartDate().isAfter(now))
                 && (combo.getEndDate() == null || !combo.getEndDate().isBefore(now));
-    }
-
-    private boolean matchesPlacement(String placements, String placement) {
-        if (!hasText(placement)) return true;
-        List<String> values = split(placements);
-        return values.isEmpty() || values.stream().anyMatch(value -> value.equalsIgnoreCase(placement.trim()));
-    }
-
-    private Comparator<PromotionCombo> comboComparator(String sort) {
-        String normalizedSort = defaultText(sort, "default").toLowerCase(Locale.ROOT);
-        return switch (normalizedSort) {
-            case "save-desc" -> Comparator.comparingDouble(PromotionCombo::getSavedAmount).reversed();
-            case "price-asc" -> Comparator.comparingDouble(PromotionCombo::getFinalAmount);
-            case "price-desc" -> Comparator.comparingDouble(PromotionCombo::getFinalAmount).reversed();
-            default -> Comparator.comparing(PromotionCombo::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()));
-        };
     }
 
     private String targetLabel(MarketingTargetType type, String segmentKey, int manualCount) {

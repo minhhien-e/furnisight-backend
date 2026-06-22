@@ -14,7 +14,6 @@ public record MarketingComboRequest(
         LocalDateTime startDate,
         LocalDateTime endDate,
         Boolean active,
-        List<String> placements,
         List<Item> items
 ) {
     public record Item(

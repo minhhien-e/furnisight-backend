@@ -1,7 +1,5 @@
 package com.furnisight.admin.voucher.web.dto.request;
 
-import java.util.List;
-
 public record UpsertVoucherRequest(
         String code,
         String name,
@@ -14,7 +12,6 @@ public record UpsertVoucherRequest(
         Double minOrder,
         String startDate,
         String endDate,
-        Boolean active,
-        List<String> placements
+        Boolean active
 ) {
 }
