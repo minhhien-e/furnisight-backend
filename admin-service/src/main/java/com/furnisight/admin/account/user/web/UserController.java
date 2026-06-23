@@ -32,8 +32,9 @@ public class UserController {
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String query,
-            @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(userService.getUsers(page, size, query, status));
+            @RequestParam(required = false) String status,
+            @RequestParam(required = false) String scope) {
+        return ResponseEntity.ok(userService.getUsers(page, size, query, status, scope));
     }
 
     @GetMapping("/{id}")

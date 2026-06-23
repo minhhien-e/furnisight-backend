@@ -42,6 +42,8 @@ import com.furnisight.admin.user.AccountDto;
 @RequiredArgsConstructor
 public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceImplBase {
 
+    private static final Set<String> ADMIN_ROLES = Set.of("ADMIN", "STAFF", "MANAGER", "SUPER_ADMIN");
+
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     private final UserProfileRepository userProfileRepository;
@@ -91,7 +93,14 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             String query = request.getQuery();
             AccountStatus status = parseStatus(request.getStatus());
 
-            Page<Account> accountPage = accountJpaRepository.searchAccounts(query, status, pageable);
+            Page<Account> accountPage = switch (request.getScope()) {
+                case ACCOUNT_SCOPE_CUSTOMER ->
+                        accountJpaRepository.searchCustomerAccounts(query, status, ADMIN_ROLES, pageable);
+                case ACCOUNT_SCOPE_ADMIN ->
+                        accountJpaRepository.searchAdministrativeAccounts(query, status, ADMIN_ROLES, pageable);
+                case ACCOUNT_SCOPE_UNSPECIFIED, UNRECOGNIZED ->
+                        accountJpaRepository.searchAccounts(query, status, pageable);
+            };
 
             List<AccountDto> dtoList = accountPage.getContent().stream().map(account -> {
                 List<Role> roles = roleRepository.findAllByAccountId(account.getId());
@@ -128,6 +137,102 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
         } catch (Exception e) {
             log.error("Error getting accounts", e);
             responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void listMarketingUserIds(ListMarketingUserIdsRequest request,
+                                     StreamObserver<MarketingUserIdsResponse> responseObserver) {
+        try {
+            LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
+            List<Account> candidates = switch (request.getSegment()) {
+                case MARKETING_USER_SEGMENT_NEW_USERS ->
+                        accountJpaRepository.findAllByStatusAndCreatedAtAfter(AccountStatus.ACTIVE, cutoff);
+                case MARKETING_USER_SEGMENT_INACTIVE_30D ->
+                        accountJpaRepository.findAllByStatusAndUpdatedAtBefore(AccountStatus.ACTIVE, cutoff);
+                case MARKETING_USER_SEGMENT_ALL, UNRECOGNIZED ->
+                        accountJpaRepository.findAllByStatus(AccountStatus.ACTIVE);
+            };
+
+            List<String> userIds = candidates.stream()
+                    .filter(account -> !hasAdministrativeRole(account.getId()))
+                    .map(account -> account.getId().toString())
+                    .toList();
+            responseObserver.onNext(MarketingUserIdsResponse.newBuilder().addAllUserIds(userIds).build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error listing marketing user ids", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void batchGetMarketingUsers(BatchGetMarketingUsersRequest request,
+                                       StreamObserver<MarketingUsersResponse> responseObserver) {
+        try {
+            List<UUID> userIds = request.getUserIdsList().stream()
+                    .map(this::parseUuid)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .toList();
+            MarketingUsersResponse.Builder response = MarketingUsersResponse.newBuilder();
+            accountJpaRepository.findAllById(userIds).forEach(account -> {
+                List<Role> roles = roleRepository.findAllByAccountId(account.getId());
+                UserProfile profile = userProfileRepository.findByAccountId(account.getId()).orElse(null);
+                response.addUsers(MarketingUserDto.newBuilder()
+                        .setUserId(account.getId().toString())
+                        .setEmail(account.getEmail() == null ? "" : account.getEmail().getValue())
+                        .setName(resolveDisplayName(account, profile))
+                        .setActive(account.getStatus() == AccountStatus.ACTIVE)
+                        .addAllRoles(roles.stream().map(role -> role.getName().getValue()).toList())
+                        .build());
+            });
+            responseObserver.onNext(response.build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error getting marketing users", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    @Override
+    public void filterMarketingUserIds(FilterMarketingUserIdsRequest request,
+                                       StreamObserver<FilterMarketingUserIdsResponse> responseObserver) {
+        try {
+            List<UUID> requestedIds = request.getUserIdsList().stream()
+                    .map(this::parseUuid)
+                    .filter(java.util.Objects::nonNull)
+                    .distinct()
+                    .toList();
+            FilterMarketingUserIdsResponse.Builder response = FilterMarketingUserIdsResponse.newBuilder();
+            accountJpaRepository.findAllById(requestedIds).forEach(account -> {
+                if (hasAdministrativeRole(account.getId())) {
+                    response.addAdministrativeUserIds(account.getId().toString());
+                } else if (account.getStatus() == AccountStatus.ACTIVE) {
+                    response.addEligibleUserIds(account.getId().toString());
+                }
+            });
+            responseObserver.onNext(response.build());
+            responseObserver.onCompleted();
+        } catch (Exception e) {
+            log.error("Error filtering marketing user ids", e);
+            responseObserver.onError(e);
+        }
+    }
+
+    private boolean hasAdministrativeRole(UUID accountId) {
+        return roleRepository.findAllByAccountId(accountId).stream()
+                .map(role -> role.getName().getValue())
+                .map(value -> value == null ? "" : value.trim().toUpperCase(java.util.Locale.ROOT))
+                .map(value -> value.startsWith("ROLE_") ? value.substring(5) : value)
+                .anyMatch(ADMIN_ROLES::contains);
+    }
+
+    private UUID parseUuid(String value) {
+        try {
+            return UUID.fromString(value);
+        } catch (Exception ignored) {
+            return null;
         }
     }
 

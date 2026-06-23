@@ -19,3 +19,14 @@ outputs/
 *.glb
 *.gltf
 *.obj
+
+build/
+bin/
+.gradle/
+out/
+.idea/
+
+**/build/
+**/bin/
+**/.gradle/
+**/out/

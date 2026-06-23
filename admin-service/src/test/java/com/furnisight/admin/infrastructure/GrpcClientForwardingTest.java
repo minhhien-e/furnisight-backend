@@ -68,7 +68,7 @@ class GrpcClientForwardingTest {
         AdminUserGrpcClient client = new AdminUserGrpcClient();
         ReflectionTestUtils.setField(client, "adminUserServiceStub", stub);
 
-        client.getAccounts(4, 25, "minh", "ACTIVE");
+        client.getAccounts(4, 25, "minh", "ACTIVE", "CUSTOMER");
 
         ArgumentCaptor<GetAccountsRequest> request = ArgumentCaptor.forClass(GetAccountsRequest.class);
         verify(stub).getAccounts(request.capture());
@@ -76,5 +76,6 @@ class GrpcClientForwardingTest {
         assertThat(request.getValue().getSize()).isEqualTo(25);
         assertThat(request.getValue().getQuery()).isEqualTo("minh");
         assertThat(request.getValue().getStatus()).isEqualTo("ACTIVE");
+        assertThat(request.getValue().getScope()).isEqualTo(com.furnisight.admin.user.AccountScope.ACCOUNT_SCOPE_CUSTOMER);
     }
 }

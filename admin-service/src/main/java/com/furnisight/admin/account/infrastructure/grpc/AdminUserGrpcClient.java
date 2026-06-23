@@ -13,13 +13,27 @@ public class AdminUserGrpcClient {
     private AdminUserServiceGrpc.AdminUserServiceBlockingStub adminUserServiceStub;
 
     public AccountPageResponse getAccounts(int page, int size, String query, String status) {
+        return getAccounts(page, size, query, status, null);
+    }
+
+    public AccountPageResponse getAccounts(int page, int size, String query, String status, String scope) {
         GetAccountsRequest request = GetAccountsRequest.newBuilder()
                 .setPage(page)
                 .setSize(size)
                 .setQuery(query == null ? "" : query)
                 .setStatus(status == null ? "" : status)
+                .setScope(parseScope(scope))
                 .build();
         return adminUserServiceStub.getAccounts(request);
+    }
+
+    private AccountScope parseScope(String scope) {
+        if (scope == null || scope.isBlank()) return AccountScope.ACCOUNT_SCOPE_UNSPECIFIED;
+        return switch (scope.trim().toUpperCase()) {
+            case "CUSTOMER" -> AccountScope.ACCOUNT_SCOPE_CUSTOMER;
+            case "ADMIN" -> AccountScope.ACCOUNT_SCOPE_ADMIN;
+            default -> throw new IllegalArgumentException("Invalid account scope: " + scope);
+        };
     }
 
     public AccountDetailResponse getAccountById(UUID id) {

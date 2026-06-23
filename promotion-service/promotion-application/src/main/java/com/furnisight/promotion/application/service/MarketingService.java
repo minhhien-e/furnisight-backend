@@ -243,7 +243,9 @@ public class MarketingService {
     public MarketingNotificationGateway.DispatchResult publishVoucher(UUID voucherId, PublishVoucherCommand command) {
         Promotion voucher = promotionRepository.findById(voucherId)
                 .orElseThrow(() -> new IllegalArgumentException("Voucher not found"));
-        List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(command.getTargetType(), command.getTargetUserIds(), command.getSegmentKey());
+        List<MarketingChannel> channels = parseChannels(command.getChannels());
+        List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(
+                command.getTargetType(), command.getTargetUserIds(), command.getSegmentKey(), channels);
         for (MarketingNotificationGateway.Recipient recipient : recipients) {
             try {
                 userVoucherRepository.save(UserVoucher.builder()
@@ -260,9 +262,9 @@ public class MarketingService {
         }
         String title = hasText(command.getTitle()) ? command.getTitle() : "Bạn vừa nhận voucher " + voucher.getCode();
         String body = hasText(command.getBody()) ? command.getBody() : "Voucher " + voucher.getName() + " đã sẵn sàng trong tài khoản của bạn.";
-        MarketingNotificationGateway.DispatchResult result = notificationGateway.send(title, body, "/account/vouchers", parseChannels(command.getChannels()), recipients);
+        MarketingNotificationGateway.DispatchResult result = notificationGateway.send(title, body, "/account/vouchers", channels, recipients);
         for (MarketingNotificationGateway.Recipient recipient : recipients) {
-            for (MarketingChannel channel : parseChannels(command.getChannels())) {
+            for (MarketingChannel channel : channels) {
                 logDispatch("VOUCHER_PUBLISH", voucherId, recipient.userId(), channel, result.failedCount() > 0 ? DispatchStatus.ACCEPTED : DispatchStatus.SENT, title, body, null);
             }
         }
@@ -279,43 +281,48 @@ public class MarketingService {
 
     @Transactional
     public void dispatchCampaign(MarketingCampaign campaign) {
-        List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(campaign.getTargetType().name(), split(campaign.getTargetUserIds()), campaign.getSegmentKey());
+        List<MarketingChannel> channels = parseChannels(split(campaign.getChannels()));
+        List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(
+                campaign.getTargetType().name(), split(campaign.getTargetUserIds()), campaign.getSegmentKey(), channels);
         MarketingNotificationGateway.DispatchResult result = notificationGateway.send(
                 defaultText(campaign.getNotificationTitle(), campaign.getName()),
                 defaultText(campaign.getNotificationBody(), "Bạn vừa nhận ưu đãi mới từ LuxNest."),
                 "/account/vouchers",
-                parseChannels(split(campaign.getChannels())),
+                channels,
                 recipients);
         campaign.setSentCount(result.sentCount());
         campaign.setStatus(campaign.getScheduleType() == MarketingSendType.SCHEDULED || campaign.getScheduleType() == MarketingSendType.NOW ? CampaignStatus.SENT : CampaignStatus.DRAFT);
         campaign.setDispatchedAt(LocalDateTime.now());
         campaignRepository.save(campaign);
-        logBatch("CAMPAIGN", campaign.getId(), campaign.getNotificationTitle(), campaign.getNotificationBody(), parseChannels(split(campaign.getChannels())), recipients, result);
+        logBatch("CAMPAIGN", campaign.getId(), campaign.getNotificationTitle(), campaign.getNotificationBody(), channels, recipients, result);
     }
 
     @Transactional
     public void dispatchNotification(MarketingNotification notification) {
-        List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(notification.getTargetType().name(), split(notification.getTargetUserIds()), notification.getSegmentKey());
+        List<MarketingChannel> channels = parseChannels(split(notification.getChannels()));
+        List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(
+                notification.getTargetType().name(), split(notification.getTargetUserIds()), notification.getSegmentKey(), channels);
         MarketingNotificationGateway.DispatchResult result = notificationGateway.send(
                 notification.getTitle(),
                 notification.getBody(),
                 "/notifications",
-                parseChannels(split(notification.getChannels())),
+                channels,
                 recipients);
         notification.setSentCount(result.sentCount());
         notification.setStatus(notification.getSendType() == MarketingSendType.DRAFT ? CampaignStatus.DRAFT : CampaignStatus.SENT);
         notification.setDispatchedAt(LocalDateTime.now());
         notificationRepository.save(notification);
-        logBatch("NOTIFICATION", notification.getId(), notification.getTitle(), notification.getBody(), parseChannels(split(notification.getChannels())), recipients, result);
+        logBatch("NOTIFICATION", notification.getId(), notification.getTitle(), notification.getBody(), channels, recipients, result);
     }
 
     private void applyCampaign(MarketingCampaign campaign, SaveMarketingCampaignCommand command) {
         campaign.setName(requireText(command.getName(), "Missing campaign name"));
         campaign.setVoucherId(parseUuid(command.getVoucherId()));
-        campaign.setTargetType(parseEnum(command.getTargetType(), MarketingTargetType.MANUAL, MarketingTargetType.class));
+        campaign.setTargetType(parseRequiredEnum(command.getTargetType(), "Invalid target type", MarketingTargetType.class));
+        validateTarget(campaign.getTargetType(), command.getTargetUserIds(), command.getSegmentKey());
         campaign.setTargetUserIds(join(command.getTargetUserIds()));
-        campaign.setSegmentKey(command.getSegmentKey());
-        campaign.setChannels(join(defaultChannels(command.getChannels())));
+        campaign.setSegmentKey(validatedSegment(campaign.getTargetType(), command.getSegmentKey()));
+        campaign.setChannels(join(parseChannels(command.getChannels()).stream().map(Enum::name).toList()));
         campaign.setScheduleType(parseEnum(command.getScheduleType(), MarketingSendType.NOW, MarketingSendType.class));
         campaign.setScheduledAt(command.getScheduledAt());
         campaign.setNotificationTitle(command.getNotificationTitle());
@@ -327,10 +334,11 @@ public class MarketingService {
     private void applyNotification(MarketingNotification notification, SaveMarketingNotificationCommand command) {
         notification.setTitle(requireText(command.getTitle(), "Missing notification title"));
         notification.setBody(defaultText(command.getBody(), ""));
-        notification.setTargetType(parseEnum(command.getTargetType(), MarketingTargetType.ALL, MarketingTargetType.class));
+        notification.setTargetType(parseRequiredEnum(command.getTargetType(), "Invalid target type", MarketingTargetType.class));
+        validateTarget(notification.getTargetType(), command.getTargetUserIds(), command.getSegmentKey());
         notification.setTargetUserIds(join(command.getTargetUserIds()));
-        notification.setSegmentKey(command.getSegmentKey());
-        notification.setChannels(join(defaultChannels(command.getChannels())));
+        notification.setSegmentKey(validatedSegment(notification.getTargetType(), command.getSegmentKey()));
+        notification.setChannels(join(parseChannels(command.getChannels()).stream().map(Enum::name).toList()));
         notification.setSendType(parseEnum(command.getSendType(), MarketingSendType.NOW, MarketingSendType.class));
         notification.setScheduledAt(command.getScheduledAt());
         notification.setRelatedVoucherId(parseUuid(command.getRelatedVoucherId()));
@@ -513,13 +521,20 @@ public class MarketingService {
         return defaultText(productId, "") + "::" + defaultText(variantId, "");
     }
 
-    private List<MarketingNotificationGateway.Recipient> resolveRecipients(String targetType, List<String> targetUserIds, String segmentKey) {
-        MarketingTargetType type = parseEnum(targetType, MarketingTargetType.MANUAL, MarketingTargetType.class);
-        return switch (type) {
-            case MANUAL -> targetGateway.getUsersByIds(targetUserIds == null ? List.of() : targetUserIds.stream().map(this::parseUuid).filter(Objects::nonNull).toList());
-            case ALL -> targetGateway.getAllActiveUsers();
-            case SEGMENT -> targetGateway.getSegmentUsers(segmentKey);
+    private List<MarketingNotificationGateway.Recipient> resolveRecipients(
+            String targetType, List<String> targetUserIds, String segmentKey, List<MarketingChannel> channels) {
+        MarketingTargetType type = parseRequiredEnum(targetType, "Invalid target type", MarketingTargetType.class);
+        validateTarget(type, targetUserIds, segmentKey);
+        List<UUID> userIds = switch (type) {
+            case MANUAL -> targetGateway.filterEligibleUserIds(targetUserIds.stream()
+                    .map(this::parseUuid).filter(Objects::nonNull).distinct().toList());
+            case ALL -> targetGateway.getAllActiveUserIds();
+            case SEGMENT -> targetGateway.getSegmentUserIds(validatedSegment(type, segmentKey));
         };
+        if (channels.contains(MarketingChannel.EMAIL)) {
+            return targetGateway.getUsersByIds(userIds);
+        }
+        return userIds.stream().map(id -> new MarketingNotificationGateway.Recipient(id, null, null)).toList();
     }
 
     private void logBatch(String sourceType, UUID sourceId, String title, String message, List<MarketingChannel> channels, List<MarketingNotificationGateway.Recipient> recipients, MarketingNotificationGateway.DispatchResult result) {
@@ -587,24 +602,34 @@ public class MarketingService {
             case ALL -> "Toàn bộ người dùng";
             case SEGMENT -> switch (defaultText(segmentKey, "")) {
                 case "NEW_USERS" -> "Khách mới đăng ký";
-                case "VIP" -> "Khách VIP";
                 case "INACTIVE_30D" -> "Chưa mua hàng 30 ngày";
                 case "ABANDONED_CART" -> "Giỏ hàng chưa checkout";
-                case "HIGH_SPEND" -> "Chi tiêu > 5.000.000đ";
                 default -> "Theo điều kiện";
             };
         };
     }
 
-    private List<String> defaultChannels(List<String> channels) {
-        return channels == null || channels.isEmpty() ? List.of(MarketingChannel.NOTIFICATION.name()) : channels;
+    private List<MarketingChannel> parseChannels(List<String> channels) {
+        if (channels == null || channels.isEmpty()) {
+            throw new IllegalArgumentException("At least one marketing channel is required");
+        }
+        return channels.stream()
+                .map(value -> parseRequiredEnum(value, "Invalid marketing channel", MarketingChannel.class))
+                .distinct().toList();
     }
 
-    private List<MarketingChannel> parseChannels(List<String> channels) {
-        return defaultChannels(channels).stream()
-                .map(value -> parseEnum(value, MarketingChannel.NOTIFICATION, MarketingChannel.class))
-                .distinct()
-                .toList();
+    private void validateTarget(MarketingTargetType type, List<String> targetUserIds, String segmentKey) {
+        if (type == MarketingTargetType.MANUAL) {
+            long validIds = targetUserIds == null ? 0 : targetUserIds.stream()
+                    .map(this::parseUuid).filter(Objects::nonNull).distinct().count();
+            if (validIds == 0) throw new IllegalArgumentException("Manual target requires user ids");
+        }
+        if (type == MarketingTargetType.SEGMENT) validatedSegment(type, segmentKey);
+    }
+
+    private String validatedSegment(MarketingTargetType type, String segmentKey) {
+        if (type != MarketingTargetType.SEGMENT) return null;
+        return parseRequiredEnum(segmentKey, "Invalid marketing segment", MarketingSegment.class).name();
     }
 
     private String join(List<String> values) {
@@ -645,6 +670,15 @@ public class MarketingService {
             return Enum.valueOf(enumClass, value.trim().toUpperCase(Locale.ROOT));
         } catch (IllegalArgumentException ex) {
             return fallback;
+        }
+    }
+
+    private <T extends Enum<T>> T parseRequiredEnum(String value, String message, Class<T> enumClass) {
+        if (!hasText(value)) throw new IllegalArgumentException(message);
+        try {
+            return Enum.valueOf(enumClass, value.trim().toUpperCase(Locale.ROOT));
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException(message + ": " + value);
         }
     }
 }

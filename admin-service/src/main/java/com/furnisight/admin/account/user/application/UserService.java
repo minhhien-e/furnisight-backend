@@ -27,6 +27,16 @@ public class UserService {
     public PageResponse<UserResponse> getUsers(int page, int size, String query, String status) {
         com.furnisight.admin.user.AccountPageResponse response =
                 userClient.getAccounts(page, size, query, status);
+        return toPageResponse(response);
+    }
+
+    public PageResponse<UserResponse> getUsers(int page, int size, String query, String status, String scope) {
+        com.furnisight.admin.user.AccountPageResponse response =
+                userClient.getAccounts(page, size, query, status, scope);
+        return toPageResponse(response);
+    }
+
+    private PageResponse<UserResponse> toPageResponse(com.furnisight.admin.user.AccountPageResponse response) {
         return new PageResponse<>(
                 response.getAccountsList().stream().map(this::toUserResponse).toList(),
                 response.getTotalPages(), response.getTotalElements(), response.getCurrentPage());
