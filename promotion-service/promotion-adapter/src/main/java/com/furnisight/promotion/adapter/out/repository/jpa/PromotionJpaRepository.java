@@ -25,10 +25,11 @@ public interface PromotionJpaRepository extends JpaRepository<Promotion, UUID> {
               AND p.active = true
               AND (p.startDate IS NULL OR p.startDate <= :now)
               AND (p.endDate IS NULL OR p.endDate >= :now)
-              AND (:expiresBefore IS NULL OR (p.endDate IS NOT NULL AND p.endDate <= :expiresBefore))
+              AND (:checkExpiresBefore = false OR (p.endDate IS NOT NULL AND p.endDate <= :expiresBefore))
               AND (:shippingOnly = false OR p.discountType = :shippingType)
             """)
     Page<Promotion> findPublicActivePage(@Param("now") LocalDateTime now,
+                                         @Param("checkExpiresBefore") boolean checkExpiresBefore,
                                          @Param("expiresBefore") LocalDateTime expiresBefore,
                                          @Param("shippingOnly") boolean shippingOnly,
                                          @Param("shippingType") DiscountType shippingType,

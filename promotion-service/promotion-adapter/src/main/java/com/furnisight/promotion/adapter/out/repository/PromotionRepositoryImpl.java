@@ -45,7 +45,9 @@ public class PromotionRepositoryImpl implements PromotionRepository {
                                                         boolean shippingOnly, int page, int size) {
         var pageable = PageRequest.of(page, size, Sort.by(
                 Sort.Order.asc("endDate").nullsLast(), Sort.Order.asc("code"), Sort.Order.asc("id")));
-        var result = jpaRepository.findPublicActivePage(now, expiresBefore, shippingOnly,
+        boolean checkExpiresBefore = expiresBefore != null;
+        LocalDateTime safeExpiresBefore = checkExpiresBefore ? expiresBefore : now;
+        var result = jpaRepository.findPublicActivePage(now, checkExpiresBefore, safeExpiresBefore, shippingOnly,
                 DiscountType.SHIPPING_CAP, pageable);
         return new PageResponse<>(result.getContent(), result.getTotalPages(), result.getTotalElements(), page, size);
     }

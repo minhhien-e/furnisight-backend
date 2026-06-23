@@ -100,6 +100,17 @@ db.notification_templates.insertMany([
     type: "SYSTEM", channel: "EMAIL",
     defaultImage: "", defaultActionUrl: "",
     createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
+  },
+  {
+    _id: UUID("b9829f21-7290-482a-bc91-205cd540f29c"),
+    code: "campaign-voucher-notify",
+    name: "Campaign Voucher Notification",
+    variables: ["voucherName", "voucherDescription"],
+    titleTemplate: "Bạn nhận được Voucher mới: {{voucherName}}",
+    bodyTemplate: `<!DOCTYPE html><html><head><meta charset="UTF-8"><style>body{font-family:Arial,sans-serif;background:#f4f4f4;margin:0;padding:0}.container{max-width:600px;margin:20px auto;background:#fff;padding:20px;border-radius:8px;box-shadow:0 4px 8px rgba(0,0,0,.1)}.header{text-align:center;border-bottom:2px solid #ee4d2d;padding-bottom:10px;margin-bottom:20px}.header h2{color:#ee4d2d;margin:0;text-transform:uppercase;font-size:24px}.content{font-size:16px;color:#333;line-height:1.5}.footer{font-size:14px;color:#777;text-align:center;border-top:1px solid #eaeaea;padding-top:10px;margin-top:20px}</style></head><body><div class="container"><div class="header"><h2>FurniSight Voucher</h2></div><div class="content"><p>Chào bạn,</p><p>Chúng tôi vừa gửi tặng bạn một mã giảm giá mới: <strong>{{voucherName}}</strong></p><p>{{voucherDescription}}</p><p>Hãy sử dụng ngay trước khi hết hạn nhé!</p></div><div class="footer"><p>&copy; FurniSight. All rights reserved.</p></div></div><!-- UNLAYER_DESIGN_START {"body":{"rows":[{"cells":[1],"columns":[{"contents":[{"type":"text","values":{"text":"<p>Chào bạn,</p><p>Chúng tôi vừa gửi tặng bạn một mã giảm giá mới: <strong>{{voucherName}}</strong></p><p>{{voucherDescription}}</p><p>Hãy sử dụng ngay trước khi hết hạn nhé!</p>"}}]}],"values":{}}],"values":{}}} UNLAYER_DESIGN_END --></body></html>`,
+    type: "PROMOTION", channel: "EMAIL",
+    defaultImage: "", defaultActionUrl: "",
+    createdAt: new Date(), updatedAt: new Date(), version: NumberLong(0)
   }
 ]);
 
