@@ -11,11 +11,14 @@ import com.furnisight.admin.notification.NotificationTemplateResponse;
 import com.furnisight.admin.notification.UpdateTemplateRequest;
 import com.furnisight.notification.application.template.port.in.dto.command.CreateNotificationTemplateCommand;
 import com.furnisight.notification.application.template.port.in.dto.command.UpdateNotificationTemplateCommand;
+import com.furnisight.notification.application.template.port.in.dto.command.DeleteNotificationTemplateCommand;
+import com.furnisight.notification.application.template.port.in.dto.command.UpdateNotificationTemplateCommand;
 import com.furnisight.notification.application.template.port.in.dto.query.FilterNotificationTemplateQuery;
+import com.furnisight.notification.application.template.port.in.dto.query.FindNotificationTemplateByCodeQuery;
 import com.furnisight.notification.application.template.port.in.usecase.CreateNotificationTemplateUseCase;
 import com.furnisight.notification.application.template.port.in.usecase.DeleteNotificationTemplateUseCase;
 import com.furnisight.notification.application.template.port.in.usecase.FilterNotificationTemplateUseCase;
-import com.furnisight.notification.application.template.port.in.usecase.GetNotificationTemplateUseCase;
+import com.furnisight.notification.application.template.port.in.usecase.FindNotificationTemplateByCodeUseCase;
 import com.furnisight.notification.application.template.port.in.usecase.UpdateNotificationTemplateUseCase;
 import com.furnisight.notification.domain.model.enums.NotificationChannel;
 import com.furnisight.notification.domain.model.enums.NotificationType;
@@ -24,6 +27,7 @@ import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 
 import java.util.List;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @GrpcService
@@ -31,7 +35,7 @@ import java.util.stream.Collectors;
 public class AdminNotificationGrpcService extends AdminNotificationServiceGrpc.AdminNotificationServiceImplBase {
 
     private final FilterNotificationTemplateUseCase filterUseCase;
-    private final GetNotificationTemplateUseCase getUseCase;
+    private final FindNotificationTemplateByCodeUseCase findUseCase;
     private final CreateNotificationTemplateUseCase createUseCase;
     private final UpdateNotificationTemplateUseCase updateUseCase;
     private final DeleteNotificationTemplateUseCase deleteUseCase;
@@ -57,7 +61,7 @@ public class AdminNotificationGrpcService extends AdminNotificationServiceGrpc.A
 
     @Override
     public void getNotificationTemplateByCode(GetTemplateByCodeRequest request, StreamObserver<NotificationTemplateResponse> responseObserver) {
-        var result = getUseCase.execute(request.getCode());
+        var result = findUseCase.execute(FindNotificationTemplateByCodeQuery.builder().code(request.getCode()).build());
         complete(responseObserver, mapToProtoResponse(result));
     }
 
@@ -81,7 +85,7 @@ public class AdminNotificationGrpcService extends AdminNotificationServiceGrpc.A
     @Override
     public void updateNotificationTemplate(UpdateTemplateRequest request, StreamObserver<NotificationTemplateResponse> responseObserver) {
         UpdateNotificationTemplateCommand command = UpdateNotificationTemplateCommand.builder()
-                .id(request.getId())
+                .templateId(UUID.fromString(request.getId()))
                 .name(request.getName())
                 .titleTemplate(request.getTitleTemplate())
                 .bodyTemplate(request.getBodyTemplate())
@@ -93,7 +97,7 @@ public class AdminNotificationGrpcService extends AdminNotificationServiceGrpc.A
 
     @Override
     public void deleteNotificationTemplate(DeleteTemplateRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        deleteUseCase.execute(request.getId());
+        deleteUseCase.execute(new DeleteNotificationTemplateCommand(UUID.fromString(request.getId())));
         complete(responseObserver, AdminActionResponse.newBuilder()
                 .setSuccess(true)
                 .setMessage("Notification template deleted")
@@ -102,7 +106,7 @@ public class AdminNotificationGrpcService extends AdminNotificationServiceGrpc.A
 
     private NotificationTemplateResponse mapToProtoResponse(com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse response) {
         NotificationTemplateResponse.Builder builder = NotificationTemplateResponse.newBuilder()
-                .setId(response.getId())
+                .setId(response.getId().toString())
                 .setCode(response.getCode())
                 .setName(response.getName())
                 .setTitleTemplate(response.getTitleTemplate())

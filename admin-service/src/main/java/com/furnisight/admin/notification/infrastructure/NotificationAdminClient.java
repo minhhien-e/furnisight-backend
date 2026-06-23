@@ -42,15 +42,15 @@ public class NotificationAdminClient {
 
     public NotificationTemplateResponse createTemplate(CreateNotificationTemplateRequest request) {
         com.furnisight.admin.notification.CreateTemplateRequest.Builder builder = com.furnisight.admin.notification.CreateTemplateRequest.newBuilder()
-                .setCode(request.code())
-                .setName(request.name())
-                .setTitleTemplate(request.titleTemplate())
-                .setBodyTemplate(request.bodyTemplate())
-                .setType(request.type().name())
-                .setChannel(request.channel().name());
+                .setCode(request.getCode())
+                .setName(request.getName())
+                .setTitleTemplate(request.getTitleTemplate())
+                .setBodyTemplate(request.getBodyTemplate())
+                .setType(request.getType().name())
+                .setChannel(request.getChannel().name());
         
-        if (request.defaultImage() != null) builder.setDefaultImage(request.defaultImage());
-        if (request.defaultActionUrl() != null) builder.setDefaultActionUrl(request.defaultActionUrl());
+        if (request.getDefaultImage() != null) builder.setDefaultImage(request.getDefaultImage());
+        if (request.getDefaultActionUrl() != null) builder.setDefaultActionUrl(request.getDefaultActionUrl());
 
         var response = notificationStub.createNotificationTemplate(builder.build());
         return mapFromProto(response);
@@ -59,9 +59,9 @@ public class NotificationAdminClient {
     public NotificationTemplateResponse updateTemplate(UUID templateId, UpdateNotificationTemplateRequest request) {
         var response = notificationStub.updateNotificationTemplate(com.furnisight.admin.notification.UpdateTemplateRequest.newBuilder()
                 .setId(templateId.toString())
-                .setName(request.name())
-                .setTitleTemplate(request.titleTemplate())
-                .setBodyTemplate(request.bodyTemplate())
+                .setName(request.getName())
+                .setTitleTemplate(request.getTitleTemplate())
+                .setBodyTemplate(request.getBodyTemplate())
                 .build());
         return mapFromProto(response);
     }
