@@ -25,6 +25,48 @@ service AdminUserService {
     rpc RevokeRole (RevokeRoleRequest) returns (AdminActionResponse);
     rpc CreateAccount (CreateAccountRequest) returns (AdminActionResponse);
     rpc UpdateAccountProfile (UpdateAccountProfileRequest) returns (AdminActionResponse);
+    rpc ListMarketingUserIds (ListMarketingUserIdsRequest) returns (MarketingUserIdsResponse);
+    rpc FilterMarketingUserIds (FilterMarketingUserIdsRequest) returns (FilterMarketingUserIdsResponse);
+    rpc BatchGetMarketingUsers (BatchGetMarketingUsersRequest) returns (MarketingUsersResponse);
+}
+
+message ListMarketingUserIdsRequest {
+    MarketingUserSegment segment = 1;
+}
+
+enum MarketingUserSegment {
+    MARKETING_USER_SEGMENT_ALL = 0;
+    MARKETING_USER_SEGMENT_NEW_USERS = 1;
+    MARKETING_USER_SEGMENT_INACTIVE_30D = 2;
+}
+
+message MarketingUserIdsResponse {
+    repeated string user_ids = 1;
+}
+
+message FilterMarketingUserIdsRequest {
+    repeated string user_ids = 1;
+}
+
+message FilterMarketingUserIdsResponse {
+    repeated string eligible_user_ids = 1;
+    repeated string administrative_user_ids = 2;
+}
+
+message BatchGetMarketingUsersRequest {
+    repeated string user_ids = 1;
+}
+
+message MarketingUserDto {
+    string user_id = 1;
+    string email = 2;
+    string name = 3;
+    bool active = 4;
+    repeated string roles = 5;
+}
+
+message MarketingUsersResponse {
+    repeated MarketingUserDto users = 1;
 }
 
 message CreateAccountRequest {
