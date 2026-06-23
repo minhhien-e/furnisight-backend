@@ -1,0 +1,71 @@
+syntax = "proto3";
+
+package com.furnisight.admin.notification;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.notification";
+option java_outer_classname = "AdminNotificationProto";
+
+import "google/protobuf/empty.proto";
+
+service AdminNotificationService {
+    rpc GetNotificationTemplates (GetTemplatesRequest) returns (NotificationTemplateListResponse);
+    rpc GetNotificationTemplateByCode (GetTemplateByCodeRequest) returns (NotificationTemplateResponse);
+    rpc CreateNotificationTemplate (CreateTemplateRequest) returns (NotificationTemplateResponse);
+    rpc UpdateNotificationTemplate (UpdateTemplateRequest) returns (NotificationTemplateResponse);
+    rpc DeleteNotificationTemplate (DeleteTemplateRequest) returns (AdminActionResponse);
+}
+
+message AdminActionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetTemplatesRequest {
+    optional string name = 1;
+    optional string channel = 2;
+    optional string type = 3;
+}
+
+message GetTemplateByCodeRequest {
+    string code = 1;
+}
+
+message NotificationTemplateResponse {
+    string id = 1;
+    string code = 2;
+    string name = 3;
+    repeated string variables = 4;
+    string title_template = 5;
+    string body_template = 6;
+    string type = 7;
+    string channel = 8;
+    optional string default_image = 9;
+    optional string default_action_url = 10;
+}
+
+message NotificationTemplateListResponse {
+    repeated NotificationTemplateResponse items = 1;
+}
+
+message CreateTemplateRequest {
+    string code = 1;
+    string name = 2;
+    string title_template = 3;
+    string body_template = 4;
+    string type = 5;
+    string channel = 6;
+    optional string default_image = 7;
+    optional string default_action_url = 8;
+}
+
+message UpdateTemplateRequest {
+    string id = 1;
+    string name = 2;
+    string title_template = 3;
+    string body_template = 4;
+}
+
+message DeleteTemplateRequest {
+    string id = 1;
+}
