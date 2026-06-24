@@ -13,6 +13,7 @@ import com.furnisight.notification.domain.model.enums.NotificationType;
 import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -34,6 +35,8 @@ public class InboxMessage extends DomainEntity {
     private boolean read;
     private boolean deleted;
     private LocalDateTime readAt;
+    
+    private Map<String, Object> metadata;
 
     private LocalDateTime deletedAt;
     @Indexed(expireAfter = "30d")
@@ -46,7 +49,7 @@ public class InboxMessage extends DomainEntity {
     @Version
     private Long version;
 
-    public InboxMessage(UUID id, UUID userId, String title, String body, String image, String actionUrl, NotificationType type, boolean read, boolean deleted, LocalDateTime readAt, LocalDateTime deletedAt, LocalDateTime expireAt, LocalDateTime createdAt, LocalDateTime updatedAt, Long version) {
+    public InboxMessage(UUID id, UUID userId, String title, String body, String image, String actionUrl, NotificationType type, boolean read, boolean deleted, LocalDateTime readAt, Map<String, Object> metadata, LocalDateTime deletedAt, LocalDateTime expireAt, LocalDateTime createdAt, LocalDateTime updatedAt, Long version) {
         this.id = id;
         this.userId = userId;
         this.title = title;
@@ -57,6 +60,7 @@ public class InboxMessage extends DomainEntity {
         this.read = read;
         this.deleted = deleted;
         this.readAt = readAt;
+        this.metadata = metadata;
         this.deletedAt = deletedAt;
         this.expireAt = expireAt;
         this.createdAt = createdAt;
@@ -69,6 +73,7 @@ public class InboxMessage extends DomainEntity {
             .type(type)
             .userId(userId)
             .image(image)
+            .metadata(metadata)
             .build());
     }
     public void markAsRead() {

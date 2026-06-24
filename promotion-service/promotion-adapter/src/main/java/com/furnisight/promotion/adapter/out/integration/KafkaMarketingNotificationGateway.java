@@ -21,7 +21,7 @@ public class KafkaMarketingNotificationGateway implements MarketingNotificationG
 
     @Override
     public DispatchResult send(String title, String body, String actionUrl,
-                               List<MarketingChannel> channels, List<Recipient> recipients) {
+                               List<MarketingChannel> channels, List<Recipient> recipients, java.util.Map<String, Object> metadata) {
         int accepted = 0;
         int sent = 0;
         List<String> failures = new ArrayList<>();
@@ -34,7 +34,7 @@ public class KafkaMarketingNotificationGateway implements MarketingNotificationG
                 try {
                     MarketingDeliveryEvent event = new MarketingDeliveryEvent(
                             UUID.randomUUID(), LocalDateTime.now(), recipient.userId(), recipient.email(),
-                            title, body, actionUrl, channel == MarketingChannel.EMAIL ? "EMAIL" : "IN_APP");
+                            title, body, actionUrl, channel == MarketingChannel.EMAIL ? "EMAIL" : "IN_APP", metadata);
                     kafkaTemplate.send(TOPIC, recipient.userId().toString(), event).get(10, TimeUnit.SECONDS);
                     sent++;
                 } catch (Exception ex) {
@@ -53,6 +53,7 @@ public class KafkaMarketingNotificationGateway implements MarketingNotificationG
             String title,
             String body,
             String actionUrl,
-            String channel) {
+            String channel,
+            java.util.Map<String, Object> metadata) {
     }
 }

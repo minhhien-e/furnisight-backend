@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @Getter
@@ -21,9 +22,10 @@ public class NotificationCreatedEvent implements DomainEvent {
     private NotificationType type;
     private UUID userId;
     private String image;
+    private Map<String, Object> metadata;
 
     @Builder
-    public NotificationCreatedEvent(String title, String body, String actionUrl, NotificationType type, UUID userId, String image) {
+    public NotificationCreatedEvent(String title, String body, String actionUrl, NotificationType type, UUID userId, String image, Map<String, Object> metadata) {
         this.eventId = UUID.randomUUID();
         this.occurredOn = LocalDateTime.now();
         this.title = title;
@@ -32,6 +34,7 @@ public class NotificationCreatedEvent implements DomainEvent {
         this.type = type;
         this.userId = userId;
         this.image = image;
+        this.metadata = metadata;
     }
 
     @Override

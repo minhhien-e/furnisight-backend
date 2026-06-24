@@ -1,6 +1,7 @@
 package com.furnisight.notification.adapter.in.messaging.dto.event;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 public record MarketingNotificationRequestedEvent(
@@ -11,5 +12,6 @@ public record MarketingNotificationRequestedEvent(
         String title,
         String body,
         String actionUrl,
-        String channel) {
+        String channel,
+        Map<String, Object> metadata) {
 }

@@ -33,6 +33,7 @@ public class MarketingNotificationRequestedConsumer {
                     .actionUrl(event.actionUrl())
                     .type(NotificationType.PROMOTION)
                     .channel(NotificationChannel.valueOf(event.channel()))
+                    .metadata(event.metadata())
                     .build());
         } catch (Exception ex) {
             log.error("Failed to process marketing notification", ex);
