@@ -12,6 +12,8 @@ public class ShippingOrderStatusHandler extends AbstractOrderStatusHandler {
     public ShippingOrderStatusHandler(OrderStatusTransitionValidator validator) { super(validator); }
     public OrderStatus status() { return OrderStatus.SHIPPING; }
     protected Set<OrderStatus> allowedTargets(OrderProcessingContext context) {
-        return Set.of(OrderStatus.DELIVERED);
+        return context.getOrder().isCodOrder()
+                ? Set.of(OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED)
+                : Set.of(OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED, OrderStatus.REFUND_PENDING);
     }
 }

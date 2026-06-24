@@ -78,6 +78,14 @@ public class OrderController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{orderCode}/confirm-receive")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> confirmReceive(@PathVariable String orderCode) {
+        UUID userId = currentUserProvider.getCurrentUserId();
+        updateOrderStatusUseCase.confirmReceive(orderCode, userId);
+        return ResponseEntity.noContent().build();
+    }
+
     @PostMapping("/{orderCode}/cancel")
     public ResponseEntity<Void> cancelOrder(@PathVariable String orderCode) {
         UUID userId = currentUserProvider.getCurrentUserId();

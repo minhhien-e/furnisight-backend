@@ -47,6 +47,11 @@ promotion:
   service:
     http-url: ${PROMOTION_SERVICE_HTTP_URL:http://promotion-service:8080}
 
+message:
+  service:
+    http-url: ${MESSAGE_SERVICE_HTTP_URL:http://message-service:8080}
+
+
 management:
   tracing:
     sampling:

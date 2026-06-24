@@ -172,18 +172,20 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     @Override
     public void createProduct(CreateProductRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         complete(responseObserver, () -> {
-            validateVariantInputs(request.getVariantsList());
+            validateVariantInputs(request.getVariantsList(), emptyToNull(request.getSku()));
             ModelMedia model = resolveModelMedia(request.getModelMediaId());
+            String productSku = emptyToNull(request.getSku());
             createProductUseCase.execute(CreateProductCommand.builder()
                 .categoryId(resolveCategoryId(request.getCategoryId(), request.getCategory()))
                 .name(request.getName())
                 .slug(resolveSlug(request.getSlug(), request.getName()))
+                .sku(productSku)
                 .description(defaultText(request.getDescription(), request.getName()))
                 .modelMediaId(model.mediaId())
                 .modelUrl(model.url())
                 .supports3d(model.mediaId() != null && request.getSupports3D())
                 .imageUrls(request.getImageUrlsList())
-                .variants(resolveCreateVariants(request.getVariantsList(), request.getPrice(), request.getStock()))
+                .variants(resolveCreateVariants(request.getVariantsList(), request.getPrice(), request.getStock(), productSku))
                 .build());
         }, "Product created");
     }
@@ -196,7 +198,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
             UUID oldModelMediaId = product.getModelMediaId();
-            validateVariantInputs(request.getVariantsList());
+            validateVariantInputs(request.getVariantsList(), emptyToNull(request.getSku()));
             ModelMedia model = request.getModelMediaId().isBlank()
                     && request.getSupports3D()
                     && !request.getModelUrl().isBlank()
@@ -207,6 +209,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                     .productId(productId)
                     .name(emptyToNull(request.getName()))
                     .slug(emptyToNull(resolveSlug(request.getSlug(), request.getName())))
+                    .sku(emptyToNull(request.getSku()))
                     .description(emptyToNull(request.getDescription()))
                     .modelMediaId(model.mediaId())
                     .modelUrl(model.url())
@@ -229,7 +232,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                         .build());
             }
 
-            replaceVariants(productId, request.getVariantsList(), request.getPrice(), request.getStock());
+            String productSku = emptyToNull(request.getSku()) != null ? emptyToNull(request.getSku()) : product.getSku();
+            replaceVariants(productId, request.getVariantsList(), request.getPrice(), request.getStock(), productSku);
             replaceGallery(productId, request.getImageUrlsList());
             deleteReplacedModel(oldModelMediaId, model.mediaId());
         }, "Product updated");
@@ -378,9 +382,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     private List<CreateProductCommand.VariantCommand> resolveCreateVariants(
             List<ProductVariantInput> variants,
             double fallbackPrice,
-            int fallbackStock) {
+            int fallbackStock,
+            String productSku) {
         if (variants != null && !variants.isEmpty()) {
-            return variants.stream().map(this::toCreateVariantCommand).toList();
+            return variants.stream().map(v -> toCreateVariantCommand(v, productSku)).toList();
         }
         return List.of(CreateProductCommand.VariantCommand.builder()
                 .price(Math.max(fallbackPrice, 0D))
@@ -392,12 +397,13 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .material("N/A")
                 .color("")
                 .warranty("")
-                .sku("AUTO-" + UUID.randomUUID().toString().toUpperCase(Locale.ROOT))
+                .sku(combineVariantSku(productSku, "AUTO-" + UUID.randomUUID().toString().toUpperCase(Locale.ROOT)))
                 .lowStockThreshold(5)
                 .build());
     }
 
-    private CreateProductCommand.VariantCommand toCreateVariantCommand(ProductVariantInput variant) {
+    private CreateProductCommand.VariantCommand toCreateVariantCommand(ProductVariantInput variant, String productSku) {
+        String variantPartSku = normalizeSku(variant.getSku());
         return CreateProductCommand.VariantCommand.builder()
                 .price(Math.max(variant.getPrice(), 0D))
                 .stockQuantity(Math.max(variant.getStock(), 0))
@@ -408,13 +414,26 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .material(defaultText(variant.getMaterial(), "N/A"))
                 .warranty(safe(variant.getWarranty()))
                 .color(safe(variant.getColor()))
-                .sku(normalizeSku(variant.getSku()))
+                .sku(combineVariantSku(productSku, variantPartSku))
                 .lowStockThreshold(validThreshold(variant.getLowStockThreshold()))
                 .build();
     }
 
-    private void replaceVariants(UUID productId, List<ProductVariantInput> variants, double fallbackPrice, int fallbackStock) {
+    private String combineVariantSku(String productSku, String variantPartSku) {
+        if (productSku == null || productSku.isBlank()) {
+            return variantPartSku;
+        }
+        String normalizedProductSku = productSku.trim().toUpperCase(Locale.ROOT);
+        // If variant SKU already starts with productSku-, return as-is
+        if (variantPartSku.startsWith(normalizedProductSku + "-")) {
+            return variantPartSku;
+        }
+        return normalizedProductSku + "-" + variantPartSku;
+    }
+
+    private void replaceVariants(UUID productId, List<ProductVariantInput> variants, double fallbackPrice, int fallbackStock, String productSku) {
         productRepository.findById(productId).ifPresent(product -> {
+            String resolvedProductSku = productSku != null ? productSku : product.getSku();
             if (variants != null && !variants.isEmpty()) {
                 Set<UUID> existingIds = product.getVariants() == null
                         ? Set.of()
@@ -430,7 +449,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 if (product.getVariants() != null) {
                     product.getVariants().removeIf(variant -> !incomingIds.contains(variant.getId()));
                 }
-                variants.forEach(input -> product.addVariant(toProductVariant(input)));
+                variants.forEach(input -> product.addVariant(toProductVariant(input, resolvedProductSku)));
             } else if (fallbackPrice >= 0 && fallbackStock >= 0 && product.getVariants() != null && !product.getVariants().isEmpty()) {
                 ProductVariant primaryVariant = product.getVariants().get(0);
                 primaryVariant.setPrice(new Price(BigDecimal.valueOf(fallbackPrice)));
@@ -440,7 +459,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         });
     }
 
-    private ProductVariant toProductVariant(ProductVariantInput input) {
+    private ProductVariant toProductVariant(ProductVariantInput input, String productSku) {
         UUID variantId = parseOptionalUuid(input.getId());
         return ProductVariant.builder()
                 .id(variantId == null ? UUID.randomUUID() : variantId)
@@ -454,7 +473,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .material(defaultText(input.getMaterial(), "N/A"))
                 .warranty(safe(input.getWarranty()))
                 .color(safe(input.getColor()))
-                .sku(normalizeSku(input.getSku()))
+                .sku(combineVariantSku(productSku, normalizeSku(input.getSku())))
                 .lowStockThreshold(validThreshold(input.getLowStockThreshold()))
                 .build();
     }
@@ -487,21 +506,22 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .build();
     }
 
-    private void validateVariantInputs(List<ProductVariantInput> variants) {
+    private void validateVariantInputs(List<ProductVariantInput> variants, String productSku) {
         if (variants == null || variants.isEmpty()) {
             throw new IllegalArgumentException("At least one product variant is required");
         }
         Set<String> requestSkus = new HashSet<>();
         for (ProductVariantInput variant : variants) {
-            String sku = normalizeSku(variant.getSku());
-            if (!requestSkus.add(sku)) {
-                throw new IllegalArgumentException("Duplicate variant SKU: " + sku);
+            String variantPartSku = normalizeSku(variant.getSku());
+            String fullSku = combineVariantSku(productSku, variantPartSku);
+            if (!requestSkus.add(variantPartSku)) {
+                throw new IllegalArgumentException("Duplicate variant SKU: " + variantPartSku);
             }
             UUID requestVariantId = parseOptionalUuid(variant.getId());
-            productRepository.findVariantIdBySku(sku)
+            productRepository.findVariantIdBySku(fullSku)
                     .filter(existingId -> !existingId.equals(requestVariantId))
                     .ifPresent(existingId -> {
-                        throw new IllegalArgumentException("Variant SKU already exists: " + sku);
+                        throw new IllegalArgumentException("Variant SKU already exists: " + fullSku);
                     });
             validThreshold(variant.getLowStockThreshold());
         }

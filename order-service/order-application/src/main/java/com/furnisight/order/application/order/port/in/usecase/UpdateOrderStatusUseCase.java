@@ -9,6 +9,8 @@ public interface UpdateOrderStatusUseCase {
 
     void deliverOrder(String orderCode);
 
+    void confirmReceive(String orderCode, java.util.UUID userId);
+
     void refundOrder(String orderCode);
 
     void cancelOrder(String orderCode, java.util.UUID userId);

@@ -44,7 +44,6 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @GrpcService
 @RequiredArgsConstructor
-@Transactional(readOnly = true)
 public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServiceImplBase {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ISO_LOCAL_DATE;
@@ -54,6 +53,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
 
     @Override
+    @Transactional(readOnly = true)
     public void getAdminOrders(GetAdminOrdersRequest request, StreamObserver<OrderPageResponse> responseObserver) {
         try {
             int page = Math.max(request.getPage() - 1, 0);
@@ -81,6 +81,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void getRecentOrders(GetRecentOrdersRequest request, StreamObserver<RecentOrderListResponse> responseObserver) {
         try {
             int limit = request.getLimit() > 0 ? request.getLimit() : 5;
@@ -96,6 +97,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void getOrderStats(com.google.protobuf.Empty request, StreamObserver<OrderStatsResponse> responseObserver) {
         try {
             LocalDate today = LocalDate.now();
@@ -173,6 +175,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void getRevenueSummary(GetRevenueSummaryRequest request, StreamObserver<RevenueSummaryResponse> responseObserver) {
         try {
             int months = request.getMonths() > 0 ? Math.min(request.getMonths(), 24) : 12;
@@ -229,6 +232,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     @Override
+    @Transactional(readOnly = true)
     public void getTopSellingProducts(GetTopSellingProductsRequest request, StreamObserver<TopSellingProductsResponse> responseObserver) {
         try {
             int limit = request.getLimit() > 0 ? request.getLimit() : 5;
@@ -274,9 +278,12 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             action.run();
             responseObserver.onNext(AdminActionResponse.newBuilder().setSuccess(true).setMessage(message).build());
             responseObserver.onCompleted();
+        } catch (com.furnisight.order.domain.exceptions.ValidationException ex) {
+            log.error("Validation error: {}", ex.getMessage());
+            responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).asRuntimeException());
         } catch (Exception ex) {
             log.error("Failed to update order status", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(io.grpc.Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
         }
     }
 

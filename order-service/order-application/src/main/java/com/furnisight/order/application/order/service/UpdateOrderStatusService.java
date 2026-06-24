@@ -13,12 +13,15 @@ import com.furnisight.order.domain.exceptions.ValidationException;
 import com.furnisight.order.domain.repository.order.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.EnumMap;
 import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
+
+@Transactional
 public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     private static final Map<OrderStatus, OrderOperation> STATUS_OPERATIONS = statusOperations();
 
@@ -46,6 +49,18 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     public void deliverOrder(String orderCode) {
         process(findOrder(orderCode), OrderOperation.TRANSITION_STATUS, OrderStatus.DELIVERED,
                 null, "ADMIN", null, null);
+    }
+
+    @Override
+    public void confirmReceive(String orderCode, java.util.UUID userId) {
+        Order order = findOrder(orderCode);
+
+        if (!order.getUserId().equals(userId)) {
+            throw new ValidationException(ErrorCode.ORDER_NOT_FOUND);
+        }
+
+        process(order, OrderOperation.TRANSITION_STATUS, OrderStatus.DELIVERED,
+                userId, "CUSTOMER", null, null);
     }
 
     @Override

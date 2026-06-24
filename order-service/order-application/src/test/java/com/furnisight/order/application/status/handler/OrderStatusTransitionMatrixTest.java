@@ -29,13 +29,13 @@ class OrderStatusTransitionMatrixTest {
     }
 
     @Test
-    void unpaidCodMovesToConfirmed() {
+    void unpaidCodMovesToShipping() {
         Order order = order(true);
-        OrderProcessingContext context = context(order, OrderStatus.CONFIRMED);
+        OrderProcessingContext context = context(order, OrderStatus.SHIPPING);
 
         new UnpaidOrderStatusHandler(validator).handle(context);
 
-        verify(order).transitionTo(OrderStatus.CONFIRMED);
+        verify(order).transitionTo(OrderStatus.SHIPPING);
     }
 
     @Test
@@ -52,7 +52,7 @@ class OrderStatusTransitionMatrixTest {
     }
 
     @Test
-    void legacyPaidCodCanStillMoveToShipping() {
+    void paidCodCanStillMoveToShipping() {
         Order order = order(true);
         OrderProcessingContext context = context(order, OrderStatus.SHIPPING);
 
@@ -62,9 +62,18 @@ class OrderStatusTransitionMatrixTest {
     }
 
     @Test
-    void shippingOnlyAllowsDelivery() {
+    void shippingAllowsInTransit() {
         Order order = order(false);
         ShippingOrderStatusHandler handler = new ShippingOrderStatusHandler(validator);
+
+        handler.handle(context(order, OrderStatus.IN_TRANSIT));
+        verify(order).transitionTo(OrderStatus.IN_TRANSIT);
+    }
+
+    @Test
+    void inTransitOnlyAllowsDelivery() {
+        Order order = order(false);
+        InTransitOrderStatusHandler handler = new InTransitOrderStatusHandler(validator);
 
         assertThrows(ValidationException.class,
                 () -> handler.handle(context(order, OrderStatus.CANCELLED)));
