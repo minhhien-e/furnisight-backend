@@ -1,9 +1,11 @@
 package com.furnisight.media.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public record CloudinaryUploadFields(
-        String apiKey,
+        @JsonProperty("api_key") String apiKey,
         long timestamp,
-        String publicId,
+        @JsonProperty("public_id") String publicId,
         String folder,
         String signature
 ) {

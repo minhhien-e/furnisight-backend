@@ -33,6 +33,9 @@ public class Product extends AggregateRoot {
     @Embedded
     private ProductSlug slug;
 
+    @Column(name = "sku")
+    private String sku;
+
     @Embedded
     private ProductDescription description;
 
@@ -65,6 +68,7 @@ public class Product extends AggregateRoot {
             UUID categoryId,
             ProductName name,
             ProductSlug slug,
+            String sku,
             ProductDescription description,
             UUID modelMediaId,
             String modelUrl,
@@ -78,6 +82,7 @@ public class Product extends AggregateRoot {
                 .categoryId(categoryId)
                 .name(name)
                 .slug(slug)
+                .sku(sku)
                 .description(description)
                 .modelMediaId(modelMediaId)
                 .modelUrl(modelUrl)
@@ -198,6 +203,7 @@ public class Product extends AggregateRoot {
     public void updateProfile(
             ProductName name,
             ProductSlug slug,
+            String sku,
             ProductDescription description,
             UUID modelMediaId,
             String modelUrl,
@@ -207,6 +213,8 @@ public class Product extends AggregateRoot {
             this.name = name;
         if (slug != null)
             this.slug = slug;
+        if (sku != null && !sku.isBlank())
+            this.sku = sku;
         if (description != null)
             this.description = description;
         if (supports3d != null) {

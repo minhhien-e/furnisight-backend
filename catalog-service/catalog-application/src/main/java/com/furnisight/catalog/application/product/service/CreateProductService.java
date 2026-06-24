@@ -80,6 +80,7 @@ public class CreateProductService implements CreateProductUseCase {
                 command.getCategoryId(),
                 name,
                 slug,
+                command.getSku(),
                 description,
                 command.getModelMediaId(),
                 command.getModelUrl(),

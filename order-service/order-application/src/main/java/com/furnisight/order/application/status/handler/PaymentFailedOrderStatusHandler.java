@@ -12,6 +12,6 @@ public class PaymentFailedOrderStatusHandler extends AbstractOrderStatusHandler 
     public PaymentFailedOrderStatusHandler(OrderStatusTransitionValidator validator) { super(validator); }
     public OrderStatus status() { return OrderStatus.PAYMENT_FAILED; }
     protected Set<OrderStatus> allowedTargets(OrderProcessingContext context) {
-        return Set.of(OrderStatus.PAID, OrderStatus.CANCELLED);
+        return Set.of(OrderStatus.PAID, OrderStatus.CANCELLED, OrderStatus.IN_TRANSIT);
     }
 }

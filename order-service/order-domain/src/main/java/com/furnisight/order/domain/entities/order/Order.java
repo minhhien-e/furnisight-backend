@@ -186,9 +186,8 @@ public class Order extends DomainEntity {
                 || this.status == OrderStatus.REFUNDED) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
-        this.status = this.status == OrderStatus.PAID && !isCodOrder()
-                ? OrderStatus.REFUND_PENDING
-                : OrderStatus.CANCELLED;
+        boolean needsRefund = !isCodOrder() && (this.status == OrderStatus.PAID || this.status == OrderStatus.IN_TRANSIT);
+        this.status = needsRefund ? OrderStatus.REFUND_PENDING : OrderStatus.CANCELLED;
         this.updatedAt = java.time.LocalDateTime.now();
         this.addDomainEvent(com.furnisight.order.domain.events.OrderCancelledEvent.builder()
                 .orderCode(this.orderCode)

@@ -13,6 +13,7 @@ public class CreateProductRequest {
     private UUID categoryId;
     private String name;
     private String slug;
+    private String sku;
     private String description;
     private List<String> features;
     private Boolean supports3d;

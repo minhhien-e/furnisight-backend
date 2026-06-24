@@ -71,7 +71,7 @@ public class OrderProcessingService {
         String trackingCode = context.getTrackingCode();
         boolean isTrackingCodeMissing = trackingCode == null || trackingCode.isBlank() || "null".equalsIgnoreCase(trackingCode.trim());
 
-        if (context.getTargetStatus() == OrderStatus.SHIPPING && isTrackingCodeMissing) {
+        if (context.getTargetStatus() == OrderStatus.IN_TRANSIT && isTrackingCodeMissing) {
             throw new ValidationException(ErrorCode.INVALID_ORDER_STATUS);
         }
 
@@ -79,7 +79,7 @@ public class OrderProcessingService {
             return;
         }
         String normalizedTrackingCode = trackingCode.trim();
-        if (context.getTargetStatus() != OrderStatus.SHIPPING
+        if (context.getTargetStatus() != OrderStatus.IN_TRANSIT
                 || context.getOrder().getStatus() == OrderStatus.DELIVERED) {
             if (normalizedTrackingCode.equals(context.getOrder().getTrackingCode())) {
                 return;

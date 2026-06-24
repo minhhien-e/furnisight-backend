@@ -16,6 +16,7 @@ public class UpdateProductInfoCommand {
     private UUID productId;
     private String name;
     private String slug;
+    private String sku;
     private String description;
     private UUID modelMediaId;
     private String modelUrl;

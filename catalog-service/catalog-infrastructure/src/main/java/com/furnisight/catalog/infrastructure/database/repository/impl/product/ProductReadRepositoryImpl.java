@@ -38,6 +38,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.category_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
+                    p.sku AS product_sku,
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
@@ -90,6 +91,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.category_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
+                    p.sku AS product_sku,
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
@@ -342,6 +344,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.id AS product_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
+                    p.sku AS product_sku,
                     p.product_status,
                     p.model_media_id,
                     p.model_url,
@@ -352,7 +355,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
                 """ + whereClause + """
-                GROUP BY p.id, p.name, p.slug, p.product_status, p.model_media_id, p.model_url, c.name, p.created_at
+                GROUP BY p.id, p.name, p.slug, p.sku, p.product_status, p.model_media_id, p.model_url, c.name, p.created_at
                 ORDER BY p.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
@@ -482,11 +485,12 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     private ProductResponse mapRowToAdminProduct(ResultSet rs, int rowNum) throws SQLException {
         UUID id = (UUID) rs.getObject("product_id");
         String slug = normalizeText(rs.getString("product_slug"), id.toString());
+        String sku = normalizeText(rs.getString("product_sku"), slug);
         return ProductResponse.builder()
                 .id(id)
                 .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
                 .slug(slug)
-                .sku(slug)
+                .sku(sku)
                 .categoryName(normalizeText(rs.getString("category_name"), "Sản phẩm"))
                 .price(getNullableDouble(rs, "product_price") == null ? 0D : getNullableDouble(rs, "product_price"))
                 .stock(rs.getInt("product_stock"))
@@ -719,6 +723,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         return ProductResponse.builder()
                 .id(id)
                 .slug(normalizeText(rs.getString("product_slug"), id.toString()))
+                .sku(normalizeText(rs.getString("product_sku"), id.toString()))
                 .category(ProductResponse.CategoryInfo.builder()
                         .id(categorySlug != null ? categorySlug : categoryId != null ? categoryId.toString() : null)
                         .label(categoryName)
