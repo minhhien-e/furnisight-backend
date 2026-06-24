@@ -76,7 +76,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get admin orders", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -92,7 +92,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get recent orders", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -141,7 +141,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get order stats", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -227,7 +227,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get revenue summary", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -269,7 +269,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get top selling products", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -278,12 +278,9 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             action.run();
             responseObserver.onNext(AdminActionResponse.newBuilder().setSuccess(true).setMessage(message).build());
             responseObserver.onCompleted();
-        } catch (com.furnisight.order.domain.exceptions.ValidationException ex) {
-            log.error("Validation error: {}", ex.getMessage());
-            responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).asRuntimeException());
         } catch (Exception ex) {
-            log.error("Failed to update order status", ex);
-            responseObserver.onError(io.grpc.Status.INTERNAL.withDescription("Internal server error").asRuntimeException());
+            log.error("Admin order action failed", ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -375,6 +372,13 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
             return null;
         }
         return order.getShippingDetail().getShippingAddressName();
+    }
+
+    private io.grpc.StatusRuntimeException mapToGrpcException(Exception ex) {
+        if (ex instanceof IllegalArgumentException || ex.getClass().getSimpleName().contains("ValidationException")) {
+            return io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
+        }
+        return io.grpc.Status.INTERNAL.withDescription(ex.getMessage() != null ? ex.getMessage() : "Internal server error").withCause(ex).asRuntimeException();
     }
 
 }

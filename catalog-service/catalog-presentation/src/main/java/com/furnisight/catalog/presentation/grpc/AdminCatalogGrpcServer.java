@@ -115,7 +115,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get admin products", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -127,7 +127,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get product detail", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -147,7 +147,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get product stats", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -165,7 +165,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get low stock products", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -289,7 +289,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get admin categories", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -302,7 +302,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get category detail", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -317,7 +317,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Failed to get category stats", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -747,7 +747,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             responseObserver.onCompleted();
         } catch (Exception ex) {
             log.error("Admin catalog action failed", ex);
-            responseObserver.onError(ex);
+            responseObserver.onError(mapToGrpcException(ex));
         }
     }
 
@@ -807,5 +807,11 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+    private io.grpc.StatusRuntimeException mapToGrpcException(Exception ex) {
+        if (ex instanceof IllegalArgumentException || ex.getClass().getSimpleName().contains("ValidationException")) {
+            return io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
+        }
+        return io.grpc.Status.INTERNAL.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
     }
 }

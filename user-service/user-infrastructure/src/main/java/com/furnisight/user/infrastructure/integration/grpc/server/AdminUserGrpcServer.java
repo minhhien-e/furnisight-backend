@@ -79,7 +79,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error getting account stats", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -136,7 +136,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error getting accounts", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -162,7 +162,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error listing marketing user ids", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -191,7 +191,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error getting marketing users", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -216,7 +216,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error filtering marketing user ids", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -269,7 +269,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error getting account details", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -287,7 +287,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error banning account", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -303,7 +303,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error unbanning account", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -319,7 +319,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error activating account", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -335,7 +335,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error deleting account", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -355,7 +355,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error getting roles", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -371,7 +371,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error creating role", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -388,7 +388,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error updating role", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -403,7 +403,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error deleting role", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -418,7 +418,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error syncing role permissions", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -435,7 +435,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error assigning role", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -452,7 +452,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error revoking role", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -477,11 +477,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error creating account", e);
-            responseObserver.onNext(AdminActionResponse.newBuilder()
-                    .setSuccess(false)
-                    .setMessage(e.getMessage())
-                    .build());
-            responseObserver.onCompleted();
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -502,7 +498,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onCompleted();
         } catch (Exception e) {
             log.error("Error updating account profile", e);
-            responseObserver.onError(e);
+            responseObserver.onError(mapToGrpcException(e));
         }
     }
 
@@ -570,5 +566,12 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     }
 
     private record NameParts(String firstName, String lastName) {
+    }
+
+    private io.grpc.StatusRuntimeException mapToGrpcException(Exception ex) {
+        if (ex instanceof IllegalArgumentException || ex.getClass().getSimpleName().contains("ValidationException")) {
+            return io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
+        }
+        return io.grpc.Status.INTERNAL.withDescription(ex.getMessage() != null ? ex.getMessage() : "Internal server error").withCause(ex).asRuntimeException();
     }
 }

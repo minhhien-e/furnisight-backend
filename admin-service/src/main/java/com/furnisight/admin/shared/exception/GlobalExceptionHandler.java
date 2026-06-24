@@ -50,8 +50,22 @@ public class GlobalExceptionHandler {
             HttpServletRequest request
     ) {
         log.warn("gRPC call failed: status={}, description={}, path={}", ex.getStatus().getCode(), ex.getStatus().getDescription(), request.getRequestURI());
-        String message = "gRPC Error: " + ex.getStatus().getCode() + " - " + (ex.getStatus().getDescription() != null ? ex.getStatus().getDescription() : ex.getMessage());
-        return buildResponse(HttpStatus.BAD_GATEWAY, "GRPC_ERROR", message, request.getRequestURI());
+        String description = ex.getStatus().getDescription() != null ? ex.getStatus().getDescription() : ex.getMessage();
+        
+        switch (ex.getStatus().getCode()) {
+            case INVALID_ARGUMENT:
+                return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", description, request.getRequestURI());
+            case NOT_FOUND:
+                return buildResponse(HttpStatus.NOT_FOUND, "NOT_FOUND", description, request.getRequestURI());
+            case ALREADY_EXISTS:
+                return buildResponse(HttpStatus.CONFLICT, "CONFLICT", description, request.getRequestURI());
+            case UNAUTHENTICATED:
+            case PERMISSION_DENIED:
+                return buildResponse(HttpStatus.FORBIDDEN, "FORBIDDEN", description, request.getRequestURI());
+            default:
+                String message = "gRPC Error: " + ex.getStatus().getCode() + " - " + description;
+                return buildResponse(HttpStatus.BAD_GATEWAY, "GRPC_ERROR", message, request.getRequestURI());
+        }
     }
 
     @ExceptionHandler({AuthorizationDeniedException.class, AccessDeniedException.class})
