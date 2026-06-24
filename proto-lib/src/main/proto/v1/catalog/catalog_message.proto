@@ -52,6 +52,7 @@ message ProductSummaryVariant {
   string color = 9;
   string material = 10;
   string warranty = 11;
+  string model_url = 12;
 }
 
 message FavoriteProductSummary {
@@ -90,4 +91,5 @@ message RecommendedProduct {
   int32 rating_count = 10;
   int32 sold_count = 11;
   repeated string tags = 12;
+  repeated ProductSummaryVariant variants = 13;
 }
