@@ -262,7 +262,8 @@ public class MarketingService {
         }
         String title = hasText(command.getTitle()) ? command.getTitle() : "Bạn vừa nhận voucher " + voucher.getCode();
         String body = hasText(command.getBody()) ? command.getBody() : "Voucher " + voucher.getName() + " đã sẵn sàng trong tài khoản của bạn.";
-        MarketingNotificationGateway.DispatchResult result = notificationGateway.send(title, body, "/account/vouchers", channels, recipients);
+        Map<String, Object> metadata = buildVoucherMetadata(voucherId);
+        MarketingNotificationGateway.DispatchResult result = notificationGateway.send(title, body, "/account/vouchers", channels, recipients, metadata);
         for (MarketingNotificationGateway.Recipient recipient : recipients) {
             for (MarketingChannel channel : channels) {
                 logDispatch("VOUCHER_PUBLISH", voucherId, recipient.userId(), channel, result.failedCount() > 0 ? DispatchStatus.ACCEPTED : DispatchStatus.SENT, title, body, null);
@@ -284,12 +285,14 @@ public class MarketingService {
         List<MarketingChannel> channels = parseChannels(split(campaign.getChannels()));
         List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(
                 campaign.getTargetType().name(), split(campaign.getTargetUserIds()), campaign.getSegmentKey(), channels);
+        Map<String, Object> metadata = buildVoucherMetadata(campaign.getVoucherId());
         MarketingNotificationGateway.DispatchResult result = notificationGateway.send(
                 defaultText(campaign.getNotificationTitle(), campaign.getName()),
                 defaultText(campaign.getNotificationBody(), "Bạn vừa nhận ưu đãi mới từ LuxNest."),
                 "/account/vouchers",
                 channels,
-                recipients);
+                recipients,
+                metadata);
         campaign.setSentCount(result.sentCount());
         campaign.setStatus(campaign.getScheduleType() == MarketingSendType.SCHEDULED || campaign.getScheduleType() == MarketingSendType.NOW ? CampaignStatus.SENT : CampaignStatus.DRAFT);
         campaign.setDispatchedAt(LocalDateTime.now());
@@ -302,12 +305,14 @@ public class MarketingService {
         List<MarketingChannel> channels = parseChannels(split(notification.getChannels()));
         List<MarketingNotificationGateway.Recipient> recipients = resolveRecipients(
                 notification.getTargetType().name(), split(notification.getTargetUserIds()), notification.getSegmentKey(), channels);
+        Map<String, Object> metadata = buildVoucherMetadata(notification.getRelatedVoucherId());
         MarketingNotificationGateway.DispatchResult result = notificationGateway.send(
                 notification.getTitle(),
                 notification.getBody(),
                 "/notifications",
                 channels,
-                recipients);
+                recipients,
+                metadata);
         notification.setSentCount(result.sentCount());
         notification.setStatus(notification.getSendType() == MarketingSendType.DRAFT ? CampaignStatus.DRAFT : CampaignStatus.SENT);
         notification.setDispatchedAt(LocalDateTime.now());
@@ -572,6 +577,22 @@ public class MarketingService {
     private String voucherCode(UUID voucherId) {
         if (voucherId == null) return "";
         return promotionRepository.findById(voucherId).map(Promotion::getCode).orElse("");
+    }
+
+    private Map<String, Object> buildVoucherMetadata(UUID voucherId) {
+        if (voucherId == null) return null;
+        return promotionRepository.findById(voucherId).map(voucher -> {
+            Map<String, Object> meta = new HashMap<>();
+            meta.put("voucherId", voucher.getId().toString());
+            meta.put("voucherCode", voucher.getCode());
+            meta.put("voucherName", voucher.getName());
+            meta.put("discountValue", voucher.getDiscountValue());
+            meta.put("discountType", voucher.getDiscountType().name());
+            meta.put("minOrder", voucher.getMinOrder());
+            meta.put("maxDiscount", voucher.getMaxDiscount());
+            meta.put("validUntil", voucher.getEndDate() != null ? voucher.getEndDate().toString() : null);
+            return meta;
+        }).orElse(null);
     }
 
     private boolean matches(String value, String query) {

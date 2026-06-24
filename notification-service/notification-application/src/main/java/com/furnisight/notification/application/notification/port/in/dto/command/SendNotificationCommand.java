@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
 import java.util.UUID;
 
 @Data
@@ -20,4 +21,5 @@ public class SendNotificationCommand {
     private String actionUrl;
     private NotificationType type;
     private NotificationChannel channel;
+    private Map<String, Object> metadata;
 }

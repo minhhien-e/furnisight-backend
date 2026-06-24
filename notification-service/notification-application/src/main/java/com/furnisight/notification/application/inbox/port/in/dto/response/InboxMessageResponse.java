@@ -4,6 +4,7 @@ import com.furnisight.notification.domain.model.entity.InboxMessage;
 import com.furnisight.notification.domain.model.enums.NotificationType;
 
 import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.UUID;
 
 @lombok.Data
@@ -20,6 +21,7 @@ public class InboxMessageResponse {
     private LocalDateTime readAt;
     private LocalDateTime deletedAt;
     private LocalDateTime createdAt;
+    private Map<String, Object> metadata;
 
     public static InboxMessageResponse from(InboxMessage inboxMessage) {
         return InboxMessageResponse.builder()
@@ -33,6 +35,7 @@ public class InboxMessageResponse {
             .readAt(inboxMessage.getReadAt())
             .deletedAt(inboxMessage.getDeletedAt())
             .createdAt(inboxMessage.getCreatedAt())
+            .metadata(inboxMessage.getMetadata())
             .build();
     }
 

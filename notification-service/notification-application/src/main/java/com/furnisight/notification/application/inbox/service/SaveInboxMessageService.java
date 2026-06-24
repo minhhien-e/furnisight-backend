@@ -30,6 +30,7 @@ public class SaveInboxMessageService implements SaveInboxMessageUseCase {
             .image(command.getImage())
             .actionUrl(command.getActionUrl())
             .type(command.getType())
+            .metadata(command.getMetadata())
             .build();
 
         addOutboxEventUseCase.addDomainEvents(message.getDomainEvents());

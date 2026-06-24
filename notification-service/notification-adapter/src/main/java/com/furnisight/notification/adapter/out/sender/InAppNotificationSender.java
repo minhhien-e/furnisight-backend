@@ -31,6 +31,7 @@ public class InAppNotificationSender implements NotificationSender {
                 .image(command.getImage())
                 .actionUrl(command.getActionUrl())
                 .type(command.getType())
+                .metadata(command.getMetadata())
                 .build();
 
         saveInboxMessageUseCase.execute(saveCommand);
