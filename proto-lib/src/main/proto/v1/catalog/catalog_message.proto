@@ -93,3 +93,4 @@ message RecommendedProduct {
   repeated string tags = 12;
   repeated ProductSummaryVariant variants = 13;
 }
+// v2: model_url added to ProductSummaryVariant, variants added to RecommendedProduct
