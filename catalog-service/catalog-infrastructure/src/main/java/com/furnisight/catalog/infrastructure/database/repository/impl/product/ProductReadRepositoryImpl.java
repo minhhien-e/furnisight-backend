@@ -158,6 +158,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.sold_count AS product_sold_count,
+                    p.model_url,
+                    p.supports_3d,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
                     (
@@ -184,6 +186,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.name,
                     p.slug,
                     p.sold_count,
+                    p.model_url,
+                    p.supports_3d,
                     c.name,
                     p.created_at,
                     rv.avg_rating,
@@ -225,6 +229,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     cheapest_variant.id AS default_variant_id,
                     cheapest_variant.price AS product_price,
                     p.model_url,
+                    p.supports_3d,
                     p.sold_count,
                     p.features AS product_features,
                     (
@@ -685,6 +690,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         }
 
         String imageUrl = normalizeText(rs.getString("product_image"), null);
+        String modelUrl = normalizeText(rs.getString("model_url"), "");
+        Boolean supports3d = rs.getBoolean("supports_3d");
 
         return ProductResponse.builder()
                 .id(id)
@@ -693,6 +700,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .categoryName(categoryName)
                 .price(price)
                 .image(imageUrl)
+                .modelUrl(modelUrl)
+                .supports3d(supports3d)
                 .rating(getNullableDouble(rs, "product_rating"))
                 .ratingCount(rs.getInt("product_rating_count"))
                 .soldCount(rs.getInt("product_sold_count"))
