@@ -250,6 +250,12 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         if (variant.getModelUrl() != null) {
             variantBuilder.setModelUrl(variant.getModelUrl());
         }
+        if (variant.getImageUrls() != null) {
+            variantBuilder.addAllImageUrls(variant.getImageUrls());
+        }
+        if (variant.getSupports3d() != null) {
+            variantBuilder.setSupports3D(variant.getSupports3d());
+        }
 
         return variantBuilder.build();
     }
@@ -274,7 +280,6 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
                 .setName(defaultString(product.getName()))
                 .setCategoryName(defaultString(product.getCategoryName()))
                 .setImage(defaultString(product.getImage()))
-                .setModelUrl(defaultString(product.getModelUrl()))
                 .setDefaultVariantId(product.getDefaultVariantId() == null
                         ? "" : product.getDefaultVariantId().toString())
                 .setRating(product.getRating() == null ? 0D : product.getRating())

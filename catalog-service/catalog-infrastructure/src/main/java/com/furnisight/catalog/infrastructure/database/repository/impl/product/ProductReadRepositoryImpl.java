@@ -285,7 +285,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .defaultVariantId((UUID) rs.getObject("default_variant_id"))
                         .price(getNullableDouble(rs, "product_price"))
                         .image(normalizeText(rs.getString("product_image"), null))
-                        .modelUrl(normalizeText(rs.getString("model_url"), ""))
                         .rating(getNullableDouble(rs, "product_rating"))
                         .ratingCount(rs.getInt("product_rating_count"))
                         .soldCount(rs.getInt("sold_count"))
@@ -522,7 +521,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .price(getNullableDouble(rs, "product_price") == null ? 0D : getNullableDouble(rs, "product_price"))
                 .stock(rs.getInt("product_stock"))
                 .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
-                .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .imageUrls(fetchGallery(id))
                 .build();
     }
@@ -711,7 +709,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         }
 
         String imageUrl = normalizeText(rs.getString("product_image"), null);
-        String modelUrl = normalizeText(rs.getString("model_url"), "");
         Boolean supports3d = rs.getBoolean("supports_3d");
 
         return ProductResponse.builder()
@@ -721,7 +718,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .categoryName(categoryName)
                 .price(price)
                 .image(imageUrl)
-                .modelUrl(modelUrl)
                 .supports3d(supports3d)
                 .rating(getNullableDouble(rs, "product_rating"))
                 .ratingCount(rs.getInt("product_rating_count"))
@@ -771,7 +767,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .supports3d(rs.getBoolean("supports_3d"))
                 .features(features)
                 .price(0.0)
-                .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .roomTypeHint(categoryName)
                 .build();
     }
@@ -818,7 +813,22 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .supports3d(rs.getBoolean("supports_3d"))
                         .modelMediaId((UUID) rs.getObject("model_media_id"))
                         .modelUrl(normalizeText(rs.getString("model_url"), ""))
+                        .imageUrls(fetchVariantImages((UUID) rs.getObject("id")))
                         .build());
+    }
+
+    private List<String> fetchVariantImages(UUID variantId) {
+        String sql = """
+                SELECT image_url
+                FROM product_variant_images
+                WHERE variant_id = :variantId
+                ORDER BY position ASC
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of("variantId", variantId),
+                (rs, rowNum) -> rs.getString("image_url"));
     }
 
     private List<String> fetchGallery(UUID productId) {

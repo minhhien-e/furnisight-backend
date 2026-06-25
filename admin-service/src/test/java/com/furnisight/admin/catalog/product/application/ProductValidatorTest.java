@@ -36,6 +36,7 @@ class ProductValidatorTest {
 
     private UpsertProductVariantRequest variant(String sku) {
         return new UpsertProductVariantRequest(
-                "", sku, 100, 10, "", "", "", 0, 0, 0, 0, 5);
+                "", sku, 100, 10, "", "", "", 0, 0, 0, 0, 5,
+                "", "", false, List.of());
     }
 }

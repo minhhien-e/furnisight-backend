@@ -9,11 +9,6 @@ public record ProductResponse(
         int stock,
         String status,
         String statusLabel,
-        String modelMediaId,
-        String modelUrl,
-        boolean supports3d,
-        String modelFileName,
-        long modelFileSize,
         java.util.List<String> imageUrls,
         java.util.List<ProductVariantResponse> variants
 ) {

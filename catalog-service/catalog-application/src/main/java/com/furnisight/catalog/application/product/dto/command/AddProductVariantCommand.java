@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.UUID;
+import java.util.List;
 
 @Data
 @Builder
@@ -27,4 +28,5 @@ public class AddProductVariantCommand {
     private UUID modelMediaId;
     private String modelUrl;
     private Boolean supports3d;
+    private List<String> imageUrls;
 }

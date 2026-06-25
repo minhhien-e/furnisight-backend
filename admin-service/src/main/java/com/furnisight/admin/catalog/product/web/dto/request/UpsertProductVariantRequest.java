@@ -12,6 +12,10 @@ public record UpsertProductVariantRequest(
         double length,
         double width,
         double height,
-        int lowStockThreshold
+        int lowStockThreshold,
+        String modelMediaId,
+        String modelUrl,
+        boolean supports3d,
+        java.util.List<String> imageUrls
 ) {
 }

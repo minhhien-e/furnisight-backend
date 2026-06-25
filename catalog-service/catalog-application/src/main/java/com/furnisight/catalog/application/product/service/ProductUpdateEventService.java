@@ -6,6 +6,7 @@ import com.furnisight.catalog.domain.entities.OutboxMessage;
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
+import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.repository.OutboxMessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -72,7 +73,14 @@ public class ProductUpdateEventService {
                 variant.getDimensions() == null ? null : variant.getDimensions().getWeight(),
                 variant.getColor(),
                 variant.getMaterial(),
-                variant.getWarranty()
+                variant.getWarranty(),
+                variant.getModelUrl(),
+                variant.getSupports3d(),
+                variant.getImages() == null ? List.of() : variant.getImages().stream()
+                        .sorted(Comparator.comparing(ProductVariantImage::getPosition, Comparator.nullsLast(Integer::compareTo)))
+                        .map(ProductVariantImage::getImageUrl)
+                        .filter(imageUrl -> imageUrl != null && !imageUrl.isBlank())
+                        .toList()
         );
     }
 
@@ -100,7 +108,10 @@ public class ProductUpdateEventService {
             Double weight,
             String color,
             String material,
-            String warranty
+            String warranty,
+            String modelUrl,
+            Boolean supports3d,
+            List<String> imageUrls
     ) {
     }
 }

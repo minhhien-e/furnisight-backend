@@ -50,9 +50,6 @@ public class ProductService {
                 .setSku(value(request.sku()))
                 .setStatus(productStatusInput(request))
                 .setDescription(value(request.description()))
-                .setModelMediaId(value(request.modelMediaId()))
-                .setModelUrl(value(request.modelUrl()))
-                .setSupports3D(request.supports3d())
                 .addAllImageUrls(cleanList(request.imageUrls()))
                 .addAllVariants(toVariantInputs(request.variants()))
                 .build()));
@@ -70,9 +67,6 @@ public class ProductService {
                 .setSku(value(request.sku()))
                 .setStatus(productStatusInput(request))
                 .setDescription(value(request.description()))
-                .setModelMediaId(value(request.modelMediaId()))
-                .setModelUrl(value(request.modelUrl()))
-                .setSupports3D(request.supports3d())
                 .addAllImageUrls(cleanList(request.imageUrls()))
                 .addAllVariants(toVariantInputs(request.variants()))
                 .build()));
@@ -86,8 +80,7 @@ public class ProductService {
         return new ProductResponse(
                 product.getId(), product.getName(), product.getSku(), product.getCategory(),
                 product.getPrice(), product.getStock(), product.getStatus(), product.getStatusLabel(),
-                product.getModelMediaId(), product.getModelUrl(), product.getSupports3D(),
-                product.getModel3DFileName(), product.getModel3DSize(), product.getImageUrlsList(),
+                product.getImageUrlsList(),
                 product.getVariantsList().stream().map(this::toVariantResponse).toList());
     }
 
@@ -96,7 +89,11 @@ public class ProductService {
                 variant.getId(), variant.getSku(), variant.getPrice(), variant.getStock(),
                 variant.getColor(), variant.getMaterial(), variant.getWarranty(), variant.getWeight(),
                 variant.getLength(), variant.getWidth(), variant.getHeight(), variant.getLabel(),
-                variant.getLowStockThreshold());
+                variant.getLowStockThreshold(),
+                variant.getModelMediaId(),
+                variant.getModelUrl(),
+                variant.getSupports3D(),
+                variant.getImageUrlsList());
     }
 
     private List<ProductVariantInput> toVariantInputs(List<UpsertProductVariantRequest> variants) {
@@ -120,6 +117,10 @@ public class ProductService {
                 .setWidth(variant.width())
                 .setHeight(variant.height())
                 .setLowStockThreshold(validator.validThreshold(variant.lowStockThreshold()))
+                .setModelMediaId(value(variant.modelMediaId()))
+                .setModelUrl(value(variant.modelUrl()))
+                .setSupports3D(variant.supports3d())
+                .addAllImageUrls(cleanList(variant.imageUrls()))
                 .build();
     }
 
@@ -165,4 +166,5 @@ public class ProductService {
                 .map(String::trim)
                 .toList();
     }
+
 }

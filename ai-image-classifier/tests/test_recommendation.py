@@ -33,6 +33,13 @@ def service(stub):
 
 
 def test_returns_price_model_and_default_variant():
+    variant = catalog_message_pb2.ProductSummaryVariant(
+        id="variant-1",
+        price=9500000,
+        model_url="https://example.com/bed.glb",
+        image_urls=["https://example.com/bed-blue.jpg"],
+        supports3d=True,
+    )
     product = catalog_message_pb2.RecommendedProduct(
         id="product-1",
         slug="bed",
@@ -40,12 +47,12 @@ def test_returns_price_model_and_default_variant():
         category_name="Bedroom",
         price=9500000,
         image="https://example.com/bed.jpg",
-        model_url="https://example.com/bed.glb",
         default_variant_id="variant-1",
         rating=4.5,
         rating_count=10,
         sold_count=3,
         tags=["new"],
+        variants=[variant],
     )
     stub = Stub(catalog_message_pb2.SearchRecommendedProductsResponse(
         products=[product]
@@ -54,8 +61,10 @@ def test_returns_price_model_and_default_variant():
     result = service(stub).recommend_for_label("bedroom")
 
     assert result["recommendations"][0]["price"] == 9500000
-    assert result["recommendations"][0]["modelUrl"].endswith(".glb")
+    assert "modelUrl" not in result["recommendations"][0]
+    assert result["recommendations"][0]["defaultVariant"]["modelUrl"].endswith(".glb")
     assert result["recommendations"][0]["defaultVariantId"] == "variant-1"
+    assert result["recommendations"][0]["variants"][0]["imageUrls"] == ["https://example.com/bed-blue.jpg"]
     assert stub.request.category_slug == "bedroom"
     assert stub.request.status == "ACTIVE"
     assert stub.timeout == 3

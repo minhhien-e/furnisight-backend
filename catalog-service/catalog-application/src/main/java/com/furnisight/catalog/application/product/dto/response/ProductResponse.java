@@ -31,6 +31,7 @@ public class ProductResponse {
     private List<String> features;
     private List<Review> reviews;
     private List<QA> qa;
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String modelUrl;
     private UUID defaultVariantId;
     private String roomTypeHint;
@@ -86,5 +87,6 @@ public class ProductResponse {
         private Boolean supports3d;
         private UUID modelMediaId;
         private String modelUrl;
+        private List<String> imageUrls;
     }
 }

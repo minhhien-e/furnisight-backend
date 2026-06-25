@@ -16,6 +16,7 @@ public class CreateProductRequest {
     private String sku;
     private String description;
     private List<String> features;
+    private List<String> imageUrls;
 
     private List<VariantRequest> variants;
 
@@ -38,5 +39,6 @@ public class CreateProductRequest {
         private Boolean supports3d;
         private UUID modelMediaId;
         private String modelUrl;
+        private List<String> imageUrls;
     }
 }

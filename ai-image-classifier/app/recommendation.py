@@ -73,6 +73,30 @@ class RecommendationService:
         return self.category_mapping.get(label.strip().lower())
 
     def _normalize_product(self, product: Any) -> Dict[str, Any]:
+        variants = [
+            {
+                "id": v.id,
+                "price": v.price if v.HasField("price") else None,
+                "stockQuantity": v.stock_quantity if v.HasField("stock_quantity") else None,
+                "length": v.length if v.HasField("length") else None,
+                "width": v.width if v.HasField("width") else None,
+                "height": v.height if v.HasField("height") else None,
+                "weight": v.weight if v.HasField("weight") else None,
+                "color": v.color,
+                "material": v.material,
+                "warranty": v.warranty,
+                "modelUrl": v.model_url,
+                "supports3d": getattr(v, "supports3d", bool(v.model_url)),
+                "imageUrls": list(getattr(v, "image_urls", [])),
+            }
+            for v in product.variants
+        ] if hasattr(product, "variants") else []
+        default_variant = self._resolve_default_variant(
+            variants,
+            product.default_variant_id,
+            product.price if product.HasField("price") else None,
+        )
+
         return {
             "id": product.id,
             "slug": product.slug,
@@ -80,30 +104,31 @@ class RecommendationService:
             "categoryName": product.category_name,
             "price": product.price if product.HasField("price") else None,
             "image": product.image,
-            "modelUrl": product.model_url,
             "defaultVariantId": product.default_variant_id,
+            "defaultVariant": default_variant,
             "variantId": product.default_variant_id,
             "rating": product.rating,
             "ratingCount": product.rating_count,
             "soldCount": product.sold_count,
             "tags": list(product.tags),
-            "variants": [
-                {
-                    "id": v.id,
-                    "price": v.price if v.HasField("price") else None,
-                    "stockQuantity": v.stock_quantity if v.HasField("stock_quantity") else None,
-                    "length": v.length if v.HasField("length") else None,
-                    "width": v.width if v.HasField("width") else None,
-                    "height": v.height if v.HasField("height") else None,
-                    "weight": v.weight if v.HasField("weight") else None,
-                    "color": v.color,
-                    "material": v.material,
-                    "warranty": v.warranty,
-                    "modelUrl": v.model_url,
-                }
-                for v in product.variants
-            ] if hasattr(product, "variants") else [],
+            "variants": variants,
         }
+
+    def _resolve_default_variant(
+        self,
+        variants: list,
+        default_variant_id: str,
+        fallback_price: Optional[float],
+    ) -> Optional[Dict[str, Any]]:
+        if not variants:
+            return None
+        for variant in variants:
+            if variant["id"] == default_variant_id:
+                return variant
+        variant = variants[0].copy()
+        if variant.get("price") is None:
+            variant["price"] = fallback_price
+        return variant
 
     def _empty_response(
         self, category_slug: Optional[str], reason: str

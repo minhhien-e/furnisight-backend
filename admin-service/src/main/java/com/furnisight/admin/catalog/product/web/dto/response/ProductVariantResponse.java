@@ -13,6 +13,10 @@ public record ProductVariantResponse(
         double width,
         double height,
         String label,
-        int lowStockThreshold
+        int lowStockThreshold,
+        String modelMediaId,
+        String modelUrl,
+        boolean supports3d,
+        java.util.List<String> imageUrls
 ) {
 }

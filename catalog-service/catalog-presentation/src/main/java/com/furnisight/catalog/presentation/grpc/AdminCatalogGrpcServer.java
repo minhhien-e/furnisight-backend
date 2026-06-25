@@ -46,6 +46,7 @@ import com.furnisight.catalog.application.product.port.out.ProductReadRepository
 import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductVariant;
+import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.enums.ProductStatus;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
@@ -173,7 +174,6 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     public void createProduct(CreateProductRequest request, StreamObserver<AdminActionResponse> responseObserver) {
         complete(responseObserver, () -> {
             validateVariantInputs(request.getVariantsList(), emptyToNull(request.getSku()));
-            ModelMedia model = resolveModelMedia(request.getModelMediaId());
             String productSku = emptyToNull(request.getSku());
             createProductUseCase.execute(CreateProductCommand.builder()
                 .categoryId(resolveCategoryId(request.getCategoryId(), request.getCategory()))
@@ -194,7 +194,6 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             UUID productId = UUID.fromString(request.getId());
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-            ModelMedia model = new ModelMedia(null, "", "", 0);
             updateProductInfoUseCase.execute(UpdateProductInfoCommand.builder()
                     .productId(productId)
                     .name(emptyToNull(request.getName()))
@@ -345,7 +344,6 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     }
 
     private ProductDto toProductDto(ProductResponse product) {
-        ModelMedia model = readModelMetadata(null, product.getModelUrl());
         return ProductDto.newBuilder()
                 .setId(product.getId().toString())
                 .setName(safe(product.getName()))
@@ -356,11 +354,11 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setStock(product.getStock() == null ? 0 : product.getStock())
                 .setStatus(toProductTone(product.getStatus(), product.getStock()))
                 .setStatusLabel(toProductStatusLabel(product.getStatus(), product.getStock()))
-                .setModelUrl(model.url())
+                .setModelUrl("")
                 .setModelMediaId("")
                 .setSupports3D(product.getSupports3d() != null ? product.getSupports3d() : false)
-                .setModel3DFileName(model.filename())
-                .setModel3DSize(model.sizeBytes())
+                .setModel3DFileName("")
+                .setModel3DSize(0)
                 .addAllImageUrls(product.getImageUrls() == null ? List.of() : product.getImageUrls())
                 .addAllVariants(fetchAdminVariantDtos(product.getId()))
                 .build();
@@ -391,6 +389,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     private CreateProductCommand.VariantCommand toCreateVariantCommand(ProductVariantInput variant, String productSku) {
         String variantPartSku = normalizeSku(variant.getSku());
+        VariantModel model = resolveVariantModel(variant);
         return CreateProductCommand.VariantCommand.builder()
                 .price(Math.max(variant.getPrice(), 0D))
                 .stockQuantity(Math.max(variant.getStock(), 0))
@@ -403,6 +402,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .color(safe(variant.getColor()))
                 .sku(combineVariantSku(productSku, variantPartSku))
                 .lowStockThreshold(validThreshold(variant.getLowStockThreshold()))
+                .modelMediaId(model.mediaId())
+                .modelUrl(model.url())
+                .supports3d(model.supports3d())
+                .imageUrls(variant.getImageUrlsList())
                 .build();
     }
 
@@ -448,6 +451,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     private ProductVariant toProductVariant(ProductVariantInput input, String productSku) {
         UUID variantId = parseOptionalUuid(input.getId());
+        VariantModel model = resolveVariantModel(input);
         return ProductVariant.builder()
                 .id(variantId == null ? UUID.randomUUID() : variantId)
                 .price(new Price(BigDecimal.valueOf(Math.max(input.getPrice(), 0D))))
@@ -462,6 +466,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .color(safe(input.getColor()))
                 .sku(combineVariantSku(productSku, normalizeSku(input.getSku())))
                 .lowStockThreshold(validThreshold(input.getLowStockThreshold()))
+                .modelMediaId(model.mediaId())
+                .modelUrl(model.url())
+                .supports3d(model.supports3d())
+                .images(toVariantImages(input.getImageUrlsList()))
                 .build();
     }
 
@@ -490,6 +498,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setHeight(variant.getHeight() == null ? 0D : variant.getHeight())
                 .setLowStockThreshold(validThreshold(variant.getLowStockThreshold()))
                 .setLabel(variantLabel(variant))
+                .setModelMediaId(variant.getModelMediaId() == null ? "" : variant.getModelMediaId().toString())
+                .setModelUrl(safe(variant.getModelUrl()))
+                .setSupports3D(variant.getSupports3d() != null && variant.getSupports3d())
+                .addAllImageUrls(variant.getImageUrls() == null ? List.of() : variant.getImageUrls())
                 .build();
     }
 
@@ -583,6 +595,41 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     }
 
     private record ModelMedia(UUID mediaId, String url, String filename, long sizeBytes) {
+    }
+
+    private VariantModel resolveVariantModel(ProductVariantInput input) {
+        UUID mediaId = parseOptionalUuid(input.getModelMediaId());
+        String rawUrl = emptyToNull(input.getModelUrl());
+        Boolean supports3d = input.getSupports3D();
+        if (mediaId != null) {
+            ModelMedia media = resolveModelMedia(mediaId.toString());
+            return new VariantModel(media.mediaId(), media.url(), true);
+        }
+        if (rawUrl != null) {
+            return new VariantModel(null, rawUrl, supports3d != null ? supports3d : true);
+        }
+        return new VariantModel(null, "", Boolean.TRUE.equals(supports3d) ? true : null);
+    }
+
+    private record VariantModel(UUID mediaId, String url, Boolean supports3d) {
+    }
+
+    private List<ProductVariantImage> toVariantImages(List<String> imageUrls) {
+        if (imageUrls == null || imageUrls.isEmpty()) {
+            return List.of();
+        }
+        java.util.ArrayList<ProductVariantImage> images = new java.util.ArrayList<>();
+        for (String imageUrl : imageUrls) {
+            if (imageUrl == null || imageUrl.isBlank()) {
+                continue;
+            }
+            images.add(ProductVariantImage.builder()
+                    .id(UUID.randomUUID())
+                    .imageUrl(imageUrl.trim())
+                    .position(images.size())
+                    .build());
+        }
+        return images;
     }
 
     private String variantLabel(ProductResponse.VariantDto variant) {
