@@ -61,9 +61,9 @@ message ProductDto {
     string slug = 12;
     repeated string image_urls = 13;
     repeated ProductVariantDto variants = 14;
-    string model_media_id = 15;
-    bool supports3d = 16;
-    string model_url = 17;
+    string model_media_id = 15 [deprecated = true];
+    bool supports3d = 16 [deprecated = true];
+    string model_url = 17 [deprecated = true];
 }
 
 message ProductVariantDto {
@@ -80,6 +80,10 @@ message ProductVariantDto {
     double height = 11;
     string label = 12;
     int32 low_stock_threshold = 13;
+    string model_media_id = 14;
+    bool supports3d = 15;
+    string model_url = 16;
+    repeated string image_urls = 17;
 }
 
 message ProductStatsResponse {
@@ -122,9 +126,9 @@ message CreateProductRequest {
     int64 model3d_size = 12;
     repeated string image_urls = 13;
     repeated ProductVariantInput variants = 14;
-    string model_media_id = 15;
-    bool supports3d = 16;
-    string model_url = 17;
+    string model_media_id = 15 [deprecated = true];
+    bool supports3d = 16 [deprecated = true];
+    string model_url = 17 [deprecated = true];
 }
 
 message UpdateProductRequest {
@@ -143,9 +147,9 @@ message UpdateProductRequest {
     int64 model3d_size = 13;
     repeated string image_urls = 14;
     repeated ProductVariantInput variants = 15;
-    string model_media_id = 16;
-    bool supports3d = 17;
-    string model_url = 18;
+    string model_media_id = 16 [deprecated = true];
+    bool supports3d = 17 [deprecated = true];
+    string model_url = 18 [deprecated = true];
 }
 
 message ProductVariantInput {
@@ -161,6 +165,10 @@ message ProductVariantInput {
     double width = 10;
     double height = 11;
     int32 low_stock_threshold = 12;
+    string model_media_id = 13;
+    bool supports3d = 14;
+    string model_url = 15;
+    repeated string image_urls = 16;
 }
 
 message StockInVariantRequest {

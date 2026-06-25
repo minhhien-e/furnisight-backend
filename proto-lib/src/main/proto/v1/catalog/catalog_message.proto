@@ -53,6 +53,8 @@ message ProductSummaryVariant {
   string material = 10;
   string warranty = 11;
   string model_url = 12;
+  repeated string image_urls = 13;
+  bool supports3d = 14;
 }
 
 message FavoriteProductSummary {
@@ -85,7 +87,7 @@ message RecommendedProduct {
   string category_name = 4;
   optional double price = 5;
   string image = 6;
-  string model_url = 7;
+  string model_url = 7 [deprecated = true];
   string default_variant_id = 8;
   double rating = 9;
   int32 rating_count = 10;
@@ -94,3 +96,4 @@ message RecommendedProduct {
   repeated ProductSummaryVariant variants = 13;
 }
 // v2: model_url added to ProductSummaryVariant, variants added to RecommendedProduct
+// v3: variant image_urls/supports3d added; product-level model_url deprecated
