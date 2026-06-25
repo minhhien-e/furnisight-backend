@@ -66,6 +66,7 @@ public class ConversationService {
 
             existingConversation.setLastMessageContent(req.getMessage());
             existingConversation.setLastMessageAt(LocalDateTime.now(HO_CHI_MINH_ZONE));
+            existingConversation.setAdminUnreadCount(existingConversation.getAdminUnreadCount() + 1);
             if (existingConversation.getStaffId() == null && req.getStaffId() != null) {
             existingConversation.setStaffId(req.getStaffId());
             }
@@ -82,6 +83,8 @@ public class ConversationService {
                 .staffId(req.getStaffId())
             .channel(channel)
                 .lastMessageContent(req.getMessage())
+                .adminUnreadCount(1)
+                .status(ConversationStatus.OPEN)
                 .build();
 
         conversationRepository.save(conversation);
@@ -109,40 +112,56 @@ public class ConversationService {
 
     public ResponseEntity<AType> getAdminInbox(
             ConversationChannel channel,
-            ConversationStatus status,
+            List<ConversationStatus> statuses,
             ConversationPriority priority,
             Integer assignedAdminId,
-            Boolean unreadOnly) {
+            Boolean unreadOnly,
+            int page,
+            int size) {
 
         List<Conversation> conversations = conversationRepository.findAll();
 
         List<Conversation> filtered = conversations.stream()
                 .filter(conversation -> channel == null || conversation.getChannel() == channel)
-                .filter(conversation -> status == null || conversation.getStatus() == status)
+                .filter(conversation -> statuses == null || statuses.isEmpty() || statuses.contains(conversation.getStatus()))
                 .filter(conversation -> priority == null || conversation.getPriority() == priority)
                 .filter(conversation -> assignedAdminId == null || assignedAdminId.equals(conversation.getAssignedAdminId()))
                 .filter(conversation -> !Boolean.TRUE.equals(unreadOnly)
-                        || messageRepository.existsByConversationAndIsReadFalseAndIsInternalFalse(conversation))
+                        || (conversation.getAdminUnreadCount() != null && conversation.getAdminUnreadCount() > 0))
+                .sorted(java.util.Comparator.comparing(Conversation::getUpdatedAt, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())).reversed())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(ApiType.success(filtered));
+        int start = Math.min(page * size, filtered.size());
+        int end = Math.min((page + 1) * size, filtered.size());
+        List<Conversation> pagedList = filtered.subList(start, end);
+
+        org.springframework.data.domain.Page<Conversation> pageResult = new org.springframework.data.domain.PageImpl<>(
+                pagedList,
+                org.springframework.data.domain.PageRequest.of(page, size),
+                filtered.size()
+        );
+
+        return ResponseEntity.ok(ApiType.success(pageResult));
     }
 
     @Transactional
     public ResponseEntity<AType> getAllConversation(Integer userId) {
         List<Conversation> conversations = conversationRepository.findByBuyerIdOrStaffId(userId, userId);
 
-        if (conversations.isEmpty()) {
-            Conversation firstConversation = Conversation.builder()
-                    .buyerId(userId)
-                    .channel(ConversationChannel.SUPPORT)
-                    .build();
-
-            conversationRepository.save(firstConversation);
-            conversations = List.of(firstConversation);
-        }
+        // Removed auto-creation logic
 
         return ResponseEntity.ok(ApiType.success(conversations));
+    }
+
+    @Transactional
+    public ResponseEntity<AType> markConversationAsReadAdmin(Integer conversationId) {
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
+
+        conversation.setAdminUnreadCount(0);
+        conversationRepository.save(conversation);
+
+        return ResponseEntity.ok(ApiType.success(conversation));
     }
 
     public ResponseEntity<AType> getConversationById(int id) {

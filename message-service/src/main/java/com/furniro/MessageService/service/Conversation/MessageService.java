@@ -108,6 +108,16 @@ public class MessageService {
         LocalDateTime now = LocalDateTime.now(HO_CHI_MINH_ZONE);
         if (!Boolean.TRUE.equals(messageReq.getIsInternal())) {
             conversation.setLastMessageContent(message.getContent());
+            
+            // update unread counts & status
+            if (messageReq.getSenderId().equals(conversation.getBuyerId())) {
+                conversation.setAdminUnreadCount(conversation.getAdminUnreadCount() + 1);
+            } else {
+                conversation.setUserUnreadCount(conversation.getUserUnreadCount() + 1);
+                if (com.furniro.MessageService.util.enums.ConversationStatus.OPEN.equals(conversation.getStatus())) {
+                    conversation.setStatus(com.furniro.MessageService.util.enums.ConversationStatus.IN_PROGRESS);
+                }
+            }
         }
         conversation.setLastMessageAt(now);
 

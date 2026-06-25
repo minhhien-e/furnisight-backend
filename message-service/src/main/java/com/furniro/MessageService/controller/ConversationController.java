@@ -11,6 +11,7 @@ import com.furniro.MessageService.util.enums.ConversationChannel;
 import com.furniro.MessageService.util.enums.ConversationStatus;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import com.furniro.MessageService.service.Conversation.ConversationService;
 
 import lombok.RequiredArgsConstructor;
@@ -43,12 +44,14 @@ public class ConversationController {
 
     @GetMapping("/admin/inbox")
     public ResponseEntity<AType> getAdminInbox(
-            @RequestParam(required = false) ConversationChannel channel,
-            @RequestParam(required = false) ConversationStatus status,
-            @RequestParam(required = false) ConversationPriority priority,
-            @RequestParam(required = false) Integer assignedAdminId,
-            @RequestParam(defaultValue = "false") Boolean unreadOnly) {
-        return conversationService.getAdminInbox(channel, status, priority, assignedAdminId, unreadOnly);
+            @RequestParam(name = "channel", required = false) ConversationChannel channel,
+            @RequestParam(name = "statuses", required = false) List<ConversationStatus> statuses,
+            @RequestParam(name = "priority", required = false) ConversationPriority priority,
+            @RequestParam(name = "assignedAdminId", required = false) Integer assignedAdminId,
+            @RequestParam(name = "unreadOnly", defaultValue = "false") Boolean unreadOnly,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return conversationService.getAdminInbox(channel, statuses, priority, assignedAdminId, unreadOnly, page, size);
     }
 
     @PatchMapping("/{id}/assign/{adminId}")
@@ -61,6 +64,11 @@ public class ConversationController {
     @PatchMapping("/{id}/close")
     public ResponseEntity<AType> closeConversation(@PathVariable Integer id) {
         return conversationService.closeConversation(id);
+    }
+
+    @PatchMapping("/{id}/read-admin")
+    public ResponseEntity<AType> markAsReadAdmin(@PathVariable Integer id) {
+        return conversationService.markConversationAsReadAdmin(id);
     }
 
     @PatchMapping("/{id}/status/{status}")
