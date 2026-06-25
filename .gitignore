@@ -116,3 +116,6 @@
 
 # Runtime AI weights mounted into containers.
 ai-image-classifier/models/big-lama.pt
+
+# Secrets
+**/.github_token

@@ -380,4 +380,4 @@ volumes:
 
 secrets:
   GITHUB_TOKEN:
-    environment: GITHUB_TOKEN
+    file: ./.github_token

@@ -1,1 +1,0 @@
-UNLAYER_DESIGN_START {"body":{"rows":[{"cells":[1],"columns":[{"contents":[{"type":"text","values":{"text":"<p>Chào bạn,</p><p>Chúng tôi vừa gửi tặng bạn một mã giảm giá mới: <strong>{{voucherName}}</strong></p><p>{{voucherDescription}}</p><p>Hãy sử dụng ngay trước khi hết hạn nhé!</p>"}}]}],"values":{}}],"values":{}}} UNLAYER_DESIGN_END --></body></html>`,
