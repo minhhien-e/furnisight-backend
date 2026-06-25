@@ -18,4 +18,7 @@ public class AddProductVariantRequest {
     private String warranty;
     private String sku;
     private Integer lowStockThreshold;
+    private Boolean supports3d;
+    private java.util.UUID modelMediaId;
+    private String modelUrl;
 }

@@ -29,9 +29,7 @@ public class ProductLifecycleService {
             ProductSlug slug,
             String sku,
             ProductDescription description,
-            UUID modelMediaId,
-            String modelUrl,
-            Boolean supports3d,
+
             List<String> features,
             List<ProductImage> gallery,
             List<ProductVariant> variants) {
@@ -46,9 +44,7 @@ public class ProductLifecycleService {
                 slug,
                 sku,
                 description,
-                modelMediaId,
-                modelUrl,
-                supports3d,
+
                 features,
                 gallery,
                 variants);
@@ -62,9 +58,7 @@ public class ProductLifecycleService {
             ProductSlug slug,
             String sku,
             ProductDescription description,
-            UUID modelMediaId,
-            String modelUrl,
-            Boolean supports3d,
+
             List<String> features) {
 
         if (name != null && !name.equals(product.getName())) {
@@ -73,7 +67,7 @@ public class ProductLifecycleService {
             }
         }
 
-        product.updateProfile(name, slug, sku, description, modelMediaId, modelUrl, supports3d, features);
+        product.updateProfile(name, slug, sku, description, features);
     }
 
     /**

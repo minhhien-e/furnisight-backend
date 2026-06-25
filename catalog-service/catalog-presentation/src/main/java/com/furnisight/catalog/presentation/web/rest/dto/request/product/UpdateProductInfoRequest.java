@@ -14,7 +14,4 @@ public class UpdateProductInfoRequest {
     private String sku;
     private String description;
     private List<String> features;
-    private Boolean supports3d;
-    private UUID modelMediaId;
-    private String modelUrl;
 }

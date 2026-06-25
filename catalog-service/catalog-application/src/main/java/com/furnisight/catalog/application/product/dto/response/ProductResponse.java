@@ -32,7 +32,6 @@ public class ProductResponse {
     private List<Review> reviews;
     private List<QA> qa;
     private String modelUrl;
-    private UUID modelMediaId;
     private UUID defaultVariantId;
     private String roomTypeHint;
 
@@ -84,5 +83,8 @@ public class ProductResponse {
         private String warranty;
         private String sku;
         private Integer lowStockThreshold;
+        private Boolean supports3d;
+        private UUID modelMediaId;
+        private String modelUrl;
     }
 }

@@ -247,6 +247,9 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         if (variant.getWeight() != null) {
             variantBuilder.setWeight(variant.getWeight());
         }
+        if (variant.getModelUrl() != null) {
+            variantBuilder.setModelUrl(variant.getModelUrl());
+        }
 
         return variantBuilder.build();
     }
@@ -282,6 +285,14 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
         if (product.getPrice() != null) {
             builder.setPrice(product.getPrice());
         }
+
+        if (product.getVariants() != null) {
+            List<ProductSummaryVariant> variants = product.getVariants().stream()
+                    .map(this::toProductSummaryVariant)
+                    .toList();
+            builder.addAllVariants(variants);
+        }
+
         return builder.build();
     }
 

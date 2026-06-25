@@ -61,6 +61,9 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 .color(command.getColor())
                 .sku(sku)
                 .lowStockThreshold(threshold)
+                .modelMediaId(command.getModelMediaId())
+                .modelUrl(command.getModelUrl())
+                .supports3d(command.getSupports3d() != null ? command.getSupports3d() : false)
                 .build();
 
         productLifecycleService.addVariant(product, variant);

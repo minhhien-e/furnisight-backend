@@ -181,9 +181,6 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .slug(resolveSlug(request.getSlug(), request.getName()))
                 .sku(productSku)
                 .description(defaultText(request.getDescription(), request.getName()))
-                .modelMediaId(model.mediaId())
-                .modelUrl(model.url())
-                .supports3d(model.mediaId() != null && request.getSupports3D())
                 .imageUrls(request.getImageUrlsList())
                 .variants(resolveCreateVariants(request.getVariantsList(), request.getPrice(), request.getStock(), productSku))
                 .build());
@@ -197,23 +194,13 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             UUID productId = UUID.fromString(request.getId());
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
-            UUID oldModelMediaId = product.getModelMediaId();
-            validateVariantInputs(request.getVariantsList(), emptyToNull(request.getSku()));
-            ModelMedia model = request.getModelMediaId().isBlank()
-                    && request.getSupports3D()
-                    && !request.getModelUrl().isBlank()
-                    && product.getModelMediaId() == null
-                    ? new ModelMedia(null, request.getModelUrl(), "", 0)
-                    : resolveModelMedia(request.getModelMediaId());
+            ModelMedia model = new ModelMedia(null, "", "", 0);
             updateProductInfoUseCase.execute(UpdateProductInfoCommand.builder()
                     .productId(productId)
                     .name(emptyToNull(request.getName()))
                     .slug(emptyToNull(resolveSlug(request.getSlug(), request.getName())))
                     .sku(emptyToNull(request.getSku()))
                     .description(emptyToNull(request.getDescription()))
-                    .modelMediaId(model.mediaId())
-                    .modelUrl(model.url())
-                    .supports3d(!model.url().isBlank() && request.getSupports3D())
                     .build());
 
             UUID categoryId = resolveCategoryId(request.getCategoryId(), request.getCategory());
@@ -235,7 +222,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             String productSku = emptyToNull(request.getSku()) != null ? emptyToNull(request.getSku()) : product.getSku();
             replaceVariants(productId, request.getVariantsList(), request.getPrice(), request.getStock(), productSku);
             replaceGallery(productId, request.getImageUrlsList());
-            deleteReplacedModel(oldModelMediaId, model.mediaId());
+
         }, "Product updated");
     }
 
@@ -358,7 +345,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     }
 
     private ProductDto toProductDto(ProductResponse product) {
-        ModelMedia model = readModelMetadata(product.getModelMediaId(), product.getModelUrl());
+        ModelMedia model = readModelMetadata(null, product.getModelUrl());
         return ProductDto.newBuilder()
                 .setId(product.getId().toString())
                 .setName(safe(product.getName()))
@@ -370,8 +357,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setStatus(toProductTone(product.getStatus(), product.getStock()))
                 .setStatusLabel(toProductStatusLabel(product.getStatus(), product.getStock()))
                 .setModelUrl(model.url())
-                .setModelMediaId(product.getModelMediaId() == null ? "" : product.getModelMediaId().toString())
-                .setSupports3D(product.getModelMediaId() != null)
+                .setModelMediaId("")
+                .setSupports3D(product.getSupports3d() != null ? product.getSupports3d() : false)
                 .setModel3DFileName(model.filename())
                 .setModel3DSize(model.sizeBytes())
                 .addAllImageUrls(product.getImageUrls() == null ? List.of() : product.getImageUrls())

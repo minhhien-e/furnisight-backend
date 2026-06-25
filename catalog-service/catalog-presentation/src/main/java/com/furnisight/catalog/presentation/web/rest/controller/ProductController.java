@@ -43,10 +43,7 @@ public class ProductController {
                 .slug(request.getSlug())
                 .sku(request.getSku())
                 .description(request.getDescription())
-                .modelMediaId(request.getModelMediaId())
                 .features(request.getFeatures())
-                .supports3d(request.getSupports3d())
-                .modelUrl(request.getModelUrl())
                 .variants(request.getVariants().stream()
                         .map(v -> CreateProductCommand.VariantCommand.builder()
                                 .price(v.getPrice())
@@ -60,6 +57,9 @@ public class ProductController {
                                 .warranty(v.getWarranty())
                                 .sku(v.getSku())
                                 .lowStockThreshold(v.getLowStockThreshold())
+                                .modelMediaId(v.getModelMediaId())
+                                .modelUrl(v.getModelUrl())
+                                .supports3d(v.getSupports3d())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
@@ -77,10 +77,7 @@ public class ProductController {
                 .slug(request.getSlug())
                 .sku(request.getSku())
                 .description(request.getDescription())
-                .modelMediaId(request.getModelMediaId())
                 .features(request.getFeatures())
-                .supports3d(request.getSupports3d())
-                .modelUrl(request.getModelUrl())
                 .build();
 
         updateProductInfoUseCase.execute(command);
@@ -114,6 +111,9 @@ public class ProductController {
                 .warranty(request.getWarranty())
                 .sku(request.getSku())
                 .lowStockThreshold(request.getLowStockThreshold())
+                .modelMediaId(request.getModelMediaId())
+                .modelUrl(request.getModelUrl())
+                .supports3d(request.getSupports3d())
                 .build();
         addProductVariantUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();

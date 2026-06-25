@@ -23,7 +23,7 @@ WORKDIR /app
 
 RUN addgroup -S spring && adduser -S spring -G spring
 
-COPY --from=builder --chown=spring:spring /app/build/libs/*.jar app.jar
+COPY --from=builder --chown=spring:spring /app/build/libs/media-service-1.0-SNAPSHOT.jar app.jar
 
 USER spring:spring
 

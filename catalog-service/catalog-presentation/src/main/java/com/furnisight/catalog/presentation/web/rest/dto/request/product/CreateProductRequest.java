@@ -16,9 +16,7 @@ public class CreateProductRequest {
     private String sku;
     private String description;
     private List<String> features;
-    private Boolean supports3d;
-    private UUID modelMediaId;
-    private String modelUrl;
+
     private List<VariantRequest> variants;
 
     @Data
@@ -37,5 +35,8 @@ public class CreateProductRequest {
         private String warranty;
         private String sku;
         private Integer lowStockThreshold;
+        private Boolean supports3d;
+        private UUID modelMediaId;
+        private String modelUrl;
     }
 }

@@ -42,9 +42,9 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
-                    p.model_media_id,
-                    p.model_url,
-                    p.supports_3d,
+                    (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
+                    (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
+                    EXISTS(SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true) AS supports_3d,
                     p.sold_count,
                     c.name AS category_name,
                     c.slug AS category_slug,
@@ -95,9 +95,9 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
-                    p.model_media_id,
-                    p.model_url,
-                    p.supports_3d,
+                    (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
+                    (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
+                    EXISTS(SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true) AS supports_3d,
                     p.sold_count,
                     c.name AS category_name,
                     c.slug AS category_slug,
@@ -158,8 +158,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.name AS product_name,
                     p.slug AS product_slug,
                     p.sold_count AS product_sold_count,
-                    p.model_url,
-                    p.supports_3d,
+                    v3d.model_url,
+                    COALESCE(v3d.supports_3d, false) AS supports_3d,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
                     (
@@ -174,6 +174,13 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
+                LEFT JOIN LATERAL (
+                    SELECT pv.model_url, pv.supports_3d
+                    FROM product_variants pv
+                    WHERE pv.product_id = p.id AND pv.supports_3d = true
+                    ORDER BY pv.price ASC
+                    LIMIT 1
+                ) v3d ON TRUE
                 LEFT JOIN (
                     SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
                     FROM reviews
@@ -186,8 +193,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.name,
                     p.slug,
                     p.sold_count,
-                    p.model_url,
-                    p.supports_3d,
+                    v3d.model_url,
+                    v3d.supports_3d,
                     c.name,
                     p.created_at,
                     rv.avg_rating,
@@ -197,6 +204,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 """;
 
         List<ProductResponse> products = jdbcTemplate.query(mainSql, params, this::mapRowToProductSummary);
+        products.forEach(p -> p.setVariants(fetchVariants(p.getId())));
         int totalPages = size <= 0 ? 0 : (int) Math.ceil((double) total / size);
 
         return new PageResponse<>(products, totalPages, total, page + 1, size);
@@ -228,8 +236,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.name AS category_name,
                     cheapest_variant.id AS default_variant_id,
                     cheapest_variant.price AS product_price,
-                    p.model_url,
-                    p.supports_3d,
+                    cheapest_variant.model_url,
+                    cheapest_variant.supports_3d,
                     p.sold_count,
                     p.features AS product_features,
                     (
@@ -244,7 +252,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 FROM products p
                 JOIN categories c ON c.id = p.category_id
                 LEFT JOIN LATERAL (
-                    SELECT pv.id, pv.price
+                    SELECT pv.id, pv.price, pv.model_url, pv.supports_3d
                     FROM product_variants pv
                     WHERE pv.product_id = p.id
                       AND pv.price IS NOT NULL
@@ -263,7 +271,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LIMIT :limit
                 """;
 
-        return jdbcTemplate.query(
+        List<ProductResponse> products = jdbcTemplate.query(
                 sql,
                 Map.of(
                         "categorySlug", categorySlug.trim().toLowerCase(),
@@ -283,6 +291,9 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .soldCount(rs.getInt("sold_count"))
                         .tags(parseJsonList(rs.getString("product_features")))
                         .build());
+                        
+        products.forEach(p -> p.setVariants(fetchVariants(p.getId())));
+        return products;
     }
 
     @Override
@@ -298,6 +309,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.slug AS product_slug,
                     p.sold_count AS product_sold_count,
                     c.name AS category_name,
+                    v3d.model_url,
+                    COALESCE(v3d.supports_3d, false) AS supports_3d,
                     MIN(pv.price) AS product_price,
                     (
                         SELECT pi.image_url
@@ -311,6 +324,13 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
+                LEFT JOIN LATERAL (
+                    SELECT pv.model_url, pv.supports_3d
+                    FROM product_variants pv
+                    WHERE pv.product_id = p.id AND pv.supports_3d = true
+                    ORDER BY pv.price ASC
+                    LIMIT 1
+                ) v3d ON TRUE
                 LEFT JOIN (
                     SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
                     FROM reviews
@@ -324,6 +344,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.slug,
                     p.sold_count,
                     c.name,
+                    v3d.model_url,
+                    v3d.supports_3d,
                     p.created_at,
                     rv.avg_rating,
                     rv.review_count
@@ -351,8 +373,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.slug AS product_slug,
                     p.sku AS product_sku,
                     p.product_status,
-                    p.model_media_id,
-                    p.model_url,
+                    (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
+                    (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
                     COALESCE(SUM(pv.stock_quantity), 0) AS product_stock
@@ -360,7 +382,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
                 """ + whereClause + """
-                GROUP BY p.id, p.name, p.slug, p.sku, p.product_status, p.model_media_id, p.model_url, c.name, p.created_at
+                GROUP BY p.id, p.name, p.slug, p.sku, p.product_status, c.name, p.created_at
                 ORDER BY p.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
@@ -500,7 +522,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .price(getNullableDouble(rs, "product_price") == null ? 0D : getNullableDouble(rs, "product_price"))
                 .stock(rs.getInt("product_stock"))
                 .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
-                .modelMediaId((UUID) rs.getObject("model_media_id"))
                 .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .imageUrls(fetchGallery(id))
                 .build();
@@ -750,7 +771,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .supports3d(rs.getBoolean("supports_3d"))
                 .features(features)
                 .price(0.0)
-                .modelMediaId((UUID) rs.getObject("model_media_id"))
                 .modelUrl(normalizeText(rs.getString("model_url"), ""))
                 .roomTypeHint(categoryName)
                 .build();
@@ -770,7 +790,10 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     material,
                     warranty,
                     sku,
-                    low_stock_threshold
+                    low_stock_threshold,
+                    supports_3d,
+                    model_media_id,
+                    model_url
                 FROM product_variants
                 WHERE product_id = :productId
                 ORDER BY price ASC
@@ -792,6 +815,9 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .warranty(normalizeText(rs.getString("warranty"), ""))
                         .sku(normalizeText(rs.getString("sku"), ""))
                         .lowStockThreshold(rs.getInt("low_stock_threshold"))
+                        .supports3d(rs.getBoolean("supports_3d"))
+                        .modelMediaId((UUID) rs.getObject("model_media_id"))
+                        .modelUrl(normalizeText(rs.getString("model_url"), ""))
                         .build());
     }
 

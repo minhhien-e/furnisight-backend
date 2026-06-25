@@ -18,9 +18,7 @@ public class CreateProductCommand {
     private String slug;
     private String sku;
     private String description;
-    private UUID modelMediaId;
-    private String modelUrl;
-    private Boolean supports3d;
+
     private List<String> features;
     private List<String> imageUrls;
     private List<VariantCommand> variants;
@@ -41,5 +39,8 @@ public class CreateProductCommand {
         private String color;
         private String sku;
         private Integer lowStockThreshold;
+        private UUID modelMediaId;
+        private String modelUrl;
+        private Boolean supports3d;
     }
 }

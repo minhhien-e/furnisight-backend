@@ -42,14 +42,6 @@ public class Product extends AggregateRoot {
     @Enumerated(EnumType.STRING)
     private ProductStatus productStatus;
 
-    @Column(name = "model_url")
-    private String modelUrl;
-
-    @Column(name = "model_media_id")
-    private UUID modelMediaId;
-
-    @Column(name = "supports_3d", nullable = false)
-    private Boolean supports3d;
 
     @Column(name = "sold_count", nullable = false)
     private Integer soldCount;
@@ -70,9 +62,6 @@ public class Product extends AggregateRoot {
             ProductSlug slug,
             String sku,
             ProductDescription description,
-            UUID modelMediaId,
-            String modelUrl,
-            Boolean supports3d,
             List<String> features,
             List<ProductImage> gallery,
             List<ProductVariant> variants) {
@@ -84,9 +73,6 @@ public class Product extends AggregateRoot {
                 .slug(slug)
                 .sku(sku)
                 .description(description)
-                .modelMediaId(modelMediaId)
-                .modelUrl(modelUrl)
-                .supports3d(supports3d != null ? supports3d : false)
                 .soldCount(0)
                 .features(features != null ? features : new ArrayList<>())
                 .gallery(new ArrayList<>())
@@ -205,9 +191,6 @@ public class Product extends AggregateRoot {
             ProductSlug slug,
             String sku,
             ProductDescription description,
-            UUID modelMediaId,
-            String modelUrl,
-            Boolean supports3d,
             List<String> features) {
         if (name != null)
             this.name = name;
@@ -217,11 +200,6 @@ public class Product extends AggregateRoot {
             this.sku = sku;
         if (description != null)
             this.description = description;
-        if (supports3d != null) {
-            this.modelMediaId = modelMediaId;
-            this.modelUrl = modelUrl;
-            this.supports3d = supports3d;
-        }
         if (features != null)
             this.features = features;
     }

@@ -58,6 +58,9 @@ public class CreateProductService implements CreateProductUseCase {
                         .color(v.getColor())
                         .sku(sku)
                         .lowStockThreshold(validThreshold(v.getLowStockThreshold()))
+                        .modelMediaId(v.getModelMediaId())
+                        .modelUrl(v.getModelUrl())
+                        .supports3d(v.getSupports3d() != null ? v.getSupports3d() : false)
                         .build());
             }
         }
@@ -82,9 +85,7 @@ public class CreateProductService implements CreateProductUseCase {
                 slug,
                 command.getSku(),
                 description,
-                command.getModelMediaId(),
-                command.getModelUrl(),
-                command.getSupports3d(),
+
                 command.getFeatures(),
                 gallery,
                 variants);

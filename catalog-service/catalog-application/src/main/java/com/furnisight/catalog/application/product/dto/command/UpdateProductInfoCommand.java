@@ -18,8 +18,5 @@ public class UpdateProductInfoCommand {
     private String slug;
     private String sku;
     private String description;
-    private UUID modelMediaId;
-    private String modelUrl;
-    private Boolean supports3d;
     private List<String> features;
 }

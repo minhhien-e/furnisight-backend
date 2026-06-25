@@ -33,9 +33,6 @@ public class UpdateProductInfoService implements UpdateProductInfoUseCase {
                 command.getSlug() != null ? new ProductSlug(command.getSlug()) : null,
                 command.getSku(),
                 command.getDescription() != null ? new ProductDescription(command.getDescription()) : null,
-                command.getModelMediaId(),
-                command.getModelUrl(),
-                command.getSupports3d(),
                 command.getFeatures());
 
         productRepository.save(product);

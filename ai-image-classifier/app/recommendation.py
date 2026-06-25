@@ -87,6 +87,22 @@ class RecommendationService:
             "ratingCount": product.rating_count,
             "soldCount": product.sold_count,
             "tags": list(product.tags),
+            "variants": [
+                {
+                    "id": v.id,
+                    "price": v.price if v.HasField("price") else None,
+                    "stockQuantity": v.stock_quantity if v.HasField("stock_quantity") else None,
+                    "length": v.length if v.HasField("length") else None,
+                    "width": v.width if v.HasField("width") else None,
+                    "height": v.height if v.HasField("height") else None,
+                    "weight": v.weight if v.HasField("weight") else None,
+                    "color": v.color,
+                    "material": v.material,
+                    "warranty": v.warranty,
+                    "modelUrl": v.model_url,
+                }
+                for v in product.variants
+            ] if hasattr(product, "variants") else [],
         }
 
     def _empty_response(

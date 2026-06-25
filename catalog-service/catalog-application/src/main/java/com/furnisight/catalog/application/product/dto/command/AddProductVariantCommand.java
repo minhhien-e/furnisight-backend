@@ -24,4 +24,7 @@ public class AddProductVariantCommand {
     private String color;
     private String sku;
     private Integer lowStockThreshold;
+    private UUID modelMediaId;
+    private String modelUrl;
+    private Boolean supports3d;
 }

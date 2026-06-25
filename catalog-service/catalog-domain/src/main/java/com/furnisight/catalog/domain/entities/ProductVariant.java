@@ -53,17 +53,27 @@ public class ProductVariant extends BaseEntity {
     @Builder.Default
     private Integer lowStockThreshold = 5;
 
+    @Column(name = "model_url")
+    private String modelUrl;
+
+    @Column(name = "model_media_id")
+    private UUID modelMediaId;
+
+    @Column(name = "supports_3d", nullable = false)
+    @Builder.Default
+    private Boolean supports3d = false;
+
     public ProductVariant(Product product, Price price, StockQuantity stockQuantity,
                           ProductDimensions dimensions, String material, String warranty,
-                          String color) {
+                          String color, UUID modelMediaId, String modelUrl, Boolean supports3d) {
         this.id = UUID.randomUUID();
         this.stockQuantity = new StockQuantity(0);
-        update(product, price, stockQuantity, dimensions, material, warranty, color);
+        update(product, price, stockQuantity, dimensions, material, warranty, color, modelMediaId, modelUrl, supports3d);
     }
 
     public void update(Product product, Price price, StockQuantity stockQuantity,
                        ProductDimensions dimensions, String material, String warranty,
-                       String color) {
+                       String color, UUID modelMediaId, String modelUrl, Boolean supports3d) {
         if (material == null || material.isBlank()) {
             throw new ValidationException(ErrorCode.INVALID_PRODUCT_DIMENSIONS, "Material cannot be blank");
         }
@@ -74,6 +84,13 @@ public class ProductVariant extends BaseEntity {
         this.material = material;
         this.warranty = warranty;
         this.color = color;
+        if (supports3d != null) {
+            this.modelMediaId = modelMediaId;
+            this.modelUrl = modelUrl;
+            this.supports3d = supports3d;
+        } else if (this.supports3d == null) {
+            this.supports3d = false;
+        }
     }
 
     public void decreaseStock(int quantity) {
