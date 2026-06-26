@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 class ProductServiceTest {
 
     @Test
-    void mapsProductModelAndVariantWithoutChangingResponseShape() {
+    void mapsVariantWithoutProductLevelModelFields() {
         AdminCatalogGrpcClient client = mock(AdminCatalogGrpcClient.class);
         when(client.getProductDetail("product-1"))
                 .thenReturn(ProductDto.newBuilder()
@@ -20,9 +20,6 @@ class ProductServiceTest {
                         .setName("Chair")
                         .setSku("CHAIR")
                         .setCategory("Living room")
-                        .setModelMediaId("media-1")
-                        .setModelUrl("https://example.com/chair.glb")
-                        .setSupports3D(true)
                         .addVariants(ProductVariantDto.newBuilder()
                                 .setId("variant-1")
                                 .setSku("CHAIR-BLUE")
@@ -34,12 +31,11 @@ class ProductServiceTest {
 
         var response = new ProductService(client, new ProductValidator()).getProduct("product-1");
 
-        assertThat(response.modelMediaId()).isEqualTo("media-1");
-        assertThat(response.modelUrl()).endsWith(".glb");
-        assertThat(response.supports3d()).isTrue();
         assertThat(response.variants()).singleElement().satisfies(variant -> {
             assertThat(variant.sku()).isEqualTo("CHAIR-BLUE");
             assertThat(variant.lowStockThreshold()).isEqualTo(5);
+            assertThat(variant.modelUrl()).isEmpty();
+            assertThat(variant.imageUrls()).isEmpty();
         });
     }
 }

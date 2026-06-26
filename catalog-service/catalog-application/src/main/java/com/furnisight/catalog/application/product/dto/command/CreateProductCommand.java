@@ -42,5 +42,6 @@ public class CreateProductCommand {
         private UUID modelMediaId;
         private String modelUrl;
         private Boolean supports3d;
+        private List<String> imageUrls;
     }
 }

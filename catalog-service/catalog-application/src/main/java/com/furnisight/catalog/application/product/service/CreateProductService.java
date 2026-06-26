@@ -5,6 +5,7 @@ import com.furnisight.catalog.application.product.port.in.usecase.CreateProductU
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
+import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
@@ -61,6 +62,7 @@ public class CreateProductService implements CreateProductUseCase {
                         .modelMediaId(v.getModelMediaId())
                         .modelUrl(v.getModelUrl())
                         .supports3d(v.getSupports3d() != null ? v.getSupports3d() : false)
+                        .images(toVariantImages(v.getImageUrls()))
                         .build());
             }
         }
@@ -107,5 +109,23 @@ public class CreateProductService implements CreateProductUseCase {
             throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
         }
         return value;
+    }
+
+    private List<ProductVariantImage> toVariantImages(List<String> imageUrls) {
+        List<ProductVariantImage> images = new ArrayList<>();
+        if (imageUrls == null) {
+            return images;
+        }
+        for (String imageUrl : imageUrls) {
+            if (imageUrl == null || imageUrl.isBlank()) {
+                continue;
+            }
+            images.add(ProductVariantImage.builder()
+                    .id(UUID.randomUUID())
+                    .imageUrl(imageUrl.trim())
+                    .position(images.size())
+                    .build());
+        }
+        return images;
     }
 }

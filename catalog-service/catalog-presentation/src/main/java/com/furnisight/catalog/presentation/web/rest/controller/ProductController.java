@@ -44,7 +44,8 @@ public class ProductController {
                 .sku(request.getSku())
                 .description(request.getDescription())
                 .features(request.getFeatures())
-                .variants(request.getVariants().stream()
+                .imageUrls(request.getImageUrls())
+                .variants(java.util.Optional.ofNullable(request.getVariants()).orElse(List.of()).stream()
                         .map(v -> CreateProductCommand.VariantCommand.builder()
                                 .price(v.getPrice())
                                 .stockQuantity(v.getStockQuantity())
@@ -60,6 +61,7 @@ public class ProductController {
                                 .modelMediaId(v.getModelMediaId())
                                 .modelUrl(v.getModelUrl())
                                 .supports3d(v.getSupports3d())
+                                .imageUrls(v.getImageUrls())
                                 .build())
                         .collect(Collectors.toList()))
                 .build();
@@ -114,6 +116,7 @@ public class ProductController {
                 .modelMediaId(request.getModelMediaId())
                 .modelUrl(request.getModelUrl())
                 .supports3d(request.getSupports3d())
+                .imageUrls(request.getImageUrls())
                 .build();
         addProductVariantUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();

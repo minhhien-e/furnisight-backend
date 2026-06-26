@@ -145,6 +145,9 @@ public class Product extends AggregateRoot {
         }
 
         variant.setProduct(this);
+        if (variant.getImages() != null && !variant.getImages().isEmpty()) {
+            variant.replaceImages(new ArrayList<>(variant.getImages()));
+        }
 
         if (variant.getId() == null) {
             variant.setId(UUID.randomUUID());
@@ -166,6 +169,14 @@ public class Product extends AggregateRoot {
             existing.setColor(variant.getColor());
             existing.setSku(variant.getSku());
             existing.setLowStockThreshold(variant.getLowStockThreshold());
+            if (variant.getSupports3d() != null || variant.getModelMediaId() != null || variant.getModelUrl() != null) {
+                existing.setModelMediaId(variant.getModelMediaId());
+                existing.setModelUrl(variant.getModelUrl());
+                existing.setSupports3d(variant.getSupports3d() != null ? variant.getSupports3d() : false);
+            }
+            if (variant.getImages() != null && !variant.getImages().isEmpty()) {
+                existing.replaceImages(variant.getImages());
+            }
         } else {
             this.variants.add(variant);
         }

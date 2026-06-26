@@ -4,6 +4,7 @@ import com.furnisight.catalog.application.product.dto.command.AddProductVariantC
 import com.furnisight.catalog.application.product.port.in.usecase.AddProductVariantUseCase;
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductVariant;
+import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.exceptions.ErrorCode;
 import com.furnisight.catalog.domain.exceptions.NotFoundException;
 import com.furnisight.catalog.domain.repository.ProductRepository;
@@ -16,6 +17,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 import java.util.Locale;
 
@@ -64,11 +67,30 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 .modelMediaId(command.getModelMediaId())
                 .modelUrl(command.getModelUrl())
                 .supports3d(command.getSupports3d() != null ? command.getSupports3d() : false)
+                .images(toVariantImages(command.getImageUrls()))
                 .build();
 
         productLifecycleService.addVariant(product, variant);
 
         productRepository.save(product);
         productUpdateEventService.enqueue(product);
+    }
+
+    private List<ProductVariantImage> toVariantImages(List<String> imageUrls) {
+        List<ProductVariantImage> images = new ArrayList<>();
+        if (imageUrls == null) {
+            return images;
+        }
+        for (String imageUrl : imageUrls) {
+            if (imageUrl == null || imageUrl.isBlank()) {
+                continue;
+            }
+            images.add(ProductVariantImage.builder()
+                    .id(UUID.randomUUID())
+                    .imageUrl(imageUrl.trim())
+                    .position(images.size())
+                    .build());
+        }
+        return images;
     }
 }

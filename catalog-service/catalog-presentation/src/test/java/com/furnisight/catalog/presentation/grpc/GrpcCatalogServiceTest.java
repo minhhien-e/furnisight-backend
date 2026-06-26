@@ -22,7 +22,7 @@ import static org.mockito.Mockito.when;
 class GrpcCatalogServiceTest {
 
     @Test
-    void recommendationKeepsPriceAndDefaultVariantTogether() {
+    void recommendationKeepsPriceAndDefaultVariantWithoutProductModelUrl() {
         ProductReadRepository repository = mock(ProductReadRepository.class);
         UUID productId = UUID.randomUUID();
         UUID variantId = UUID.randomUUID();
@@ -34,7 +34,11 @@ class GrpcCatalogServiceTest {
                         .categoryName("Bedroom")
                         .price(9_500_000D)
                         .defaultVariantId(variantId)
-                        .modelUrl("https://example.com/bed.glb")
+                        .variants(List.of(ProductResponse.VariantDto.builder()
+                                .id(variantId)
+                                .price(9_500_000D)
+                                .modelUrl("https://example.com/bed.glb")
+                                .build()))
                         .build()));
 
         CapturingObserver<SearchRecommendedProductsResponse> observer =
@@ -51,7 +55,8 @@ class GrpcCatalogServiceTest {
         assertThat(product.hasPrice()).isTrue();
         assertThat(product.getPrice()).isEqualTo(9_500_000D);
         assertThat(product.getDefaultVariantId()).isEqualTo(variantId.toString());
-        assertThat(product.getModelUrl()).endsWith(".glb");
+        assertThat(product.getModelUrl()).isEmpty();
+        assertThat(product.getVariants(0).getModelUrl()).endsWith(".glb");
     }
 
     @Test

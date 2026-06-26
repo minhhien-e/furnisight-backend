@@ -21,4 +21,5 @@ public class AddProductVariantRequest {
     private Boolean supports3d;
     private java.util.UUID modelMediaId;
     private String modelUrl;
+    private java.util.List<String> imageUrls;
 }

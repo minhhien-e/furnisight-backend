@@ -8,6 +8,9 @@ import com.furnisight.catalog.domain.valueobjects.product.Price;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
 import com.furnisight.catalog.domain.exceptions.*;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -24,6 +27,8 @@ public class ProductVariant extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id")
+    @EqualsAndHashCode.Exclude
+    @ToString.Exclude
     private Product product;
 
     @Embedded
@@ -63,6 +68,11 @@ public class ProductVariant extends BaseEntity {
     @Builder.Default
     private Boolean supports3d = false;
 
+    @OneToMany(mappedBy = "variant", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("position ASC")
+    @Builder.Default
+    private List<ProductVariantImage> images = new ArrayList<>();
+
     public ProductVariant(Product product, Price price, StockQuantity stockQuantity,
                           ProductDimensions dimensions, String material, String warranty,
                           String color, UUID modelMediaId, String modelUrl, Boolean supports3d) {
@@ -91,6 +101,34 @@ public class ProductVariant extends BaseEntity {
         } else if (this.supports3d == null) {
             this.supports3d = false;
         }
+    }
+
+    public void replaceImages(List<ProductVariantImage> images) {
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+        this.images.clear();
+        if (images == null) {
+            return;
+        }
+        images.stream()
+                .filter(image -> image != null && image.getImageUrl() != null && !image.getImageUrl().isBlank())
+                .sorted(Comparator.comparing(ProductVariantImage::getPosition, Comparator.nullsLast(Integer::compareTo)))
+                .forEach(this::addImage);
+    }
+
+    public void addImage(ProductVariantImage image) {
+        if (image == null || image.getImageUrl() == null || image.getImageUrl().isBlank()) {
+            return;
+        }
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+        if (image.getId() == null) {
+            image.setId(UUID.randomUUID());
+        }
+        image.setVariant(this);
+        this.images.add(image);
     }
 
     public void decreaseStock(int quantity) {
