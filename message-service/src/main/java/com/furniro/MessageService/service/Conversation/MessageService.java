@@ -75,6 +75,12 @@ public class MessageService {
             .receiverId(conversation.getBuyerId())
             .senderId(messageReq.getSenderId())
             .type(messageReq.getMessageType() != null ? messageReq.getMessageType() : com.furniro.MessageService.util.enums.MessageType.TEXT)
+            .fileId(messageReq.getFileId())
+            .mediaId(messageReq.getMediaId())
+            .attachmentUrl(messageReq.getAttachmentUrl())
+            .attachmentName(messageReq.getAttachmentName())
+            .attachmentType(messageReq.getAttachmentType())
+            .attachmentSize(messageReq.getAttachmentSize())
             .isInternal(true)
             .build();
 
@@ -100,8 +106,14 @@ public class MessageService {
                 ? messageReq.getReceiverId()
                 : (conversation.getStaffId() != null ? conversation.getStaffId() : conversation.getBuyerId()))
                 .senderId(messageReq.getSenderId())
-                .type(messageReq.getMessageType())
-            .isInternal(Boolean.TRUE.equals(messageReq.getIsInternal()))
+                .type(messageReq.getMessageType() != null ? messageReq.getMessageType() : com.furniro.MessageService.util.enums.MessageType.TEXT)
+                .fileId(messageReq.getFileId())
+                .mediaId(messageReq.getMediaId())
+                .attachmentUrl(messageReq.getAttachmentUrl())
+                .attachmentName(messageReq.getAttachmentName())
+                .attachmentType(messageReq.getAttachmentType())
+                .attachmentSize(messageReq.getAttachmentSize())
+                .isInternal(Boolean.TRUE.equals(messageReq.getIsInternal()))
                 .build();
 
         // 3. update conversation last message info
@@ -109,14 +121,10 @@ public class MessageService {
         if (!Boolean.TRUE.equals(messageReq.getIsInternal())) {
             conversation.setLastMessageContent(message.getContent());
             
-            // update unread counts & status
             if (messageReq.getSenderId().equals(conversation.getBuyerId())) {
-                conversation.setAdminUnreadCount(conversation.getAdminUnreadCount() + 1);
+                moveBackToInProgressWhenCustomerReplies(conversation);
             } else {
-                conversation.setUserUnreadCount(conversation.getUserUnreadCount() + 1);
-                if (com.furniro.MessageService.util.enums.ConversationStatus.OPEN.equals(conversation.getStatus())) {
-                    conversation.setStatus(com.furniro.MessageService.util.enums.ConversationStatus.IN_PROGRESS);
-                }
+                moveToWaitingCustomerAfterAdminReply(conversation);
             }
         }
         conversation.setLastMessageAt(now);
@@ -127,5 +135,19 @@ public class MessageService {
 
         // 5. return response
         return message;
+    }
+
+    private void moveBackToInProgressWhenCustomerReplies(Conversation conversation) {
+        if (com.furniro.MessageService.util.enums.ConversationStatus.WAITING_CUSTOMER.equals(conversation.getStatus())
+                || com.furniro.MessageService.util.enums.ConversationStatus.RESOLVED.equals(conversation.getStatus())) {
+            conversation.setStatus(com.furniro.MessageService.util.enums.ConversationStatus.IN_PROGRESS);
+        }
+    }
+
+    private void moveToWaitingCustomerAfterAdminReply(Conversation conversation) {
+        if (com.furniro.MessageService.util.enums.ConversationStatus.CLOSED.equals(conversation.getStatus())) {
+            return;
+        }
+        conversation.setStatus(com.furniro.MessageService.util.enums.ConversationStatus.WAITING_CUSTOMER);
     }
 }

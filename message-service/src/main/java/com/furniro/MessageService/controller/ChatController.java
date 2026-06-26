@@ -5,6 +5,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 import com.furniro.MessageService.database.entity.Message;
+import com.furniro.MessageService.dto.event.AdminInboxEvent;
 import com.furniro.MessageService.dto.req.Message.MessageReq;
 import com.furniro.MessageService.service.Conversation.MessageService;
 
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @RequiredArgsConstructor
 public class ChatController {
+    private static final String ADMIN_INBOX_TOPIC = "/topic/admin/inbox";
     private final SimpMessagingTemplate messagingTemplate;
     private final MessageService messageService;
 
@@ -31,6 +33,11 @@ public class ChatController {
         // 3. check message created
         if (message != null) {
             messagingTemplate.convertAndSend(topic, message);
+            if (!Boolean.TRUE.equals(messageReq.getIsInternal())) {
+                messagingTemplate.convertAndSend(
+                    ADMIN_INBOX_TOPIC,
+                    AdminInboxEvent.fromConversation("MESSAGE_CREATED", message.getConversation(), message));
+            }
             log.info("Message sent successfully");
         } else {
             log.error("Message not created");

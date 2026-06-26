@@ -18,5 +18,10 @@ public class MessageReq {
     private Integer senderId;
     private MessageType messageType;
     private Integer fileId;
+    private String mediaId;
+    private String attachmentUrl;
+    private String attachmentName;
+    private String attachmentType;
+    private Long attachmentSize;
     private Boolean isInternal;
 }

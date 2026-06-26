@@ -66,7 +66,7 @@ public class ConversationService {
 
             existingConversation.setLastMessageContent(req.getMessage());
             existingConversation.setLastMessageAt(LocalDateTime.now(HO_CHI_MINH_ZONE));
-            existingConversation.setAdminUnreadCount(existingConversation.getAdminUnreadCount() + 1);
+            moveBackToInProgressWhenCustomerReplies(existingConversation);
             if (existingConversation.getStaffId() == null && req.getStaffId() != null) {
             existingConversation.setStaffId(req.getStaffId());
             }
@@ -83,7 +83,6 @@ public class ConversationService {
                 .staffId(req.getStaffId())
             .channel(channel)
                 .lastMessageContent(req.getMessage())
-                .adminUnreadCount(1)
                 .status(ConversationStatus.OPEN)
                 .build();
 
@@ -115,7 +114,6 @@ public class ConversationService {
             List<ConversationStatus> statuses,
             ConversationPriority priority,
             Integer assignedAdminId,
-            Boolean unreadOnly,
             int page,
             int size) {
 
@@ -126,8 +124,6 @@ public class ConversationService {
                 .filter(conversation -> statuses == null || statuses.isEmpty() || statuses.contains(conversation.getStatus()))
                 .filter(conversation -> priority == null || conversation.getPriority() == priority)
                 .filter(conversation -> assignedAdminId == null || assignedAdminId.equals(conversation.getAssignedAdminId()))
-                .filter(conversation -> !Boolean.TRUE.equals(unreadOnly)
-                        || (conversation.getAdminUnreadCount() != null && conversation.getAdminUnreadCount() > 0))
                 .sorted(java.util.Comparator.comparing(Conversation::getUpdatedAt, java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())).reversed())
                 .collect(Collectors.toList());
 
@@ -151,17 +147,6 @@ public class ConversationService {
         // Removed auto-creation logic
 
         return ResponseEntity.ok(ApiType.success(conversations));
-    }
-
-    @Transactional
-    public ResponseEntity<AType> markConversationAsReadAdmin(Integer conversationId) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
-
-        conversation.setAdminUnreadCount(0);
-        conversationRepository.save(conversation);
-
-        return ResponseEntity.ok(ApiType.success(conversation));
     }
 
     public ResponseEntity<AType> getConversationById(int id) {
@@ -217,5 +202,12 @@ public class ConversationService {
         conversationRepository.save(conversation);
 
         return ResponseEntity.ok(ApiType.success(conversation));
+    }
+
+    private void moveBackToInProgressWhenCustomerReplies(Conversation conversation) {
+        if (ConversationStatus.WAITING_CUSTOMER.equals(conversation.getStatus())
+                || ConversationStatus.RESOLVED.equals(conversation.getStatus())) {
+            conversation.setStatus(ConversationStatus.IN_PROGRESS);
+        }
     }
 }

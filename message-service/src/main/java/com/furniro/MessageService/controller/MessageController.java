@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.furniro.MessageService.dto.API.AType;
 import com.furniro.MessageService.dto.API.ApiType;
 import com.furniro.MessageService.database.entity.Message;
+import com.furniro.MessageService.dto.event.AdminInboxEvent;
 import com.furniro.MessageService.dto.req.Message.MessageReq;
 import com.furniro.MessageService.service.Conversation.MessageService;
 
@@ -23,6 +24,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/message")
 @RequiredArgsConstructor
 public class MessageController {
+    private static final String ADMIN_INBOX_TOPIC = "/topic/admin/inbox";
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -70,5 +72,10 @@ public class MessageController {
                 ? "/topic/conversation/" + req.getConversationId() + "/internal"
                 : "/topic/conversation/" + req.getConversationId();
         messagingTemplate.convertAndSend(topic, message);
+        if (!Boolean.TRUE.equals(req.getIsInternal())) {
+            messagingTemplate.convertAndSend(
+                    ADMIN_INBOX_TOPIC,
+                    AdminInboxEvent.fromConversation("MESSAGE_CREATED", message.getConversation(), message));
+        }
     }
 }

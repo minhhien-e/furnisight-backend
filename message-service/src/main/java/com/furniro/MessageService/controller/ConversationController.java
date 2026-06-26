@@ -1,9 +1,13 @@
 package com.furniro.MessageService.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import com.furniro.MessageService.database.entity.Conversation;
 import com.furniro.MessageService.dto.API.AType;
+import com.furniro.MessageService.dto.API.ApiType;
+import com.furniro.MessageService.dto.event.AdminInboxEvent;
 import com.furniro.MessageService.dto.req.Message.ConversationReq;
 import com.furniro.MessageService.exception.BaseException;
 import com.furniro.MessageService.util.enums.ConversationPriority;
@@ -20,11 +24,20 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/conversation")
 @RequiredArgsConstructor
 public class ConversationController {
+    private static final String ADMIN_INBOX_TOPIC = "/topic/admin/inbox";
     private final ConversationService conversationService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     @PostMapping("/create")
     public ResponseEntity<AType> createConversation(@Valid @RequestBody ConversationReq req) {
-        return conversationService.createConversation(req);
+        ResponseEntity<AType> response = conversationService.createConversation(req);
+        if (response.getBody() instanceof ApiType<?> body
+                && body.getData() instanceof Conversation conversation) {
+            messagingTemplate.convertAndSend(
+                    ADMIN_INBOX_TOPIC,
+                    AdminInboxEvent.fromConversation("CONVERSATION_CREATED", conversation, null));
+        }
+        return response;
     }
 
     @GetMapping("/all/{userId}")
@@ -48,10 +61,9 @@ public class ConversationController {
             @RequestParam(name = "statuses", required = false) List<ConversationStatus> statuses,
             @RequestParam(name = "priority", required = false) ConversationPriority priority,
             @RequestParam(name = "assignedAdminId", required = false) Integer assignedAdminId,
-            @RequestParam(name = "unreadOnly", defaultValue = "false") Boolean unreadOnly,
             @RequestParam(name = "page", defaultValue = "0") int page,
             @RequestParam(name = "size", defaultValue = "20") int size) {
-        return conversationService.getAdminInbox(channel, statuses, priority, assignedAdminId, unreadOnly, page, size);
+        return conversationService.getAdminInbox(channel, statuses, priority, assignedAdminId, page, size);
     }
 
     @PatchMapping("/{id}/assign/{adminId}")
@@ -64,11 +76,6 @@ public class ConversationController {
     @PatchMapping("/{id}/close")
     public ResponseEntity<AType> closeConversation(@PathVariable Integer id) {
         return conversationService.closeConversation(id);
-    }
-
-    @PatchMapping("/{id}/read-admin")
-    public ResponseEntity<AType> markAsReadAdmin(@PathVariable Integer id) {
-        return conversationService.markConversationAsReadAdmin(id);
     }
 
     @PatchMapping("/{id}/status/{status}")

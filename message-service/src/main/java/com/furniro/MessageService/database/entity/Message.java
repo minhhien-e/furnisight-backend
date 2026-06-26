@@ -40,6 +40,21 @@ public class Message {
     @Builder.Default
     private MessageType type = MessageType.TEXT;
 
+    private Integer fileId;
+
+    private String mediaId;
+
+    @Size(max = 2000)
+    private String attachmentUrl;
+
+    @Size(max = 255)
+    private String attachmentName;
+
+    @Size(max = 120)
+    private String attachmentType;
+
+    private Long attachmentSize;
+
     @Builder.Default
     private Boolean isInternal = false;
 

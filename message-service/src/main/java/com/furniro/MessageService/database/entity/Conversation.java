@@ -47,12 +47,6 @@ public class Conversation {
     private Integer assignedAdminId;
 
     @Builder.Default
-    private Integer adminUnreadCount = 0;
-
-    @Builder.Default
-    private Integer userUnreadCount = 0;
-
-    @Builder.Default
     private LocalDateTime lastMessageAt = LocalDateTime.now(HO_CHI_MINH_ZONE);
 
     
