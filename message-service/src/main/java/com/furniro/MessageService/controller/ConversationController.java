@@ -10,6 +10,7 @@ import com.furniro.MessageService.dto.API.ApiType;
 import com.furniro.MessageService.dto.event.AdminInboxEvent;
 import com.furniro.MessageService.dto.req.Message.ConversationReq;
 import com.furniro.MessageService.exception.BaseException;
+import com.furniro.MessageService.service.Conversation.AdminInboxEventFactory;
 import com.furniro.MessageService.util.enums.ConversationPriority;
 import com.furniro.MessageService.util.enums.ConversationChannel;
 import com.furniro.MessageService.util.enums.ConversationStatus;
@@ -27,6 +28,7 @@ public class ConversationController {
     private static final String ADMIN_INBOX_TOPIC = "/topic/admin/inbox";
     private final ConversationService conversationService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AdminInboxEventFactory adminInboxEventFactory;
 
     @PostMapping("/create")
     public ResponseEntity<AType> createConversation(@Valid @RequestBody ConversationReq req) {
@@ -35,7 +37,7 @@ public class ConversationController {
                 && body.getData() instanceof Conversation conversation) {
             messagingTemplate.convertAndSend(
                     ADMIN_INBOX_TOPIC,
-                    AdminInboxEvent.fromConversation("CONVERSATION_CREATED", conversation, null));
+                    adminInboxEventFactory.fromConversation("CONVERSATION_CREATED", conversation, null));
         }
         return response;
     }

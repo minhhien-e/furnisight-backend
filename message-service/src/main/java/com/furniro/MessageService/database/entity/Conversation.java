@@ -53,6 +53,8 @@ public class Conversation {
     @Builder.Default
     private String lastMessageContent = "";
 
+    private LocalDateTime closedAt;
+
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now(HO_CHI_MINH_ZONE);
 

@@ -138,6 +138,11 @@ public class MessageService {
     }
 
     private void moveBackToInProgressWhenCustomerReplies(Conversation conversation) {
+        if (com.furniro.MessageService.util.enums.ConversationStatus.CLOSED.equals(conversation.getStatus())) {
+            conversation.setStatus(com.furniro.MessageService.util.enums.ConversationStatus.OPEN);
+            return;
+        }
+
         if (com.furniro.MessageService.util.enums.ConversationStatus.WAITING_CUSTOMER.equals(conversation.getStatus())
                 || com.furniro.MessageService.util.enums.ConversationStatus.RESOLVED.equals(conversation.getStatus())) {
             conversation.setStatus(com.furniro.MessageService.util.enums.ConversationStatus.IN_PROGRESS);

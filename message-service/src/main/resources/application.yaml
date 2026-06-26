@@ -69,3 +69,9 @@ management:
   endpoint:
     health:
       show-details: always 
+
+grpc:
+  client:
+    user-service:
+      address: ${USER_SERVICE_GRPC_ADDRESS:static://localhost:9091}
+      negotiation-type: plaintext

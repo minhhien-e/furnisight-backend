@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 import com.furniro.MessageService.util.enums.MessageType;
@@ -16,6 +17,7 @@ import com.furniro.MessageService.util.enums.MessageType;
 @AllArgsConstructor
 @Builder
 public class Message {
+    private static final ZoneId HO_CHI_MINH_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,10 +64,10 @@ public class Message {
     private Boolean isRead = false;
 
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(HO_CHI_MINH_ZONE);
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(HO_CHI_MINH_ZONE);
     }
 }

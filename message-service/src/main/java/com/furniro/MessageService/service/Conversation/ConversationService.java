@@ -1,6 +1,8 @@
 package com.furniro.MessageService.service.Conversation;
 
 import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -16,8 +18,11 @@ import com.furniro.MessageService.dto.API.AType;
 import com.furniro.MessageService.dto.API.ApiType;
 import com.furniro.MessageService.dto.event.UploadActiveEvent;
 import com.furniro.MessageService.dto.req.Message.ConversationReq;
+import com.furniro.MessageService.dto.res.ConversationResponse;
+import com.furniro.MessageService.dto.res.CustomerProfile;
 import com.furniro.MessageService.exception.imp.MessageException;
 import com.furniro.MessageService.service.kafka.KafkaProducer;
+import com.furniro.MessageService.service.User.UserProfileGrpcClient;
 import com.furniro.MessageService.util.enums.ConversationChannel;
 import com.furniro.MessageService.util.enums.ConversationPriority;
 import com.furniro.MessageService.util.enums.ConversationStatus;
@@ -39,16 +44,14 @@ public class ConversationService {
     final ConversationRepository conversationRepository;
     final MessageRepository messageRepository;
     final KafkaProducer kafkaProducer;
+    final UserProfileGrpcClient userProfileGrpcClient;
 
     @Transactional
     public ResponseEntity<AType> createConversation(ConversationReq req) {
         ConversationChannel channel = req.getChannel() != null ? req.getChannel() : ConversationChannel.SUPPORT;
 
         Conversation existingConversation = conversationRepository
-            .findTopByBuyerIdAndChannelAndStatusNotOrderByUpdatedAtDesc(
-                req.getBuyerId(),
-                channel,
-                ConversationStatus.CLOSED);
+            .findTopByBuyerIdAndChannelOrderByUpdatedAtDesc(req.getBuyerId(), channel);
 
         if (existingConversation != null) {
             Message message = Message.builder()
@@ -68,7 +71,7 @@ public class ConversationService {
             existingConversation.setLastMessageAt(LocalDateTime.now(HO_CHI_MINH_ZONE));
             moveBackToInProgressWhenCustomerReplies(existingConversation);
             if (existingConversation.getStaffId() == null && req.getStaffId() != null) {
-            existingConversation.setStaffId(req.getStaffId());
+                existingConversation.setStaffId(req.getStaffId());
             }
 
             conversationRepository.save(existingConversation);
@@ -119,7 +122,9 @@ public class ConversationService {
 
         List<Conversation> conversations = conversationRepository.findAll();
 
-        List<Conversation> filtered = conversations.stream()
+        List<Conversation> latestByBuyerAndChannel = collapseLatestByBuyerAndChannel(conversations);
+
+        List<Conversation> filtered = latestByBuyerAndChannel.stream()
                 .filter(conversation -> channel == null || conversation.getChannel() == channel)
                 .filter(conversation -> statuses == null || statuses.isEmpty() || statuses.contains(conversation.getStatus()))
                 .filter(conversation -> priority == null || conversation.getPriority() == priority)
@@ -131,8 +136,14 @@ public class ConversationService {
         int end = Math.min((page + 1) * size, filtered.size());
         List<Conversation> pagedList = filtered.subList(start, end);
 
-        org.springframework.data.domain.Page<Conversation> pageResult = new org.springframework.data.domain.PageImpl<>(
-                pagedList,
+        Map<Integer, CustomerProfile> profilesByBuyerId = userProfileGrpcClient.resolveBuyerProfiles(
+                pagedList.stream().map(Conversation::getBuyerId).collect(Collectors.toSet()));
+        List<ConversationResponse> responseList = pagedList.stream()
+                .map(conversation -> ConversationResponse.from(conversation, profilesByBuyerId.get(conversation.getBuyerId())))
+                .toList();
+
+        org.springframework.data.domain.Page<ConversationResponse> pageResult = new org.springframework.data.domain.PageImpl<>(
+                responseList,
                 org.springframework.data.domain.PageRequest.of(page, size),
                 filtered.size()
         );
@@ -153,7 +164,8 @@ public class ConversationService {
         Conversation conversation = conversationRepository.findById(id)
                 .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
 
-        return ResponseEntity.ok(ApiType.success(conversation));
+        return ResponseEntity.ok(ApiType.success(
+                ConversationResponse.from(conversation, userProfileGrpcClient.resolveBuyerProfile(conversation.getBuyerId()))));
     }
 
     public ResponseEntity<AType> getConversationByChannel(ConversationChannel channel) {
@@ -165,7 +177,7 @@ public class ConversationService {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
 
-        conversation.setStatus(status);
+        applyStatus(conversation, status);
         conversationRepository.save(conversation);
         return ResponseEntity.ok(ApiType.success(conversation));
     }
@@ -198,16 +210,44 @@ public class ConversationService {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
 
-        conversation.setStatus(ConversationStatus.CLOSED);
+        applyStatus(conversation, ConversationStatus.CLOSED);
         conversationRepository.save(conversation);
 
         return ResponseEntity.ok(ApiType.success(conversation));
     }
 
     private void moveBackToInProgressWhenCustomerReplies(Conversation conversation) {
+        if (ConversationStatus.CLOSED.equals(conversation.getStatus())) {
+            conversation.setStatus(ConversationStatus.OPEN);
+            return;
+        }
+
         if (ConversationStatus.WAITING_CUSTOMER.equals(conversation.getStatus())
                 || ConversationStatus.RESOLVED.equals(conversation.getStatus())) {
             conversation.setStatus(ConversationStatus.IN_PROGRESS);
         }
+    }
+
+    private void applyStatus(Conversation conversation, ConversationStatus status) {
+        conversation.setStatus(status);
+        if (ConversationStatus.CLOSED.equals(status)) {
+            conversation.setClosedAt(LocalDateTime.now(HO_CHI_MINH_ZONE));
+        }
+    }
+
+    private List<Conversation> collapseLatestByBuyerAndChannel(List<Conversation> conversations) {
+        Map<String, Conversation> latestByKey = new LinkedHashMap<>();
+
+        conversations.stream()
+                .sorted(java.util.Comparator.comparing(
+                        Conversation::getUpdatedAt,
+                        java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())
+                ).reversed())
+                .forEach(conversation -> {
+                    String key = conversation.getBuyerId() + ":" + conversation.getChannel();
+                    latestByKey.putIfAbsent(key, conversation);
+                });
+
+        return latestByKey.values().stream().toList();
     }
 }

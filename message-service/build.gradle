@@ -37,6 +37,8 @@ dependencies {
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 	implementation 'io.github.cdimascio:dotenv-java:3.2.0'
+	implementation "net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE"
+	implementation 'com.furnisight:proto-lib:1.0.1782322385582'
 
 	runtimeOnly 'org.postgresql:postgresql'
 

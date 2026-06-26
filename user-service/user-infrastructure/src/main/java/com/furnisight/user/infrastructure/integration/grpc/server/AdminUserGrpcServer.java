@@ -126,7 +126,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                         .setName(resolveDisplayName(account, profile))
                         .setEmail(account.getEmail().getValue())
                         .setStatus(account.getStatus().name())
-                        .setPhone("")
+                        .setPhone(profile == null || profile.getId() == null ? "" : profile.getId().toString())
                         .addAllRoles(roleDtos)
                         .setCreatedAt(account.getCreatedAt() == null ? "" : account.getCreatedAt().toString())
                         .build();
@@ -257,7 +257,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .setEmail(account.getEmail().getValue())
                     .setUsername(account.getUsername().getValue())
                     .setName(resolveDisplayName(account, profile))
-                    .setPhone("")
+                    .setPhone(profile == null || profile.getId() == null ? "" : profile.getId().toString())
                     .setFirstName(profile == null || profile.getFirstName() == null ? "" : profile.getFirstName())
                     .setLastName(profile == null || profile.getLastName() == null ? "" : profile.getLastName())
                     .setAvatarUrl(profile == null || profile.getAvatarUrl() == null ? "" : profile.getAvatarUrl())
