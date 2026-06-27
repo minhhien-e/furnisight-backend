@@ -5,8 +5,11 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.furniro.MessageService.database.converter.MessageAttachmentListConverter;
+import com.furniro.MessageService.dto.MessageAttachment;
 import com.furniro.MessageService.util.enums.MessageType;
 
 @Entity
@@ -56,6 +59,11 @@ public class Message {
     private String attachmentType;
 
     private Long attachmentSize;
+
+    @Convert(converter = MessageAttachmentListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private List<MessageAttachment> attachments = List.of();
 
     @Builder.Default
     private Boolean isInternal = false;

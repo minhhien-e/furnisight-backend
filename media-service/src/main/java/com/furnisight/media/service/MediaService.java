@@ -28,6 +28,7 @@ import java.util.UUID;
 public class MediaService {
 
     private static final long PRODUCT_MODEL_MAX_SIZE_BYTES = 100L * 1024 * 1024;
+    private static final long CHAT_ATTACHMENT_MAX_SIZE_BYTES = 10L * 1024 * 1024;
 
     private final Cloudinary cloudinary;
     private final MediaAssetRepository mediaAssetRepository;
@@ -37,7 +38,7 @@ public class MediaService {
         validateInitRequest(request);
 
         MediaType mediaType = resolveMediaType(request.getContentType(), request.getFileName());
-        String publicId = buildPublicId(request);
+        String publicId = buildPublicId(request, mediaType);
 
         MediaAsset asset = MediaAsset.builder()
                 .cloudinaryPublicId(publicId)
@@ -219,6 +220,10 @@ public class MediaService {
         if (request.getSizeBytes() == null || request.getSizeBytes() <= 0) {
             throw new IllegalArgumentException("sizeBytes must be greater than 0");
         }
+        if (request.getOwnerType() == com.furnisight.media.enums.OwnerType.CHAT
+                && request.getSizeBytes() > CHAT_ATTACHMENT_MAX_SIZE_BYTES) {
+            throw new IllegalArgumentException("Tệp đính kèm không được vượt quá 10MB. Vui lòng chọn tệp nhỏ hơn.");
+        }
         if (request.getOwnerType() == com.furnisight.media.enums.OwnerType.PRODUCT_MODEL) {
             String filename = request.getFileName().toLowerCase();
             String contentType = request.getContentType().toLowerCase();
@@ -235,14 +240,19 @@ public class MediaService {
         }
     }
 
-    private String buildPublicId(InitUploadRequest request) {
+    private String buildPublicId(InitUploadRequest request, MediaType mediaType) {
         String baseName = request.getFileName().replaceAll("\\.[^.]+$", "");
         String safeName = baseName.toLowerCase().replaceAll("[^a-z0-9_-]+", "-").replaceAll("(^-|-$)", "");
         if (safeName.isBlank()) {
             safeName = "media";
         }
 
-        return request.getOwnerId() + "/" + UUID.randomUUID() + "-" + safeName;
+        String publicId = request.getOwnerId() + "/" + UUID.randomUUID() + "-" + safeName;
+        String extension = fileExtension(request.getFileName());
+        if (MediaType.DOCUMENT.equals(mediaType) && !extension.isBlank()) {
+            return publicId + "." + extension;
+        }
+        return publicId;
     }
 
     boolean matchesInitializedPublicId(MediaAsset asset, String uploadedPublicId) {

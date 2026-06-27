@@ -38,6 +38,16 @@ public class MessageController {
         return messageService.getAllMessage(conversationID, page, size, includeInternal);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<AType> searchMessages(
+            @RequestParam Integer conversationID,
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(defaultValue = "false") Boolean includeInternal) {
+        return messageService.searchMessages(conversationID, query, page, size, includeInternal);
+    }
+
     @PatchMapping("/{messageID}/read")
     public ResponseEntity<AType> markAsRead(@PathVariable Integer messageID) {
         return messageService.isRead(messageID);

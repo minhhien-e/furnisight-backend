@@ -16,6 +16,7 @@ import com.furniro.MessageService.database.repository.ConversationRepository;
 import com.furniro.MessageService.database.repository.MessageRepository;
 import com.furniro.MessageService.dto.API.AType;
 import com.furniro.MessageService.dto.API.ApiType;
+import com.furniro.MessageService.dto.MessageAttachment;
 import com.furniro.MessageService.dto.event.UploadActiveEvent;
 import com.furniro.MessageService.dto.req.Message.ConversationReq;
 import com.furniro.MessageService.dto.res.ConversationResponse;
@@ -51,7 +52,9 @@ public class ConversationService {
         ConversationChannel channel = req.getChannel() != null ? req.getChannel() : ConversationChannel.SUPPORT;
 
         Conversation existingConversation = conversationRepository
-            .findTopByBuyerIdAndChannelOrderByUpdatedAtDesc(req.getBuyerId(), channel);
+            .findTopByBuyerIdOrderByUpdatedAtDesc(req.getBuyerId());
+        List<MessageAttachment> attachments = normalizeAttachments(req);
+        MessageAttachment primaryAttachment = attachments.isEmpty() ? null : attachments.get(0);
 
         if (existingConversation != null) {
             Message message = Message.builder()
@@ -61,6 +64,13 @@ public class ConversationService {
                     : (existingConversation.getStaffId() != null ? existingConversation.getStaffId() : 1))
                 .content(req.getMessage())
                 .type(req.getMessageType())
+                .fileId(req.getFileId())
+                .mediaId(primaryAttachment != null ? primaryAttachment.getMediaId() : req.getMediaId())
+                .attachmentUrl(primaryAttachment != null ? primaryAttachment.getUrl() : req.getAttachmentUrl())
+                .attachmentName(primaryAttachment != null ? primaryAttachment.getName() : req.getAttachmentName())
+                .attachmentType(primaryAttachment != null ? primaryAttachment.getType() : req.getAttachmentType())
+                .attachmentSize(primaryAttachment != null ? primaryAttachment.getSize() : req.getAttachmentSize())
+                .attachments(attachments)
                 .build();
 
             if (MessageType.IMAGE.equals(req.getMessageType())) {
@@ -98,6 +108,13 @@ public class ConversationService {
                 .receiverId(req.getStaffId() != null ? req.getStaffId() : 1)
                 .content(req.getMessage())
                 .type(req.getMessageType())
+                .fileId(req.getFileId())
+                .mediaId(primaryAttachment != null ? primaryAttachment.getMediaId() : req.getMediaId())
+                .attachmentUrl(primaryAttachment != null ? primaryAttachment.getUrl() : req.getAttachmentUrl())
+                .attachmentName(primaryAttachment != null ? primaryAttachment.getName() : req.getAttachmentName())
+                .attachmentType(primaryAttachment != null ? primaryAttachment.getType() : req.getAttachmentType())
+                .attachmentSize(primaryAttachment != null ? primaryAttachment.getSize() : req.getAttachmentSize())
+                .attachments(attachments)
                 .build();
 
         // 3 if message type is Image , send kafka active image
@@ -122,9 +139,9 @@ public class ConversationService {
 
         List<Conversation> conversations = conversationRepository.findAll();
 
-        List<Conversation> latestByBuyerAndChannel = collapseLatestByBuyerAndChannel(conversations);
+        List<Conversation> latestByBuyer = collapseLatestByBuyer(conversations);
 
-        List<Conversation> filtered = latestByBuyerAndChannel.stream()
+        List<Conversation> filtered = latestByBuyer.stream()
                 .filter(conversation -> channel == null || conversation.getChannel() == channel)
                 .filter(conversation -> statuses == null || statuses.isEmpty() || statuses.contains(conversation.getStatus()))
                 .filter(conversation -> priority == null || conversation.getPriority() == priority)
@@ -235,7 +252,7 @@ public class ConversationService {
         }
     }
 
-    private List<Conversation> collapseLatestByBuyerAndChannel(List<Conversation> conversations) {
+    private List<Conversation> collapseLatestByBuyer(List<Conversation> conversations) {
         Map<String, Conversation> latestByKey = new LinkedHashMap<>();
 
         conversations.stream()
@@ -244,10 +261,34 @@ public class ConversationService {
                         java.util.Comparator.nullsLast(java.util.Comparator.naturalOrder())
                 ).reversed())
                 .forEach(conversation -> {
-                    String key = conversation.getBuyerId() + ":" + conversation.getChannel();
+                    String key = String.valueOf(conversation.getBuyerId());
                     latestByKey.putIfAbsent(key, conversation);
                 });
 
         return latestByKey.values().stream().toList();
+    }
+
+    private List<MessageAttachment> normalizeAttachments(ConversationReq req) {
+        if (req.getAttachments() != null && !req.getAttachments().isEmpty()) {
+            return req.getAttachments();
+        }
+
+        boolean hasLegacyAttachment = req.getAttachmentUrl() != null
+                || req.getAttachmentName() != null
+                || req.getMediaId() != null
+                || req.getFileId() != null;
+        if (!hasLegacyAttachment) {
+            return List.of();
+        }
+
+        return List.of(MessageAttachment.builder()
+                .mediaId(req.getMediaId())
+                .url(req.getAttachmentUrl())
+                .name(req.getAttachmentName())
+                .type(req.getAttachmentType())
+                .size(req.getAttachmentSize())
+                .isImage(MessageType.IMAGE.equals(req.getMessageType())
+                        || (req.getAttachmentType() != null && req.getAttachmentType().startsWith("image/")))
+                .build());
     }
 }
