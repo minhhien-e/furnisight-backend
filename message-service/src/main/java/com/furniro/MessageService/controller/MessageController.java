@@ -15,6 +15,7 @@ import com.furniro.MessageService.dto.API.AType;
 import com.furniro.MessageService.dto.API.ApiType;
 import com.furniro.MessageService.database.entity.Message;
 import com.furniro.MessageService.dto.req.Message.MessageReq;
+import com.furniro.MessageService.service.Conversation.AdminInboxEventFactory;
 import com.furniro.MessageService.service.Conversation.MessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -23,8 +24,10 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/message")
 @RequiredArgsConstructor
 public class MessageController {
+    private static final String ADMIN_INBOX_TOPIC = "/topic/admin/inbox";
     private final MessageService messageService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final AdminInboxEventFactory adminInboxEventFactory;
 
     @GetMapping
     public ResponseEntity<AType> getMessages(
@@ -33,6 +36,16 @@ public class MessageController {
             @RequestParam(defaultValue = "20") Integer size,
             @RequestParam(defaultValue = "false") Boolean includeInternal) {
         return messageService.getAllMessage(conversationID, page, size, includeInternal);
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<AType> searchMessages(
+            @RequestParam Integer conversationID,
+            @RequestParam String query,
+            @RequestParam(defaultValue = "0") Integer page,
+            @RequestParam(defaultValue = "20") Integer size,
+            @RequestParam(defaultValue = "false") Boolean includeInternal) {
+        return messageService.searchMessages(conversationID, query, page, size, includeInternal);
     }
 
     @PatchMapping("/{messageID}/read")
@@ -70,5 +83,10 @@ public class MessageController {
                 ? "/topic/conversation/" + req.getConversationId() + "/internal"
                 : "/topic/conversation/" + req.getConversationId();
         messagingTemplate.convertAndSend(topic, message);
+        if (!Boolean.TRUE.equals(req.getIsInternal())) {
+            messagingTemplate.convertAndSend(
+                    ADMIN_INBOX_TOPIC,
+                    adminInboxEventFactory.fromConversation("MESSAGE_CREATED", message.getConversation(), message));
+        }
     }
 }

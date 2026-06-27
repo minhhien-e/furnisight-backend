@@ -1,16 +1,22 @@
 package com.furniro.MessageService.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import com.furniro.MessageService.database.entity.Conversation;
 import com.furniro.MessageService.dto.API.AType;
+import com.furniro.MessageService.dto.API.ApiType;
+import com.furniro.MessageService.dto.event.AdminInboxEvent;
 import com.furniro.MessageService.dto.req.Message.ConversationReq;
 import com.furniro.MessageService.exception.BaseException;
+import com.furniro.MessageService.service.Conversation.AdminInboxEventFactory;
 import com.furniro.MessageService.util.enums.ConversationPriority;
 import com.furniro.MessageService.util.enums.ConversationChannel;
 import com.furniro.MessageService.util.enums.ConversationStatus;
 
 import jakarta.validation.Valid;
+import java.util.List;
 import com.furniro.MessageService.service.Conversation.ConversationService;
 
 import lombok.RequiredArgsConstructor;
@@ -19,11 +25,21 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/conversation")
 @RequiredArgsConstructor
 public class ConversationController {
+    private static final String ADMIN_INBOX_TOPIC = "/topic/admin/inbox";
     private final ConversationService conversationService;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final AdminInboxEventFactory adminInboxEventFactory;
 
     @PostMapping("/create")
     public ResponseEntity<AType> createConversation(@Valid @RequestBody ConversationReq req) {
-        return conversationService.createConversation(req);
+        ResponseEntity<AType> response = conversationService.createConversation(req);
+        if (response.getBody() instanceof ApiType<?> body
+                && body.getData() instanceof Conversation conversation) {
+            messagingTemplate.convertAndSend(
+                    ADMIN_INBOX_TOPIC,
+                    adminInboxEventFactory.fromConversation("CONVERSATION_CREATED", conversation, null));
+        }
+        return response;
     }
 
     @GetMapping("/all/{userId}")
@@ -43,12 +59,13 @@ public class ConversationController {
 
     @GetMapping("/admin/inbox")
     public ResponseEntity<AType> getAdminInbox(
-            @RequestParam(required = false) ConversationChannel channel,
-            @RequestParam(required = false) ConversationStatus status,
-            @RequestParam(required = false) ConversationPriority priority,
-            @RequestParam(required = false) Integer assignedAdminId,
-            @RequestParam(defaultValue = "false") Boolean unreadOnly) {
-        return conversationService.getAdminInbox(channel, status, priority, assignedAdminId, unreadOnly);
+            @RequestParam(name = "channel", required = false) ConversationChannel channel,
+            @RequestParam(name = "statuses", required = false) List<ConversationStatus> statuses,
+            @RequestParam(name = "priority", required = false) ConversationPriority priority,
+            @RequestParam(name = "assignedAdminId", required = false) Integer assignedAdminId,
+            @RequestParam(name = "page", defaultValue = "0") int page,
+            @RequestParam(name = "size", defaultValue = "20") int size) {
+        return conversationService.getAdminInbox(channel, statuses, priority, assignedAdminId, page, size);
     }
 
     @PatchMapping("/{id}/assign/{adminId}")

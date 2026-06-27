@@ -361,8 +361,13 @@ services:
       <<: *java-build
     env_file:
       - ./message-service/.env
+    environment:
+      SERVER_PORT: 8080
+      USER_SERVICE_GRPC_ADDRESS: static://user-service:9091
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+      user-service:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
       interval: 10s
