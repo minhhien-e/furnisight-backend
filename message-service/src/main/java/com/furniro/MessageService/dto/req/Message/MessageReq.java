@@ -1,7 +1,9 @@
 package com.furniro.MessageService.dto.req.Message;
 
 import com.furniro.MessageService.util.enums.MessageType;
+import com.furniro.MessageService.dto.MessageAttachment;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -18,5 +20,11 @@ public class MessageReq {
     private Integer senderId;
     private MessageType messageType;
     private Integer fileId;
+    private String mediaId;
+    private String attachmentUrl;
+    private String attachmentName;
+    private String attachmentType;
+    private Long attachmentSize;
+    private List<MessageAttachment> attachments;
     private Boolean isInternal;
 }

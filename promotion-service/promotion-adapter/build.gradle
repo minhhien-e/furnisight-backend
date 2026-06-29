@@ -10,7 +10,7 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-validation'
     api "net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE"
     implementation "net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE"
-    api 'com.furnisight:proto-lib:1.0.1782322385582'
+    api 'com.furnisight:proto-lib:1.0.1782520000001'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.flywaydb:flyway-core'

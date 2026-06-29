@@ -12,6 +12,7 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SearchProductsQuery {
+    private String lang;
     private String q;
     private String category;
     private String sort;

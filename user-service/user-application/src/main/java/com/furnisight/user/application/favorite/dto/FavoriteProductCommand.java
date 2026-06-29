@@ -4,6 +4,7 @@ import java.util.UUID;
 
 public record FavoriteProductCommand(
     UUID accountId,
-    UUID productId
+    UUID productId,
+    String locale
 ) {
 }

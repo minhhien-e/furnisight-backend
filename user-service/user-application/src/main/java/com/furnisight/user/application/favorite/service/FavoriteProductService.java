@@ -27,7 +27,10 @@ public class FavoriteProductService implements FavoriteProductUseCase {
                 new FavoriteProduct(command.accountId(), command.productId())
             ));
 
-        var products = catalogFavoriteProductService.getFavoriteProductSummaries(List.of(favorite.getProductId()));
+        var products = catalogFavoriteProductService.getFavoriteProductSummaries(
+                List.of(favorite.getProductId()),
+                command.locale()
+        );
         return FavoriteProductResponse.from(favorite, products.get(favorite.getProductId()));
     }
 }

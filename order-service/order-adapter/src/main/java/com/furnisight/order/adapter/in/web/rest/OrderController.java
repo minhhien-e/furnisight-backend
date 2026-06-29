@@ -9,6 +9,7 @@ import com.furnisight.order.application.order.port.in.dto.OrderResponse;
 import com.furnisight.order.adapter.in.web.dto.response.ProductPurchaseCheckResponse;
 import com.furnisight.order.domain.repository.order.OrderStatusHistoryRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,20 +26,32 @@ public class OrderController {
     private final UpdateOrderStatusUseCase updateOrderStatusUseCase;
     private final com.furnisight.order.application.common.port.in.CurrentUserProvider currentUserProvider;
     private final OrderStatusHistoryRepository orderStatusHistoryRepository;
+    private final OrderTranslationService orderTranslationService;
 
     @PostMapping("/initiate")
     @PreAuthorize("isAuthenticated() and !hasRole('ADMIN')")
-    public ResponseEntity<OrderResponse> initiateOrder(@RequestBody CreateOrderCommand command) {
+    public ResponseEntity<OrderResponse> initiateOrder(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @RequestBody CreateOrderCommand command) {
         command.setUserId(currentUserProvider.getCurrentUserId());
-        return ResponseEntity.ok(createOrderUseCase.createOrder(command));
+        return ResponseEntity.ok(orderTranslationService.localizeOrder(
+                createOrderUseCase.createOrder(command),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @GetMapping("/user")
-    public ResponseEntity<List<OrderResponse>> getUserOrders() {
+    public ResponseEntity<List<OrderResponse>> getUserOrders(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang) {
         UUID userId = currentUserProvider.getCurrentUserId();
         List<Order> orders = getOrderQuery.getUserOrders(userId);
 
-        return ResponseEntity.ok(orders.stream().map(OrderResponse::summary).toList());
+        return ResponseEntity.ok(orderTranslationService.localizeOrders(
+                orders.stream().map(OrderResponse::summary).toList(),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @GetMapping("/user/products/{productId}/purchased")
@@ -53,10 +66,16 @@ public class OrderController {
     }
 
     @GetMapping("/{orderCode}")
-    public ResponseEntity<OrderResponse> getOrderDetail(@PathVariable String orderCode) {
+    public ResponseEntity<OrderResponse> getOrderDetail(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @PathVariable String orderCode) {
         Order order = getOrderQuery.getOrderDetail(orderCode);
 
-        return ResponseEntity.ok(OrderResponse.detail(order, orderStatusHistoryRepository.findByOrderId(order.getId())));
+        return ResponseEntity.ok(orderTranslationService.localizeOrder(
+                OrderResponse.detail(order, orderStatusHistoryRepository.findByOrderId(order.getId())),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @GetMapping("/admin")
@@ -91,6 +110,12 @@ public class OrderController {
         UUID userId = currentUserProvider.getCurrentUserId();
         updateOrderStatusUseCase.cancelOrder(orderCode, userId);
         return ResponseEntity.noContent().build();
+    }
+
+    private String resolveLocale(String lang, String acceptLanguage) {
+        return orderTranslationService.normalizeLang(
+                lang != null && !lang.isBlank() ? lang : acceptLanguage
+        );
     }
 
 }

@@ -16,6 +16,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
+import com.furnisight.catalog.application.product.service.ProductTranslationService;
+import org.springframework.http.HttpHeaders;
 
 @RestController
 @RequestMapping("/products")
@@ -32,6 +34,7 @@ public class ProductController {
     private final GetTopProductsUseCase getTopProductsUseCase;
     private final ChangeProductCategoryUseCase changeProductCategoryUseCase;
     private final GetWeeklyFavoriteProductsUseCase getWeeklyFavoriteProductsUseCase;
+    private final ProductTranslationService productTranslationService;
 
     // ─── COMMANDS ────────────────────────────────────────────────────────────
 
@@ -149,6 +152,8 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<PageResponse<ProductResponse>> searchProducts(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
             @RequestParam(name = "q", required = false) String q,
             @RequestParam(name = "category", required = false) String category,
             @RequestParam(name = "sort", required = false) String sort,
@@ -165,6 +170,7 @@ public class ProductController {
         int backendPage = Math.max(0, page > 0 ? page - 1 : 0);
 
         SearchProductsQuery queryParam = SearchProductsQuery.builder()
+                .lang(resolveLang(lang, acceptLanguage))
                 .q(q)
                 .category(category)
                 .sort(sort)
@@ -184,23 +190,40 @@ public class ProductController {
     }
 
     @GetMapping(name = "slug", value = "/{slug}")
-    public ResponseEntity<ProductResponse> getProductDetail(@PathVariable(name = "slug") String slug) {
-        GetProductDetailQuery query = new GetProductDetailQuery(slug);
+    public ResponseEntity<ProductResponse> getProductDetail(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @PathVariable(name = "slug") String slug) {
+        GetProductDetailQuery query = new GetProductDetailQuery(slug, resolveLang(lang, acceptLanguage));
         ProductResponse result = getProductDetailQueryUseCase.execute(query);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/top")
     public ResponseEntity<List<ProductResponse>> getTopProducts(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
-        List<ProductResponse> results = getTopProductsUseCase.execute(limit);
+        List<ProductResponse> results = getTopProductsUseCase.execute(limit, resolveLang(lang, acceptLanguage));
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/favorite-weekly")
     public ResponseEntity<List<ProductResponse>> getWeeklyFavoriteProducts(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
             @RequestParam(name = "limit", defaultValue = "5") int limit) {
-        List<ProductResponse> results = getWeeklyFavoriteProductsUseCase.execute(limit);
+        List<ProductResponse> results = getWeeklyFavoriteProductsUseCase.execute(limit, resolveLang(lang, acceptLanguage));
         return ResponseEntity.ok(results);
+    }
+
+    private String resolveLang(String langParam, String acceptLanguage) {
+        if (langParam != null && !langParam.isBlank()) {
+            return productTranslationService.normalizeLang(langParam);
+        }
+        if (acceptLanguage != null && !acceptLanguage.isBlank()) {
+            return productTranslationService.normalizeLang(acceptLanguage);
+        }
+        return ProductTranslationService.SOURCE_LANG_VI;
     }
 }

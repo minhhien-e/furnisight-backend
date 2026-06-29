@@ -794,9 +794,6 @@ INSERT INTO
         slug,
         description,
         product_status,
-        model_url,
-        model_media_id,
-        supports_3d,
         features,
         sold_count,
         created_at,
@@ -809,9 +806,6 @@ VALUES (
         'modern-leather-sofa',
         'Ghế sofa da bò cao cấp, dáng gọn và sang trọng cho phòng khách hiện đại.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Da bò thật","Khung gỗ sồi","Dễ vệ sinh","Đệm ngồi êm"]',
         24,
         NOW(),
@@ -824,9 +818,6 @@ VALUES (
         'fabric-sectional-sofa',
         'Sofa vải chữ L rộng rãi, phù hợp phòng khách gia đình và không gian mở.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Vải nỉ cao cấp","Thiết kế chữ L","Đệm mút dày","Có thể tháo vỏ"]',
         17,
         NOW(),
@@ -839,9 +830,6 @@ VALUES (
         'minimalist-oak-coffee-table',
         'Bàn trà gỗ sồi phong cách tối giản, dễ phối với sofa và thảm phòng khách.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Gỗ sồi tự nhiên","Mặt bàn chống trầy","Kiểu dáng tối giản"]',
         31,
         NOW(),
@@ -854,9 +842,6 @@ VALUES (
         'king-size-metal-bed',
         'Giường king size khung kim loại chắc chắn, rộng rãi và dễ vệ sinh gầm giường.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Sơn tĩnh điện","Khung thép chịu lực","Dễ lắp ráp","Không gây tiếng kêu"]',
         12,
         NOW(),
@@ -869,9 +854,6 @@ VALUES (
         'queen-size-wooden-bed',
         'Giường queen size bằng gỗ tự nhiên, tông ấm và phù hợp phòng ngủ thư giãn.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Gỗ thông tự nhiên","Phong cách ấm áp","Nan giường chắc chắn"]',
         20,
         NOW(),
@@ -884,9 +866,6 @@ VALUES (
         'sliding-door-wardrobe',
         'Tủ quần áo cửa trượt rộng rãi, tích hợp gương và chia ngăn khoa học.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Cửa trượt tiết kiệm diện tích","Tích hợp gương lớn","Gỗ MDF phủ Melamine"]',
         9,
         NOW(),
@@ -899,9 +878,6 @@ VALUES (
         'marble-top-dining-table',
         'Bàn ăn mặt đá cẩm thạch sang trọng, phù hợp phòng bếp và khu vực ăn gia đình.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Mặt đá cẩm thạch","Chân bàn kim loại","Dễ lau chùi","Phong cách hiện đại"]',
         8,
         NOW(),
@@ -914,9 +890,6 @@ VALUES (
         'light-wood-kitchen-cabinet',
         'Tủ bếp gỗ sáng màu có nhiều ngăn lưu trữ, giúp khu bếp gọn gàng và sạch sẽ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Gỗ công nghiệp chống ẩm","Tay nắm âm","Dễ lau dầu mỡ","Nhiều khoang chứa"]',
         6,
         NOW(),
@@ -929,9 +902,6 @@ VALUES (
         'wall-mounted-bathroom-vanity',
         'Tủ lavabo treo tường chống ẩm, giúp phòng tắm thoáng và dễ vệ sinh sàn.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Chống ẩm tốt","Thiết kế treo tường","Ngăn kéo giảm chấn","Mặt lavabo dễ lau"]',
         15,
         NOW(),
@@ -944,9 +914,6 @@ VALUES (
         'led-bathroom-mirror',
         'Gương phòng tắm tích hợp đèn LED, ánh sáng dịu và phù hợp khu vực lavabo.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Đèn LED tiết kiệm điện","Chống mờ nhẹ","Ánh sáng trung tính","Dễ lắp đặt"]',
         27,
         NOW(),
@@ -959,9 +926,6 @@ VALUES (
         'nordic-loveseat-sofa',
         'Sofa văng nhỏ gọn phong cách Bắc Âu, phù hợp căn hộ và phòng khách vừa.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Vải bố thoáng khí","Chân gỗ cao su","Đệm rời dễ vệ sinh"]',
         18,
         NOW(),
@@ -974,9 +938,6 @@ VALUES (
         'beige-modular-sofa',
         'Sofa module linh hoạt, có thể ghép nhiều cấu hình cho không gian sinh hoạt chung.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Module linh hoạt","Màu be dễ phối","Đệm lưng lớn","Khung gỗ chắc chắn"]',
         14,
         NOW(),
@@ -989,9 +950,6 @@ VALUES (
         'relaxing-armchair-sofa',
         'Ghế sofa đơn có tựa rộng, dùng làm ghế đọc sách hoặc ghế thư giãn.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Tựa lưng êm","Chân kim loại sơn tĩnh điện","Phù hợp góc đọc sách"]',
         22,
         NOW(),
@@ -1004,9 +962,6 @@ VALUES (
         'smoked-glass-coffee-table',
         'Bàn trà mặt kính khói hiện đại, tạo điểm nhấn nhẹ cho phòng khách.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Mặt kính cường lực","Khung thép mảnh","Dễ lau chùi"]',
         11,
         NOW(),
@@ -1019,9 +974,6 @@ VALUES (
         'round-white-stone-coffee-table',
         'Bàn trà tròn mặt đá trắng, kiểu dáng mềm mại và sang trọng.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Mặt đá nhân tạo","Chân kim loại vàng","Bo cạnh an toàn"]',
         16,
         NOW(),
@@ -1034,9 +986,6 @@ VALUES (
         'double-drawer-coffee-table',
         'Bàn trà có hai ngăn kéo, giúp lưu trữ remote, sách và phụ kiện nhỏ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Hai ngăn kéo","Gỗ MDF phủ veneer","Ray kéo êm"]',
         9,
         NOW(),
@@ -1049,9 +998,6 @@ VALUES (
         'walnut-oval-coffee-table',
         'Bàn trà oval gỗ óc chó, đường nét mềm và màu gỗ ấm.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Gỗ óc chó veneer","Dáng oval","Chân bàn vát cạnh"]',
         13,
         NOW(),
@@ -1064,9 +1010,6 @@ VALUES (
         'upholstered-high-headboard-bed',
         'Giường bọc nệm với đầu giường cao, tạo cảm giác êm và sang cho phòng ngủ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Đầu giường bọc nệm","Khung gỗ chịu lực","Vải nhung mềm"]',
         19,
         NOW(),
@@ -1079,9 +1022,6 @@ VALUES (
         'storage-drawer-bed',
         'Giường ngủ tích hợp hộc kéo dưới gầm, tối ưu lưu trữ chăn ga.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Hộc kéo rộng","Nan giường chắc","Tối ưu diện tích"]',
         15,
         NOW(),
@@ -1094,9 +1034,6 @@ VALUES (
         'japanese-low-platform-bed',
         'Giường platform thấp kiểu Nhật, tối giản và tạo cảm giác phòng rộng hơn.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Thiết kế thấp","Gỗ cao su ghép","Phong cách tối giản"]',
         21,
         NOW(),
@@ -1109,9 +1046,6 @@ VALUES (
         'glass-door-wardrobe',
         'Tủ quần áo cánh kính hiện đại, có đèn hắt nhẹ và khoang treo rộng.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Cánh kính khung nhôm","Đèn LED hắt","Khoang treo dài"]',
         8,
         NOW(),
@@ -1124,9 +1058,6 @@ VALUES (
         'three-door-oak-wardrobe',
         'Tủ áo ba cánh gỗ sồi sáng màu, chia ngăn đơn giản và dễ dùng.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Ba cánh mở","Gỗ sồi veneer","Ngăn kéo dưới"]',
         10,
         NOW(),
@@ -1139,9 +1070,6 @@ VALUES (
         'modular-built-in-wardrobe',
         'Tủ áo module thiết kế âm tường, phù hợp phòng ngủ cần tối ưu diện tích.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Module lắp ghép","Tay nắm âm","Tối ưu không gian"]',
         7,
         NOW(),
@@ -1154,9 +1082,6 @@ VALUES (
         'pastel-kids-wardrobe',
         'Tủ áo trẻ em màu pastel, chiều cao vừa tầm và bo góc an toàn.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Màu pastel","Bo góc an toàn","Thanh treo thấp"]',
         12,
         NOW(),
@@ -1169,9 +1094,6 @@ VALUES (
         'six-seat-oak-dining-table',
         'Bàn ăn gỗ sồi cho sáu người, bề mặt rộng và vân gỗ tự nhiên.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Gỗ sồi tự nhiên","Sáu chỗ ngồi","Mặt bàn phủ dầu"]',
         17,
         NOW(),
@@ -1184,9 +1106,6 @@ VALUES (
         'round-rotating-dining-table',
         'Bàn ăn tròn có mâm xoay giữa, tiện cho bữa ăn gia đình.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Mâm xoay tiện dụng","Chân trụ chắc","Mặt bàn chống thấm"]',
         6,
         NOW(),
@@ -1199,9 +1118,6 @@ VALUES (
         'mini-kitchen-island-table',
         'Bàn đảo bếp mini kết hợp mặt chuẩn bị đồ ăn và kệ lưu trữ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Kệ mở tiện dụng","Bánh xe khóa được","Mặt bàn chống nước"]',
         11,
         NOW(),
@@ -1214,9 +1130,6 @@ VALUES (
         'extendable-smart-dining-table',
         'Bàn ăn có thể mở rộng khi cần, phù hợp nhà nhỏ và gia đình đông khách.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Mặt bàn mở rộng","Ray trượt chắc","Thiết kế gọn"]',
         13,
         NOW(),
@@ -1229,9 +1142,6 @@ VALUES (
         'moisture-resistant-l-kitchen-cabinet',
         'Tủ bếp chữ L chống ẩm, chia khoang hợp lý cho căn bếp gia đình.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Chống ẩm tốt","Thiết kế chữ L","Bản lề giảm chấn"]',
         5,
         NOW(),
@@ -1244,9 +1154,6 @@ VALUES (
         'frosted-glass-upper-cabinet',
         'Tủ bếp trên cánh kính mờ, giúp khu bếp nhẹ và dễ tìm đồ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Cánh kính mờ","Khung nhôm nhẹ","Kệ chia tầng"]',
         8,
         NOW(),
@@ -1259,9 +1166,6 @@ VALUES (
         'premium-island-kitchen-cabinet',
         'Hệ tủ bếp kèm đảo bếp cao cấp, phù hợp không gian bếp mở.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Đảo bếp rộng","Mặt đá chống thấm","Khoang máy rửa chén"]',
         4,
         NOW(),
@@ -1274,9 +1178,6 @@ VALUES (
         'apartment-mini-kitchen-cabinet',
         'Tủ bếp mini cho căn hộ, đầy đủ khoang rửa, khoang nấu và lưu trữ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Kích thước gọn","Khoang lưu trữ thông minh","Dễ vệ sinh"]',
         10,
         NOW(),
@@ -1289,9 +1190,6 @@ VALUES (
         'walnut-bathroom-vanity',
         'Tủ lavabo gỗ óc chó chống ẩm, tông trầm sang trọng cho phòng tắm.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Gỗ óc chó veneer","Chống ẩm","Ngăn kéo giảm chấn"]',
         9,
         NOW(),
@@ -1304,9 +1202,6 @@ VALUES (
         'double-sink-bathroom-vanity',
         'Tủ lavabo đôi cho phòng tắm lớn, hai khoang rửa tiện dụng.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Hai lavabo","Mặt đá nhân tạo","Ngăn kéo rộng"]',
         6,
         NOW(),
@@ -1319,9 +1214,6 @@ VALUES (
         'floor-standing-bathroom-vanity',
         'Tủ lavabo chân đứng chắc chắn, dễ lắp đặt và có nhiều ngăn chứa.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Chân đứng chắc","Nhiều ngăn chứa","Mặt sứ dễ lau"]',
         14,
         NOW(),
@@ -1334,9 +1226,6 @@ VALUES (
         'minimalist-bathroom-vanity',
         'Tủ lavabo tối giản màu trắng, phù hợp phòng tắm nhỏ và sáng.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Màu trắng sạch","Thiết kế gọn","Tay nắm âm"]',
         18,
         NOW(),
@@ -1349,9 +1238,6 @@ VALUES (
         'round-brass-bathroom-mirror',
         'Gương tròn viền đồng tạo điểm nhấn ấm áp cho khu lavabo.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Viền đồng mảnh","Dáng tròn mềm","Móc treo chắc"]',
         20,
         NOW(),
@@ -1364,9 +1250,6 @@ VALUES (
         'moisture-resistant-full-length-mirror',
         'Gương soi toàn thân chống ẩm, dùng được cho phòng tắm hoặc phòng thay đồ.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Chống ẩm","Kích thước lớn","Khung nhôm nhẹ"]',
         11,
         NOW(),
@@ -1379,9 +1262,6 @@ VALUES (
         'touch-led-bathroom-mirror',
         'Gương LED cảm ứng với ba chế độ sáng, tiện cho trang điểm và chăm sóc da.',
         'ACTIVE',
-        NULL,
-        NULL,
-        TRUE,
         '["Cảm ứng chạm","Ba chế độ sáng","Chống mờ nhẹ"]',
         23,
         NOW(),
@@ -1394,9 +1274,6 @@ VALUES (
         'rounded-rectangle-bathroom-mirror',
         'Gương chữ nhật bo góc, kiểu dáng hiện đại và dễ phối nội thất phòng tắm.',
         'ACTIVE',
-        NULL,
-        NULL,
-        FALSE,
         '["Bo góc an toàn","Khung mảnh","Dễ lắp đặt"]',
         15,
         NOW(),
@@ -1773,7 +1650,10 @@ INSERT INTO
         sku,
         low_stock_threshold,
         created_at,
-        updated_at
+        updated_at,
+        model_url,
+        model_media_id,
+        supports_3d
     )
 VALUES (
         'a0000001-0000-0000-0000-000000000001',
@@ -1790,7 +1670,10 @@ VALUES (
         'SOFA-DA-NAU-200',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000001-0000-0000-0000-000000000002',
@@ -1807,7 +1690,10 @@ VALUES (
         'SOFA-DA-DEN-220',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000002-0000-0000-0000-000000000001',
@@ -1824,7 +1710,10 @@ VALUES (
         'SOFA-VAI-L-XAM',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000003-0000-0000-0000-000000000001',
@@ -1841,7 +1730,10 @@ VALUES (
         'BAN-TRA-SOI-100',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000004-0000-0000-0000-000000000001',
@@ -1858,7 +1750,10 @@ VALUES (
         'GIUONG-KING-KL',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000005-0000-0000-0000-000000000001',
@@ -1875,7 +1770,10 @@ VALUES (
         'GIUONG-QUEEN-GO',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000006-0000-0000-0000-000000000001',
@@ -1892,7 +1790,10 @@ VALUES (
         'TU-AO-TRUOT-220',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000007-0000-0000-0000-000000000001',
@@ -1909,7 +1810,10 @@ VALUES (
         'BAN-AN-DA-180',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000008-0000-0000-0000-000000000001',
@@ -1926,7 +1830,10 @@ VALUES (
         'TU-BEP-SOI-240',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000009-0000-0000-0000-000000000001',
@@ -1943,7 +1850,10 @@ VALUES (
         'LAVABO-TREO-90',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000010-0000-0000-0000-000000000001',
@@ -1960,7 +1870,10 @@ VALUES (
         'GUONG-LED-80-DEN',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000010-0000-0000-0000-000000000002',
@@ -1977,7 +1890,10 @@ VALUES (
         'GUONG-LED-90-XAM',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000011-0000-0000-0000-000000000001',
@@ -1994,7 +1910,10 @@ VALUES (
         'SOFA-VANG-BACAU',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000012-0000-0000-0000-000000000001',
@@ -2011,7 +1930,10 @@ VALUES (
         'SOFA-MODULE-BE',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000013-0000-0000-0000-000000000001',
@@ -2028,7 +1950,10 @@ VALUES (
         'SOFA-DON-THUGIAN',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000014-0000-0000-0000-000000000001',
@@ -2045,7 +1970,10 @@ VALUES (
         'BAN-TRA-KINH-KHOI',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000015-0000-0000-0000-000000000001',
@@ -2062,7 +1990,10 @@ VALUES (
         'BAN-TRA-TRON-DA',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000016-0000-0000-0000-000000000001',
@@ -2079,7 +2010,10 @@ VALUES (
         'BAN-TRA-NGAN-KEO',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000017-0000-0000-0000-000000000001',
@@ -2096,7 +2030,10 @@ VALUES (
         'BAN-TRA-OVAL-OCCHO',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000018-0000-0000-0000-000000000001',
@@ -2113,7 +2050,10 @@ VALUES (
         'GIUONG-NEM-DAUCAO',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000019-0000-0000-0000-000000000001',
@@ -2130,7 +2070,10 @@ VALUES (
         'GIUONG-HOC-KEO',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000020-0000-0000-0000-000000000001',
@@ -2147,7 +2090,10 @@ VALUES (
         'GIUONG-KIEU-NHAT',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000021-0000-0000-0000-000000000001',
@@ -2164,7 +2110,10 @@ VALUES (
         'TU-AO-CANH-KINH',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000022-0000-0000-0000-000000000001',
@@ -2181,7 +2130,10 @@ VALUES (
         'TU-AO-BA-CANH-SOI',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000023-0000-0000-0000-000000000001',
@@ -2198,7 +2150,10 @@ VALUES (
         'TU-AO-AM-TUONG',
         2,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000024-0000-0000-0000-000000000001',
@@ -2215,7 +2170,10 @@ VALUES (
         'TU-AO-TRE-PASTEL',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000025-0000-0000-0000-000000000001',
@@ -2232,7 +2190,10 @@ VALUES (
         'BAN-AN-SOI-6GHE',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000026-0000-0000-0000-000000000001',
@@ -2249,7 +2210,10 @@ VALUES (
         'BAN-AN-TRON-XOAY',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000027-0000-0000-0000-000000000001',
@@ -2266,7 +2230,10 @@ VALUES (
         'BAN-DAO-BEP-MINI',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000028-0000-0000-0000-000000000001',
@@ -2283,7 +2250,10 @@ VALUES (
         'BAN-AN-MO-RONG',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000029-0000-0000-0000-000000000001',
@@ -2300,7 +2270,10 @@ VALUES (
         'TU-BEP-L-CHONG-AM',
         2,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000030-0000-0000-0000-000000000001',
@@ -2317,7 +2290,10 @@ VALUES (
         'TU-BEP-TREN-KINH',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000031-0000-0000-0000-000000000001',
@@ -2334,7 +2310,10 @@ VALUES (
         'TU-BEP-DAO-CAOCAP',
         2,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000032-0000-0000-0000-000000000001',
@@ -2351,7 +2330,10 @@ VALUES (
         'TU-BEP-MINI-CANHO',
         3,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000033-0000-0000-0000-000000000001',
@@ -2368,7 +2350,10 @@ VALUES (
         'LAVABO-OCCHO-90',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000034-0000-0000-0000-000000000001',
@@ -2385,7 +2370,10 @@ VALUES (
         'LAVABO-DOI-150',
         2,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000035-0000-0000-0000-000000000001',
@@ -2402,7 +2390,10 @@ VALUES (
         'LAVABO-CHAN-DUNG',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000036-0000-0000-0000-000000000001',
@@ -2419,7 +2410,10 @@ VALUES (
         'LAVABO-TOI-GIAN',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000037-0000-0000-0000-000000000001',
@@ -2436,7 +2430,10 @@ VALUES (
         'GUONG-TRON-DONG',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000038-0000-0000-0000-000000000001',
@@ -2453,7 +2450,10 @@ VALUES (
         'GUONG-TOANTHAN-CHONGAM',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     ),
     (
         'a0000039-0000-0000-0000-000000000001',
@@ -2470,7 +2470,10 @@ VALUES (
         'GUONG-LED-CAMUNG',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        TRUE
     ),
     (
         'a0000040-0000-0000-0000-000000000001',
@@ -2487,7 +2490,10 @@ VALUES (
         'GUONG-BO-GOC',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        NULL,
+        NULL,
+        FALSE
     );
 
 INSERT INTO

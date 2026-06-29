@@ -7,6 +7,13 @@ import com.furnisight.user.domain.entities.identity.Account;
 import com.furnisight.user.domain.entities.identity.Role;
 import com.furnisight.user.domain.entities.profile.UserProfile;
 import com.furnisight.user.domain.enums.identity.AccountStatus;
+import com.furnisight.user.domain.exceptions.DomainException;
+import com.furnisight.user.domain.exceptions.identity.AlreadyExistsException;
+import com.furnisight.user.domain.exceptions.identity.ErrorCode;
+import com.furnisight.user.domain.exceptions.identity.ForbiddenException;
+import com.furnisight.user.domain.exceptions.identity.InvalidOperationException;
+import com.furnisight.user.domain.exceptions.identity.NotFoundException;
+import com.furnisight.user.domain.exceptions.identity.UnauthorizedException;
 import com.furnisight.user.domain.repository.identity.AccountRepository;
 import com.furnisight.user.domain.repository.identity.RoleRepository;
 import com.furnisight.user.domain.repository.profile.UserProfileRepository;
@@ -119,7 +126,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                         .setName(resolveDisplayName(account, profile))
                         .setEmail(account.getEmail().getValue())
                         .setStatus(account.getStatus().name())
-                        .setPhone("")
+                        .setPhone(profile == null || profile.getId() == null ? "" : profile.getId().toString())
                         .addAllRoles(roleDtos)
                         .setCreatedAt(account.getCreatedAt() == null ? "" : account.getCreatedAt().toString())
                         .build();
@@ -250,7 +257,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .setEmail(account.getEmail().getValue())
                     .setUsername(account.getUsername().getValue())
                     .setName(resolveDisplayName(account, profile))
-                    .setPhone("")
+                    .setPhone(profile == null || profile.getId() == null ? "" : profile.getId().toString())
                     .setFirstName(profile == null || profile.getFirstName() == null ? "" : profile.getFirstName())
                     .setLastName(profile == null || profile.getLastName() == null ? "" : profile.getLastName())
                     .setAvatarUrl(profile == null || profile.getAvatarUrl() == null ? "" : profile.getAvatarUrl())
@@ -569,6 +576,22 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     }
 
     private io.grpc.StatusRuntimeException mapToGrpcException(Exception ex) {
+        if (ex instanceof DomainException domainException) {
+            io.grpc.Status status = io.grpc.Status.INVALID_ARGUMENT;
+            if (domainException instanceof NotFoundException) {
+                status = io.grpc.Status.NOT_FOUND;
+            } else if (domainException instanceof AlreadyExistsException) {
+                status = io.grpc.Status.ALREADY_EXISTS;
+            } else if (domainException instanceof ForbiddenException) {
+                status = io.grpc.Status.PERMISSION_DENIED;
+            } else if (domainException instanceof UnauthorizedException) {
+                status = io.grpc.Status.UNAUTHENTICATED;
+            } else if (domainException instanceof InvalidOperationException
+                    && domainException.getErrorCode() == ErrorCode.NOT_ENOUGH_PERMISSION) {
+                status = io.grpc.Status.PERMISSION_DENIED;
+            }
+            return status.withDescription(domainException.getMessage()).withCause(ex).asRuntimeException();
+        }
         if (ex instanceof IllegalArgumentException || ex.getClass().getSimpleName().contains("ValidationException")) {
             return io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
         }

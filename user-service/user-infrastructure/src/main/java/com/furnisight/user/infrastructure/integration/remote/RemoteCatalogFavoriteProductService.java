@@ -21,14 +21,16 @@ public class RemoteCatalogFavoriteProductService implements CatalogFavoriteProdu
     private final GrpcCatalogClient grpcCatalogClient;
 
     @Override
-    public Map<UUID, CatalogFavoriteProductSummary> getFavoriteProductSummaries(Collection<UUID> productIds) {
+    public Map<UUID, CatalogFavoriteProductSummary> getFavoriteProductSummaries(Collection<UUID> productIds, String locale) {
         if (productIds == null || productIds.isEmpty()) {
             return Map.of();
         }
 
         try {
             Map<UUID, CatalogFavoriteProductSummary> products = new LinkedHashMap<>();
-            for (FavoriteProductSummary product : grpcCatalogClient.getFavoriteProductSummaries(productIds).getProductsList()) {
+            for (FavoriteProductSummary product : grpcCatalogClient
+                    .getFavoriteProductSummaries(productIds, locale)
+                    .getProductsList()) {
                 UUID productId = UUID.fromString(product.getId());
                 products.put(productId, toSummary(productId, product));
             }

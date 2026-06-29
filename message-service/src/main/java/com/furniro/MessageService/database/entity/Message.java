@@ -4,8 +4,12 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
+import com.furniro.MessageService.database.converter.MessageAttachmentListConverter;
+import com.furniro.MessageService.dto.MessageAttachment;
 import com.furniro.MessageService.util.enums.MessageType;
 
 @Entity
@@ -16,6 +20,7 @@ import com.furniro.MessageService.util.enums.MessageType;
 @AllArgsConstructor
 @Builder
 public class Message {
+    private static final ZoneId HO_CHI_MINH_ZONE = ZoneId.of("Asia/Ho_Chi_Minh");
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,6 +45,26 @@ public class Message {
     @Builder.Default
     private MessageType type = MessageType.TEXT;
 
+    private Integer fileId;
+
+    private String mediaId;
+
+    @Size(max = 2000)
+    private String attachmentUrl;
+
+    @Size(max = 255)
+    private String attachmentName;
+
+    @Size(max = 120)
+    private String attachmentType;
+
+    private Long attachmentSize;
+
+    @Convert(converter = MessageAttachmentListConverter.class)
+    @Column(columnDefinition = "TEXT")
+    @Builder.Default
+    private List<MessageAttachment> attachments = List.of();
+
     @Builder.Default
     private Boolean isInternal = false;
 
@@ -47,10 +72,10 @@ public class Message {
     private Boolean isRead = false;
 
     @Builder.Default
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private LocalDateTime createdAt = LocalDateTime.now(HO_CHI_MINH_ZONE);
 
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
+        this.createdAt = LocalDateTime.now(HO_CHI_MINH_ZONE);
     }
 }

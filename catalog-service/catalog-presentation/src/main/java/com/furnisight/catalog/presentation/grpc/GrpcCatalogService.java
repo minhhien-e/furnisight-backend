@@ -14,6 +14,7 @@ import com.furnisight.catalog.SearchRecommendedProductsRequest;
 import com.furnisight.catalog.SearchRecommendedProductsResponse;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
+import com.furnisight.catalog.application.product.service.ProductTranslationService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +29,7 @@ import java.util.UUID;
 public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBase {
 
     private final ProductReadRepository productReadRepository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
     public void getProductSummaries(
@@ -35,9 +37,10 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
             StreamObserver<GetProductSummariesResponse> responseObserver
     ) {
         try {
+            String locale = productTranslationService.normalizeLang(request.getLocale());
             List<ProductSummary> products = resolveRequestItems(request).stream()
                     .map(item -> productReadRepository.findProductDetailById(item.productId())
-                            .map(detail -> toProductSummary(detail, item.selectedVariantId())))
+                            .map(detail -> toProductSummary(localizeDetail(detail, locale), item.selectedVariantId())))
                     .flatMap(java.util.Optional::stream)
                     .toList();
 
@@ -70,11 +73,12 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
             StreamObserver<GetFavoriteProductSummariesResponse> responseObserver
     ) {
         try {
+            String locale = productTranslationService.normalizeLang(request.getLocale());
             List<FavoriteProductSummary> products = request.getProductIdsList().stream()
                     .map(this::parseProductId)
                     .distinct()
                     .map(productId -> productReadRepository.findProductDetailById(productId)
-                            .map(this::toFavoriteProductSummary))
+                            .map(detail -> toFavoriteProductSummary(localizeDetail(detail, locale))))
                     .flatMap(java.util.Optional::stream)
                     .toList();
 
@@ -303,6 +307,10 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
 
     private String defaultString(String value) {
         return value != null ? value : "";
+    }
+
+    private ProductResponse localizeDetail(ProductResponse detail, String locale) {
+        return productTranslationService.localizeProduct(detail, locale);
     }
 
     private record SummaryRequestItem(UUID productId, String selectedVariantId) {

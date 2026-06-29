@@ -4,5 +4,5 @@ import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import java.util.List;
 
 public interface GetWeeklyFavoriteProductsUseCase {
-    List<ProductResponse> execute(int limit);
+    List<ProductResponse> execute(int limit, String lang);
 }

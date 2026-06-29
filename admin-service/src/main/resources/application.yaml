@@ -31,16 +31,16 @@ spring:
 grpc:
   client:
     user-service:
-      address: "static://${USER_SERVICE_GRPC_HOST:localhost}:${USER_SERVICE_GRPC_PORT:9091}"
+      address: "dns:///${USER_SERVICE_GRPC_HOST:localhost}:${USER_SERVICE_GRPC_PORT:9091}"
       negotiation-type: plaintext
     order-service:
-      address: "static://${ORDER_SERVICE_GRPC_HOST:localhost}:${ORDER_SERVICE_GRPC_PORT:9095}"
+      address: "dns:///${ORDER_SERVICE_GRPC_HOST:localhost}:${ORDER_SERVICE_GRPC_PORT:9095}"
       negotiation-type: plaintext
     catalog-service:
-      address: "static://${CATALOG_SERVICE_GRPC_HOST:localhost}:${CATALOG_SERVICE_GRPC_PORT:9093}"
+      address: "dns:///${CATALOG_SERVICE_GRPC_HOST:localhost}:${CATALOG_SERVICE_GRPC_PORT:9093}"
       negotiation-type: plaintext
     promotion-service:
-      address: "static://${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
+      address: "dns:///${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
       negotiation-type: plaintext
 
 promotion:

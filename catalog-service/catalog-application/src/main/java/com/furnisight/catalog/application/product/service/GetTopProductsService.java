@@ -13,9 +13,12 @@ import java.util.List;
 public class GetTopProductsService implements GetTopProductsUseCase {
 
     private final ProductReadRepository productReadRepository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
-    public List<ProductResponse> execute(int limit) {
-        return productReadRepository.findTopProducts(limit);
+    public List<ProductResponse> execute(int limit, String lang) {
+        return productTranslationService.localizeProducts(
+                productReadRepository.findTopProducts(limit),
+                lang);
     }
 }

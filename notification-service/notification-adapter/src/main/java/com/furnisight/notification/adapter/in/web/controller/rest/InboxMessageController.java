@@ -11,6 +11,7 @@ import com.furnisight.notification.application.inbox.port.in.dto.query.GetInboxM
 import com.furnisight.notification.application.inbox.port.in.usecase.*;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -31,6 +32,7 @@ public class InboxMessageController {
     private final DeleteInboxMessageUseCase deleteInboxMessageUseCase;
     private final GetInboxMessageUseCase getInboxMessageUseCase;
     private final CurrentUserProvider currentUserProvider;
+    private final NotificationTranslationService notificationTranslationService;
 
     @PostMapping
     public ResponseEntity<InboxMessageResponse> saveMessage(@Valid @RequestBody SaveInboxMessageRequest request) {
@@ -68,6 +70,8 @@ public class InboxMessageController {
 
     @GetMapping
     public ResponseEntity<List<InboxMessageResponse>> getAllMessages(
+        @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+        @RequestParam(name = "lang", required = false) String lang,
         @RequestParam(value = "startDate", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
         @RequestParam(value = "isDeleted", defaultValue = "false") boolean isDeleted,
         @RequestParam(value = "limit", defaultValue = "20") int limit
@@ -85,8 +89,17 @@ public class InboxMessageController {
             .limit(limit)
             .build();
 
-        var result = getInboxMessageUseCase.execute(request);
+        var result = notificationTranslationService.localizeInboxMessages(
+                getInboxMessageUseCase.execute(request),
+                resolveLocale(lang, acceptLanguage)
+        );
 
         return ResponseEntity.ok(result);
+    }
+
+    private String resolveLocale(String lang, String acceptLanguage) {
+        return notificationTranslationService.normalizeLang(
+                lang != null && !lang.isBlank() ? lang : acceptLanguage
+        );
     }
 }

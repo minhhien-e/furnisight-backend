@@ -7,5 +7,5 @@ import java.util.Map;
 import java.util.UUID;
 
 public interface CatalogFavoriteProductService {
-    Map<UUID, CatalogFavoriteProductSummary> getFavoriteProductSummaries(Collection<UUID> productIds);
+    Map<UUID, CatalogFavoriteProductSummary> getFavoriteProductSummaries(Collection<UUID> productIds, String locale);
 }

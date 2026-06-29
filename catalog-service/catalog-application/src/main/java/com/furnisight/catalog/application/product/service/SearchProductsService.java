@@ -16,9 +16,28 @@ import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 public class SearchProductsService implements SearchProductsUseCase {
 
     private final ProductReadRepository productReadRepository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
     public PageResponse<ProductResponse> execute(SearchProductsQuery query) {
-        return productReadRepository.searchProducts(query);
+        SearchProductsQuery effectiveQuery = SearchProductsQuery.builder()
+                .lang(productTranslationService.normalizeLang(query.getLang()))
+                .q(productTranslationService.translateSearchQuery(query.getQ(), query.getLang()))
+                .category(query.getCategory())
+                .sort(query.getSort())
+                .priceBands(query.getPriceBands())
+                .priceSliderPct(query.getPriceSliderPct())
+                .materials(query.getMaterials())
+                .colors(query.getColors())
+                .minStar(query.getMinStar())
+                .saleOnly(query.getSaleOnly())
+                .status(query.getStatus())
+                .page(query.getPage())
+                .size(query.getSize())
+                .build();
+
+        return productTranslationService.localizePage(
+                productReadRepository.searchProducts(effectiveQuery),
+                effectiveQuery.getLang());
     }
 }

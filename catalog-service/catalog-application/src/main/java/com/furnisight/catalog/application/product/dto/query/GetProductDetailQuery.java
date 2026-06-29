@@ -9,4 +9,5 @@ import java.util.UUID;
 @AllArgsConstructor
 public class GetProductDetailQuery {
     private String slug;
+    private String lang;
 }

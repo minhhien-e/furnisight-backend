@@ -8,6 +8,8 @@ import com.furnisight.catalog.SearchRecommendedProductsRequest;
 import com.furnisight.catalog.SearchRecommendedProductsResponse;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
+import com.furnisight.catalog.application.product.service.ProductTranslationService;
+import com.furnisight.catalog.application.translation.port.out.TextTranslationPort;
 import io.grpc.stub.StreamObserver;
 import org.junit.jupiter.api.Test;
 
@@ -20,6 +22,9 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 class GrpcCatalogServiceTest {
+
+    private final ProductTranslationService translationService =
+            new ProductTranslationService(mock(TextTranslationPort.class));
 
     @Test
     void recommendationKeepsPriceAndDefaultVariantWithoutProductModelUrl() {
@@ -43,7 +48,7 @@ class GrpcCatalogServiceTest {
 
         CapturingObserver<SearchRecommendedProductsResponse> observer =
                 new CapturingObserver<>();
-        new GrpcCatalogService(repository).searchRecommendedProducts(
+        new GrpcCatalogService(repository, translationService).searchRecommendedProducts(
                 SearchRecommendedProductsRequest.newBuilder()
                         .setCategorySlug("bedroom")
                         .setStatus("ACTIVE")
@@ -71,7 +76,7 @@ class GrpcCatalogServiceTest {
 
         CapturingObserver<SearchRecommendedProductsResponse> observer =
                 new CapturingObserver<>();
-        new GrpcCatalogService(repository).searchRecommendedProducts(
+        new GrpcCatalogService(repository, translationService).searchRecommendedProducts(
                 SearchRecommendedProductsRequest.newBuilder()
                         .setCategorySlug("bedroom")
                         .setStatus("ACTIVE")
@@ -102,7 +107,7 @@ class GrpcCatalogServiceTest {
 
         CapturingObserver<GetProductSummariesResponse> observer =
                 new CapturingObserver<>();
-        new GrpcCatalogService(repository).getProductSummaries(
+        new GrpcCatalogService(repository, translationService).getProductSummaries(
                 GetProductSummariesRequest.newBuilder()
                         .addItems(GetProductSummaryItem.newBuilder()
                                 .setProductId(productId.toString())

@@ -16,4 +16,6 @@ public interface ConversationRepository extends JpaRepository<Conversation, Inte
     List<Conversation> findByChannelAndStatus(ConversationChannel channel, ConversationStatus status);
     List<Conversation> findByAssignedAdminId(Integer assignedAdminId);
     Conversation findTopByBuyerIdAndChannelAndStatusNotOrderByUpdatedAtDesc(Integer buyerId, ConversationChannel channel, ConversationStatus status);
+    Conversation findTopByBuyerIdOrderByUpdatedAtDesc(Integer buyerId);
+    Conversation findTopByBuyerIdAndChannelOrderByUpdatedAtDesc(Integer buyerId, ConversationChannel channel);
 }
