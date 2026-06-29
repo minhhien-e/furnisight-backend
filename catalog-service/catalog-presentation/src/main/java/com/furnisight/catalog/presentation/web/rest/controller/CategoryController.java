@@ -4,10 +4,12 @@ import com.furnisight.catalog.application.category.dto.command.CreateCategoryCom
 import com.furnisight.catalog.application.category.dto.command.UpdateCategoryCommand;
 import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import com.furnisight.catalog.application.category.dto.query.GetCategoryDetailQuery;
+import com.furnisight.catalog.application.product.service.ProductTranslationService;
 import com.furnisight.catalog.application.category.port.in.usecase.*;
 import com.furnisight.catalog.presentation.web.rest.dto.request.category.CreateCategoryRequest;
 import com.furnisight.catalog.presentation.web.rest.dto.request.category.UpdateCategoryRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +28,7 @@ public class CategoryController {
     private final ListCategoriesUseCase listCategoriesUseCase;
     private final ListRootCategoriesUseCase listRootCategoriesUseCase;
     private final ListSubcategoriesUseCase listSubcategoriesUseCase;
+    private final ProductTranslationService productTranslationService;
 
     // ─── COMMANDS ────────────────────────────────────────────────────────────
 
@@ -63,27 +66,59 @@ public class CategoryController {
     // ─── QUERIES ─────────────────────────────────────────────────────────────
 
     @GetMapping
-    public ResponseEntity<List<CategoryResponse>> listCategories() {
-        List<CategoryResponse> results = listCategoriesUseCase.execute();
+    public ResponseEntity<List<CategoryResponse>> listCategories(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang) {
+        List<CategoryResponse> results = productTranslationService.localizeCategories(
+                listCategoriesUseCase.execute(),
+                resolveLang(lang, acceptLanguage)
+        );
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/roots")
-    public ResponseEntity<List<CategoryResponse>> listRootCategories() {
-        List<CategoryResponse> results = listRootCategoriesUseCase.execute();
+    public ResponseEntity<List<CategoryResponse>> listRootCategories(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang) {
+        List<CategoryResponse> results = productTranslationService.localizeCategories(
+                listRootCategoriesUseCase.execute(),
+                resolveLang(lang, acceptLanguage)
+        );
         return ResponseEntity.ok(results);
     }
 
     @GetMapping("/{slug}/subcategories")
-    public ResponseEntity<List<CategoryResponse>> listSubcategories(@PathVariable String slug) {
-        List<CategoryResponse> results = listSubcategoriesUseCase.execute(slug);
+    public ResponseEntity<List<CategoryResponse>> listSubcategories(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @PathVariable String slug) {
+        List<CategoryResponse> results = productTranslationService.localizeCategories(
+                listSubcategoriesUseCase.execute(slug),
+                resolveLang(lang, acceptLanguage)
+        );
         return ResponseEntity.ok(results);
     }
 
     @GetMapping(name = "slug", value = "/{slug}")
-    public ResponseEntity<CategoryResponse> getCategoryDetail(@PathVariable String slug){
+    public ResponseEntity<CategoryResponse> getCategoryDetail(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @PathVariable String slug){
         GetCategoryDetailQuery query = new GetCategoryDetailQuery(slug);
-        CategoryResponse result = getCategoryDetailUseCase.execute(query);
+        CategoryResponse result = productTranslationService.localizeCategory(
+                getCategoryDetailUseCase.execute(query),
+                resolveLang(lang, acceptLanguage)
+        );
         return ResponseEntity.ok(result);
+    }
+
+    private String resolveLang(String langParam, String acceptLanguage) {
+        if (langParam != null && !langParam.isBlank()) {
+            return productTranslationService.normalizeLang(langParam);
+        }
+        if (acceptLanguage != null && !acceptLanguage.isBlank()) {
+            return productTranslationService.normalizeLang(acceptLanguage);
+        }
+        return ProductTranslationService.SOURCE_LANG_VI;
     }
 }

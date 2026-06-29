@@ -31,12 +31,12 @@ public class CartService {
     private final CartRepository cartRepository;
     private final CatalogGrpcClient catalogGrpcClient;
 
-    public CartResponse getCart(UUID userId) {
+    public CartResponse getCart(UUID userId, String locale) {
         Cart cart = getOrCreateCart(userId);
-        return toResponse(enrichCart(cart));
+        return toResponse(enrichCart(cart, locale));
     }
 
-    public CartResponse addToCart(UUID userId, AddToCartRequest request) {
+    public CartResponse addToCart(UUID userId, AddToCartRequest request, String locale) {
         Cart cart = getOrCreateCart(userId);
 
         Optional<CartItem> existingItem = findItem(
@@ -59,29 +59,30 @@ public class CartService {
                     .build());
         }
 
-        return saveAndRespond(cart);
+        return saveAndRespond(cart, locale);
     }
 
     public CartResponse updateCartItem(
             UUID userId,
             String productId,
             String variantId,
-            UpdateCartItemRequest request
+            UpdateCartItemRequest request,
+            String locale
     ) {
         Cart cart = getOrCreateCart(userId);
 
         findItem(cart, productId, variantId)
                 .ifPresent(item -> updateExistingItem(cart, item, request));
 
-        return saveAndRespond(cart);
+        return saveAndRespond(cart, locale);
     }
 
-    public CartResponse removeCartItem(UUID userId, String productId, String variantId) {
+    public CartResponse removeCartItem(UUID userId, String productId, String variantId, String locale) {
         Cart cart = getOrCreateCart(userId);
 
         cart.getItems().removeIf(item -> isSameItem(item, productId, variantId));
 
-        return saveAndRespond(cart);
+        return saveAndRespond(cart, locale);
     }
 
     public void clearCart(UUID userId) {
@@ -90,9 +91,9 @@ public class CartService {
         saveCart(cart);
     }
 
-    private CartResponse saveAndRespond(Cart cart) {
+    private CartResponse saveAndRespond(Cart cart, String locale) {
         Cart savedCart = saveCart(cart);
-        Cart enrichedCart = enrichCart(savedCart);
+        Cart enrichedCart = enrichCart(savedCart, locale);
         clampCartQuantities(enrichedCart);
         return toResponse(saveCart(enrichedCart));
     }
@@ -168,7 +169,7 @@ public class CartService {
         cart.setUpdatedAt(LocalDateTime.now());
     }
 
-    private Cart enrichCart(Cart cart) {
+    private Cart enrichCart(Cart cart, String locale) {
         if (cart.getItems() == null || cart.getItems().isEmpty()) {
             return cart;
         }
@@ -185,7 +186,7 @@ public class CartService {
 
         try {
             Map<String, ProductSummary> productMap =
-                    catalogGrpcClient.getProductSummaries(lookupItems);
+                    catalogGrpcClient.getProductSummaries(lookupItems, locale);
 
             cart.getItems().forEach(item -> {
                 ProductSummary product = productMap.get(lineKey(item));

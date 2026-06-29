@@ -16,6 +16,10 @@ spring:
     name: catalog-service
   jackson:
     default-property-inclusion: non_null
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 
 
   datasource:
@@ -49,3 +53,11 @@ spring:
       auto-offset-reset: earliest
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+translation:
+  enabled: ${TRANSLATION_ENABLED:true}
+  provider: ${TRANSLATION_PROVIDER:libretranslate}
+  base-url: ${TRANSLATION_BASE_URL:http://libretranslate:5000}
+  timeout: ${TRANSLATION_TIMEOUT:3s}
+  cache-ttl: ${TRANSLATION_CACHE_TTL:30d}
+  cache-maximum-size: ${TRANSLATION_CACHE_MAXIMUM_SIZE:10000}

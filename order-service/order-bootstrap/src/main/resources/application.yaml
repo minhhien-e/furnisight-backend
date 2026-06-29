@@ -61,3 +61,7 @@ vnpay:
 
 frontend:
   url: ${FRONTEND_URL:http://localhost:5173}
+
+translation:
+  enabled: ${TRANSLATION_ENABLED:true}
+  base-url: ${TRANSLATION_BASE_URL:http://libretranslate:5000}

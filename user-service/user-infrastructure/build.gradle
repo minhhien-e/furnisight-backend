@@ -9,7 +9,9 @@ dependencies {
     api 'org.springframework.boot:spring-boot-starter-web'
     implementation "net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE"
     implementation "net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE"
-    implementation 'com.furnisight:proto-lib:1.0.1782520000000'
+
+    implementation 'com.furnisight:proto-lib:1.0.1782520000001'
+
     api 'org.springframework.boot:spring-boot-starter-security'
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'

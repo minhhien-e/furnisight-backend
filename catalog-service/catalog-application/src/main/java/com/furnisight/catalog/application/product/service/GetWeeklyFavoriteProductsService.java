@@ -14,11 +14,14 @@ import java.util.List;
 @RequiredArgsConstructor
 public class GetWeeklyFavoriteProductsService implements GetWeeklyFavoriteProductsUseCase {
     private final FavoriteProductReadRepository repository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
     @Transactional(readOnly = true)
-    public List<ProductResponse> execute(int limit) {
+    public List<ProductResponse> execute(int limit, String lang) {
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
-        return repository.findTopFavoritedProductsSince(oneWeekAgo, limit);
+        return productTranslationService.localizeProducts(
+                repository.findTopFavoritedProductsSince(oneWeekAgo, limit),
+                lang);
     }
 }

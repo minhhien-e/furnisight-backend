@@ -12,10 +12,12 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -29,30 +31,53 @@ import java.util.UUID;
 public class VoucherController {
     private final PromotionService promotionService;
     private final CurrentUserProvider currentUserProvider;
+    private final PromotionTranslationService promotionTranslationService;
 
     @GetMapping("/user")
-    public ResponseEntity<List<PromotionDto>> getAvailableVouchers() {
+    public ResponseEntity<List<PromotionDto>> getAvailableVouchers(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang) {
         UUID userId = currentUserProvider.getCurrentUserId();
-        return ResponseEntity.ok(promotionService.getAvailableVouchers(userId));
+        return ResponseEntity.ok(promotionTranslationService.localizePromotions(
+                promotionService.getAvailableVouchers(userId),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @GetMapping("/public")
     public ResponseEntity<PageResponse<PromotionDto>> getPublicVouchers(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false, defaultValue = "all") String filter) {
-        return ResponseEntity.ok(promotionService.getPublicVouchers(currentUserIdOrNull(), page, size, filter));
+        return ResponseEntity.ok(promotionTranslationService.localizePromotionPage(
+                promotionService.getPublicVouchers(currentUserIdOrNull(), page, size, filter),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @PostMapping("/recommend")
-    public ResponseEntity<RecommendVouchersResponse> recommendVouchers(@RequestBody RecommendVouchersCommand command) {
-        return ResponseEntity.ok(promotionService.recommendVouchers(currentUserProvider.getCurrentUserId(), command));
+    public ResponseEntity<RecommendVouchersResponse> recommendVouchers(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @RequestBody RecommendVouchersCommand command) {
+        return ResponseEntity.ok(promotionTranslationService.localizeRecommendResponse(
+                promotionService.recommendVouchers(currentUserProvider.getCurrentUserId(), command),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @PostMapping("/validate")
-    public ResponseEntity<ValidateVoucherResponse> validateVoucher(@RequestBody ValidateVoucherCommand command) {
+    public ResponseEntity<ValidateVoucherResponse> validateVoucher(
+            @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
+            @RequestParam(name = "lang", required = false) String lang,
+            @RequestBody ValidateVoucherCommand command) {
         command.setUserId(currentUserProvider.getCurrentUserId());
-        return ResponseEntity.ok(promotionService.validateVoucher(command));
+        return ResponseEntity.ok(promotionTranslationService.localizeValidateVoucherResponse(
+                promotionService.validateVoucher(command),
+                resolveLocale(lang, acceptLanguage)
+        ));
     }
 
     @PostMapping("/{code}/save")
@@ -77,5 +102,11 @@ public class VoucherController {
         } catch (IllegalArgumentException ignored) {
             return null;
         }
+    }
+
+    private String resolveLocale(String lang, String acceptLanguage) {
+        return promotionTranslationService.normalizeLang(
+                lang != null && !lang.isBlank() ? lang : acceptLanguage
+        );
     }
 }

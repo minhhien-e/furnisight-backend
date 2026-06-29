@@ -15,12 +15,21 @@ public class GrpcCatalogClient {
     @GrpcClient("catalog-service")
     private CatalogServiceGrpc.CatalogServiceBlockingStub catalogServiceBlockingStub;
 
-    public GetFavoriteProductSummariesResponse getFavoriteProductSummaries(Collection<UUID> productIds) {
+    public GetFavoriteProductSummariesResponse getFavoriteProductSummaries(Collection<UUID> productIds, String locale) {
         GetFavoriteProductSummariesRequest request = GetFavoriteProductSummariesRequest.newBuilder()
             .addAllProductIds(productIds.stream()
                 .map(UUID::toString)
                 .toList())
+            .setLocale(normalizeLocale(locale))
             .build();
         return catalogServiceBlockingStub.getFavoriteProductSummaries(request);
+    }
+
+    private String normalizeLocale(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return "vi";
+        }
+        String normalized = locale.trim().toLowerCase();
+        return normalized.startsWith("en") ? "en" : "vi";
     }
 }

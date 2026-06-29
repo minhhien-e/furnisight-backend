@@ -21,6 +21,7 @@ import java.util.UUID;
 public class GetProductDetailService implements GetProductDetailQueryUseCase {
     private final ProductReadRepository productReadRepository;
     private final ReviewQueryRepository reviewQueryRepository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
     @Transactional(readOnly = true)
@@ -49,7 +50,7 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
             product.setRating(Math.round(avgRating * 10.0) / 10.0);
         }
 
-        return product;
+        return productTranslationService.localizeProduct(product, query.getLang());
     }
 
     private Optional<ProductResponse> findProductDetail(String idOrSlug) {

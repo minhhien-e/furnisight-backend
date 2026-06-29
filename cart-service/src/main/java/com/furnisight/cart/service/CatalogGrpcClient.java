@@ -23,7 +23,7 @@ public class CatalogGrpcClient {
     @GrpcClient("catalog-service")
     private Channel catalogChannel;
 
-    public Map<String, ProductSummary> getProductSummaries(Collection<ProductLookupItem> items) {
+    public Map<String, ProductSummary> getProductSummaries(Collection<ProductLookupItem> items, String locale) {
         if (items == null || items.isEmpty()) {
             return Collections.emptyMap();
         }
@@ -34,6 +34,7 @@ public class CatalogGrpcClient {
                         .filter(item -> item.productId() != null && !item.productId().isBlank())
                         .map(this::toGrpcItem)
                         .toList())
+                .setLocale(normalizeLocale(locale))
                 .build();
 
         CatalogServiceGrpc.CatalogServiceBlockingStub stub = CatalogServiceGrpc.newBlockingStub(catalogChannel);
@@ -59,6 +60,14 @@ public class CatalogGrpcClient {
 
     private static String normalize(String value) {
         return value == null ? "" : value;
+    }
+
+    private static String normalizeLocale(String locale) {
+        if (locale == null || locale.isBlank()) {
+            return "vi";
+        }
+        String normalized = locale.trim().toLowerCase();
+        return normalized.startsWith("en") ? "en" : "vi";
     }
 
     public record ProductLookupItem(String productId, String selectedVariantId) {
