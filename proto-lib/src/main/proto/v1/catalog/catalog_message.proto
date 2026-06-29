@@ -8,6 +8,7 @@ option java_package = "com.furnisight.catalog";
 message GetProductSummariesRequest {
   repeated GetProductSummaryItem items = 1;
   repeated string product_ids = 2 [deprecated = true];
+  string locale = 3;
 }
 
 message GetProductSummariesResponse {
@@ -17,6 +18,7 @@ message GetProductSummariesResponse {
 // Lightweight product display data for favorite lists and other simple tiles.
 message GetFavoriteProductSummariesRequest {
   repeated string product_ids = 1;
+  string locale = 2;
 }
 
 message GetFavoriteProductSummariesResponse {
