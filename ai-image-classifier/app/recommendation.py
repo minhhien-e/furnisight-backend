@@ -110,7 +110,6 @@ class RecommendationService:
             "rating": product.rating,
             "ratingCount": product.rating_count,
             "soldCount": product.sold_count,
-            "tags": list(product.tags),
             "variants": variants,
         }
 

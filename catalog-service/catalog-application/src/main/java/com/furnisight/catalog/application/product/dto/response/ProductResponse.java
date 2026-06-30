@@ -23,7 +23,6 @@ public class ProductResponse {
     private Double rating;
     private Integer ratingCount;
     private Integer soldCount;
-    private List<String> tags;
     private Boolean supports3d;
     private String image;
     private List<String> imageUrls;

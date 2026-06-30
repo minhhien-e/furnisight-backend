@@ -288,7 +288,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .rating(getNullableDouble(rs, "product_rating"))
                         .ratingCount(rs.getInt("product_rating_count"))
                         .soldCount(rs.getInt("sold_count"))
-                        .tags(parseJsonList(rs.getString("product_features")))
                         .build());
                         
         products.forEach(p -> p.setVariants(fetchVariants(p.getId())));
@@ -722,7 +721,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .rating(getNullableDouble(rs, "product_rating"))
                 .ratingCount(rs.getInt("product_rating_count"))
                 .soldCount(rs.getInt("product_sold_count"))
-                .tags(List.of("new"))
                 .build();
     }
 
@@ -763,7 +761,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .rating(getNullableDouble(rs, "avg_rating"))
                 .ratingCount(rs.getInt("review_count"))
                 .soldCount(rs.getInt("sold_count"))
-                .tags(List.of("new", "sale"))
                 .supports3d(rs.getBoolean("supports_3d"))
                 .features(features)
                 .price(0.0)
