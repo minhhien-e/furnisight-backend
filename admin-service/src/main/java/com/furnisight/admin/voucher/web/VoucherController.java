@@ -45,8 +45,8 @@ public class VoucherController {
     public ResponseEntity<ActionResultResponse> createVoucher(
             @RequestBody UpsertVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.createVoucher(request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo voucher", "VOUCHER",
-                request.code(), result, "Tên voucher: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_VOUCHER,
+                request.code(), result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -56,8 +56,8 @@ public class VoucherController {
             @PathVariable String id, @RequestBody UpsertVoucherRequest request,
             HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.updateVoucher(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật voucher", "VOUCHER",
-                id, result, "Mã voucher: " + request.code(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_VOUCHER,
+                id, result, request.code(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -66,8 +66,8 @@ public class VoucherController {
     public ResponseEntity<ActionResultResponse> deleteVoucher(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.deleteVoucher(id);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa voucher", "VOUCHER",
-                id, result, "Voucher id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_VOUCHER,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -76,8 +76,8 @@ public class VoucherController {
     public ResponseEntity<ActionResultResponse> publishVoucher(
             @PathVariable String id, @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.publishVoucher(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "send", "Phát hành voucher", "VOUCHER_PUBLISH",
-                id, result, "Voucher id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.PUBLISH_VOUCHER,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 }

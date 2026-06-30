@@ -49,8 +49,6 @@ import com.furnisight.admin.user.AccountDto;
 @RequiredArgsConstructor
 public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceImplBase {
 
-    private static final Set<String> ADMIN_ROLES = Set.of("ADMIN", "STAFF", "MANAGER", "SUPER_ADMIN");
-
     private final AccountRepository accountRepository;
     private final RoleRepository roleRepository;
     private final UserProfileRepository userProfileRepository;
@@ -60,7 +58,8 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     private final UnbanAccountUseCase unbanAccountUseCase;
     private final ActivateAccountUseCase activateAccountUseCase;
     private final DeleteAccountUseCase deleteAccountUseCase;
-    private final CreateAccountUseCase createAccountUseCase;
+    private final CreateUserAccountByAdminUseCase createUserAccountByAdminUseCase;
+    private final CreateAdminAccountUseCase createAdminAccountUseCase;
     private final AssignRoleUseCase assignRoleUseCase;
     private final RevokeRoleUseCase revokeRoleUseCase;
     private final AddRoleUseCase addRoleUseCase;
@@ -85,7 +84,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
-            log.error("Error getting account stats", e);
             responseObserver.onError(mapToGrpcException(e));
         }
     }
@@ -100,14 +98,16 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             String query = request.getQuery();
             AccountStatus status = parseStatus(request.getStatus());
 
-            Page<Account> accountPage = switch (request.getScope()) {
-                case ACCOUNT_SCOPE_CUSTOMER ->
-                        accountJpaRepository.searchCustomerAccounts(query, status, ADMIN_ROLES, pageable);
-                case ACCOUNT_SCOPE_ADMIN ->
-                        accountJpaRepository.searchAdministrativeAccounts(query, status, ADMIN_ROLES, pageable);
-                case ACCOUNT_SCOPE_UNSPECIFIED, UNRECOGNIZED ->
-                        accountJpaRepository.searchAccounts(query, status, pageable);
-            };
+            Page<Account> accountPage;
+            if (request.hasIsAdmin()) {
+                if (request.getIsAdmin()) {
+                    accountPage = accountJpaRepository.searchAdministrativeAccounts(query, status, pageable);
+                } else {
+                    accountPage = accountJpaRepository.searchCustomerAccounts(query, status, pageable);
+                }
+            } else {
+                accountPage = accountJpaRepository.searchAccounts(query, status, pageable);
+            }
 
             List<AccountDto> dtoList = accountPage.getContent().stream().map(account -> {
                 List<Role> roles = roleRepository.findAllByAccountId(account.getId());
@@ -142,7 +142,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(response);
             responseObserver.onCompleted();
         } catch (Exception e) {
-            log.error("Error getting accounts", e);
             responseObserver.onError(mapToGrpcException(e));
         }
     }
@@ -213,7 +212,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .toList();
             FilterMarketingUserIdsResponse.Builder response = FilterMarketingUserIdsResponse.newBuilder();
             accountJpaRepository.findAllById(requestedIds).forEach(account -> {
-                if (hasAdministrativeRole(account.getId())) {
+                if (account.isAdmin()) {
                     response.addAdministrativeUserIds(account.getId().toString());
                 } else if (account.getStatus() == AccountStatus.ACTIVE) {
                     response.addEligibleUserIds(account.getId().toString());
@@ -227,13 +226,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
         }
     }
 
-    private boolean hasAdministrativeRole(UUID accountId) {
-        return roleRepository.findAllByAccountId(accountId).stream()
-                .map(role -> role.getName().getValue())
-                .map(value -> value == null ? "" : value.trim().toUpperCase(java.util.Locale.ROOT))
-                .map(value -> value.startsWith("ROLE_") ? value.substring(5) : value)
-                .anyMatch(ADMIN_ROLES::contains);
-    }
 
     private UUID parseUuid(String value) {
         try {
@@ -477,7 +469,11 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     roleId
             );
 
-            createAccountUseCase.execute(command);
+            if (request.getIsAdmin()) {
+                createAdminAccountUseCase.execute(command);
+            } else {
+                createUserAccountByAdminUseCase.execute(command);
+            }
 
             responseObserver.onNext(AdminActionResponse.newBuilder().setSuccess(true)
                     .setMessage("Account created successfully").build());
@@ -494,9 +490,19 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             UUID accountId = UUID.fromString(request.getAccountId());
             UserProfile profile = userProfileRepository.findByAccountId(accountId)
                     .orElseThrow(() -> new IllegalArgumentException("Profile not found"));
-            profile.setDisplayName(clean(request.getDisplayName()));
-            profile.setFirstName(clean(request.getFirstName()));
-            profile.setLastName(clean(request.getLastName()));
+            String displayName = clean(request.getDisplayName());
+            String firstName = clean(request.getFirstName());
+            String lastName = clean(request.getLastName());
+
+            if (!displayName.isBlank() && firstName.isBlank() && lastName.isBlank()) {
+                NameParts parts = splitName(displayName);
+                firstName = parts.firstName();
+                lastName = parts.lastName();
+            }
+
+            profile.setDisplayName(displayName);
+            profile.setFirstName(firstName);
+            profile.setLastName(lastName);
             userProfileRepository.save(profile);
             responseObserver.onNext(AdminActionResponse.newBuilder()
                     .setSuccess(true)

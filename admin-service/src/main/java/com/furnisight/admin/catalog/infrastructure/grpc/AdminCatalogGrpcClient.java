@@ -49,10 +49,9 @@ public class AdminCatalogGrpcClient {
                 .build());
     }
 
-    public LowStockProductListResponse getLowStockProducts(int limit, int threshold) {
+    public LowStockProductListResponse getLowStockProducts(int limit) {
         return adminCatalogServiceStub.getLowStockProducts(GetLowStockProductsRequest.newBuilder()
                 .setLimit(limit)
-                .setThreshold(threshold)
                 .build());
     }
 

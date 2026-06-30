@@ -105,7 +105,11 @@ public class AccountModerationService {
 
         return targetAccount;
     }
-
+    public Account provisionAdminAccount(Account admin, String emailStr, String password, Role targetRole) {
+        Account targetAccount = provisionAccount(admin, emailStr, password, targetRole);
+        targetAccount.promoteToAdmin();
+        return accountRepository.save(targetAccount);
+    }
     private boolean canInteract(List<Role> rolesA, List<Role> rolesB, Permission permission) {
         boolean hasPermission = rolesA.stream().anyMatch(role -> role.hasPermission(permission));
         if (!hasPermission) {

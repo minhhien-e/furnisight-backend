@@ -5,7 +5,7 @@ public record TopProductItemResponse(
         String productName,
         String categoryName,
         String imageUrl,
-        String price,
+        double price,
         int soldCount,
-        String totalRevenue
+        double totalRevenue
 ) {}

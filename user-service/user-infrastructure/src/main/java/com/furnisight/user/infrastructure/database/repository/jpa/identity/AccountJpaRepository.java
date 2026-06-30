@@ -39,29 +39,22 @@ public interface AccountJpaRepository extends JpaRepository<Account, UUID> {
             SELECT a FROM Account a
             WHERE (:query IS NULL OR :query = '' OR LOWER(a.username.value) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(a.email.value) LIKE LOWER(CONCAT('%', :query, '%')))
               AND (:status IS NULL OR a.status = :status)
-              AND NOT EXISTS (
-                  SELECT ar.id FROM AccountRole ar, Role r
-                  WHERE ar.accountId = a.id AND r.id = ar.roleId
-                    AND UPPER(r.name.value) IN :adminRoles
-              )
+              AND a.isAdmin = false
             """)
     org.springframework.data.domain.Page<Account> searchCustomerAccounts(
             @Param("query") String query,
             @Param("status") AccountStatus status,
-            @Param("adminRoles") java.util.Collection<String> adminRoles,
             org.springframework.data.domain.Pageable pageable);
 
     @Query("""
-            SELECT DISTINCT a FROM Account a, AccountRole ar, Role r
-            WHERE ar.accountId = a.id AND r.id = ar.roleId
-              AND UPPER(r.name.value) IN :adminRoles
+            SELECT a FROM Account a
+            WHERE a.isAdmin = true
               AND (:query IS NULL OR :query = '' OR LOWER(a.username.value) LIKE LOWER(CONCAT('%', :query, '%')) OR LOWER(a.email.value) LIKE LOWER(CONCAT('%', :query, '%')))
               AND (:status IS NULL OR a.status = :status)
             """)
     org.springframework.data.domain.Page<Account> searchAdministrativeAccounts(
             @Param("query") String query,
             @Param("status") AccountStatus status,
-            @Param("adminRoles") java.util.Collection<String> adminRoles,
             org.springframework.data.domain.Pageable pageable);
 
     List<Account> findAllByStatus(AccountStatus status);

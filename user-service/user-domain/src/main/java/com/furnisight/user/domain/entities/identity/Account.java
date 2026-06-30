@@ -40,6 +40,9 @@ public class Account extends AggregateRoot {
     @Column(name = "lockout_end")
     private LocalDateTime lockoutEnd;
 
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin = false;
+
     public Account(Username username, Email email, Password password) {
         this.id = UUID.randomUUID();
         this.username = username;
@@ -57,6 +60,10 @@ public class Account extends AggregateRoot {
 
     public void activate() {
         this.status = AccountStatus.ACTIVE;
+    }
+
+    public void promoteToAdmin() {
+        this.isAdmin = true;
     }
 
     public boolean isBanned() {

@@ -10,10 +10,6 @@ public record AuditLogResponse(
         String resourceId,
         String result,
         String detail,
-        String time,
-        String meta,
-        String tone,
-        String status,
         String ipAddress,
         String userAgent,
         String createdAt

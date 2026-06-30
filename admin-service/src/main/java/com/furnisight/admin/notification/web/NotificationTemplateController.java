@@ -46,7 +46,7 @@ public class NotificationTemplateController {
             @RequestBody CreateNotificationTemplateRequest request,
             HttpServletRequest httpRequest) {
         NotificationTemplateResponse response = notificationTemplateService.createTemplate(request);
-        audit("create", "Tạo mẫu thông báo", "NOTIFICATION_TEMPLATE", new ActionResultResponse(true, "Mẫu thông báo đã được tạo"), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_NOTIFICATION, null, new ActionResultResponse(true, "Mẫu thông báo đã được tạo"), request.getName(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -57,7 +57,7 @@ public class NotificationTemplateController {
             @RequestBody UpdateNotificationTemplateRequest request,
             HttpServletRequest httpRequest) {
         NotificationTemplateResponse response = notificationTemplateService.updateTemplate(templateId, request);
-        audit("update", "Cập nhật mẫu thông báo", "NOTIFICATION_TEMPLATE", new ActionResultResponse(true, "Mẫu thông báo đã được cập nhật"), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_NOTIFICATION, templateId.toString(), new ActionResultResponse(true, "Mẫu thông báo đã được cập nhật"), request.getName(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -67,11 +67,7 @@ public class NotificationTemplateController {
             @PathVariable UUID templateId,
             HttpServletRequest httpRequest) {
         ActionResultResponse response = notificationTemplateService.deleteTemplate(templateId);
-        audit("delete", "Xóa mẫu thông báo", "NOTIFICATION_TEMPLATE", response, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_NOTIFICATION, templateId.toString(), response, null, httpRequest);
         return ResponseEntity.ok(response);
-    }
-
-    private void audit(String actionType, String action, String resourceType, ActionResultResponse result, HttpServletRequest request) {
-        auditLogService.record(currentUserProvider.getCurrentUserId(), actionType, action, resourceType, null, result, "", request);
     }
 }

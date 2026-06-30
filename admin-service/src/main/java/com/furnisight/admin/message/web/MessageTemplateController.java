@@ -42,8 +42,7 @@ public class MessageTemplateController {
             @Valid @RequestBody UpsertMessageTemplateRequest request,
             HttpServletRequest httpRequest) {
         MessageTemplateResponse response = messageTemplateService.createTemplate(request);
-        audit("create", "Tạo mẫu tin nhắn", "MESSAGE_TEMPLATE",
-                new ActionResultResponse(true, "Mẫu tin nhắn đã được tạo"), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_MESSAGE_TEMPLATE, null, new ActionResultResponse(true, "Mẫu tin nhắn đã được tạo"), request.getTitle(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -54,8 +53,7 @@ public class MessageTemplateController {
             @Valid @RequestBody UpsertMessageTemplateRequest request,
             HttpServletRequest httpRequest) {
         MessageTemplateResponse response = messageTemplateService.updateTemplate(id, request);
-        audit("update", "Cập nhật mẫu tin nhắn", "MESSAGE_TEMPLATE",
-                new ActionResultResponse(true, "Mẫu tin nhắn đã được cập nhật"), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_MESSAGE_TEMPLATE, id.toString(), new ActionResultResponse(true, "Mẫu tin nhắn đã được cập nhật"), request.getTitle(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -65,13 +63,7 @@ public class MessageTemplateController {
             @PathVariable Integer id,
             HttpServletRequest httpRequest) {
         ActionResultResponse response = messageTemplateService.deleteTemplate(id);
-        audit("delete", "Xóa mẫu tin nhắn", "MESSAGE_TEMPLATE", response, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_MESSAGE_TEMPLATE, id.toString(), response, null, httpRequest);
         return ResponseEntity.ok(response);
-    }
-
-    private void audit(String actionType, String action, String resourceType,
-                       ActionResultResponse result, HttpServletRequest request) {
-        auditLogService.record(currentUserProvider.getCurrentUserId(),
-                actionType, action, resourceType, null, result, "", request);
     }
 }

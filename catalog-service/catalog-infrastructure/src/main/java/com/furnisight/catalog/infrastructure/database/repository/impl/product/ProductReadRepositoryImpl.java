@@ -413,7 +413,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
-    public long countLowStockProducts(int threshold) {
+    public long countLowStockProducts() {
         Long total = jdbcTemplate.queryForObject(
                 """
                 SELECT COUNT(*) FROM (
@@ -448,7 +448,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
-    public List<ProductResponse> findLowStockProducts(int threshold, int limit) {
+    public List<ProductResponse> findLowStockProducts(int limit) {
         String sql = """
                 SELECT
                     p.id AS product_id,

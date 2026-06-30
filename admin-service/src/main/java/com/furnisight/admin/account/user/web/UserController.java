@@ -33,8 +33,8 @@ public class UserController {
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) String scope) {
-        return ResponseEntity.ok(userService.getUsers(page, size, query, status, scope));
+            @RequestParam(required = false) Boolean isAdmin) {
+        return ResponseEntity.ok(userService.getUsers(page, size, query, status, isAdmin));
     }
 
     @GetMapping("/{id}")
@@ -49,8 +49,8 @@ public class UserController {
             @RequestBody CreateUserRequest request, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = userService.createUser(adminId, request);
-        auditLogService.record(adminId, "create", "Tạo tài khoản admin", "USER",
-                request.getEmail(), result, "Email: " + request.getEmail(), httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.CREATE_USER,
+                request.getEmail(), result, "", httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -61,8 +61,8 @@ public class UserController {
             HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = userService.updateUser(adminId, id, request);
-        auditLogService.record(adminId, "update", "Cập nhật tài khoản", "USER",
-                id.toString(), result, "User id: " + id, httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.UPDATE_USER,
+                id.toString(), result, "", httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -73,8 +73,8 @@ public class UserController {
             HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = userService.updateUserStatus(adminId, id, request.getStatus());
-        auditLogService.record(adminId, "update_status", "Cập nhật trạng thái tài khoản", "USER",
-                id.toString(), result, "Trạng thái: " + request.getStatus(), httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.UPDATE_USER_STATUS,
+                id.toString(), result, request.getStatus(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -84,8 +84,8 @@ public class UserController {
             @PathVariable UUID id, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = userService.deleteUser(adminId, id);
-        auditLogService.record(adminId, "delete", "Xóa tài khoản", "USER",
-                id.toString(), result, "User id: " + id, httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.DELETE_USER,
+                id.toString(), result, "", httpRequest);
         return ResponseEntity.ok(result);
     }
 }

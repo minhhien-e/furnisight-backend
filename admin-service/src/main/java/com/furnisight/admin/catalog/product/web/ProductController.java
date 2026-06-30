@@ -44,8 +44,8 @@ public class ProductController {
     public ResponseEntity<ActionResultResponse> createProduct(
             @RequestBody UpsertProductRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.createProduct(request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo sản phẩm", "PRODUCT",
-                request.sku(), result, "Tên sản phẩm: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_PRODUCT,
+                request.sku(), result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -55,8 +55,8 @@ public class ProductController {
             @PathVariable String id, @RequestBody UpsertProductRequest request,
             HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.updateProduct(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật sản phẩm", "PRODUCT",
-                id, result, "Tên sản phẩm: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_PRODUCT,
+                id, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -65,8 +65,8 @@ public class ProductController {
     public ResponseEntity<ActionResultResponse> deleteProduct(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.deleteProduct(id);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa sản phẩm", "PRODUCT",
-                id, result, "Product id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_PRODUCT,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 }

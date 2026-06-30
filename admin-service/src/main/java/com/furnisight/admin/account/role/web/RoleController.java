@@ -44,8 +44,8 @@ public class RoleController {
             @RequestBody UpsertRoleRequest request, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = roleService.createRole(request);
-        auditLogService.record(adminId, "create", "Tạo vai trò", "ROLE",
-                request.name(), result, "Tên vai trò: " + request.name(), httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.CREATE_ROLE,
+                request.name(), result, "", httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -56,8 +56,8 @@ public class RoleController {
             HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = roleService.updateRole(id, request);
-        auditLogService.record(adminId, "update", "Cập nhật vai trò", "ROLE",
-                id, result, "Tên vai trò: " + request.name(), httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.UPDATE_ROLE,
+                id, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -67,8 +67,8 @@ public class RoleController {
             @PathVariable String id, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = roleService.deleteRole(id);
-        auditLogService.record(adminId, "delete", "Xóa vai trò", "ROLE",
-                id, result, "Role id: " + id, httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.DELETE_ROLE,
+                id, result, "", httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -85,14 +85,14 @@ public class RoleController {
 
         if ("REVOKE".equalsIgnoreCase(request.getAction())) {
             ActionResultResponse result = roleService.revokeRole(adminId, id, request.getRoleId());
-            auditLogService.record(adminId, "update", "Gỡ vai trò người dùng", "USER_ROLE",
-                    id.toString(), result, "Role id: " + request.getRoleId(), httpRequest);
+            auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.REVOKE_ROLE,
+                    id.toString(), result, request.getRoleId().toString(), httpRequest);
             return ResponseEntity.ok(result);
         }
 
         ActionResultResponse result = roleService.assignRole(adminId, id, request.getRoleId());
-        auditLogService.record(adminId, "update", "Gán vai trò người dùng", "USER_ROLE",
-                id.toString(), result, "Role id: " + request.getRoleId(), httpRequest);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.ASSIGN_ROLE,
+                id.toString(), result, request.getRoleId().toString(), httpRequest);
         return ResponseEntity.ok(result);
     }
 }

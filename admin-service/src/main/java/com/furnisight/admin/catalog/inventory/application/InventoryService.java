@@ -8,9 +8,10 @@ import com.furnisight.admin.catalog.inventory.web.dto.request.StockInVariantRequ
 import com.furnisight.admin.catalog.inventory.web.dto.response.InventoryItemResponse;
 import com.furnisight.admin.catalog.inventory.web.dto.response.InventoryResponse;
 import com.furnisight.admin.catalog.inventory.web.dto.response.LowStockItemResponse;
-import com.furnisight.admin.catalog.product.application.ProductValidator;
+
 import com.furnisight.admin.shared.web.ActionResultResponse;
 import com.furnisight.admin.shared.web.KpiResponse;
+import com.furnisight.admin.shared.web.KpiType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -21,10 +22,9 @@ import java.util.List;
 public class InventoryService {
 
     private final AdminCatalogGrpcClient catalogClient;
-    private final ProductValidator validator;
 
-    public List<LowStockItemResponse> getLowStockProducts(int limit, int threshold) {
-        return catalogClient.getLowStockProducts(limit, threshold).getProductsList().stream()
+    public List<LowStockItemResponse> getLowStockProducts(int limit) {
+        return catalogClient.getLowStockProducts(limit).getProductsList().stream()
                 .map(this::toLowStockResponse)
                 .toList();
     }
@@ -40,10 +40,10 @@ public class InventoryService {
         long lowStock = items.stream().filter(item -> item.stock() > 0 && item.stock() <= item.threshold()).count();
         long outOfStock = items.stream().filter(item -> item.stock() <= 0).count();
         return new InventoryResponse(List.of(
-                new KpiResponse("variants", "Variant", String.valueOf(items.size()), "", "", true, "default", "box"),
-                new KpiResponse("stock", "Tổng tồn", String.valueOf(totalStock), "", "", true, "default", "warehouse"),
-                new KpiResponse("low", "Sắp hết", String.valueOf(lowStock), "", "", false, "warn", "alert"),
-                new KpiResponse("empty", "Hết hàng", String.valueOf(outOfStock), "", "", false, "danger", "ban")
+                new KpiResponse(KpiType.VARIANTS, items.size(), 0D),
+                new KpiResponse(KpiType.STOCK, totalStock, 0D),
+                new KpiResponse(KpiType.LOW_STOCK, lowStock, 0D),
+                new KpiResponse(KpiType.OUT_OF_STOCK, outOfStock, 0D)
         ), items);
     }
 
@@ -59,7 +59,7 @@ public class InventoryService {
 
     public ActionResultResponse updateVariantThreshold(String variantId, int threshold) {
         return toActionResult(catalogClient.updateVariantThreshold(
-                value(variantId), validator.validThreshold(threshold)));
+                value(variantId), threshold));
     }
 
     private InventoryItemResponse toInventoryItem(ProductDto product, ProductVariantDto variant) {

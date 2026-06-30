@@ -33,9 +33,8 @@ public class InventoryController {
     public ResponseEntity<ActionResultResponse> stockInVariant(
             @RequestBody StockInVariantRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = inventoryService.stockInVariant(request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Nhập kho", "INVENTORY",
-                request.variantId(), result,
-                "Số lượng: " + request.quantity() + ", sản phẩm: " + request.productId(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.STOCK_IN,
+                request.variantId(), result, String.valueOf(request.quantity()), httpRequest);
         return ResponseEntity.ok(result);
     }
 
@@ -46,9 +45,8 @@ public class InventoryController {
             HttpServletRequest httpRequest) {
         ActionResultResponse response = inventoryService.updateVariantThreshold(
                 variantId, request.lowStockThreshold());
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật cảnh báo tồn kho",
-                "PRODUCT_VARIANT", variantId, response,
-                "Ngưỡng cảnh báo: " + request.lowStockThreshold(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_INVENTORY_THRESHOLD,
+                variantId, response, String.valueOf(request.lowStockThreshold()), httpRequest);
         return ResponseEntity.ok(response);
     }
 }

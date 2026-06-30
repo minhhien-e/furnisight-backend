@@ -23,7 +23,6 @@ import java.util.List;
 public class ProductService {
 
     private final AdminCatalogGrpcClient catalogClient;
-    private final ProductValidator validator;
 
     public PageResponse<ProductResponse> getProducts(int page, int size, String query, String status, String category) {
         com.furnisight.admin.catalog.ProductPageResponse response =
@@ -40,15 +39,14 @@ public class ProductService {
     }
 
     public ActionResultResponse createProduct(UpsertProductRequest request) {
-        validator.validateVariants(request.variants());
         return toActionResult(catalogClient.createProduct(CreateProductRequest.newBuilder()
                 .setName(value(request.name()))
-                .setSlug(slugFrom(request.sku(), request.name()))
+                .setSlug("") // Slug was removed from request
                 .setCategory(value(request.category()))
                 .setPrice(request.price())
                 .setStock(request.stock())
                 .setSku(value(request.sku()))
-                .setStatus(productStatusInput(request))
+                .setStatus(value(request.status()))
                 .setDescription(value(request.description()))
                 .addAllImageUrls(cleanList(request.imageUrls()))
                 .addAllVariants(toVariantInputs(request.variants()))
@@ -56,16 +54,15 @@ public class ProductService {
     }
 
     public ActionResultResponse updateProduct(String id, UpsertProductRequest request) {
-        validator.validateVariants(request.variants());
         return toActionResult(catalogClient.updateProduct(UpdateProductRequest.newBuilder()
                 .setId(value(id))
                 .setName(value(request.name()))
-                .setSlug(slugFrom(request.sku(), request.name()))
+                .setSlug("") // Slug was removed from request
                 .setCategory(value(request.category()))
                 .setPrice(request.price())
                 .setStock(request.stock())
                 .setSku(value(request.sku()))
-                .setStatus(productStatusInput(request))
+                .setStatus(value(request.status()))
                 .setDescription(value(request.description()))
                 .addAllImageUrls(cleanList(request.imageUrls()))
                 .addAllVariants(toVariantInputs(request.variants()))
@@ -106,7 +103,7 @@ public class ProductService {
     private ProductVariantInput toVariantInput(UpsertProductVariantRequest variant) {
         return ProductVariantInput.newBuilder()
                 .setId(value(variant.id()))
-                .setSku(validator.normalizeSku(variant.sku()))
+                .setSku(value(variant.sku()))
                 .setPrice(variant.price())
                 .setStock(variant.stock())
                 .setColor(value(variant.color()))
@@ -116,7 +113,7 @@ public class ProductService {
                 .setLength(variant.length())
                 .setWidth(variant.width())
                 .setHeight(variant.height())
-                .setLowStockThreshold(validator.validThreshold(variant.lowStockThreshold()))
+                .setLowStockThreshold(variant.lowStockThreshold())
                 .setModelMediaId(value(variant.modelMediaId()))
                 .setModelUrl(value(variant.modelUrl()))
                 .setSupports3D(variant.supports3d())
@@ -126,31 +123,6 @@ public class ProductService {
 
     private ActionResultResponse toActionResult(com.furnisight.admin.catalog.AdminActionResponse response) {
         return new ActionResultResponse(response.getSuccess(), response.getMessage());
-    }
-
-    private String productStatusInput(UpsertProductRequest request) {
-        return request.status() != null && !request.status().isBlank()
-                ? request.status() : value(request.statusLabel());
-    }
-
-    private String slugFrom(String sku, String name) {
-        if (sku != null && !sku.isBlank()) {
-            return sku;
-        }
-        if (name == null || name.isBlank()) {
-            return "";
-        }
-        return stripAccents(name.trim().toLowerCase())
-                .replaceAll("[^a-z0-9\\s-]", "")
-                .replaceAll("\\s+", "-")
-                .replaceAll("-+", "-");
-    }
-
-    private static String stripAccents(String value) {
-        return Normalizer.normalize(value, Normalizer.Form.NFD)
-                .replaceAll("\\p{M}", "")
-                .replace('đ', 'd')
-                .replace('Đ', 'D');
     }
 
     private String value(String value) {
