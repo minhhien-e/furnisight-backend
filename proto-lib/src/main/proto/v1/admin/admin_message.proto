@@ -1,0 +1,57 @@
+syntax = "proto3";
+
+package v1.admin;
+
+
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.message.grpc";
+
+message MessageTemplateDto {
+    int32 id = 1;
+    string title = 2;
+    string content = 3;
+    string category = 4;
+    bool active = 5;
+    string created_at = 6;
+    string updated_at = 7;
+}
+
+message UpsertMessageTemplateRequest {
+    string title = 1;
+    string content = 2;
+    string category = 3;
+    bool active = 4;
+}
+
+message GetMessageTemplateByIdRequest {
+    int32 id = 1;
+}
+
+message UpdateMessageTemplateRequest {
+    int32 id = 1;
+    UpsertMessageTemplateRequest data = 2;
+}
+
+message DeleteMessageTemplateRequest {
+    int32 id = 1;
+}
+
+message DeleteMessageTemplateResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message EmptyMessageTemplateRequest {}
+
+message GetMessageTemplatesResponse {
+    repeated MessageTemplateDto templates = 1;
+}
+
+service AdminMessageService {
+    rpc GetTemplates (EmptyMessageTemplateRequest) returns (GetMessageTemplatesResponse);
+    rpc GetTemplateById (GetMessageTemplateByIdRequest) returns (MessageTemplateDto);
+    rpc CreateTemplate (UpsertMessageTemplateRequest) returns (MessageTemplateDto);
+    rpc UpdateTemplate (UpdateMessageTemplateRequest) returns (MessageTemplateDto);
+    rpc DeleteTemplate (DeleteMessageTemplateRequest) returns (DeleteMessageTemplateResponse);
+}
