@@ -25,6 +25,7 @@ service AdminUserService {
     rpc RevokeRole (RevokeRoleRequest) returns (AdminActionResponse);
     rpc CreateAccount (CreateAccountRequest) returns (AdminActionResponse);
     rpc UpdateAccountProfile (UpdateAccountProfileRequest) returns (AdminActionResponse);
+    rpc UpdateUserStatus (UpdateUserStatusRequest) returns (AdminActionResponse);
     rpc ListMarketingUserIds (ListMarketingUserIdsRequest) returns (MarketingUserIdsResponse);
     rpc FilterMarketingUserIds (FilterMarketingUserIdsRequest) returns (FilterMarketingUserIdsResponse);
     rpc BatchGetMarketingUsers (BatchGetMarketingUsersRequest) returns (MarketingUsersResponse);
@@ -76,6 +77,7 @@ message CreateAccountRequest {
     string phone = 4;
     string password = 5;
     string role_id = 6;
+    bool is_admin = 7;
 }
 
 message AdminActionResponse {
@@ -88,13 +90,7 @@ message GetAccountsRequest {
     int32 size = 2;
     string query = 3;
     string status = 4;
-    AccountScope scope = 5;
-}
-
-enum AccountScope {
-    ACCOUNT_SCOPE_UNSPECIFIED = 0;
-    ACCOUNT_SCOPE_CUSTOMER = 1;
-    ACCOUNT_SCOPE_ADMIN = 2;
+    optional bool is_admin = 5;
 }
 
 message AccountPageResponse {
@@ -161,6 +157,12 @@ message UnbanAccountRequest {
 message ActivateAccountRequest {
     string admin_id = 1;
     string account_id = 2;
+}
+
+message UpdateUserStatusRequest {
+    string admin_id = 1;
+    string account_id = 2;
+    string status = 3;
 }
 
 message DeleteAccountRequest {
