@@ -7,9 +7,6 @@ import com.furnisight.catalog.domain.exceptions.ErrorCode;
 import com.furnisight.catalog.domain.exceptions.NotFoundException;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
-import com.furnisight.catalog.domain.valueobjects.product.ProductDescription;
-import com.furnisight.catalog.domain.valueobjects.product.ProductName;
-import com.furnisight.catalog.domain.valueobjects.product.ProductSlug;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,10 +26,10 @@ public class UpdateProductInfoService implements UpdateProductInfoUseCase {
 
         productLifecycleService.updateProfile(
                 product,
-                command.getName() != null ? new ProductName(command.getName()) : null,
-                command.getSlug() != null ? new ProductSlug(command.getSlug()) : null,
+                command.getName(),
+                command.getSlug(),
                 command.getSku(),
-                command.getDescription() != null ? new ProductDescription(command.getDescription()) : null,
+                command.getDescription(),
                 command.getFeatures());
 
         productRepository.save(product);
