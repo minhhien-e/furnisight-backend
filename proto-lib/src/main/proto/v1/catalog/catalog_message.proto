@@ -83,6 +83,9 @@ message SearchRecommendedProductsResponse {
 }
 
 message RecommendedProduct {
+  reserved 12;
+  reserved "tags";
+  
   string id = 1;
   string slug = 2;
   string name = 3;
@@ -94,7 +97,6 @@ message RecommendedProduct {
   double rating = 9;
   int32 rating_count = 10;
   int32 sold_count = 11;
-  repeated string tags = 12;
   repeated ProductSummaryVariant variants = 13;
 }
 // v2: model_url added to ProductSummaryVariant, variants added to RecommendedProduct
