@@ -24,13 +24,13 @@ public class CategoryController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<List<CategoryResponse>> getCategories(@RequestParam(required = false) String query) {
         return ResponseEntity.ok(categoryService.getCategories(query));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> createCategory(
             @RequestBody UpsertCategoryRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.createCategory(request);
@@ -40,7 +40,7 @@ public class CategoryController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateCategory(
             @PathVariable String id, @RequestBody UpsertCategoryRequest request,
             HttpServletRequest httpRequest) {
@@ -51,7 +51,7 @@ public class CategoryController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> deleteCategory(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.deleteCategory(id);
@@ -61,7 +61,7 @@ public class CategoryController {
     }
 
     @GetMapping("/icon-options")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<List<CategoryResponse>> getCategoryIconOptions() {
         return ResponseEntity.ok(List.of());
     }

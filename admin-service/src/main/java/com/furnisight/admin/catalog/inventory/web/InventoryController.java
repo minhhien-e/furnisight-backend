@@ -23,13 +23,13 @@ public class InventoryController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<InventoryResponse> getInventory(@RequestParam(required = false) String query) {
         return ResponseEntity.ok(inventoryService.getInventory(query));
     }
 
     @PostMapping("/stock-in")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> stockInVariant(
             @RequestBody StockInVariantRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = inventoryService.stockInVariant(request);
@@ -39,7 +39,7 @@ public class InventoryController {
     }
 
     @PutMapping("/variants/{variantId}/threshold")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateVariantThreshold(
             @PathVariable String variantId, @RequestBody UpdateVariantThresholdRequest request,
             HttpServletRequest httpRequest) {

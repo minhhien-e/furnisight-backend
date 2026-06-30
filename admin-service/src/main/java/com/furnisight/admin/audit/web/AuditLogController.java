@@ -19,7 +19,7 @@ public class AuditLogController {
     private final AuditLogService auditLogService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<PageResponse<AuditLogResponse>> getAuditLogs(
             @RequestParam(required = false) String search,
             @RequestParam(required = false) String type,

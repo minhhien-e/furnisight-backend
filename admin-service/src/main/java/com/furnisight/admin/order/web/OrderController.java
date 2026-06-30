@@ -22,7 +22,7 @@ public class OrderController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'ORDER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<PageResponse<OrderResponse>> getOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -32,7 +32,7 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'ORDER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateOrder(
             @PathVariable String id, @RequestBody UpdateOrderRequest request) {
         UUID adminId = currentUserProvider.getCurrentUserId();

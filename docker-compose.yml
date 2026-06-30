@@ -225,6 +225,8 @@ services:
         condition: service_started
       catalog-service:
         condition: service_started
+      message-service:
+        condition: service_started
 
   catalog-service:
     <<: *java-service
@@ -405,6 +407,9 @@ services:
       <<: *java-build
     env_file:
       - ./message-service/.env
+    expose:
+      - "8080"
+      - "9097"
     environment:
       SERVER_PORT: 8080
       USER_SERVICE_GRPC_ADDRESS: static://user-service:9091

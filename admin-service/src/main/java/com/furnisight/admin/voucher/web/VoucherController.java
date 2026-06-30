@@ -26,7 +26,7 @@ public class VoucherController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<List<VoucherResponse>> getVouchers(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String type,
@@ -35,13 +35,13 @@ public class VoucherController {
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<VoucherStatsResponse> getStats() {
         return ResponseEntity.ok(voucherService.getStats());
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> createVoucher(
             @RequestBody UpsertVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.createVoucher(request);
@@ -51,7 +51,7 @@ public class VoucherController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateVoucher(
             @PathVariable String id, @RequestBody UpsertVoucherRequest request,
             HttpServletRequest httpRequest) {
@@ -62,7 +62,7 @@ public class VoucherController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> deleteVoucher(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.deleteVoucher(id);
@@ -72,7 +72,7 @@ public class VoucherController {
     }
 
     @PostMapping("/{id}/publish")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> publishVoucher(
             @PathVariable String id, @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.publishVoucher(id, request);

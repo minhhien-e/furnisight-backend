@@ -42,6 +42,9 @@ grpc:
     promotion-service:
       address: "dns:///${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
       negotiation-type: plaintext
+    message-service:
+      address: "dns:///${MESSAGE_SERVICE_GRPC_HOST:localhost}:${MESSAGE_SERVICE_GRPC_PORT:9097}"
+      negotiation-type: plaintext
 
 promotion:
   service:
