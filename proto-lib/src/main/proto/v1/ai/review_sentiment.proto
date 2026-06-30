@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package v1.ai;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.ai.review";
+
+service ReviewSentimentService {
+    rpc AnalyzeReviewSentiment (AnalyzeReviewSentimentRequest) returns (AnalyzeReviewSentimentResponse);
+}
+
+message AnalyzeReviewSentimentRequest {
+    string text = 1;
+}
+
+message AnalyzeReviewSentimentResponse {
+    string sentiment = 1;
+    double confidence = 2;
+}

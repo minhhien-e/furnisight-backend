@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package com.furnisight.admin.review;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.admin.review";
+option java_outer_classname = "AdminReviewProto";
+
+import "google/protobuf/empty.proto";
+
+service AdminReviewService {
+    rpc GetReviewSentimentStats (google.protobuf.Empty) returns (ReviewSentimentStatsResponse);
+}
+
+message ReviewSentimentStatsResponse {
+    int64 total_reviews = 1;
+    int64 analyzed_reviews = 2;
+    int64 pending_reviews = 3;
+    int64 failed_reviews = 4;
+    int64 positive_count = 5;
+    int64 neutral_count = 6;
+    int64 negative_count = 7;
+    repeated TopNegativeProduct top_negative_products = 8;
+}
+
+message TopNegativeProduct {
+    string product_id = 1;
+    string product_name = 2;
+    int64 negative_count = 3;
+    double negative_ratio = 4;
+    int64 visible_review_count = 5;
+    double average_rating = 6;
+}

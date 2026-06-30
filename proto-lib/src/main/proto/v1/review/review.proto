@@ -1,0 +1,17 @@
+syntax = "proto3";
+
+package v1.review;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.review";
+
+import "v1/review/review_message.proto";
+
+service ReviewService {
+    rpc CreateReview (CreateReviewRequest) returns (CreateReviewResponse);
+    rpc UpdateReview (UpdateReviewRequest) returns (ReviewActionResponse);
+    rpc DeleteReview (DeleteReviewRequest) returns (ReviewActionResponse);
+    rpc ListProductReviews (ListProductReviewsRequest) returns (ListProductReviewsResponse);
+    rpc GetTopRandomReviews (GetTopRandomReviewsRequest) returns (GetTopRandomReviewsResponse);
+    rpc BatchGetProductReviewStats (BatchGetProductReviewStatsRequest) returns (BatchGetProductReviewStatsResponse);
+}

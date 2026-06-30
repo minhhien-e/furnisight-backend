@@ -1,0 +1,99 @@
+syntax = "proto3";
+
+package v1.review;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.review";
+
+message ReviewActionResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message CreateReviewRequest {
+    string user_id = 1;
+    string product_id = 2;
+    string order_item_id = 3;
+    string title = 4;
+    string content = 5;
+    int32 rating = 6;
+    string user_name = 7;
+    string user_avatar_media_id = 8;
+}
+
+message CreateReviewResponse {
+    string id = 1;
+    string status = 2;
+    string sentiment_status = 3;
+}
+
+message UpdateReviewRequest {
+    string review_id = 1;
+    string user_id = 2;
+    string title = 3;
+    string content = 4;
+    int32 rating = 5;
+}
+
+message DeleteReviewRequest {
+    string review_id = 1;
+    string user_id = 2;
+}
+
+message ListProductReviewsRequest {
+    string product_id = 1;
+    int32 page = 2;
+    int32 size = 3;
+}
+
+message ListProductReviewsResponse {
+    repeated ReviewDto reviews = 1;
+    int64 total_elements = 2;
+    int32 total_pages = 3;
+    int32 current_page = 4;
+    int32 page_size = 5;
+}
+
+message GetTopRandomReviewsRequest {
+    int32 limit = 1;
+}
+
+message GetTopRandomReviewsResponse {
+    repeated ReviewDto reviews = 1;
+}
+
+message BatchGetProductReviewStatsRequest {
+    repeated string product_ids = 1;
+}
+
+message BatchGetProductReviewStatsResponse {
+    repeated ProductReviewStat stats = 1;
+}
+
+message ReviewDto {
+    string id = 1;
+    string user_id = 2;
+    string user_name = 3;
+    string user_avatar_url = 4;
+    string user_avatar_media_id = 5;
+    string product_id = 6;
+    string order_item_id = 7;
+    string title = 8;
+    string content = 9;
+    int32 rating = 10;
+    string status = 11;
+    string sentiment = 12;
+    optional double sentiment_confidence = 13;
+    string sentiment_status = 14;
+    string sentiment_analyzed_at = 15;
+    string sentiment_error = 16;
+    string created_at = 17;
+    string updated_at = 18;
+}
+
+message ProductReviewStat {
+    string product_id = 1;
+    double average_rating = 2;
+    int32 rating_count = 3;
+    int32 visible_review_count = 4;
+}

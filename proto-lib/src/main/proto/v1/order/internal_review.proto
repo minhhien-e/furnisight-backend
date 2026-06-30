@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package com.furnisight.internal.order;
+
+option java_multiple_files = true;
+option java_package = "com.furnisight.internal.order";
+option java_outer_classname = "InternalReviewProto";
+
+service InternalReviewEligibilityService {
+    rpc ValidateReviewEligibility (ValidateReviewEligibilityRequest) returns (ValidateReviewEligibilityResponse);
+}
+
+message ValidateReviewEligibilityRequest {
+    string user_id = 1;
+    string product_id = 2;
+    string order_item_id = 3;
+}
+
+message ValidateReviewEligibilityResponse {
+    bool valid = 1;
+    string reason = 2;
+}
