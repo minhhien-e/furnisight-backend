@@ -31,6 +31,7 @@ public class GlobalExceptionHandler {
                 .map(this::formatFieldError)
                 .collect(Collectors.joining(", "));
 
+        log.warn("Validation error 400 at {}: {}", request.getRequestURI(), message);
         return buildResponse(HttpStatus.BAD_REQUEST, "VALIDATION_ERROR", message, request.getRequestURI());
     }
 
@@ -39,6 +40,7 @@ public class GlobalExceptionHandler {
             IllegalArgumentException ex,
             HttpServletRequest request
     ) {
+        log.warn("IllegalArgument error 400 at {}: {}", request.getRequestURI(), ex.getMessage());
         return buildResponse(HttpStatus.BAD_REQUEST, "BAD_REQUEST", ex.getMessage(), request.getRequestURI());
     }
 
