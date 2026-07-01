@@ -1,7 +1,7 @@
 package com.furnisight.catalog.application.product.service;
 
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductSoldCountUseCase;
-import com.furnisight.catalog.application.product.port.out.ProductRepository;
+import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.entities.Product;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

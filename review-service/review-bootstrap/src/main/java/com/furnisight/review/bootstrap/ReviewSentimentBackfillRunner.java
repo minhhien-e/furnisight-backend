@@ -1,7 +1,7 @@
 package com.furnisight.review.bootstrap;
 
 import com.furnisight.review.application.review.port.out.repository.ReviewWritePort;
-import com.furnisight.review.application.review.service.ReviewSentimentProcessor;
+import com.furnisight.review.adapter.in.event.ReviewSentimentProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;

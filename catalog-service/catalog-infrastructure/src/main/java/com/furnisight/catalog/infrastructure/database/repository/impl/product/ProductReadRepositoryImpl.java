@@ -186,7 +186,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 """;
 
         List<ProductResponse> products = jdbcTemplate.query(mainSql, params, this::mapRowToProductSummary);
-        products.forEach(p -> p.setVariants(fetchVariants(p.getId())));
+        if (!products.isEmpty()) {
+            List<UUID> productIds = products.stream().map(ProductResponse::getId).toList();
+            Map<UUID, List<ProductResponse.VariantDto>> variantsMap = fetchVariantsInBatch(productIds);
+            products.forEach(p -> p.setVariants(variantsMap.getOrDefault(p.getId(), new ArrayList<>())));
+        }
         int totalPages = size <= 0 ? 0 : (int) Math.ceil((double) total / size);
 
         return new PageResponse<>(products, totalPages, total, page + 1, size);
@@ -266,7 +270,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .soldCount(rs.getInt("sold_count"))
                         .build());
                         
-        products.forEach(p -> p.setVariants(fetchVariants(p.getId())));
+        if (!products.isEmpty()) {
+            List<UUID> productIds = products.stream().map(ProductResponse::getId).toList();
+            Map<UUID, List<ProductResponse.VariantDto>> variantsMap = fetchVariantsInBatch(productIds);
+            products.forEach(p -> p.setVariants(variantsMap.getOrDefault(p.getId(), new ArrayList<>())));
+        }
         return products;
     }
 
@@ -729,6 +737,98 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .price(0.0)
                 .roomTypeHint(categoryName)
                 .build();
+    }
+
+    private Map<UUID, List<ProductResponse.VariantDto>> fetchVariantsInBatch(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) return Collections.emptyMap();
+
+        String sql = """
+                SELECT
+                    id,
+                    product_id,
+                    price,
+                    stock_quantity,
+                    weight,
+                    length,
+                    width,
+                    height,
+                    color,
+                    material,
+                    warranty,
+                    sku,
+                    low_stock_threshold,
+                    supports_3d,
+                    model_media_id,
+                    model_url
+                FROM product_variants
+                WHERE product_id IN (:productIds)
+                ORDER BY product_id, price ASC
+                """;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIds", productIds));
+
+        List<UUID> variantIds = new ArrayList<>();
+        Map<UUID, ProductResponse.VariantDto> variantMap = new HashMap<>();
+        Map<UUID, List<ProductResponse.VariantDto>> productVariantsMap = new HashMap<>();
+
+        for (Map<String, Object> row : rows) {
+            UUID id = (UUID) row.get("id");
+            UUID productId = (UUID) row.get("product_id");
+            variantIds.add(id);
+
+            ProductResponse.VariantDto variant = ProductResponse.VariantDto.builder()
+                    .id(id)
+                    .price(row.get("price") == null ? null : ((Number) row.get("price")).doubleValue())
+                    .stockQuantity(row.get("stock_quantity") == null ? 0 : ((Number) row.get("stock_quantity")).intValue())
+                    .weight(row.get("weight") == null ? null : ((Number) row.get("weight")).doubleValue())
+                    .length(row.get("length") == null ? null : ((Number) row.get("length")).doubleValue())
+                    .width(row.get("width") == null ? null : ((Number) row.get("width")).doubleValue())
+                    .height(row.get("height") == null ? null : ((Number) row.get("height")).doubleValue())
+                    .color(normalizeText((String) row.get("color"), ""))
+                    .material(normalizeText((String) row.get("material"), ""))
+                    .warranty(normalizeText((String) row.get("warranty"), ""))
+                    .sku(normalizeText((String) row.get("sku"), ""))
+                    .lowStockThreshold(row.get("low_stock_threshold") == null ? 0 : ((Number) row.get("low_stock_threshold")).intValue())
+                    .supports3d(row.get("supports_3d") != null && (Boolean) row.get("supports_3d"))
+                    .modelMediaId((UUID) row.get("model_media_id"))
+                    .modelUrl(normalizeText((String) row.get("model_url"), ""))
+                    .imageUrls(new ArrayList<>())
+                    .build();
+
+            variantMap.put(id, variant);
+            productVariantsMap.computeIfAbsent(productId, k -> new ArrayList<>()).add(variant);
+        }
+
+        if (!variantIds.isEmpty()) {
+            Map<UUID, List<String>> imagesMap = fetchVariantImagesInBatch(variantIds);
+            for (Map.Entry<UUID, ProductResponse.VariantDto> entry : variantMap.entrySet()) {
+                entry.getValue().setImageUrls(imagesMap.getOrDefault(entry.getKey(), new ArrayList<>()));
+            }
+        }
+
+        return productVariantsMap;
+    }
+
+    private Map<UUID, List<String>> fetchVariantImagesInBatch(List<UUID> variantIds) {
+        if (variantIds == null || variantIds.isEmpty()) return Collections.emptyMap();
+
+        String sql = """
+                SELECT variant_id, image_url
+                FROM product_variant_images
+                WHERE variant_id IN (:variantIds)
+                ORDER BY variant_id, position ASC
+                """;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("variantIds", variantIds));
+        Map<UUID, List<String>> result = new HashMap<>();
+
+        for (Map<String, Object> row : rows) {
+            UUID variantId = (UUID) row.get("variant_id");
+            String imageUrl = (String) row.get("image_url");
+            result.computeIfAbsent(variantId, k -> new ArrayList<>()).add(imageUrl);
+        }
+
+        return result;
     }
 
     private List<ProductResponse.VariantDto> fetchVariants(UUID productId) {

@@ -41,6 +41,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     private final AdminOrderGrpcMapper mapper;
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public void getAdminOrders(GetAdminOrdersRequest request, StreamObserver<OrderPageResponse> responseObserver) {
         AdminOrderPageResult result = getAdminOrdersUseCase.getAdminOrders(GetAdminOrdersQuery.builder()
                 .page(request.getPage())
@@ -52,6 +53,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
     public void getRecentOrders(GetRecentOrdersRequest request, StreamObserver<RecentOrderListResponse> responseObserver) {
         List<Order> orders = getRecentOrdersUseCase.getRecentOrders(GetRecentOrdersQuery.builder()
                 .limit(request.getLimit())

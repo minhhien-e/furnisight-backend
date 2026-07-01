@@ -28,7 +28,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
         int pageSize = (size != null) ? size : 10;
         int offset = pageNum * pageSize;
 
-        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, created_at " +
+        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, sentiment, created_at " +
                 "FROM reviews " +
                 "WHERE product_id = :productId AND status::text IN (:statuses) " +
                 "ORDER BY created_at DESC " +
@@ -58,6 +58,48 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
                 rs.getString("content_text"),
                 rs.getInt("rating"),
                 rs.getString("status"),
+                rs.getString("sentiment"),
+                rs.getTimestamp("created_at").toLocalDateTime()
+            );
+        });
+    }
+
+    public List<ReviewResponse> findByProductIdAndSentiment(UUID productId, String sentiment, Integer page, Integer size) {
+        int pageNum = (page != null) ? page : 0;
+        int pageSize = (size != null) ? size : 20;
+        int offset = pageNum * pageSize;
+
+        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, sentiment, created_at " +
+                "FROM reviews " +
+                "WHERE product_id = :productId AND sentiment = :sentiment " +
+                "ORDER BY created_at DESC " +
+                "LIMIT :limit OFFSET :offset";
+
+        Map<String, Object> params = Map.of(
+                "productId", productId,
+                "sentiment", sentiment,
+                "limit", pageSize,
+                "offset", offset
+        );
+
+        return jdbcTemplate.query(sql, params, (rs, rowNum) -> {
+            UUID mediaId = rs.getObject("user_avatar_media_id", UUID.class);
+            String avatarUrl = null;
+            if (mediaId != null) {
+                avatarUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+            }
+            return new ReviewResponse(
+                rs.getObject("id", UUID.class),
+                rs.getObject("user_id", UUID.class),
+                rs.getString("user_name"),
+                avatarUrl,
+                rs.getObject("product_id", UUID.class),
+                rs.getObject("order_item_id", UUID.class),
+                rs.getString("title"),
+                rs.getString("content_text"),
+                rs.getInt("rating"),
+                rs.getString("status"),
+                rs.getString("sentiment"),
                 rs.getTimestamp("created_at").toLocalDateTime()
             );
         });
@@ -69,7 +111,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
             return List.of();
         }
 
-        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, created_at " +
+        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, sentiment, created_at " +
                 "FROM reviews " +
                 "WHERE user_id = :userId AND order_item_id IN (:orderItemIds) " +
                 "ORDER BY created_at DESC";
@@ -94,6 +136,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
                     rs.getString("content_text"),
                     rs.getInt("rating"),
                     rs.getString("status"),
+                    rs.getString("sentiment"),
                     rs.getTimestamp("created_at").toLocalDateTime()
             );
         });
@@ -101,7 +144,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
 
     @Override
     public List<ReviewResponse> findTopRandomReviews(int limit) {
-        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, created_at " +
+        String sql = "SELECT id, user_id, user_name, user_avatar_media_id, product_id, order_item_id, title, content_text, rating, status, sentiment, created_at " +
                 "FROM reviews " +
                 "WHERE rating >= 4 AND status::text = 'VISIBLE' " +
                 "ORDER BY rating DESC, RANDOM() " +
@@ -126,6 +169,7 @@ public class ReviewReadRepositoryImpl implements ReviewQueryRepository {
                 rs.getString("content_text"),
                 rs.getInt("rating"),
                 rs.getString("status"),
+                rs.getString("sentiment"),
                 rs.getTimestamp("created_at").toLocalDateTime()
             );
         });

@@ -10,6 +10,7 @@ import java.util.UUID;
 
 public interface ReviewQueryRepository {
     List<ReviewResponse> findByProductId(UUID productId, Integer page, Integer size);
+    List<ReviewResponse> findByProductIdAndSentiment(UUID productId, String sentiment, Integer page, Integer size);
     List<ReviewResponse> findByUserIdAndOrderItemIds(UUID userId, Collection<UUID> orderItemIds);
     List<ReviewResponse> findTopRandomReviews(int limit);
     List<ProductReviewStatResponse> findProductStats(Collection<UUID> productIds);

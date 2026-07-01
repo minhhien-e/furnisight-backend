@@ -6,8 +6,13 @@ import java.util.UUID;
 import lombok.Builder;
 import lombok.Data;
 
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class ProductResponse {
     private UUID id;
     private UUID shopId;
@@ -39,6 +44,8 @@ public class ProductResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class CategoryInfo {
         private String id;
         private String label;
@@ -49,6 +56,8 @@ public class ProductResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class Review {
         private String id;
         private String user;
@@ -60,6 +69,8 @@ public class ProductResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class QA {
         private String id;
         private String question;
@@ -70,6 +81,8 @@ public class ProductResponse {
 
     @Data
     @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
     public static class VariantDto {
         private UUID id;
         private Double price;

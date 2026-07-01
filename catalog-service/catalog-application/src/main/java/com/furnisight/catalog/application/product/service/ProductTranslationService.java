@@ -34,11 +34,12 @@ public class ProductTranslationService {
         if (!TARGET_LANG_EN.equals(normalizeLang(targetLang)) || query == null || query.isBlank()) {
             return query;
         }
+        // User typed query in English, translate it to Vietnamese to search in DB
         return textTranslationPort.translate(query, TARGET_LANG_EN, SOURCE_LANG_VI);
     }
 
     public ProductResponse localizeProduct(ProductResponse product, String targetLang) {
-        if (product == null || !TARGET_LANG_EN.equals(normalizeLang(targetLang))) {
+        if (product == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return product;
         }
 
@@ -49,6 +50,7 @@ public class ProductTranslationService {
 
         if (product.getCategory() != null) {
             product.getCategory().setLabel(translateValue(product.getCategory().getLabel()));
+            product.getCategory().setParentLabel(translateValue(product.getCategory().getParentLabel()));
         }
 
         if (product.getVariants() != null) {
@@ -63,7 +65,7 @@ public class ProductTranslationService {
     }
 
     public List<ProductResponse> localizeProducts(List<ProductResponse> products, String targetLang) {
-        if (products == null || !TARGET_LANG_EN.equals(normalizeLang(targetLang))) {
+        if (products == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return products;
         }
         products.forEach(product -> localizeProduct(product, targetLang));
@@ -71,7 +73,7 @@ public class ProductTranslationService {
     }
 
     public PageResponse<ProductResponse> localizePage(PageResponse<ProductResponse> page, String targetLang) {
-        if (page == null || !TARGET_LANG_EN.equals(normalizeLang(targetLang))) {
+        if (page == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return page;
         }
 
@@ -81,7 +83,7 @@ public class ProductTranslationService {
     }
 
     public CategoryResponse localizeCategory(CategoryResponse category, String targetLang) {
-        if (category == null || !TARGET_LANG_EN.equals(normalizeLang(targetLang))) {
+        if (category == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return category;
         }
 
@@ -91,7 +93,7 @@ public class ProductTranslationService {
     }
 
     public List<CategoryResponse> localizeCategories(List<CategoryResponse> categories, String targetLang) {
-        if (categories == null || !TARGET_LANG_EN.equals(normalizeLang(targetLang))) {
+        if (categories == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return categories;
         }
         categories.forEach(category -> localizeCategory(category, targetLang));
@@ -102,6 +104,7 @@ public class ProductTranslationService {
         if (value == null || value.isBlank()) {
             return value;
         }
+        // DB is VI, output is EN
         return textTranslationPort.translate(value, SOURCE_LANG_VI, TARGET_LANG_EN);
     }
 

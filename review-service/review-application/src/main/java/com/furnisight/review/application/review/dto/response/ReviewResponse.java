@@ -14,6 +14,6 @@ public record ReviewResponse(
     String content, 
     Integer rating, 
     String status, 
+    String sentiment,
     LocalDateTime createdAt
 ) {}
-

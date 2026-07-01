@@ -6,5 +6,6 @@ import java.util.UUID;
 
 public interface GetReviewsByProductUseCase {
     List<ReviewResponse> getReviewsByProduct(UUID productId, Integer page, Integer size);
+    List<ReviewResponse> getReviewsByProduct(UUID productId, Integer page, Integer size, String sentiment);
 }
 

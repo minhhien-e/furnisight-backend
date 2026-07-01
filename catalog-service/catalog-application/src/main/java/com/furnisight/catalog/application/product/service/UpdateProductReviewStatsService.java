@@ -2,7 +2,7 @@ package com.furnisight.catalog.application.product.service;
 
 import com.furnisight.catalog.application.product.dto.response.ProductReviewStats;
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductReviewStatsUseCase;
-import com.furnisight.catalog.application.product.port.out.ProductRepository;
+import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.application.product.port.out.ProductReviewStatsPort;
 import com.furnisight.catalog.domain.entities.Product;
 import lombok.RequiredArgsConstructor;

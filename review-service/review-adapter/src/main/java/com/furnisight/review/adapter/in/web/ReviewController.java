@@ -56,8 +56,12 @@ public class ReviewController {
     public ResponseEntity<List<ReviewResponse>> getByProductId(
         @PathVariable(value = "productId") UUID productId,
         @RequestParam(name = "page", defaultValue = "0") int page,
-        @RequestParam(name = "size", defaultValue = "10") int size
+        @RequestParam(name = "size", defaultValue = "10") int size,
+        @RequestParam(name = "sentiment", required = false) String sentiment
     ) {
+        if (sentiment != null && !sentiment.isBlank()) {
+            return ResponseEntity.ok(getReviewsByProductUseCase.getReviewsByProduct(productId, page, size, sentiment.trim().toUpperCase()));
+        }
         return ResponseEntity.ok(getReviewsByProductUseCase.getReviewsByProduct(productId, page, size));
     }
 

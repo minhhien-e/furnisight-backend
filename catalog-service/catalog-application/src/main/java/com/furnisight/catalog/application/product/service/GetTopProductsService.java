@@ -5,6 +5,7 @@ import com.furnisight.catalog.application.product.port.in.usecase.GetTopProducts
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -16,6 +17,7 @@ public class GetTopProductsService implements GetTopProductsUseCase {
     private final ProductTranslationService productTranslationService;
 
     @Override
+    @Cacheable(value = "top_products")
     public List<ProductResponse> execute(int limit, String lang) {
         List<ProductResponse> products = productReadRepository.findTopProducts(limit);
         return productTranslationService.localizeProducts(

@@ -7,7 +7,7 @@ import com.furnisight.review.domain.entities.Review;
 import com.furnisight.review.domain.exceptions.ErrorCode;
 import com.furnisight.review.domain.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.context.ApplicationEventPublisher;
+import com.furnisight.review.application.review.port.out.ReviewSentimentTriggerPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +18,7 @@ import java.util.UUID;
 public class UpdateReviewService implements UpdateReviewUseCase {
 
     private final ReviewWritePort reviewWritePort;
-    private final ApplicationEventPublisher eventPublisher;
+    private final ReviewSentimentTriggerPort reviewSentimentTriggerPort;
     private final ReviewEventPublisherPort reviewEventPublisherPort;
 
     @Override
@@ -30,7 +30,7 @@ public class UpdateReviewService implements UpdateReviewUseCase {
 
         if (isChanged) {
             reviewWritePort.save(review);
-            eventPublisher.publishEvent(new ReviewSentimentRequestedEvent(review.getId(), review.getContent().text()));
+            reviewSentimentTriggerPort.triggerSentimentAnalysis(review.getId(), review.getContent().text());
             reviewEventPublisherPort.publishReviewChangedEvent(review.getProductId());
         }
     }

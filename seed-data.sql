@@ -9,6 +9,9 @@
 SELECT 'CREATE DATABASE furnisight_promotion_db'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_promotion_db')\gexec
 
+SELECT 'CREATE DATABASE furnisight_review_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_review_db')\gexec
+
 -- ============================================================
 -- furnisight_user_db
 -- Schema tham chieu:
@@ -272,8 +275,8 @@ INSERT INTO
 VALUES (
         gen_random_uuid (),
         '52379d96-5238-4fd9-8383-bae82736bb3b',
-        'Minh Hien',
-        'Minh Hien',
+        'Minh Hiền',
+        'Minh Hiền',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien',
         'minhhien7840@gmail.com',
         '2000-01-15',
@@ -296,8 +299,8 @@ VALUES (
     (
         gen_random_uuid (),
         '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
-        'User 01',
-        'An Van',
+        'Người dùng 01',
+        'Văn An',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=user01',
         '22130080@st.hcmuaf.edu.vn',
         '1999-05-20',
@@ -308,8 +311,8 @@ VALUES (
     (
         gen_random_uuid (),
         '7c22e6d3-1111-4aab-b999-aabbcc001122',
-        'User 02',
-        'Binh Thi',
+        'Người dùng 02',
+        'Thị Bình',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=user02',
         'user02@furnisight.store',
         '2001-08-10',
@@ -320,8 +323,8 @@ VALUES (
     (
         gen_random_uuid (),
         '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
-        'User 03',
-        'Cuong Quoc',
+        'Người dùng 03',
+        'Quốc Cường',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=user03',
         'user03@furnisight.store',
         '1998-12-03',
@@ -488,12 +491,7 @@ CREATE TEMP TABLE seed_extra_products ON COMMIT DROP AS
 SELECT ('e0000000-0000-0000-0000-' || lpad(product_no::text, 12, '0'))::uuid AS id
 FROM generate_series(11, 40) AS product_no;
 
-DELETE FROM reviews
-WHERE
-    product_id IN (
-        SELECT id
-        FROM seed_extra_products
-    );
+
 
 DELETE FROM product_favorite_logs
 WHERE
@@ -523,20 +521,7 @@ WHERE
         FROM seed_extra_products
     );
 
-DELETE FROM reviews
-WHERE
-    product_id IN (
-        'e0000000-0000-0000-0000-000000000001',
-        'e0000000-0000-0000-0000-000000000002',
-        'e0000000-0000-0000-0000-000000000003',
-        'e0000000-0000-0000-0000-000000000004',
-        'e0000000-0000-0000-0000-000000000005',
-        'e0000000-0000-0000-0000-000000000006',
-        'e0000000-0000-0000-0000-000000000007',
-        'e0000000-0000-0000-0000-000000000008',
-        'e0000000-0000-0000-0000-000000000009',
-        'e0000000-0000-0000-0000-000000000010'
-    );
+
 
 DELETE FROM product_favorite_logs
 WHERE
@@ -2589,156 +2574,7 @@ VALUES (
         NOW() - INTERVAL '2 days'
     );
 
-INSERT INTO
-    reviews (
-        id,
-        title,
-        user_id,
-        user_name,
-        product_id,
-        order_item_id,
-        content_text,
-        content_hash,
-        rating,
-        status,
-        trust_score,
-        created_at,
-        updated_at
-    )
-VALUES (
-        'b0000001-0000-0000-0000-000000000001',
-        'Sofa da rất xịn!',
-        '52379d96-5238-4fd9-8383-bae82736bb3b',
-        'Minh Hiền',
-        'e0000000-0000-0000-0000-000000000001',
-        'c0000001-0000-0000-0000-000000000001',
-        'Mình hài lòng với chiếc sofa này. Chất da mềm, màu sắc đẹp, giao hàng cẩn thận.',
-        md5(
-            'Mình hài lòng với chiếc sofa này.'
-        ),
-        5,
-        'VISIBLE',
-        0.90,
-        NOW() - INTERVAL '5 days',
-        NOW() - INTERVAL '5 days'
-    ),
-    (
-        'b0000001-0000-0000-0000-000000000002',
-        'Chất lượng ổn, giá hơi cao',
-        '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
-        'User 01',
-        'e0000000-0000-0000-0000-000000000001',
-        'c0000001-0000-0000-0000-000000000002',
-        'Sofa đẹp, ngồi thoải mái. Giá hơi cao nhưng hoàn thiện tốt.',
-        md5('Sofa đẹp, ngồi thoải mái.'),
-        4,
-        'VISIBLE',
-        0.75,
-        NOW() - INTERVAL '3 days',
-        NOW() - INTERVAL '3 days'
-    ),
-    (
-        'b0000002-0000-0000-0000-000000000001',
-        'Sofa vải siêu thoải mái',
-        '7c22e6d3-1111-4aab-b999-aabbcc001122',
-        'User 02',
-        'e0000000-0000-0000-0000-000000000002',
-        'c0000002-0000-0000-0000-000000000001',
-        'Mua cho phòng khách nhà, gia đình rất thích. Vải mềm, đệm dày, dễ vệ sinh.',
-        md5(
-            'Mua cho phòng khách nhà, gia đình rất thích.'
-        ),
-        5,
-        'VISIBLE',
-        0.85,
-        NOW() - INTERVAL '7 days',
-        NOW() - INTERVAL '7 days'
-    ),
-    (
-        'b0000003-0000-0000-0000-000000000001',
-        'Bàn trà đẹp, lắp dễ',
-        '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
-        'User 03',
-        'e0000000-0000-0000-0000-000000000003',
-        'c0000003-0000-0000-0000-000000000001',
-        'Bàn trà chắc chắn, hướng dẫn lắp ráp rõ ràng, bề mặt đẹp.',
-        md5(
-            'Bàn trà chắc chắn, hướng dẫn lắp ráp rõ ràng.'
-        ),
-        5,
-        'VISIBLE',
-        0.95,
-        NOW() - INTERVAL '10 days',
-        NOW() - INTERVAL '10 days'
-    ),
-    (
-        'b0000004-0000-0000-0000-000000000001',
-        'Giường king chắc, không tiếng kêu',
-        '52379d96-5238-4fd9-8383-bae82736bb3b',
-        'Minh Hiền',
-        'e0000000-0000-0000-0000-000000000004',
-        'c0000004-0000-0000-0000-000000000001',
-        'Dùng được 2 tháng, khung thép chắc chắn, sơn không bị tróc.',
-        md5(
-            'Dùng được 2 tháng, khung thép chắc chắn.'
-        ),
-        5,
-        'VISIBLE',
-        0.88,
-        NOW() - INTERVAL '2 days',
-        NOW() - INTERVAL '2 days'
-    ),
-    (
-        'b0000009-0000-0000-0000-000000000001',
-        'Tủ lavabo gọn và đẹp',
-        '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
-        'User 01',
-        'e0000000-0000-0000-0000-000000000009',
-        'c0000009-0000-0000-0000-000000000001',
-        'Tủ treo tường giúp phòng tắm thoáng hơn, ngăn kéo đóng êm và mặt lavabo dễ lau.',
-        md5(
-            'Tủ treo tường giúp phòng tắm thoáng hơn.'
-        ),
-        5,
-        'VISIBLE',
-        0.92,
-        NOW() - INTERVAL '1 day',
-        NOW() - INTERVAL '1 day'
-    ),
-    (
-        'b0000009-0000-0000-0000-000000000002',
-        'Tốt nhưng giao hàng chậm',
-        '7c22e6d3-1111-4aab-b999-aabbcc001122',
-        'User 02',
-        'e0000000-0000-0000-0000-000000000009',
-        'c0000009-0000-0000-0000-000000000002',
-        'Sản phẩm chất lượng tốt, đúng mô tả. Khâu giao hàng cần cải thiện.',
-        md5(
-            'Sản phẩm chất lượng tốt, đúng mô tả.'
-        ),
-        3,
-        'VISIBLE',
-        0.65,
-        NOW() - INTERVAL '4 days',
-        NOW() - INTERVAL '4 days'
-    ),
-    (
-        'b0000010-0000-0000-0000-000000000001',
-        'Gương LED sáng dịu, rất tiện',
-        '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
-        'User 03',
-        'e0000000-0000-0000-0000-000000000010',
-        'c0000010-0000-0000-0000-000000000001',
-        'Đèn LED sáng vừa đủ, soi rõ mặt nhưng không chói. Lắp ở khu lavabo rất hợp.',
-        md5(
-            'Đèn LED sáng vừa đủ, soi rõ mặt nhưng không chói.'
-        ),
-        5,
-        'VISIBLE',
-        0.87,
-        NOW() - INTERVAL '6 days',
-        NOW() - INTERVAL '6 days'
-    );
+
 
 COMMIT;
 
@@ -3050,8 +2886,8 @@ INSERT INTO
     )
 VALUES (
         '84000000-0000-0000-0000-000000000001',
-        'Combo phong ngu LuxNest',
-        'Giuong king, giuong queen va tu quan ao cho phong ngu.',
+        'Combo phòng ngủ LuxNest',
+        'Giường king, giường queen và tủ quần áo cho phòng ngủ.',
         'https://images.unsplash.com/photo-1616486338812-3dadae4b4ace?auto=format&fit=crop&w=1400&q=85',
         'PERCENTAGE',
         15,
@@ -3067,8 +2903,8 @@ VALUES (
     ),
     (
         '84000000-0000-0000-0000-000000000002',
-        'Combo phong khach tinh gon',
-        'Sofa da va ban tra go soi cho phong khach hien dai.',
+        'Combo phòng khách tinh gọn',
+        'Sofa da và bàn trà gỗ sồi cho phòng khách hiện đại.',
         'https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=1400&q=85',
         'FIXED_AMOUNT',
         1300000,
@@ -3084,8 +2920,8 @@ VALUES (
     ),
     (
         '84000000-0000-0000-0000-000000000003',
-        'Combo phong khach Bac Au',
-        'Sofa vang, ban tra kinh khoi va ban tra da trang cho phong khach sang nhe.',
+        'Combo phòng khách Bắc Âu',
+        'Sofa văng, bàn trà kính khối và bàn trà đá trắng cho phòng khách sang nhẹ.',
         'https://images.unsplash.com/photo-1550581190-9c1c48d21d6c?auto=format&fit=crop&w=1400&q=85',
         'FIXED_AMOUNT',
         1800000,
@@ -3101,8 +2937,8 @@ VALUES (
     ),
     (
         '84000000-0000-0000-0000-000000000004',
-        'Combo bep am cung',
-        'Bo ban an, ban tron xoay va tu bep chu L cho khong gian bep tien nghi.',
+        'Combo bếp ấm cúng',
+        'Bộ bàn ăn, bàn tròn xoay và tủ bếp chữ L cho không gian bếp tiện nghi.',
         'https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=1400&q=85',
         'PERCENTAGE',
         12,
@@ -3118,8 +2954,8 @@ VALUES (
     ),
     (
         '84000000-0000-0000-0000-000000000005',
-        'Combo phong tam spa',
-        'Tu lavabo go oc cho ket hop guong tron va guong soi toan than.',
+        'Combo phòng tắm spa',
+        'Tủ lavabo gỗ óc chó kết hợp gương tròn và gương soi toàn thân.',
         'https://images.unsplash.com/photo-1584622650111-993a426fbf0a?auto=format&fit=crop&w=1400&q=85',
         'FIXED_AMOUNT',
         900000,
@@ -3135,8 +2971,8 @@ VALUES (
     ),
     (
         '84000000-0000-0000-0000-000000000006',
-        'Combo phong ngu toi gian',
-        'Giuong boc nem dau cao va hai mau tu ao hien dai cho phong ngu moi.',
+        'Combo phòng ngủ tối giản',
+        'Giường bọc nệm đầu cao và hai mẫu tủ áo hiện đại cho phòng ngủ mới.',
         'https://images.unsplash.com/photo-1616594039964-ae9021a400a0?auto=format&fit=crop&w=1400&q=85',
         'PERCENTAGE',
         10,
@@ -3698,6 +3534,168 @@ VALUES (
         'a0000003-0000-0000-0000-000000000001',
         1,
         NOW() - INTERVAL '2 hours'
+    );
+
+COMMIT;
+
+-- ============================================================
+-- furnisight_review_db
+-- ============================================================
+\connect furnisight_review_db;
+
+BEGIN;
+
+DELETE FROM reviews;
+
+INSERT INTO
+    reviews (
+        id,
+        title,
+        user_id,
+        user_name,
+        product_id,
+        order_item_id,
+        content_text,
+        content_hash,
+        rating,
+        status,
+        trust_score,
+        created_at,
+        updated_at
+    )
+VALUES (
+        'b0000001-0000-0000-0000-000000000001',
+        'Sofa da rất xịn!',
+        '52379d96-5238-4fd9-8383-bae82736bb3b',
+        'Minh Hiền',
+        'e0000000-0000-0000-0000-000000000001',
+        'c0000001-0000-0000-0000-000000000001',
+        'Mình hài lòng với chiếc sofa này. Chất da mềm, màu sắc đẹp, giao hàng cẩn thận.',
+        md5(
+            'Mình hài lòng với chiếc sofa này.'
+        ),
+        5,
+        'VISIBLE',
+        0.90,
+        NOW() - INTERVAL '5 days',
+        NOW() - INTERVAL '5 days'
+    ),
+    (
+        'b0000001-0000-0000-0000-000000000002',
+        'Chất lượng ổn, giá hơi cao',
+        '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
+        'Người dùng 01',
+        'e0000000-0000-0000-0000-000000000001',
+        'c0000001-0000-0000-0000-000000000002',
+        'Sofa đẹp, ngồi thoải mái. Giá hơi cao nhưng hoàn thiện tốt.',
+        md5('Sofa đẹp, ngồi thoải mái.'),
+        4,
+        'VISIBLE',
+        0.75,
+        NOW() - INTERVAL '3 days',
+        NOW() - INTERVAL '3 days'
+    ),
+    (
+        'b0000002-0000-0000-0000-000000000001',
+        'Sofa vải siêu thoải mái',
+        '7c22e6d3-1111-4aab-b999-aabbcc001122',
+        'Người dùng 02',
+        'e0000000-0000-0000-0000-000000000002',
+        'c0000002-0000-0000-0000-000000000001',
+        'Mua cho phòng khách nhà, gia đình rất thích. Vải mềm, đệm dày, dễ vệ sinh.',
+        md5(
+            'Mua cho phòng khách nhà, gia đình rất thích.'
+        ),
+        5,
+        'VISIBLE',
+        0.85,
+        NOW() - INTERVAL '7 days',
+        NOW() - INTERVAL '7 days'
+    ),
+    (
+        'b0000003-0000-0000-0000-000000000001',
+        'Bàn trà đẹp, lắp dễ',
+        '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
+        'Người dùng 03',
+        'e0000000-0000-0000-0000-000000000003',
+        'c0000003-0000-0000-0000-000000000001',
+        'Bàn trà chắc chắn, hướng dẫn lắp ráp rõ ràng, bề mặt đẹp.',
+        md5(
+            'Bàn trà chắc chắn, hướng dẫn lắp ráp rõ ràng.'
+        ),
+        5,
+        'VISIBLE',
+        0.95,
+        NOW() - INTERVAL '10 days',
+        NOW() - INTERVAL '10 days'
+    ),
+    (
+        'b0000004-0000-0000-0000-000000000001',
+        'Giường king chắc, không tiếng kêu',
+        '52379d96-5238-4fd9-8383-bae82736bb3b',
+        'Minh Hiền',
+        'e0000000-0000-0000-0000-000000000004',
+        'c0000004-0000-0000-0000-000000000001',
+        'Dùng được 2 tháng, khung thép chắc chắn, sơn không bị tróc.',
+        md5(
+            'Dùng được 2 tháng, khung thép chắc chắn.'
+        ),
+        5,
+        'VISIBLE',
+        0.88,
+        NOW() - INTERVAL '2 days',
+        NOW() - INTERVAL '2 days'
+    ),
+    (
+        'b0000009-0000-0000-0000-000000000001',
+        'Tủ lavabo gọn và đẹp',
+        '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
+        'Người dùng 01',
+        'e0000000-0000-0000-0000-000000000009',
+        'c0000009-0000-0000-0000-000000000001',
+        'Tủ treo tường giúp phòng tắm thoáng hơn, ngăn kéo đóng êm và mặt lavabo dễ lau.',
+        md5(
+            'Tủ treo tường giúp phòng tắm thoáng hơn.'
+        ),
+        5,
+        'VISIBLE',
+        0.92,
+        NOW() - INTERVAL '1 day',
+        NOW() - INTERVAL '1 day'
+    ),
+    (
+        'b0000009-0000-0000-0000-000000000002',
+        'Tốt nhưng giao hàng chậm',
+        '7c22e6d3-1111-4aab-b999-aabbcc001122',
+        'Người dùng 02',
+        'e0000000-0000-0000-0000-000000000009',
+        'c0000009-0000-0000-0000-000000000002',
+        'Sản phẩm chất lượng tốt, đúng mô tả. Khâu giao hàng cần cải thiện.',
+        md5(
+            'Sản phẩm chất lượng tốt, đúng mô tả.'
+        ),
+        3,
+        'VISIBLE',
+        0.65,
+        NOW() - INTERVAL '4 days',
+        NOW() - INTERVAL '4 days'
+    ),
+    (
+        'b0000010-0000-0000-0000-000000000001',
+        'Gương LED sáng dịu, rất tiện',
+        '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
+        'Người dùng 03',
+        'e0000000-0000-0000-0000-000000000010',
+        'c0000010-0000-0000-0000-000000000001',
+        'Đèn LED sáng vừa đủ, soi rõ mặt nhưng không chói. Lắp ở khu lavabo rất hợp.',
+        md5(
+            'Đèn LED sáng vừa đủ, soi rõ mặt nhưng không chói.'
+        ),
+        5,
+        'VISIBLE',
+        0.87,
+        NOW() - INTERVAL '6 days',
+        NOW() - INTERVAL '6 days'
     );
 
 COMMIT;

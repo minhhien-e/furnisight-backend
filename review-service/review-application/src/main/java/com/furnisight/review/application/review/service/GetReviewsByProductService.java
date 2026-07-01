@@ -21,5 +21,10 @@ public class GetReviewsByProductService implements GetReviewsByProductUseCase {
     public List<ReviewResponse> getReviewsByProduct(UUID productId, Integer page, Integer size) {
         return reviewQueryRepository.findByProductId(productId, page, size);
     }
-}
 
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewResponse> getReviewsByProduct(UUID productId, Integer page, Integer size, String sentiment) {
+        return reviewQueryRepository.findByProductIdAndSentiment(productId, sentiment, page, size);
+    }
+}

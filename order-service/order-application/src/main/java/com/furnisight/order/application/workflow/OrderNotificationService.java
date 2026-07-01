@@ -40,7 +40,7 @@ public class OrderNotificationService {
         if (context.getOrder().getStatus() == OrderStatus.DELIVERED) {
             List<OrderItemPayload> items = context.getOrder().getItems().stream()
                     .map(item -> new OrderItemPayload(
-                            item.getProductSnapshot().getProductId(),
+                            UUID.fromString(item.getProductSnapshot().getProductId()),
                             item.getQuantity()
                     ))
                     .toList();
@@ -58,7 +58,7 @@ public class OrderNotificationService {
         }
     }
 
-    private String toJson(OrderStatusChangedPayload payload) {
+    private String toJson(Object payload) {
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException exception) {

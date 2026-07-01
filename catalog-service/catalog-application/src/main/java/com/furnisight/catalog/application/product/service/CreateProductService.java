@@ -12,6 +12,7 @@ import com.furnisight.catalog.domain.valueobjects.product.Price;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +32,7 @@ public class CreateProductService implements CreateProductUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"top_products", "product_detail"}, allEntries = true)
     public void execute(CreateProductCommand command) {
         List<ProductVariant> variants = new ArrayList<>();
         Set<String> skus = new HashSet<>();

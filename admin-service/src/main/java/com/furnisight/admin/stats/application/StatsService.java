@@ -11,6 +11,7 @@ import com.furnisight.admin.stats.web.dto.response.StatsResponse;
 import com.furnisight.admin.stats.web.dto.response.TopNegativeProductMetricResponse;
 import com.furnisight.admin.stats.web.dto.response.UserMetricsResponse;
 import com.furnisight.admin.catalog.infrastructure.grpc.AdminCatalogGrpcClient;
+import com.furnisight.admin.catalog.ProductDto;
 import com.furnisight.admin.order.infrastructure.grpc.AdminOrderGrpcClient;
 import com.furnisight.admin.review.infrastructure.grpc.AdminReviewGrpcClient;
 import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
@@ -70,14 +71,25 @@ public class StatsService {
                         reviewStats.getNeutralCount(),
                         reviewStats.getNegativeCount(),
                         reviewStats.getTopNegativeProductsList().stream()
-                                .map(product -> new TopNegativeProductMetricResponse(
+                                .map(product -> {
+                                    String productName = product.getProductName();
+                                    try {
+                                        ProductDto dto = catalogClient.getProductDetail(product.getProductId());
+                                        if (dto != null && dto.getName() != null && !dto.getName().isBlank()) {
+                                            productName = dto.getName();
+                                        }
+                                    } catch (Exception e) {
+                                        // Ignore if product not found or catalog service is down
+                                    }
+                                    return new TopNegativeProductMetricResponse(
                                         product.getProductId(),
-                                        product.getProductName(),
+                                        productName,
                                         product.getNegativeCount(),
                                         product.getNegativeRatio(),
                                         product.getVisibleReviewCount(),
                                         product.getAverageRating()
-                                ))
+                                    );
+                                })
                                 .toList()
                 ));
     }
