@@ -16,7 +16,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.context.ApplicationContext;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
@@ -39,6 +42,7 @@ public class AuditLogService {
 
     private final AuditLogRepository repository;
     private final AdminUserGrpcClient userClient;
+    private final ApplicationContext applicationContext;
 
     @Transactional(readOnly = true)
     public PageResponse<AuditLogResponse> getLogs(String search, String type, String result, java.time.LocalDateTime fromDate, int page, int pageSize) {
@@ -95,7 +99,6 @@ public class AuditLogService {
      * Nhận dữ liệu thô và thực hiện ghi trực tiếp xuống Database.
      * Hàm này cũng đảm nhiệm việc fetch actorName bằng gRPC ngay lúc ghi để tối ưu tốc độ đọc (read-path).
      */
-    @Transactional
     public void record(UUID actorId,
                        String actionType,
                        String action,
@@ -104,6 +107,24 @@ public class AuditLogService {
                        boolean success,
                        String detail,
                        HttpServletRequest request) {
+        String ipAddress = request != null ? request.getRemoteAddr() : null;
+        String userAgent = request != null ? request.getHeader("User-Agent") : null;
+        
+        applicationContext.getBean(AuditLogService.class)
+            .recordAsync(actorId, actionType, action, resourceType, resourceId, success, detail, ipAddress, userAgent);
+    }
+
+    @Async
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void recordAsync(UUID actorId,
+                            String actionType,
+                            String action,
+                            String resourceType,
+                            String resourceId,
+                            boolean success,
+                            String detail,
+                            String ipAddress,
+                            String userAgent) {
         try {
             AuditLog logEntry = new AuditLog();
             logEntry.setActorId(actorId);
@@ -125,8 +146,8 @@ public class AuditLogService {
             logEntry.setResourceId(resourceId);
             logEntry.setResult(success ? "success" : "error");
             logEntry.setDetail(detail);
-            logEntry.setIpAddress(request != null ? request.getRemoteAddr() : null);
-            logEntry.setUserAgent(request != null ? request.getHeader("User-Agent") : null);
+            logEntry.setIpAddress(ipAddress);
+            logEntry.setUserAgent(userAgent);
             repository.save(logEntry);
         } catch (Exception ex) {
             log.warn("Failed to write admin audit log", ex);
