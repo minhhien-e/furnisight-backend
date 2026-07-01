@@ -161,6 +161,8 @@ services:
         condition: service_healthy
       catalog-service:
         condition: service_started
+      review-service:
+        condition: service_started
       cart-service:
         condition: service_started
       notification-service:
@@ -210,6 +212,9 @@ services:
       <<: *java-build
     env_file:
       - ./admin-service/.env
+    environment:
+      SERVER_PORT: 8080
+      REVIEW_SERVICE_GRPC_HOST: review-service
     volumes:
       - admin_data:/app/data
     depends_on:
@@ -225,6 +230,8 @@ services:
         condition: service_started
       catalog-service:
         condition: service_started
+      review-service:
+        condition: service_started
 
   catalog-service:
     <<: *java-service
@@ -239,6 +246,7 @@ services:
       SERVER_PORT: 8080
       REDIS_HOST: redis
       TRANSLATION_BASE_URL: http://libretranslate:5000
+      REVIEW_SERVICE_GRPC_HOST: review-service
     expose:
       - "8080"
       - "9093"
@@ -248,6 +256,31 @@ services:
         condition: service_started
       libretranslate:
         condition: service_healthy
+      review-service:
+        condition: service_started
+
+  review-service:
+    <<: *java-service
+    image: furnisight-review-service:latest
+    container_name: furnisight_review_service
+    build:
+      context: ./review-service
+      <<: *java-build
+    env_file:
+      - ./review-service/.env
+    environment:
+      SERVER_PORT: 8080
+    expose:
+      - "8080"
+      - "9097"
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
+      order-service:
+        condition: service_started
+      media-service:
+        condition: service_started
+      ai-review-sentiment:
+        condition: service_started
 
   cart-service:
     <<: *java-service
@@ -378,6 +411,19 @@ services:
       - ./ai-image-reconstruction/outputs:/app/outputs
     expose:
       - "8080"
+
+  ai-review-sentiment:
+    image: furnisight-ai-review-sentiment:latest
+    build:
+      context: ./ai-review-sentiment
+      dockerfile: Dockerfile
+    container_name: furnisight_ai_review_sentiment
+    <<: *common-service
+    environment:
+      AI_REVIEW_SENTIMENT_GRPC_PORT: 50051
+    expose:
+      - "8080"
+      - "50051"
 
   media-service:
     <<: *java-service

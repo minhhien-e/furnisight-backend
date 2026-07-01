@@ -10,6 +10,9 @@ grpc:
     media-service:
       address: "static://${MEDIA_SERVICE_GRPC_HOST:localhost}:${MEDIA_SERVICE_GRPC_PORT:9094}"
       negotiationType: plaintext
+    reviewService:
+      address: "dns:///${REVIEW_SERVICE_GRPC_HOST:localhost}:${REVIEW_SERVICE_GRPC_PORT:9097}"
+      negotiationType: plaintext
 
 spring:
   application:

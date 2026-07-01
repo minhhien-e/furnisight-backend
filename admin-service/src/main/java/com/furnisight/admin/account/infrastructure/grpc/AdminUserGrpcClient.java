@@ -22,16 +22,19 @@ public class AdminUserGrpcClient {
                 .setSize(size)
                 .setQuery(query == null ? "" : query)
                 .setStatus(status == null ? "" : status)
-                .setScope(parseScope(scope))
                 .build();
+        Boolean isAdmin = parseScope(scope);
+        if (isAdmin != null) {
+            request = request.toBuilder().setIsAdmin(isAdmin).build();
+        }
         return adminUserServiceStub.getAccounts(request);
     }
 
-    private AccountScope parseScope(String scope) {
-        if (scope == null || scope.isBlank()) return AccountScope.ACCOUNT_SCOPE_UNSPECIFIED;
+    private Boolean parseScope(String scope) {
+        if (scope == null || scope.isBlank()) return null;
         return switch (scope.trim().toUpperCase()) {
-            case "CUSTOMER" -> AccountScope.ACCOUNT_SCOPE_CUSTOMER;
-            case "ADMIN" -> AccountScope.ACCOUNT_SCOPE_ADMIN;
+            case "CUSTOMER" -> Boolean.FALSE;
+            case "ADMIN" -> Boolean.TRUE;
             default -> throw new IllegalArgumentException("Invalid account scope: " + scope);
         };
     }
