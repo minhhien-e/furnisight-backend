@@ -6,12 +6,16 @@ import com.furnisight.admin.catalog.ProductStatsResponse;
 import com.furnisight.admin.stats.web.dto.response.CategoryMetricResponse;
 import com.furnisight.admin.stats.web.dto.response.OrderMetricsResponse;
 import com.furnisight.admin.stats.web.dto.response.ProductMetricsResponse;
+import com.furnisight.admin.stats.web.dto.response.ReviewSentimentMetricResponse;
 import com.furnisight.admin.stats.web.dto.response.StatsResponse;
+import com.furnisight.admin.stats.web.dto.response.TopNegativeProductMetricResponse;
 import com.furnisight.admin.stats.web.dto.response.UserMetricsResponse;
 import com.furnisight.admin.catalog.infrastructure.grpc.AdminCatalogGrpcClient;
 import com.furnisight.admin.order.infrastructure.grpc.AdminOrderGrpcClient;
+import com.furnisight.admin.review.infrastructure.grpc.AdminReviewGrpcClient;
 import com.furnisight.admin.account.infrastructure.grpc.AdminUserGrpcClient;
 import com.furnisight.admin.order.OrderStatsResponse;
+import com.furnisight.admin.review.ReviewSentimentStatsResponse;
 import com.furnisight.admin.user.AccountStatsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,12 +30,14 @@ public class StatsService {
     private final AdminUserGrpcClient userClient;
     private final AdminOrderGrpcClient orderClient;
     private final AdminCatalogGrpcClient catalogClient;
+    private final AdminReviewGrpcClient reviewClient;
 
     public StatsResponse getStats() {
         AccountStatsResponse userStats = userClient.getAccountStats();
         OrderStatsResponse orderStats = orderClient.getOrderStats();
         ProductStatsResponse productStats = catalogClient.getProductStats();
         CategoryListResponse categories = catalogClient.getCategories(null);
+        ReviewSentimentStatsResponse reviewStats = reviewClient.getReviewSentimentStats();
 
         List<CategoryDto> topCategories = categories.getCategoriesList().stream()
                 .sorted(Comparator.comparingInt(CategoryDto::getProductCount).reversed())
@@ -54,7 +60,26 @@ public class StatsService {
                         productStats.getLowStockProducts()),
                 topCategories.stream()
                         .map(this::toCategoryMetric)
-                        .toList());
+                        .toList(),
+                new ReviewSentimentMetricResponse(
+                        reviewStats.getTotalReviews(),
+                        reviewStats.getAnalyzedReviews(),
+                        reviewStats.getPendingReviews(),
+                        reviewStats.getFailedReviews(),
+                        reviewStats.getPositiveCount(),
+                        reviewStats.getNeutralCount(),
+                        reviewStats.getNegativeCount(),
+                        reviewStats.getTopNegativeProductsList().stream()
+                                .map(product -> new TopNegativeProductMetricResponse(
+                                        product.getProductId(),
+                                        product.getProductName(),
+                                        product.getNegativeCount(),
+                                        product.getNegativeRatio(),
+                                        product.getVisibleReviewCount(),
+                                        product.getAverageRating()
+                                ))
+                                .toList()
+                ));
     }
 
     private CategoryMetricResponse toCategoryMetric(CategoryDto category) {

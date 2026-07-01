@@ -7,6 +7,9 @@ WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_user_db')\
 SELECT 'CREATE DATABASE furnisight_catalog_db'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_catalog_db')\gexec
 
+SELECT 'CREATE DATABASE furnisight_review_db'
+WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_review_db')\gexec
+
 SELECT 'CREATE DATABASE furnisight_media_db'
 WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'furnisight_media_db')\gexec
 

@@ -15,6 +15,7 @@ import com.furnisight.catalog.SearchRecommendedProductsResponse;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import com.furnisight.catalog.application.product.service.ProductTranslationService;
+import com.furnisight.catalog.application.product.service.ProductReviewStatsEnricher;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
 
     private final ProductReadRepository productReadRepository;
     private final ProductTranslationService productTranslationService;
+    private final ProductReviewStatsEnricher productReviewStatsEnricher;
 
     @Override
     public void getProductSummaries(
@@ -121,6 +123,11 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
             responseObserver.onNext(SearchRecommendedProductsResponse.newBuilder()
                     .addAllProducts(productReadRepository
                             .findRecommendedProducts(categorySlug, status, limit)
+                            .stream()
+                            .collect(java.util.stream.Collectors.collectingAndThen(
+                                    java.util.stream.Collectors.toList(),
+                                    productReviewStatsEnricher::enrichAll
+                            ))
                             .stream()
                             .map(this::toRecommendedProduct)
                             .toList())

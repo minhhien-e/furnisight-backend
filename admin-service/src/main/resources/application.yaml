@@ -39,6 +39,9 @@ grpc:
     catalog-service:
       address: "dns:///${CATALOG_SERVICE_GRPC_HOST:localhost}:${CATALOG_SERVICE_GRPC_PORT:9093}"
       negotiation-type: plaintext
+    reviewService:
+      address: "dns:///${REVIEW_SERVICE_GRPC_HOST:localhost}:${REVIEW_SERVICE_GRPC_PORT:9097}"
+      negotiation-type: plaintext
     promotion-service:
       address: "dns:///${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
       negotiation-type: plaintext

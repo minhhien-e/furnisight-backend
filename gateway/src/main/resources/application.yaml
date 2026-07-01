@@ -41,6 +41,16 @@ spring:
                 regexp: /catalog/(?<segment>.*)
                 replacement: /api/v1/$\{segment}
 
+        - id: review-service
+          uri: ${REVIEW_SERVICE_URL:http://review-service:8080}
+          predicates:
+            - Path=/reviews,/reviews/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /reviews(?<segment>/?.*)
+                replacement: /api/v1/reviews$\{segment}
+
         - id: cart-service
           uri: ${CART_SERVICE_URL}
           predicates:

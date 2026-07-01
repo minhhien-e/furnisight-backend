@@ -6,6 +6,7 @@ public record StatsResponse(
         UserMetricsResponse user,
         OrderMetricsResponse orders,
         ProductMetricsResponse products,
-        List<CategoryMetricResponse> topCategories
+        List<CategoryMetricResponse> topCategories,
+        ReviewSentimentMetricResponse reviews
 ) {
 }
