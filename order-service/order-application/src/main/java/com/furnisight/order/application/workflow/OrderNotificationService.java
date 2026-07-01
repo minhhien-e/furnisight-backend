@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.order.application.processing.OrderProcessingContext;
 import com.furnisight.order.domain.entities.OutboxMessage;
+import com.furnisight.order.domain.entities.order.OrderItem;
 import com.furnisight.order.domain.enums.OrderStatus;
 import com.furnisight.order.domain.repository.OutboxMessageRepository;
 import com.furnisight.order.application.user.port.out.UserEmailPort;
@@ -11,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -34,6 +36,26 @@ public class OrderNotificationService {
                 "order-status-changed",
                 toJson(payload)
         ));
+
+        if (context.getOrder().getStatus() == OrderStatus.DELIVERED) {
+            List<OrderItemPayload> items = context.getOrder().getItems().stream()
+                    .map(item -> new OrderItemPayload(
+                            item.getProductSnapshot().getProductId(),
+                            item.getQuantity()
+                    ))
+                    .toList();
+            OrderDeliveredPayload deliveredPayload = new OrderDeliveredPayload(
+                    context.getOrder().getOrderCode(),
+                    items,
+                    LocalDateTime.now()
+            );
+            repository.save(new OutboxMessage(
+                    "Order",
+                    context.getOrder().getOrderCode(),
+                    "order-delivered",
+                    toJson(deliveredPayload)
+            ));
+        }
     }
 
     private String toJson(OrderStatusChangedPayload payload) {
@@ -51,6 +73,16 @@ public class OrderNotificationService {
             OrderStatus previousStatus,
             OrderStatus nextStatus,
             LocalDateTime occurredAt
-    ) {
-    }
+    ) {}
+
+    private record OrderDeliveredPayload(
+            String orderCode,
+            List<OrderItemPayload> items,
+            LocalDateTime occurredAt
+    ) {}
+
+    private record OrderItemPayload(
+            UUID productId,
+            Integer quantity
+    ) {}
 }

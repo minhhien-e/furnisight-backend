@@ -14,12 +14,10 @@ public class GetTopProductsService implements GetTopProductsUseCase {
 
     private final ProductReadRepository productReadRepository;
     private final ProductTranslationService productTranslationService;
-    private final ProductReviewStatsEnricher productReviewStatsEnricher;
 
     @Override
     public List<ProductResponse> execute(int limit, String lang) {
         List<ProductResponse> products = productReadRepository.findTopProducts(limit);
-        productReviewStatsEnricher.enrichAll(products);
         return productTranslationService.localizeProducts(
                 products,
                 lang);

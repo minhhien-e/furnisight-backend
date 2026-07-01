@@ -17,28 +17,10 @@ public class SearchProductsService implements SearchProductsUseCase {
 
     private final ProductReadRepository productReadRepository;
     private final ProductTranslationService productTranslationService;
-    private final ProductReviewStatsEnricher productReviewStatsEnricher;
 
     @Override
     public PageResponse<ProductResponse> execute(SearchProductsQuery query) {
-        SearchProductsQuery effectiveQuery = SearchProductsQuery.builder()
-                .lang(productTranslationService.normalizeLang(query.getLang()))
-                .q(productTranslationService.translateSearchQuery(query.getQ(), query.getLang()))
-                .category(query.getCategory())
-                .sort(query.getSort())
-                .priceBands(query.getPriceBands())
-                .priceSliderPct(query.getPriceSliderPct())
-                .materials(query.getMaterials())
-                .colors(query.getColors())
-                .minStar(query.getMinStar())
-                .saleOnly(query.getSaleOnly())
-                .status(query.getStatus())
-                .page(query.getPage())
-                .size(query.getSize())
-                .build();
-
-        var page = productReadRepository.searchProducts(effectiveQuery);
-        productReviewStatsEnricher.enrichAll(page.items());
-        return productTranslationService.localizePage(page, effectiveQuery.getLang());
+        PageResponse<ProductResponse> page = productReadRepository.searchProducts(query);
+        return productTranslationService.localizePage(page, query.getLang());
     }
 }

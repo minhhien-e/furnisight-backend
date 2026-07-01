@@ -9,7 +9,7 @@ import org.springframework.scheduling.annotation.EnableAsync;
 @SpringBootApplication(scanBasePackages = "com.furnisight.review")
 @EnableAsync
 @EntityScan(basePackages = "com.furnisight.review.domain")
-@EnableJpaRepositories(basePackages = "com.furnisight.review.adapter.database.repository.jpa")
+@EnableJpaRepositories(basePackages = "com.furnisight.review.adapter.out.repository")
 public class ReviewApplication {
 
     public static void main(String[] args) {

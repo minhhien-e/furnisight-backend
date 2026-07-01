@@ -18,6 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderRepositoryImpl implements OrderRepository {
     private final OrderJpaRepository jpaRepository;
+    private final List<OrderStatus> excludedRevenueStatuses = List.of(OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED, OrderStatus.REFUND_PENDING, OrderStatus.REFUNDED);
 
     @Override
     public Order save(Order order) {
@@ -86,20 +87,20 @@ public class OrderRepositoryImpl implements OrderRepository {
 
     @Override
     public double sumTotalAmount() {
-        Double value = jpaRepository.sumTotalAmount();
+        Double value = jpaRepository.sumTotalAmount(excludedRevenueStatuses);
         return value == null ? 0D : value;
     }
 
     @Override
     public double sumTotalAmountCreatedAtBetween(LocalDateTime start, LocalDateTime end) {
-        Double value = jpaRepository.sumTotalAmountCreatedAtBetween(start, end);
+        Double value = jpaRepository.sumTotalAmountCreatedAtBetween(excludedRevenueStatuses, start, end);
         return value == null ? 0D : value;
     }
 
     @Override
     public List<TopSellingProductQuery> findTopSellingProducts(int limit) {
         return jpaRepository.findTopSellingProducts(
-            List.of(OrderStatus.CANCELLED, OrderStatus.PAYMENT_FAILED, OrderStatus.REFUND_PENDING, OrderStatus.REFUNDED),
+            excludedRevenueStatuses,
             PageRequest.of(0, Math.max(limit, 1))
         ).stream()
                 .map(row -> new TopSellingProductQuery(

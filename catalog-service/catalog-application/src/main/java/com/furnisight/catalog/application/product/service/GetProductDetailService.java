@@ -4,6 +4,7 @@ import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.dto.query.GetProductDetailQuery;
 import com.furnisight.catalog.application.product.port.in.usecase.GetProductDetailQueryUseCase;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
+import com.furnisight.catalog.application.product.port.out.ProductReviewStatsPort;
 import com.furnisight.catalog.domain.exceptions.ErrorCode;
 import com.furnisight.catalog.domain.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class GetProductDetailService implements GetProductDetailQueryUseCase {
     private final ProductReadRepository productReadRepository;
-    private final ProductReviewStatsEnricher productReviewStatsEnricher;
+    private final ProductReviewStatsPort productReviewStatsPort;
     private final ProductTranslationService productTranslationService;
 
     @Override
@@ -25,8 +26,9 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
     public ProductResponse execute(GetProductDetailQuery query) {
         ProductResponse product = findProductDetail(query.getSlug()).orElseThrow(
                 () -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
-        product.setReviews(null);
-        productReviewStatsEnricher.enrich(product);
+        
+        List<ProductResponse.Review> reviews = productReviewStatsPort.getProductReviews(product.getId(), 5);
+        product.setReviews(reviews);
 
         return productTranslationService.localizeProduct(product, query.getLang());
     }

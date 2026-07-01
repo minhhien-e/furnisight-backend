@@ -46,6 +46,12 @@ public class Product extends AggregateRoot {
     @Column(name = "sold_count", nullable = false)
     private Integer soldCount;
 
+    @Column(name = "rating", nullable = false)
+    private Double rating;
+
+    @Column(name = "rating_count", nullable = false)
+    private Integer ratingCount;
+
     @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "features", columnDefinition = "jsonb")
     private List<String> features;
@@ -74,6 +80,8 @@ public class Product extends AggregateRoot {
                 .sku(sku)
                 .description(description)
                 .soldCount(0)
+                .rating(0.0)
+                .ratingCount(0)
                 .features(features != null ? features : new ArrayList<>())
                 .gallery(new ArrayList<>())
                 .variants(new ArrayList<>())
@@ -224,4 +232,14 @@ public class Product extends AggregateRoot {
         this.categoryId = categoryId;
     }
 
+    public void updateReviewStats(double newRating, int newRatingCount) {
+        this.rating = newRating;
+        this.ratingCount = newRatingCount;
+    }
+
+    public void incrementSoldCount(int quantity) {
+        if (quantity > 0) {
+            this.soldCount = (this.soldCount != null ? this.soldCount : 0) + quantity;
+        }
+    }
 }

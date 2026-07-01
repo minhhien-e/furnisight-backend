@@ -15,14 +15,12 @@ import java.util.List;
 public class GetWeeklyFavoriteProductsService implements GetWeeklyFavoriteProductsUseCase {
     private final FavoriteProductReadRepository repository;
     private final ProductTranslationService productTranslationService;
-    private final ProductReviewStatsEnricher productReviewStatsEnricher;
 
     @Override
     @Transactional(readOnly = true)
     public List<ProductResponse> execute(int limit, String lang) {
         LocalDateTime oneWeekAgo = LocalDateTime.now().minusWeeks(1);
         List<ProductResponse> products = repository.findTopFavoritedProductsSince(oneWeekAgo, limit);
-        productReviewStatsEnricher.enrichAll(products);
         return productTranslationService.localizeProducts(
                 products,
                 lang);

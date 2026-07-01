@@ -50,17 +50,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
                     pc.slug AS parent_category_slug,
-                    COALESCE(rv.avg_rating, 0) AS avg_rating,
-                    COALESCE(rv.review_count, 0) AS review_count
+                    p.rating AS avg_rating,
+                    p.rating_count AS review_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                LEFT JOIN (
-                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
-                    FROM reviews
-                    WHERE status = 'VISIBLE'::review_status
-                    GROUP BY product_id
-                ) rv ON rv.product_id = p.id
                 WHERE LOWER(p.slug) = :slug
                 LIMIT 1
                 """;
@@ -103,17 +97,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.slug AS category_slug,
                     pc.name AS parent_category_name,
                     pc.slug AS parent_category_slug,
-                    COALESCE(rv.avg_rating, 0) AS avg_rating,
-                    COALESCE(rv.review_count, 0) AS review_count
+                    p.rating AS avg_rating,
+                    p.rating_count AS review_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                LEFT JOIN (
-                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
-                    FROM reviews
-                    WHERE status = 'VISIBLE'::review_status
-                    GROUP BY product_id
-                ) rv ON rv.product_id = p.id
                 WHERE p.id = :productId
                 LIMIT 1
                 """;
@@ -169,8 +157,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         ORDER BY pi.position ASC
                         LIMIT 1
                     ) AS product_image,
-                    COALESCE(rv.avg_rating, 0) AS product_rating,
-                    COALESCE(rv.review_count, 0) AS product_rating_count
+                    p.rating AS product_rating,
+                    p.rating_count AS product_rating_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
@@ -181,12 +169,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     ORDER BY pv.price ASC
                     LIMIT 1
                 ) v3d ON TRUE
-                LEFT JOIN (
-                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
-                    FROM reviews
-                    WHERE status = 'VISIBLE'::review_status
-                    GROUP BY product_id
-                ) rv ON rv.product_id = p.id
                 """ + whereClause + """
                 GROUP BY
                     p.id,
@@ -197,8 +179,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     v3d.supports_3d,
                     c.name,
                     p.created_at,
-                    rv.avg_rating,
-                    rv.review_count
+                    p.rating,
+                    p.rating_count
                 """ + resolveOrderBy(queryParam) + """
                 LIMIT :limit OFFSET :offset
                 """;
@@ -247,8 +229,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         ORDER BY pi.position ASC
                         LIMIT 1
                     ) AS product_image,
-                    COALESCE(review_stats.avg_rating, 0) AS product_rating,
-                    COALESCE(review_stats.rating_count, 0) AS product_rating_count
+                    p.rating AS product_rating,
+                    p.rating_count AS product_rating_count
                 FROM products p
                 JOIN categories c ON c.id = p.category_id
                 LEFT JOIN LATERAL (
@@ -259,12 +241,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     ORDER BY pv.price ASC, pv.id ASC
                     LIMIT 1
                 ) cheapest_variant ON TRUE
-                LEFT JOIN (
-                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS rating_count
-                    FROM reviews
-                    WHERE status = 'VISIBLE'::review_status
-                    GROUP BY product_id
-                ) review_stats ON review_stats.product_id = p.id
                 WHERE p.category_id IN (SELECT id FROM category_tree)
                   AND p.product_status = :status
                 ORDER BY p.created_at DESC
@@ -317,8 +293,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         ORDER BY pi.position ASC
                         LIMIT 1
                     ) AS product_image,
-                    COALESCE(rv.avg_rating, 0) AS product_rating,
-                    COALESCE(rv.review_count, 0) AS product_rating_count
+                    p.rating AS product_rating,
+                    p.rating_count AS product_rating_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN product_variants pv ON pv.product_id = p.id
@@ -329,12 +305,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     ORDER BY pv.price ASC
                     LIMIT 1
                 ) v3d ON TRUE
-                LEFT JOIN (
-                    SELECT product_id, AVG(rating) AS avg_rating, COUNT(id) AS review_count
-                    FROM reviews
-                    WHERE status = 'VISIBLE'::review_status
-                    GROUP BY product_id
-                ) rv ON rv.product_id = p.id
                 WHERE p.product_status = 'ACTIVE'
                 GROUP BY
                     p.id,
@@ -345,8 +315,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     v3d.model_url,
                     v3d.supports_3d,
                     p.created_at,
-                    rv.avg_rating,
-                    rv.review_count
+                    p.rating,
+                    p.rating_count
                 ORDER BY p.created_at DESC
                 LIMIT :limit
                 """;
@@ -647,14 +617,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
     private void appendRatingFilters(StringBuilder whereClause, Map<String, Object> params, SearchProductsQuery query) {
         if (query.getMinStar() != null && query.getMinStar() >= 1 && query.getMinStar() <= 5) {
-            whereClause.append("""
-                    AND (
-                        SELECT AVG(rating)
-                        FROM reviews r
-                        WHERE r.product_id = p.id
-                        AND r.status = 'VISIBLE'::review_status
-                    ) >= :minStar
-                    """);
+            whereClause.append(" AND p.rating >= :minStar ");
             params.put("minStar", query.getMinStar().doubleValue());
         }
     }

@@ -98,14 +98,7 @@ WHERE
 
 DELETE FROM accounts
 WHERE
-    username IN (
-        'minhhien',
-        'admin',
-        'user01',
-        'user02',
-        'user03'
-    )
-    OR email IN (
+    email IN (
         'minhhien7840@gmail.com',
         'admin@furnisight.store',
         '22130080@st.hcmuaf.edu.vn',
@@ -117,69 +110,69 @@ WHERE
 INSERT INTO
     accounts (
         id,
-        username,
         email,
         password_hash,
         status,
         failed_login_attempts,
         lockout_end,
         created_at,
-        updated_at
+        updated_at,
+        is_admin
     )
 VALUES (
         '52379d96-5238-4fd9-8383-bae82736bb3b',
-        'minhhien',
         'minhhien7840@gmail.com',
         '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
         'ACTIVE',
         0,
         NULL,
         NOW(),
-        NOW()
+        NOW(),
+        FALSE
     ),
     (
         'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
-        'admin',
         'admin@furnisight.store',
         '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
         'ACTIVE',
         0,
         NULL,
         NOW(),
-        NOW()
+        NOW(),
+        TRUE
     ),
     (
         '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
-        'user01',
         '22130080@st.hcmuaf.edu.vn',
         '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
         'ACTIVE',
         0,
         NULL,
         NOW(),
-        NOW()
+        NOW(),
+        FALSE
     ),
     (
         '7c22e6d3-1111-4aab-b999-aabbcc001122',
-        'user02',
         'user02@furnisight.store',
         '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
         'ACTIVE',
         0,
         NULL,
         NOW(),
-        NOW()
+        NOW(),
+        FALSE
     ),
     (
         '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
-        'user03',
         'user03@furnisight.store',
         '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
         'ACTIVE',
         0,
         NULL,
         NOW(),
-        NOW()
+        NOW(),
+        FALSE
     );
 
 INSERT INTO
@@ -268,8 +261,7 @@ INSERT INTO
         id,
         account_id,
         display_name,
-        first_name,
-        last_name,
+        full_name,
         avatar_url,
         email,
         date_of_birth,
@@ -281,8 +273,7 @@ VALUES (
         gen_random_uuid (),
         '52379d96-5238-4fd9-8383-bae82736bb3b',
         'Minh Hien',
-        'Hien',
-        'Minh',
+        'Minh Hien',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=minhhien',
         'minhhien7840@gmail.com',
         '2000-01-15',
@@ -294,8 +285,7 @@ VALUES (
         gen_random_uuid (),
         'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
         'Admin',
-        'Admin',
-        'FurniSight',
+        'FurniSight Admin',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=admin',
         'admin@furnisight.store',
         NULL,
@@ -307,8 +297,7 @@ VALUES (
         gen_random_uuid (),
         '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
         'User 01',
-        'Van',
-        'An',
+        'An Van',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=user01',
         '22130080@st.hcmuaf.edu.vn',
         '1999-05-20',
@@ -320,8 +309,7 @@ VALUES (
         gen_random_uuid (),
         '7c22e6d3-1111-4aab-b999-aabbcc001122',
         'User 02',
-        'Thi',
-        'Binh',
+        'Binh Thi',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=user02',
         'user02@furnisight.store',
         '2001-08-10',
@@ -333,8 +321,7 @@ VALUES (
         gen_random_uuid (),
         '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
         'User 03',
-        'Quoc',
-        'Cuong',
+        'Cuong Quoc',
         'https://api.dicebear.com/7.x/avataaars/svg?seed=user03',
         'user03@furnisight.store',
         '1998-12-03',
@@ -797,7 +784,8 @@ INSERT INTO
         features,
         sold_count,
         created_at,
-        updated_at
+        updated_at,
+        sku
     )
 VALUES (
         'e0000000-0000-0000-0000-000000000001',
@@ -809,7 +797,8 @@ VALUES (
         '["Da bò thật","Khung gỗ sồi","Dễ vệ sinh","Đệm ngồi êm"]',
         24,
         NOW(),
-        NOW()
+        NOW(),
+        'MODERN-LEATHER-SOFA'
     ),
     (
         'e0000000-0000-0000-0000-000000000002',
@@ -821,7 +810,8 @@ VALUES (
         '["Vải nỉ cao cấp","Thiết kế chữ L","Đệm mút dày","Có thể tháo vỏ"]',
         17,
         NOW(),
-        NOW()
+        NOW(),
+        'FABRIC-SECTIONAL-SOFA'
     ),
     (
         'e0000000-0000-0000-0000-000000000003',
@@ -833,7 +823,8 @@ VALUES (
         '["Gỗ sồi tự nhiên","Mặt bàn chống trầy","Kiểu dáng tối giản"]',
         31,
         NOW(),
-        NOW()
+        NOW(),
+        'MINIMALIST-OAK-COFFEE-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000004',
@@ -845,7 +836,8 @@ VALUES (
         '["Sơn tĩnh điện","Khung thép chịu lực","Dễ lắp ráp","Không gây tiếng kêu"]',
         12,
         NOW(),
-        NOW()
+        NOW(),
+        'KING-SIZE-METAL-BED'
     ),
     (
         'e0000000-0000-0000-0000-000000000005',
@@ -857,7 +849,8 @@ VALUES (
         '["Gỗ thông tự nhiên","Phong cách ấm áp","Nan giường chắc chắn"]',
         20,
         NOW(),
-        NOW()
+        NOW(),
+        'QUEEN-SIZE-WOODEN-BED'
     ),
     (
         'e0000000-0000-0000-0000-000000000006',
@@ -869,7 +862,8 @@ VALUES (
         '["Cửa trượt tiết kiệm diện tích","Tích hợp gương lớn","Gỗ MDF phủ Melamine"]',
         9,
         NOW(),
-        NOW()
+        NOW(),
+        'SLIDING-DOOR-WARDROBE'
     ),
     (
         'e0000000-0000-0000-0000-000000000007',
@@ -881,7 +875,8 @@ VALUES (
         '["Mặt đá cẩm thạch","Chân bàn kim loại","Dễ lau chùi","Phong cách hiện đại"]',
         8,
         NOW(),
-        NOW()
+        NOW(),
+        'MARBLE-TOP-DINING-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000008',
@@ -893,7 +888,8 @@ VALUES (
         '["Gỗ công nghiệp chống ẩm","Tay nắm âm","Dễ lau dầu mỡ","Nhiều khoang chứa"]',
         6,
         NOW(),
-        NOW()
+        NOW(),
+        'LIGHT-WOOD-KITCHEN-CABINET'
     ),
     (
         'e0000000-0000-0000-0000-000000000009',
@@ -905,7 +901,8 @@ VALUES (
         '["Chống ẩm tốt","Thiết kế treo tường","Ngăn kéo giảm chấn","Mặt lavabo dễ lau"]',
         15,
         NOW(),
-        NOW()
+        NOW(),
+        'WALL-MOUNTED-BATHROOM-VANITY'
     ),
     (
         'e0000000-0000-0000-0000-000000000010',
@@ -917,7 +914,8 @@ VALUES (
         '["Đèn LED tiết kiệm điện","Chống mờ nhẹ","Ánh sáng trung tính","Dễ lắp đặt"]',
         27,
         NOW(),
-        NOW()
+        NOW(),
+        'LED-BATHROOM-MIRROR'
     ),
     (
         'e0000000-0000-0000-0000-000000000011',
@@ -929,7 +927,8 @@ VALUES (
         '["Vải bố thoáng khí","Chân gỗ cao su","Đệm rời dễ vệ sinh"]',
         18,
         NOW(),
-        NOW()
+        NOW(),
+        'NORDIC-LOVESEAT-SOFA'
     ),
     (
         'e0000000-0000-0000-0000-000000000012',
@@ -941,7 +940,8 @@ VALUES (
         '["Module linh hoạt","Màu be dễ phối","Đệm lưng lớn","Khung gỗ chắc chắn"]',
         14,
         NOW(),
-        NOW()
+        NOW(),
+        'BEIGE-MODULAR-SOFA'
     ),
     (
         'e0000000-0000-0000-0000-000000000013',
@@ -953,7 +953,8 @@ VALUES (
         '["Tựa lưng êm","Chân kim loại sơn tĩnh điện","Phù hợp góc đọc sách"]',
         22,
         NOW(),
-        NOW()
+        NOW(),
+        'RELAXING-ARMCHAIR-SOFA'
     ),
     (
         'e0000000-0000-0000-0000-000000000014',
@@ -965,7 +966,8 @@ VALUES (
         '["Mặt kính cường lực","Khung thép mảnh","Dễ lau chùi"]',
         11,
         NOW(),
-        NOW()
+        NOW(),
+        'SMOKED-GLASS-COFFEE-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000015',
@@ -977,7 +979,8 @@ VALUES (
         '["Mặt đá nhân tạo","Chân kim loại vàng","Bo cạnh an toàn"]',
         16,
         NOW(),
-        NOW()
+        NOW(),
+        'ROUND-WHITE-STONE-COFFEE-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000016',
@@ -989,7 +992,8 @@ VALUES (
         '["Hai ngăn kéo","Gỗ MDF phủ veneer","Ray kéo êm"]',
         9,
         NOW(),
-        NOW()
+        NOW(),
+        'DOUBLE-DRAWER-COFFEE-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000017',
@@ -1001,7 +1005,8 @@ VALUES (
         '["Gỗ óc chó veneer","Dáng oval","Chân bàn vát cạnh"]',
         13,
         NOW(),
-        NOW()
+        NOW(),
+        'WALNUT-OVAL-COFFEE-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000018',
@@ -1013,7 +1018,8 @@ VALUES (
         '["Đầu giường bọc nệm","Khung gỗ chịu lực","Vải nhung mềm"]',
         19,
         NOW(),
-        NOW()
+        NOW(),
+        'UPHOLSTERED-HIGH-HEADBOARD-BED'
     ),
     (
         'e0000000-0000-0000-0000-000000000019',
@@ -1025,7 +1031,8 @@ VALUES (
         '["Hộc kéo rộng","Nan giường chắc","Tối ưu diện tích"]',
         15,
         NOW(),
-        NOW()
+        NOW(),
+        'STORAGE-DRAWER-BED'
     ),
     (
         'e0000000-0000-0000-0000-000000000020',
@@ -1037,7 +1044,8 @@ VALUES (
         '["Thiết kế thấp","Gỗ cao su ghép","Phong cách tối giản"]',
         21,
         NOW(),
-        NOW()
+        NOW(),
+        'JAPANESE-LOW-PLATFORM-BED'
     ),
     (
         'e0000000-0000-0000-0000-000000000021',
@@ -1049,7 +1057,8 @@ VALUES (
         '["Cánh kính khung nhôm","Đèn LED hắt","Khoang treo dài"]',
         8,
         NOW(),
-        NOW()
+        NOW(),
+        'GLASS-DOOR-WARDROBE'
     ),
     (
         'e0000000-0000-0000-0000-000000000022',
@@ -1061,7 +1070,8 @@ VALUES (
         '["Ba cánh mở","Gỗ sồi veneer","Ngăn kéo dưới"]',
         10,
         NOW(),
-        NOW()
+        NOW(),
+        'THREE-DOOR-OAK-WARDROBE'
     ),
     (
         'e0000000-0000-0000-0000-000000000023',
@@ -1073,7 +1083,8 @@ VALUES (
         '["Module lắp ghép","Tay nắm âm","Tối ưu không gian"]',
         7,
         NOW(),
-        NOW()
+        NOW(),
+        'MODULAR-BUILT-IN-WARDROBE'
     ),
     (
         'e0000000-0000-0000-0000-000000000024',
@@ -1085,7 +1096,8 @@ VALUES (
         '["Màu pastel","Bo góc an toàn","Thanh treo thấp"]',
         12,
         NOW(),
-        NOW()
+        NOW(),
+        'PASTEL-KIDS-WARDROBE'
     ),
     (
         'e0000000-0000-0000-0000-000000000025',
@@ -1097,7 +1109,8 @@ VALUES (
         '["Gỗ sồi tự nhiên","Sáu chỗ ngồi","Mặt bàn phủ dầu"]',
         17,
         NOW(),
-        NOW()
+        NOW(),
+        'SIX-SEAT-OAK-DINING-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000026',
@@ -1109,7 +1122,8 @@ VALUES (
         '["Mâm xoay tiện dụng","Chân trụ chắc","Mặt bàn chống thấm"]',
         6,
         NOW(),
-        NOW()
+        NOW(),
+        'ROUND-ROTATING-DINING-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000027',
@@ -1121,7 +1135,8 @@ VALUES (
         '["Kệ mở tiện dụng","Bánh xe khóa được","Mặt bàn chống nước"]',
         11,
         NOW(),
-        NOW()
+        NOW(),
+        'MINI-KITCHEN-ISLAND-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000028',
@@ -1133,7 +1148,8 @@ VALUES (
         '["Mặt bàn mở rộng","Ray trượt chắc","Thiết kế gọn"]',
         13,
         NOW(),
-        NOW()
+        NOW(),
+        'EXTENDABLE-SMART-DINING-TABLE'
     ),
     (
         'e0000000-0000-0000-0000-000000000029',
@@ -1145,7 +1161,8 @@ VALUES (
         '["Chống ẩm tốt","Thiết kế chữ L","Bản lề giảm chấn"]',
         5,
         NOW(),
-        NOW()
+        NOW(),
+        'MOISTURE-RESISTANT-L-KITCHEN-CABINET'
     ),
     (
         'e0000000-0000-0000-0000-000000000030',
@@ -1157,7 +1174,8 @@ VALUES (
         '["Cánh kính mờ","Khung nhôm nhẹ","Kệ chia tầng"]',
         8,
         NOW(),
-        NOW()
+        NOW(),
+        'FROSTED-GLASS-UPPER-CABINET'
     ),
     (
         'e0000000-0000-0000-0000-000000000031',
@@ -1169,7 +1187,8 @@ VALUES (
         '["Đảo bếp rộng","Mặt đá chống thấm","Khoang máy rửa chén"]',
         4,
         NOW(),
-        NOW()
+        NOW(),
+        'PREMIUM-ISLAND-KITCHEN-CABINET'
     ),
     (
         'e0000000-0000-0000-0000-000000000032',
@@ -1181,7 +1200,8 @@ VALUES (
         '["Kích thước gọn","Khoang lưu trữ thông minh","Dễ vệ sinh"]',
         10,
         NOW(),
-        NOW()
+        NOW(),
+        'APARTMENT-MINI-KITCHEN-CABINET'
     ),
     (
         'e0000000-0000-0000-0000-000000000033',
@@ -1193,7 +1213,8 @@ VALUES (
         '["Gỗ óc chó veneer","Chống ẩm","Ngăn kéo giảm chấn"]',
         9,
         NOW(),
-        NOW()
+        NOW(),
+        'WALNUT-BATHROOM-VANITY'
     ),
     (
         'e0000000-0000-0000-0000-000000000034',
@@ -1205,7 +1226,8 @@ VALUES (
         '["Hai lavabo","Mặt đá nhân tạo","Ngăn kéo rộng"]',
         6,
         NOW(),
-        NOW()
+        NOW(),
+        'DOUBLE-SINK-BATHROOM-VANITY'
     ),
     (
         'e0000000-0000-0000-0000-000000000035',
@@ -1217,7 +1239,8 @@ VALUES (
         '["Chân đứng chắc","Nhiều ngăn chứa","Mặt sứ dễ lau"]',
         14,
         NOW(),
-        NOW()
+        NOW(),
+        'FLOOR-STANDING-BATHROOM-VANITY'
     ),
     (
         'e0000000-0000-0000-0000-000000000036',
@@ -1229,7 +1252,8 @@ VALUES (
         '["Màu trắng sạch","Thiết kế gọn","Tay nắm âm"]',
         18,
         NOW(),
-        NOW()
+        NOW(),
+        'MINIMALIST-BATHROOM-VANITY'
     ),
     (
         'e0000000-0000-0000-0000-000000000037',
@@ -1241,7 +1265,8 @@ VALUES (
         '["Viền đồng mảnh","Dáng tròn mềm","Móc treo chắc"]',
         20,
         NOW(),
-        NOW()
+        NOW(),
+        'ROUND-BRASS-BATHROOM-MIRROR'
     ),
     (
         'e0000000-0000-0000-0000-000000000038',
@@ -1253,7 +1278,8 @@ VALUES (
         '["Chống ẩm","Kích thước lớn","Khung nhôm nhẹ"]',
         11,
         NOW(),
-        NOW()
+        NOW(),
+        'MOISTURE-RESISTANT-FULL-LENGTH-MIRROR'
     ),
     (
         'e0000000-0000-0000-0000-000000000039',
@@ -1265,7 +1291,8 @@ VALUES (
         '["Cảm ứng chạm","Ba chế độ sáng","Chống mờ nhẹ"]',
         23,
         NOW(),
-        NOW()
+        NOW(),
+        'TOUCH-LED-BATHROOM-MIRROR'
     ),
     (
         'e0000000-0000-0000-0000-000000000040',
@@ -1277,7 +1304,8 @@ VALUES (
         '["Bo góc an toàn","Khung mảnh","Dễ lắp đặt"]',
         15,
         NOW(),
-        NOW()
+        NOW(),
+        'ROUNDED-RECTANGLE-BATHROOM-MIRROR'
     );
 
 INSERT INTO

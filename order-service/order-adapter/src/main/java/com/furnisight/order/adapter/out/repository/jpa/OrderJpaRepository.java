@@ -40,11 +40,11 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
 
     long countByStatusAndCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
 
-    @Query("select coalesce(sum(o.totalAmount), 0) from Order o")
-    Double sumTotalAmount();
+    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.status not in :statuses")
+    Double sumTotalAmount(@Param("statuses") List<OrderStatus> statuses);
 
-    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.createdAt between :start and :end")
-    Double sumTotalAmountCreatedAtBetween(@Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
+    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.status not in :statuses and o.createdAt between :start and :end")
+    Double sumTotalAmountCreatedAtBetween(@Param("statuses") List<OrderStatus> statuses, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query(value = "SELECT oi.productSnapshot.productId AS productId, " +
                    "MAX(oi.productSnapshot.productName) AS productName, " +
