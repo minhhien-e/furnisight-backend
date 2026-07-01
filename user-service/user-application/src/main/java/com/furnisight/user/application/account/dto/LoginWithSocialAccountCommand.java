@@ -7,8 +7,6 @@ public record LoginWithSocialAccountCommand(
     SocialProvider provider,        // required: GOOGLE | FACEBOOK | ...
     String email,                   // optional
     String avatarUrl,               // optional
-    String fullName,                // optional: use if firstName/lastName unavailable
-    String firstName,               // optional
-    String lastName                 // optional
+    String fullName                 // optional
 ) {
 }

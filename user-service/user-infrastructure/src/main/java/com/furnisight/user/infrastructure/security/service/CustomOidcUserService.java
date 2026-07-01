@@ -31,12 +31,10 @@ public class CustomOidcUserService extends OidcUserService {
         String providerUserId = oidcUser.getAttribute("sub");
         String email          = oidcUser.getAttribute("email");
         String fullName       = oidcUser.getAttribute("name");
-        String firstName      = oidcUser.getAttribute("given_name");
-        String lastName       = oidcUser.getAttribute("family_name");
         String picture        = oidcUser.getAttribute("picture");
 
         LoginWithSocialAccountCommand command = new LoginWithSocialAccountCommand(
-                providerUserId, provider, email, picture, fullName, firstName, lastName
+                providerUserId, provider, email, picture, fullName
         );
 
         AccountToken token = loginWithSocialAccountUseCase.execute(command);

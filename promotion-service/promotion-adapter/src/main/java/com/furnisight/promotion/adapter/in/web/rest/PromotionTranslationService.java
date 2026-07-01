@@ -1,7 +1,7 @@
 package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.application.dto.MarketingComboDto;
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.application.dto.PromotionDto;
 import com.furnisight.promotion.application.dto.RecommendVouchersResponse;
 import com.furnisight.promotion.application.dto.ValidateComboResponse;

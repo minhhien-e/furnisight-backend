@@ -3,7 +3,8 @@ package com.furnisight.notification.adapter.out.repository.jpa.impl;
 import com.furnisight.notification.adapter.out.repository.jpa.NotificationProfileJpaRepository;
 import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
 import com.furnisight.notification.domain.model.entity.NotificationProfile;
-import com.furnisight.notification.domain.exception.NotificationProfileNotFoundException;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.bson.Document;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -39,7 +40,7 @@ public class NotificationProfileRepositoryImpl implements NotificationProfileRep
     @Override
     public NotificationProfile findByUserId(UUID userId) {
         return jpaRepository.findByUserId(userId)
-            .orElseThrow(() -> new NotificationProfileNotFoundException("userId", userId));
+            .orElseThrow(() -> new NotFoundException(ErrorCode.NOTIFICATION_PROFILE_NOT_FOUND));
     }
 
     @Override

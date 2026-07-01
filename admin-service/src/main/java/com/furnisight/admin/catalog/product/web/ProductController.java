@@ -23,7 +23,7 @@ public class ProductController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<PageResponse<ProductResponse>> getProducts(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -34,39 +34,39 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ProductResponse> getProduct(@PathVariable String id) {
         return ResponseEntity.ok(productService.getProduct(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> createProduct(
             @RequestBody UpsertProductRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.createProduct(request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo sản phẩm", "PRODUCT",
-                request.sku(), result, "Tên sản phẩm: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_PRODUCT,
+                request.sku(), result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateProduct(
             @PathVariable String id, @RequestBody UpsertProductRequest request,
             HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.updateProduct(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật sản phẩm", "PRODUCT",
-                id, result, "Tên sản phẩm: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_PRODUCT,
+                id, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> deleteProduct(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = productService.deleteProduct(id);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa sản phẩm", "PRODUCT",
-                id, result, "Product id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_PRODUCT,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 }

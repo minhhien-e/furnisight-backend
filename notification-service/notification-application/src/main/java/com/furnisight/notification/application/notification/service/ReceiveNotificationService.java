@@ -5,7 +5,8 @@ import com.furnisight.notification.application.notification.port.in.dto.command.
 import com.furnisight.notification.application.notification.port.in.dto.command.ValidateNotificationProfileCommand;
 import com.furnisight.notification.application.notification.port.in.usecase.ReceiveNotificationUseCase;
 import com.furnisight.notification.application.notification.port.in.usecase.ValidateNotificationProfileUseCase;
-import com.furnisight.notification.domain.exception.NotificationProfileNotAllowedException;
+import com.furnisight.notification.domain.exceptions.ForbiddenException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import com.furnisight.notification.domain.model.entity.InboxMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,7 +30,7 @@ public class ReceiveNotificationService implements ReceiveNotificationUseCase {
         );
 
         if (!isAllowed) {
-            throw new NotificationProfileNotAllowedException(command.getUserId(), command.getType());
+            throw new ForbiddenException(ErrorCode.NOTIFICATION_PROFILE_NOT_ALLOWED);
         }
 
         InboxMessage message = InboxMessage.builder()

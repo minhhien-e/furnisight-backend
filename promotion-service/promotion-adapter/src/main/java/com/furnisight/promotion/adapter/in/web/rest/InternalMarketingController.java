@@ -2,7 +2,9 @@ package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.adapter.in.web.dto.ActionResponse;
 import com.furnisight.promotion.application.dto.*;
-import com.furnisight.promotion.application.service.MarketingService;
+import com.furnisight.promotion.application.port.in.usecase.*;
+import com.furnisight.promotion.application.port.in.query.*;
+import com.furnisight.promotion.domain.common.PageResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -13,30 +15,41 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @RequestMapping("/internal/admin/marketing")
 public class InternalMarketingController {
-    private final MarketingService marketingService;
+    private final GetCampaignsUseCase getCampaignsUseCase;
+    private final CreateCampaignUseCase createCampaignUseCase;
+    private final UpdateCampaignUseCase updateCampaignUseCase;
+    private final DeleteCampaignUseCase deleteCampaignUseCase;
+    private final GetCombosUseCase getCombosUseCase;
+    private final CreateComboUseCase createComboUseCase;
+    private final UpdateComboUseCase updateComboUseCase;
+    private final DeleteComboUseCase deleteComboUseCase;
+    private final GetNotificationsUseCase getNotificationsUseCase;
+    private final CreateNotificationUseCase createNotificationUseCase;
+    private final UpdateNotificationUseCase updateNotificationUseCase;
+    private final DeleteNotificationUseCase deleteNotificationUseCase;
 
     @GetMapping("/campaigns")
     public ResponseEntity<PageResponse<MarketingCampaignDto>> getCampaigns(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(marketingService.getCampaigns(query, status));
+        return ResponseEntity.ok(getCampaignsUseCase.getCampaigns(GetCampaignsQuery.builder().query(query).status(status).build()));
     }
 
     @PostMapping("/campaigns")
     public ResponseEntity<ActionResponse> createCampaign(@RequestBody SaveMarketingCampaignCommand command) {
-        marketingService.createCampaign(command);
+        createCampaignUseCase.createCampaign(command);
         return ResponseEntity.ok(new ActionResponse(true, "Campaign saved"));
     }
 
     @PutMapping("/campaigns/{id}")
     public ResponseEntity<ActionResponse> updateCampaign(@PathVariable UUID id, @RequestBody SaveMarketingCampaignCommand command) {
-        marketingService.updateCampaign(id, command);
+        updateCampaignUseCase.updateCampaign(UpdateCampaignQuery.builder().id(id).command(command).build());
         return ResponseEntity.ok(new ActionResponse(true, "Campaign updated"));
     }
 
     @DeleteMapping("/campaigns/{id}")
     public ResponseEntity<ActionResponse> deleteCampaign(@PathVariable UUID id) {
-        marketingService.deleteCampaign(id);
+        deleteCampaignUseCase.deleteCampaign(DeleteCampaignQuery.builder().id(id).build());
         return ResponseEntity.ok(new ActionResponse(true, "Campaign deleted"));
     }
 
@@ -44,24 +57,24 @@ public class InternalMarketingController {
     public ResponseEntity<PageResponse<MarketingComboDto>> getCombos(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(marketingService.getCombos(query, status));
+        return ResponseEntity.ok(getCombosUseCase.getCombos(GetCombosQuery.builder().query(query).status(status).build()));
     }
 
     @PostMapping("/combos")
     public ResponseEntity<ActionResponse> createCombo(@RequestBody SaveMarketingComboCommand command) {
-        marketingService.createCombo(command);
+        createComboUseCase.createCombo(command);
         return ResponseEntity.ok(new ActionResponse(true, "Combo saved"));
     }
 
     @PutMapping("/combos/{id}")
     public ResponseEntity<ActionResponse> updateCombo(@PathVariable UUID id, @RequestBody SaveMarketingComboCommand command) {
-        marketingService.updateCombo(id, command);
+        updateComboUseCase.updateCombo(UpdateComboQuery.builder().id(id).command(command).build());
         return ResponseEntity.ok(new ActionResponse(true, "Combo updated"));
     }
 
     @DeleteMapping("/combos/{id}")
     public ResponseEntity<ActionResponse> deleteCombo(@PathVariable UUID id) {
-        marketingService.deleteCombo(id);
+        deleteComboUseCase.deleteCombo(DeleteComboQuery.builder().id(id).build());
         return ResponseEntity.ok(new ActionResponse(true, "Combo deleted"));
     }
 
@@ -69,24 +82,24 @@ public class InternalMarketingController {
     public ResponseEntity<PageResponse<MarketingNotificationDto>> getNotifications(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(marketingService.getNotifications(query, status));
+        return ResponseEntity.ok(getNotificationsUseCase.getNotifications(GetNotificationsQuery.builder().query(query).status(status).build()));
     }
 
     @PostMapping("/notifications")
     public ResponseEntity<ActionResponse> createNotification(@RequestBody SaveMarketingNotificationCommand command) {
-        marketingService.createNotification(command);
+        createNotificationUseCase.createNotification(command);
         return ResponseEntity.ok(new ActionResponse(true, "Notification saved"));
     }
 
     @PutMapping("/notifications/{id}")
     public ResponseEntity<ActionResponse> updateNotification(@PathVariable UUID id, @RequestBody SaveMarketingNotificationCommand command) {
-        marketingService.updateNotification(id, command);
+        updateNotificationUseCase.updateNotification(UpdateNotificationQuery.builder().id(id).command(command).build());
         return ResponseEntity.ok(new ActionResponse(true, "Notification updated"));
     }
 
     @DeleteMapping("/notifications/{id}")
     public ResponseEntity<ActionResponse> deleteNotification(@PathVariable UUID id) {
-        marketingService.deleteNotification(id);
+        deleteNotificationUseCase.deleteNotification(DeleteNotificationQuery.builder().id(id).build());
         return ResponseEntity.ok(new ActionResponse(true, "Notification deleted"));
     }
 }

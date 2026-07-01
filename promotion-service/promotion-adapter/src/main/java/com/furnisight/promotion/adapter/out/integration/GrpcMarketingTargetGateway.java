@@ -17,10 +17,10 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
+import com.furnisight.promotion.domain.valueobjects.EmailAddress;
 
 @Component
 public class GrpcMarketingTargetGateway implements MarketingTargetGateway {
-    private static final Set<String> ADMIN_ROLES = Set.of("ADMIN", "STAFF", "MANAGER", "SUPER_ADMIN");
 
     @GrpcClient("user-service")
     private Channel userChannel;
@@ -63,10 +63,10 @@ public class GrpcMarketingTargetGateway implements MarketingTargetGateway {
                         .addAllUserIds(userIds.stream().map(UUID::toString).toList())
                         .build())
                 .getUsersList().stream()
-                .filter(user -> user.getActive() && !hasAdministrativeRole(user.getRolesList()))
+                .filter(com.furnisight.admin.user.MarketingUserDto::getActive)
                 .map(user -> new MarketingNotificationGateway.Recipient(
                         UUID.fromString(user.getUserId()),
-                        isValidEmail(user.getEmail()) ? user.getEmail().trim() : null,
+                        new EmailAddress(user.getEmail()).getCleanValue(),
                         user.getName()))
                 .toList();
     }
@@ -90,19 +90,6 @@ public class GrpcMarketingTargetGateway implements MarketingTargetGateway {
 
     private AdminUserServiceGrpc.AdminUserServiceBlockingStub stub() {
         return AdminUserServiceGrpc.newBlockingStub(userChannel);
-    }
-
-    private boolean hasAdministrativeRole(List<String> roles) {
-        return roles.stream().map(value -> value == null ? "" : value.trim().toUpperCase(Locale.ROOT))
-                .map(value -> value.startsWith("ROLE_") ? value.substring(5) : value)
-                .anyMatch(ADMIN_ROLES::contains);
-    }
-
-    private boolean isValidEmail(String value) {
-        if (value == null) return false;
-        String email = value.trim();
-        int at = email.indexOf('@');
-        return at > 0 && at < email.length() - 3 && email.indexOf('.', at) > at + 1;
     }
 
     private UUID parseUuid(String value) {

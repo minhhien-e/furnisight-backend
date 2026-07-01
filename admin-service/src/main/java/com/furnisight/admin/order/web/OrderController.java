@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.UUID;
 
@@ -22,7 +23,7 @@ public class OrderController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'ORDER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<PageResponse<OrderResponse>> getOrders(
             @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "20") int size,
@@ -32,9 +33,9 @@ public class OrderController {
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'ORDER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('ORDER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateOrder(
-            @PathVariable String id, @RequestBody UpdateOrderRequest request) {
+            @PathVariable String id, @Valid @RequestBody UpdateOrderRequest request) {
         UUID adminId = currentUserProvider.getCurrentUserId();
         ActionResultResponse result = orderService.updateOrderStatus(
                 adminId, id, request.status(), request.trackingCode(), request.note()

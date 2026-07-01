@@ -24,8 +24,7 @@ public enum ErrorCode {
     BAN_REASON_EXCEEDS_LENGTH("Ban reason cannot exceed 500 characters"),
     EMAIL_EMPTY("Email cannot be null or empty"),
     EMAIL_INVALID("Invalid email format"),
-    USERNAME_EMPTY("Username cannot be null or empty"),
-    USERNAME_INVALID_LENGTH("Username length must be between 3 and 100 characters"),
+
     PASSWORD_HASH_EMPTY("Password hash cannot be null or empty"),
     INVALID_PASSWORD("Invalid password"),
     ACCOUNT_NOT_VERIFIED("Account is not verified"),

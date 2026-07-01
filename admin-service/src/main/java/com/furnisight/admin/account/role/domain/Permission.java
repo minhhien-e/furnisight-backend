@@ -1,8 +1,9 @@
 package com.furnisight.admin.account.role.domain;
 
 public enum Permission {
-    MANAGE_USERS,
-    MANAGE_ROLES,
-    MANAGE_BANS,
-    CAN_ORDERS
+    PRODUCT_MANAGE,
+    ORDER_MANAGE,
+    VOUCHER_MANAGE,
+    ACCOUNT_MANAGE,
+    CUSTOMER_SUPPORT;
 }

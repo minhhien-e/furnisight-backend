@@ -45,7 +45,6 @@ public class ProductTranslationService {
         product.setName(translateValue(product.getName()));
         product.setDescription(translateValue(product.getDescription()));
         product.setFeatures(translateList(product.getFeatures()));
-        product.setTags(translateList(product.getTags()));
         product.setCategoryName(translateValue(product.getCategoryName()));
 
         if (product.getCategory() != null) {

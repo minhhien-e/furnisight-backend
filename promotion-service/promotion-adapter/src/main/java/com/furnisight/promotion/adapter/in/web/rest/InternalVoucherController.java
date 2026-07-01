@@ -10,8 +10,8 @@ import com.furnisight.promotion.application.dto.ValidateComboCommand;
 import com.furnisight.promotion.application.dto.ValidateComboResponse;
 import com.furnisight.promotion.application.dto.VoucherStatsResponse;
 import com.furnisight.promotion.application.dto.PublishVoucherCommand;
-import com.furnisight.promotion.application.service.MarketingService;
-import com.furnisight.promotion.application.service.PromotionService;
+import com.furnisight.promotion.application.port.in.usecase.*;
+import com.furnisight.promotion.application.port.in.query.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,54 +30,60 @@ import java.util.List;
 @RestController
 @RequiredArgsConstructor
 public class InternalVoucherController {
-    private final PromotionService promotionService;
-    private final MarketingService marketingService;
+    private final ValidateOrderVouchersUseCase validateOrderVouchersUseCase;
+    private final ValidateComboUseCase validateComboUseCase;
+    private final PublishVoucherUseCase publishVoucherUseCase;
+    private final GetAdminVouchersUseCase getAdminVouchersUseCase;
+    private final GetPromotionStatsUseCase getPromotionStatsUseCase;
+    private final CreateVoucherUseCase createVoucherUseCase;
+    private final UpdateVoucherUseCase updateVoucherUseCase;
+    private final DeleteVoucherUseCase deleteVoucherUseCase;
 
     @GetMapping("/internal/admin/vouchers")
     public ResponseEntity<List<PromotionDto>> getAdminVouchers(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String type,
             @RequestParam(required = false) String status) {
-        return ResponseEntity.ok(promotionService.getAdminVouchers(query, type, status));
+        return ResponseEntity.ok(getAdminVouchersUseCase.getAdminVouchers(GetAdminVouchersQuery.builder().query(query).type(type).status(status).build()));
     }
 
     @GetMapping("/internal/admin/vouchers/stats")
     public ResponseEntity<VoucherStatsResponse> getStats() {
-        return ResponseEntity.ok(promotionService.getStats());
+        return ResponseEntity.ok(getPromotionStatsUseCase.getStats(new GetPromotionStatsQuery()));
     }
 
     @PostMapping("/internal/admin/vouchers")
     public ResponseEntity<ActionResponse> createVoucher(@RequestBody SavePromotionRequest request) {
-        promotionService.createVoucher(toCommand(null, request));
+        createVoucherUseCase.createVoucher(toCommand(null, request));
         return ResponseEntity.ok(new ActionResponse(true, "Voucher created"));
     }
 
     @PutMapping("/internal/admin/vouchers/{id}")
     public ResponseEntity<ActionResponse> updateVoucher(@PathVariable UUID id, @RequestBody SavePromotionRequest request) {
-        promotionService.updateVoucher(id, toCommand(id.toString(), request));
+        updateVoucherUseCase.updateVoucher(UpdateVoucherQuery.builder().id(id).command(toCommand(id.toString(), request)).build());
         return ResponseEntity.ok(new ActionResponse(true, "Voucher updated"));
     }
 
     @DeleteMapping("/internal/admin/vouchers/{id}")
     public ResponseEntity<ActionResponse> deleteVoucher(@PathVariable UUID id) {
-        promotionService.deleteVoucher(id);
+        deleteVoucherUseCase.deleteVoucher(DeleteVoucherQuery.builder().id(id).build());
         return ResponseEntity.ok(new ActionResponse(true, "Voucher deleted"));
     }
 
     @PostMapping("/internal/admin/vouchers/{id}/publish")
     public ResponseEntity<ActionResponse> publishVoucher(@PathVariable UUID id, @RequestBody PublishVoucherCommand command) {
-        var result = marketingService.publishVoucher(id, command);
+        var result = publishVoucherUseCase.publishVoucher(PublishVoucherQuery.builder().voucherId(id).command(command).build());
         return ResponseEntity.ok(new ActionResponse(true, "Voucher publish accepted: " + result.acceptedCount()));
     }
 
     @PostMapping("/internal/vouchers/validate-order")
     public ResponseEntity<ValidateOrderVouchersResponse> validateOrderVouchers(@RequestBody ValidateOrderVouchersCommand command) {
-        return ResponseEntity.ok(promotionService.validateOrderVouchers(command));
+        return ResponseEntity.ok(validateOrderVouchersUseCase.validateOrderVouchers(command));
     }
 
     @PostMapping("/internal/combos/validate-order")
     public ResponseEntity<ValidateComboResponse> validateOrderCombo(@RequestBody ValidateComboCommand command) {
-        return ResponseEntity.ok(marketingService.validateCombo(command));
+        return ResponseEntity.ok(validateComboUseCase.validateCombo(command));
     }
 
     private SavePromotionCommand toCommand(String id, SavePromotionRequest request) {

@@ -16,28 +16,21 @@ public class AdminUserGrpcClient {
         return getAccounts(page, size, query, status, null);
     }
 
-    public AccountPageResponse getAccounts(int page, int size, String query, String status, String scope) {
-        GetAccountsRequest request = GetAccountsRequest.newBuilder()
+    public AccountPageResponse getAccounts(int page, int size, String query, String status, Boolean isAdmin) {
+        GetAccountsRequest.Builder builder = GetAccountsRequest.newBuilder()
                 .setPage(page)
                 .setSize(size)
                 .setQuery(query == null ? "" : query)
-                .setStatus(status == null ? "" : status)
-                .build();
-        Boolean isAdmin = parseScope(scope);
+                .setStatus(status == null ? "" : status);
+        
         if (isAdmin != null) {
-            request = request.toBuilder().setIsAdmin(isAdmin).build();
+            builder.setIsAdmin(isAdmin);
         }
-        return adminUserServiceStub.getAccounts(request);
+        
+        return adminUserServiceStub.getAccounts(builder.build());
     }
 
-    private Boolean parseScope(String scope) {
-        if (scope == null || scope.isBlank()) return null;
-        return switch (scope.trim().toUpperCase()) {
-            case "CUSTOMER" -> Boolean.FALSE;
-            case "ADMIN" -> Boolean.TRUE;
-            default -> throw new IllegalArgumentException("Invalid account scope: " + scope);
-        };
-    }
+
 
     public AccountDetailResponse getAccountById(UUID id) {
         GetAccountByIdRequest request = GetAccountByIdRequest.newBuilder()

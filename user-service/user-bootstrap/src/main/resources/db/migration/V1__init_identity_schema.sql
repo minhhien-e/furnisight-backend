@@ -7,7 +7,6 @@
 CREATE TABLE accounts
 (
     id                    UUID        NOT NULL PRIMARY KEY,
-    username              VARCHAR(100) UNIQUE,
     email                 VARCHAR(255) UNIQUE,
     password_hash         VARCHAR(255),
     status                VARCHAR(20) NOT NULL DEFAULT 'UNVERIFIED',

@@ -1,101 +1,120 @@
 package com.furnisight.admin.message.infrastructure;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.furnisight.admin.message.grpc.*;
 import com.furnisight.admin.message.web.dto.request.UpsertMessageTemplateRequest;
 import com.furnisight.admin.message.web.dto.response.MessageTemplateResponse;
 import com.furnisight.admin.shared.web.ActionResultResponse;
+import net.devh.boot.grpc.client.inject.GrpcClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.*;
 import org.springframework.stereotype.Component;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
-
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class MessageTemplateClient {
 
-    private final RestTemplate restTemplate;
-    private final ObjectMapper objectMapper;
-
-    @Value("${message.service.http-url:http://message-service:8080}")
-    private String messageServiceUrl;
+    @GrpcClient("message-service")
+    private AdminMessageServiceGrpc.AdminMessageServiceBlockingStub messageServiceStub;
 
     public List<MessageTemplateResponse> getTemplates() {
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(
-                    messageServiceUrl + "/message-templates", String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode data = root.path("data");
-            return objectMapper.convertValue(data, new TypeReference<>() {});
+            GetMessageTemplatesResponse response = messageServiceStub.getTemplates(EmptyMessageTemplateRequest.newBuilder().build());
+            return response.getTemplatesList().stream()
+                    .map(this::toResponse)
+                    .collect(Collectors.toList());
         } catch (Exception e) {
-            log.error("Failed to get message templates", e);
+            log.error("Failed to get message templates via gRPC", e);
             return Collections.emptyList();
         }
     }
 
     public MessageTemplateResponse getTemplateById(Integer id) {
         try {
-            ResponseEntity<String> response = restTemplate.getForEntity(
-                    messageServiceUrl + "/message-templates/" + id, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode data = root.path("data");
-            return objectMapper.convertValue(data, MessageTemplateResponse.class);
-        } catch (HttpClientErrorException.NotFound e) {
-            throw new IllegalArgumentException("Không tìm thấy mẫu tin nhắn với ID: " + id);
+            MessageTemplateDto response = messageServiceStub.getTemplateById(
+                    GetMessageTemplateByIdRequest.newBuilder().setId(id).build());
+            return toResponse(response);
         } catch (Exception e) {
-            log.error("Failed to get message template by id={}", id, e);
+            log.error("Failed to get message template by id={} via gRPC", id, e);
             throw new RuntimeException("Không thể lấy thông tin mẫu tin nhắn");
         }
     }
 
     public MessageTemplateResponse createTemplate(UpsertMessageTemplateRequest request) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<UpsertMessageTemplateRequest> entity = new HttpEntity<>(request, headers);
-            ResponseEntity<String> response = restTemplate.postForEntity(
-                    messageServiceUrl + "/message-templates", entity, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode data = root.path("data");
-            return objectMapper.convertValue(data, MessageTemplateResponse.class);
+            MessageTemplateDto response = messageServiceStub.createTemplate(
+                    com.furnisight.admin.message.grpc.UpsertMessageTemplateRequest.newBuilder()
+                            .setTitle(request.getTitle() != null ? request.getTitle() : "")
+                            .setContent(request.getContent() != null ? request.getContent() : "")
+                            .setCategory(request.getCategory() != null ? request.getCategory() : "")
+                            .setActive(request.getActive() != null ? request.getActive() : false)
+                            .build()
+            );
+            return toResponse(response);
         } catch (Exception e) {
-            log.error("Failed to create message template", e);
+            log.error("Failed to create message template via gRPC", e);
             throw new RuntimeException("Không thể tạo mẫu tin nhắn: " + e.getMessage());
         }
     }
 
     public MessageTemplateResponse updateTemplate(Integer id, UpsertMessageTemplateRequest request) {
         try {
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<UpsertMessageTemplateRequest> entity = new HttpEntity<>(request, headers);
-            ResponseEntity<String> response = restTemplate.exchange(
-                    messageServiceUrl + "/message-templates/" + id,
-                    HttpMethod.PUT, entity, String.class);
-            JsonNode root = objectMapper.readTree(response.getBody());
-            JsonNode data = root.path("data");
-            return objectMapper.convertValue(data, MessageTemplateResponse.class);
+            MessageTemplateDto response = messageServiceStub.updateTemplate(
+                    UpdateMessageTemplateRequest.newBuilder()
+                            .setId(id)
+                            .setData(
+                                    com.furnisight.admin.message.grpc.UpsertMessageTemplateRequest.newBuilder()
+                                            .setTitle(request.getTitle() != null ? request.getTitle() : "")
+                                            .setContent(request.getContent() != null ? request.getContent() : "")
+                                            .setCategory(request.getCategory() != null ? request.getCategory() : "")
+                                            .setActive(request.getActive() != null ? request.getActive() : false)
+                                            .build()
+                            )
+                            .build()
+            );
+            return toResponse(response);
         } catch (Exception e) {
-            log.error("Failed to update message template id={}", id, e);
+            log.error("Failed to update message template id={} via gRPC", id, e);
             throw new RuntimeException("Không thể cập nhật mẫu tin nhắn: " + e.getMessage());
         }
     }
 
     public ActionResultResponse deleteTemplate(Integer id) {
         try {
-            restTemplate.delete(messageServiceUrl + "/message-templates/" + id);
-            return new ActionResultResponse(true, "Mẫu tin nhắn đã được xóa thành công");
+            DeleteMessageTemplateResponse response = messageServiceStub.deleteTemplate(
+                    DeleteMessageTemplateRequest.newBuilder().setId(id).build());
+            return new ActionResultResponse(response.getSuccess(), response.getMessage());
         } catch (Exception e) {
-            log.error("Failed to delete message template id={}", id, e);
+            log.error("Failed to delete message template id={} via gRPC", id, e);
             return new ActionResultResponse(false, "Không thể xóa mẫu tin nhắn: " + e.getMessage());
+        }
+    }
+
+    private MessageTemplateResponse toResponse(MessageTemplateDto dto) {
+        return MessageTemplateResponse.builder()
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .category(dto.getCategory())
+                .active(dto.getActive())
+                .createdAt(parseDateTime(dto.getCreatedAt()))
+                .updatedAt(parseDateTime(dto.getUpdatedAt()))
+                .build();
+    }
+    
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(dateTimeStr);
+        } catch (DateTimeParseException e) {
+            return null;
         }
     }
 }

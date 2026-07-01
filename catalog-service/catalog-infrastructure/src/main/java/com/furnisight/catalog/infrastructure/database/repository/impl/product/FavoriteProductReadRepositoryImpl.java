@@ -84,8 +84,6 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
 
                     Map<String, Object> metadata = parseJsonMapObject(rs.getString("product_metadata"));
 
-                    List<String> tags = extractTags(metadata);
-
                     return ProductResponse.builder()
                             .id(id)
                             .slug(slug)
@@ -95,7 +93,6 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
                             .image(image)
                             .rating(4.8)
                             .ratingCount(120)
-                            .tags(tags)
                             .build();
                 });
     }
@@ -126,18 +123,4 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
         }
     }
 
-    private List<String> extractTags(Map<String, Object> metadata) {
-        Object rawTags = metadata.get("tags");
-
-        if (rawTags instanceof List<?> list) {
-            return list.stream()
-                    .filter(Objects::nonNull)
-                    .map(Object::toString)
-                    .map(String::trim)
-                    .filter(tag -> !tag.isBlank())
-                    .toList();
-        }
-
-        return List.of("new");
-    }
 }

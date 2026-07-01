@@ -1,5 +1,7 @@
 package com.furnisight.promotion.application.port;
 
+import com.furnisight.promotion.application.port.MarketingNotificationGateway;
+
 import com.furnisight.promotion.domain.enums.MarketingChannel;
 
 import java.util.List;

@@ -17,10 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
-import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -41,56 +38,24 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 command.getWidth(),
                 command.getHeight());
 
-        String sku = command.getSku() == null ? "" : command.getSku().trim().toUpperCase(Locale.ROOT);
-        if (sku.isBlank()) {
-            throw new IllegalArgumentException("Variant SKU is required");
-        }
-        if (productRepository.findVariantIdBySku(sku).isPresent()) {
-            throw new IllegalArgumentException("Variant SKU already exists: " + sku);
-        }
-        int threshold = command.getLowStockThreshold() == null || command.getLowStockThreshold() == 0
-                ? 5 : command.getLowStockThreshold();
-        if (threshold < 1 || threshold > 9999) {
-            throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
-        }
-
-        ProductVariant variant = ProductVariant.builder()
-                .id(UUID.randomUUID())
-                .price(new Price(BigDecimal.valueOf(command.getPrice())))
-                .stockQuantity(new StockQuantity(command.getStockQuantity()))
-                .dimensions(dims)
-                .material(command.getMaterial())
-                .warranty(command.getWarranty())
-                .color(command.getColor())
-                .sku(sku)
-                .lowStockThreshold(threshold)
-                .modelMediaId(command.getModelMediaId())
-                .modelUrl(command.getModelUrl())
-                .supports3d(command.getSupports3d() != null ? command.getSupports3d() : false)
-                .images(toVariantImages(command.getImageUrls()))
-                .build();
+        ProductVariant variant = productLifecycleService.createVariant(
+                command.getSku(),
+                command.getLowStockThreshold(),
+                new Price(BigDecimal.valueOf(command.getPrice())),
+                new StockQuantity(command.getStockQuantity()),
+                dims,
+                command.getMaterial(),
+                command.getWarranty(),
+                command.getColor(),
+                command.getModelMediaId(),
+                command.getModelUrl(),
+                command.getSupports3d(),
+                command.getImageUrls()
+        );
 
         productLifecycleService.addVariant(product, variant);
 
         productRepository.save(product);
         productUpdateEventService.enqueue(product);
-    }
-
-    private List<ProductVariantImage> toVariantImages(List<String> imageUrls) {
-        List<ProductVariantImage> images = new ArrayList<>();
-        if (imageUrls == null) {
-            return images;
-        }
-        for (String imageUrl : imageUrls) {
-            if (imageUrl == null || imageUrl.isBlank()) {
-                continue;
-            }
-            images.add(ProductVariantImage.builder()
-                    .id(UUID.randomUUID())
-                    .imageUrl(imageUrl.trim())
-                    .position(images.size())
-                    .build());
-        }
-        return images;
     }
 }

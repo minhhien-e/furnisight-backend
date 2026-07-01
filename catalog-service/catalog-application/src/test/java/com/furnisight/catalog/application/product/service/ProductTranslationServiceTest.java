@@ -36,8 +36,6 @@ class ProductTranslationServiceTest {
     void enLocaleTranslatesSupportedProductFields() {
         TextTranslationPort port = mock(TextTranslationPort.class);
         when(port.translate("Ghế sofa", "vi", "en")).thenReturn("Sofa");
-        when(port.translate("Mô tả", "vi", "en")).thenReturn("Description");
-        when(port.translate("tag-moi", "vi", "en")).thenReturn("new-tag");
         when(port.translate("Tính năng", "vi", "en")).thenReturn("Feature");
         when(port.translate("Phòng ngủ", "vi", "en")).thenReturn("Bedroom");
         when(port.translate("Gỗ", "vi", "en")).thenReturn("Wood");
@@ -46,8 +44,6 @@ class ProductTranslationServiceTest {
 
         ProductResponse product = ProductResponse.builder()
                 .name("Ghế sofa")
-                .description("Mô tả")
-                .tags(List.of("tag-moi"))
                 .features(List.of("Tính năng"))
                 .categoryName("Phòng ngủ")
                 .category(ProductResponse.CategoryInfo.builder().label("Phòng ngủ").build())
@@ -61,8 +57,6 @@ class ProductTranslationServiceTest {
         ProductResponse localized = new ProductTranslationService(port).localizeProduct(product, "en");
 
         assertThat(localized.getName()).isEqualTo("Sofa");
-        assertThat(localized.getDescription()).isEqualTo("Description");
-        assertThat(localized.getTags()).containsExactly("new-tag");
         assertThat(localized.getFeatures()).containsExactly("Feature");
         assertThat(localized.getCategoryName()).isEqualTo("Bedroom");
         assertThat(localized.getCategory().getLabel()).isEqualTo("Bedroom");

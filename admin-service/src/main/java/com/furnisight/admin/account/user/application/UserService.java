@@ -30,9 +30,9 @@ public class UserService {
         return toPageResponse(response);
     }
 
-    public PageResponse<UserResponse> getUsers(int page, int size, String query, String status, String scope) {
+    public PageResponse<UserResponse> getUsers(int page, int size, String query, String status, Boolean isAdmin) {
         com.furnisight.admin.user.AccountPageResponse response =
-                userClient.getAccounts(page, size, query, status, scope);
+                userClient.getAccounts(page, size, query, status, isAdmin);
         return toPageResponse(response);
     }
 
@@ -66,16 +66,15 @@ public class UserService {
     public ActionResultResponse updateUser(UUID adminId, UUID accountId, UpdateUserRequest request) {
         boolean changed = false;
         if (request.getName() != null && !request.getName().isBlank()) {
-            NameParts nameParts = splitName(request.getName());
             ActionResultResponse profileResult = toActionResult(userClient.updateAccountProfile(
-                    accountId, request.getName(), nameParts.firstName(), nameParts.lastName()));
+                    accountId, request.getName(), "", ""));
             if (!profileResult.success()) {
                 return profileResult;
             }
             changed = true;
         }
 
-        UUID roleId = parseUuid(firstPresent(request.getRoleId(), request.getRole()));
+        UUID roleId = request.getRoleId() != null && !request.getRoleId().isBlank() ? UUID.fromString(request.getRoleId()) : null;
         if (roleId != null) {
             ActionResultResponse roleResult = roleService.assignRole(adminId, accountId, roleId);
             if (!roleResult.success()) {
@@ -102,9 +101,10 @@ public class UserService {
     }
 
     public ActionResultResponse createUser(UUID adminId, CreateUserRequest request) {
+        UUID roleId = request.getRole() != null && !request.getRole().isBlank() ? UUID.fromString(request.getRole()) : null;
         return toActionResult(userClient.createAccount(
                 adminId, request.getEmail(), request.getName(), request.getPhone(),
-                request.getPassword(), parseUuid(request.getRole())));
+                request.getPassword(), roleId));
     }
 
     private UserResponse toUserResponse(AccountDto account) {
@@ -118,30 +118,4 @@ public class UserService {
         return new ActionResultResponse(response.getSuccess(), response.getMessage());
     }
 
-    private UUID parseUuid(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        try {
-            return UUID.fromString(value);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
-
-    private String firstPresent(String first, String second) {
-        return first != null && !first.isBlank() ? first : second;
-    }
-
-    private NameParts splitName(String rawName) {
-        String name = rawName == null ? "" : rawName.trim();
-        if (name.isBlank()) {
-            return new NameParts("", "");
-        }
-        String[] parts = name.split("\\s+", 2);
-        return parts.length == 1 ? new NameParts(parts[0], "") : new NameParts(parts[0], parts[1]);
-    }
-
-    private record NameParts(String firstName, String lastName) {
-    }
 }

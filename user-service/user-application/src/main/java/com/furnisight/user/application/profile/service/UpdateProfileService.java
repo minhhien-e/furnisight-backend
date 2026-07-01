@@ -32,8 +32,7 @@ public class UpdateProfileService implements UpdateProfileUseCase {
         UserProfile updated = userProfileLifecycleService.updateProfile(
             profile,
             command.displayName(),
-            command.firstName(),
-            command.lastName(),
+            command.fullName(),
             command.avatarMediaId(),
             command.bio(),
             command.dateOfBirth(),
@@ -41,8 +40,7 @@ public class UpdateProfileService implements UpdateProfileUseCase {
         
         eventPublisher.publishEvent(new UserProfileUpdatedEvent(
             updated.getAccountId(),
-            updated.getFirstName(),
-            updated.getLastName(),
+            updated.getFullName(),
             updated.getAvatarMediaId()
         ));
 

@@ -5,7 +5,8 @@ import com.furnisight.notification.application.template.port.in.dto.command.Upda
 import com.furnisight.notification.application.template.port.in.dto.response.NotificationTemplateResponse;
 import com.furnisight.notification.application.template.port.out.repository.NotificationTemplateRepository;
 import com.furnisight.notification.domain.model.entity.NotificationTemplate;
-import com.furnisight.notification.domain.exception.NotificationTemplateNotFoundException;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +22,7 @@ public class UpdateNotificationTemplateService implements UpdateNotificationTemp
     @Transactional
     public NotificationTemplateResponse execute(UpdateNotificationTemplateCommand command) {
         NotificationTemplate template = notificationTemplateRepository.findById(command.getTemplateId())
-                .orElseThrow(() -> new NotificationTemplateNotFoundException(command.getTemplateId()));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOTIFICATION_TEMPLATE_NOT_FOUND));
 
         if (StringUtils.hasText(command.getName())) {
             template.setName(command.getName());

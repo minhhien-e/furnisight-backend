@@ -1,7 +1,7 @@
 package com.furnisight.promotion.adapter.out.repository;
 
 import com.furnisight.promotion.adapter.out.repository.jpa.MarketingNotificationJpaRepository;
-import com.furnisight.promotion.application.port.MarketingNotificationRepository;
+import com.furnisight.promotion.domain.repository.marketing.MarketingNotificationRepository;
 import com.furnisight.promotion.domain.entities.MarketingNotification;
 import com.furnisight.promotion.domain.enums.CampaignStatus;
 import lombok.RequiredArgsConstructor;

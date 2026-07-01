@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -26,7 +27,7 @@ public class VoucherController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<List<VoucherResponse>> getVouchers(
             @RequestParam(required = false) String query,
             @RequestParam(required = false) String type,
@@ -35,49 +36,49 @@ public class VoucherController {
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<VoucherStatsResponse> getStats() {
         return ResponseEntity.ok(voucherService.getStats());
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> createVoucher(
-            @RequestBody UpsertVoucherRequest request, HttpServletRequest httpRequest) {
+            @Valid @RequestBody UpsertVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.createVoucher(request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo voucher", "VOUCHER",
-                request.code(), result, "Tên voucher: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_VOUCHER,
+                request.code(), result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateVoucher(
-            @PathVariable String id, @RequestBody UpsertVoucherRequest request,
+            @PathVariable String id, @Valid @RequestBody UpsertVoucherRequest request,
             HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.updateVoucher(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật voucher", "VOUCHER",
-                id, result, "Mã voucher: " + request.code(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_VOUCHER,
+                id, result, request.code(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> deleteVoucher(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.deleteVoucher(id);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa voucher", "VOUCHER",
-                id, result, "Voucher id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_VOUCHER,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @PostMapping("/{id}/publish")
-    @PreAuthorize("hasAuthority(\'VOUCHER_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> publishVoucher(
-            @PathVariable String id, @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
+            @PathVariable String id, @Valid @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.publishVoucher(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "send", "Phát hành voucher", "VOUCHER_PUBLISH",
-                id, result, "Voucher id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.PUBLISH_VOUCHER,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 }

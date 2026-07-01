@@ -3,7 +3,8 @@ package com.furnisight.notification.application.notification.service;
 import com.furnisight.notification.application.notification.port.in.dto.command.ValidateNotificationProfileCommand;
 import com.furnisight.notification.application.notification.port.in.usecase.ValidateNotificationProfileUseCase;
 import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
-import com.furnisight.notification.domain.exception.NotificationProfileNotFoundException;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import com.furnisight.notification.domain.model.entity.NotificationProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class ValidateNotificationProfileService implements ValidateNotificationP
     private NotificationProfile getOrCreateDefaultProfile(ValidateNotificationProfileCommand command) {
         try {
             return notificationProfileRepository.findByUserId(command.getUserId());
-        } catch (NotificationProfileNotFoundException ignored) {
+        } catch (NotFoundException ignored) {
             return notificationProfileRepository.save(NotificationProfile.builder()
                     .id(command.getUserId())
                     .userId(command.getUserId())

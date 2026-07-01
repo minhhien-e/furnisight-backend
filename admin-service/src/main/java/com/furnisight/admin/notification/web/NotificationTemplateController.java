@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,10 +44,10 @@ public class NotificationTemplateController {
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
     public ResponseEntity<NotificationTemplateResponse> createTemplate(
-            @RequestBody CreateNotificationTemplateRequest request,
+            @Valid @RequestBody CreateNotificationTemplateRequest request,
             HttpServletRequest httpRequest) {
         NotificationTemplateResponse response = notificationTemplateService.createTemplate(request);
-        audit("create", "Tạo mẫu thông báo", "NOTIFICATION_TEMPLATE", new ActionResultResponse(true, "Mẫu thông báo đã được tạo"), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_NOTIFICATION, null, new ActionResultResponse(true, "Mẫu thông báo đã được tạo"), request.getName(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -54,10 +55,10 @@ public class NotificationTemplateController {
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
     public ResponseEntity<NotificationTemplateResponse> updateTemplate(
             @PathVariable UUID templateId,
-            @RequestBody UpdateNotificationTemplateRequest request,
+            @Valid @RequestBody UpdateNotificationTemplateRequest request,
             HttpServletRequest httpRequest) {
         NotificationTemplateResponse response = notificationTemplateService.updateTemplate(templateId, request);
-        audit("update", "Cập nhật mẫu thông báo", "NOTIFICATION_TEMPLATE", new ActionResultResponse(true, "Mẫu thông báo đã được cập nhật"), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_NOTIFICATION, templateId.toString(), new ActionResultResponse(true, "Mẫu thông báo đã được cập nhật"), request.getName(), httpRequest);
         return ResponseEntity.ok(response);
     }
 
@@ -67,11 +68,7 @@ public class NotificationTemplateController {
             @PathVariable UUID templateId,
             HttpServletRequest httpRequest) {
         ActionResultResponse response = notificationTemplateService.deleteTemplate(templateId);
-        audit("delete", "Xóa mẫu thông báo", "NOTIFICATION_TEMPLATE", response, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_NOTIFICATION, templateId.toString(), response, null, httpRequest);
         return ResponseEntity.ok(response);
-    }
-
-    private void audit(String actionType, String action, String resourceType, ActionResultResponse result, HttpServletRequest request) {
-        auditLogService.record(currentUserProvider.getCurrentUserId(), actionType, action, resourceType, null, result, "", request);
     }
 }

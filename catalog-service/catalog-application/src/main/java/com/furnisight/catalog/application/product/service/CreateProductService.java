@@ -9,10 +9,7 @@ import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
-import com.furnisight.catalog.domain.valueobjects.product.ProductDescription;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
-import com.furnisight.catalog.domain.valueobjects.product.ProductName;
-import com.furnisight.catalog.domain.valueobjects.product.ProductSlug;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -35,10 +32,6 @@ public class CreateProductService implements CreateProductUseCase {
     @Override
     @Transactional
     public void execute(CreateProductCommand command) {
-        ProductName name = new ProductName(command.getName());
-        ProductSlug slug = new ProductSlug(command.getSlug());
-        ProductDescription description = new ProductDescription(command.getDescription());
-
         List<ProductVariant> variants = new ArrayList<>();
         Set<String> skus = new HashSet<>();
         if (command.getVariants() != null) {
@@ -49,47 +42,32 @@ public class CreateProductService implements CreateProductUseCase {
                 }
                 ProductDimensions dims = new ProductDimensions(
                         v.getWeight(), v.getLength(), v.getWidth(), v.getHeight());
-                variants.add(ProductVariant.builder()
-                        .id(UUID.randomUUID())
-                        .price(new Price(BigDecimal.valueOf(v.getPrice())))
-                        .stockQuantity(new StockQuantity(v.getStockQuantity()))
-                        .dimensions(dims)
-                        .material(v.getMaterial())
-                        .warranty(v.getWarranty())
-                        .color(v.getColor())
-                        .sku(sku)
-                        .lowStockThreshold(validThreshold(v.getLowStockThreshold()))
-                        .modelMediaId(v.getModelMediaId())
-                        .modelUrl(v.getModelUrl())
-                        .supports3d(v.getSupports3d() != null ? v.getSupports3d() : false)
-                        .images(toVariantImages(v.getImageUrls()))
-                        .build());
-            }
-        }
-
-        List<ProductImage> gallery = new ArrayList<>();
-        if (command.getImageUrls() != null) {
-            for (String imageUrl : command.getImageUrls()) {
-                if (imageUrl == null || imageUrl.isBlank()) {
-                    continue;
-                }
-                gallery.add(ProductImage.builder()
-                        .id(UUID.randomUUID())
-                        .imageUrl(imageUrl.trim())
-                        .position(gallery.size())
-                        .build());
+                ProductVariant variant = productLifecycleService.createVariant(
+                        v.getSku(),
+                        v.getLowStockThreshold(),
+                        new Price(BigDecimal.valueOf(v.getPrice())),
+                        new StockQuantity(v.getStockQuantity()),
+                        dims,
+                        v.getMaterial(),
+                        v.getWarranty(),
+                        v.getColor(),
+                        v.getModelMediaId(),
+                        v.getModelUrl(),
+                        v.getSupports3d(),
+                        v.getImageUrls()
+                );
+                variants.add(variant);
             }
         }
 
         Product product = productLifecycleService.createProduct(
                 command.getCategoryId(),
-                name,
-                slug,
+                command.getName(),
+                command.getSlug(),
                 command.getSku(),
-                description,
-
+                command.getDescription(),
                 command.getFeatures(),
-                gallery,
+                command.getImageUrls(),
                 variants);
 
         productRepository.save(product);
@@ -103,29 +81,5 @@ public class CreateProductService implements CreateProductUseCase {
         return normalized;
     }
 
-    private int validThreshold(Integer threshold) {
-        int value = threshold == null || threshold == 0 ? 5 : threshold;
-        if (value < 1 || value > 9999) {
-            throw new IllegalArgumentException("Low stock threshold must be between 1 and 9999");
-        }
-        return value;
-    }
 
-    private List<ProductVariantImage> toVariantImages(List<String> imageUrls) {
-        List<ProductVariantImage> images = new ArrayList<>();
-        if (imageUrls == null) {
-            return images;
-        }
-        for (String imageUrl : imageUrls) {
-            if (imageUrl == null || imageUrl.isBlank()) {
-                continue;
-            }
-            images.add(ProductVariantImage.builder()
-                    .id(UUID.randomUUID())
-                    .imageUrl(imageUrl.trim())
-                    .position(images.size())
-                    .build());
-        }
-        return images;
-    }
 }

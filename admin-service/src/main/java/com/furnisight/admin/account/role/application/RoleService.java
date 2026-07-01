@@ -20,7 +20,6 @@ import java.util.stream.Stream;
 public class RoleService {
 
     private final AdminUserGrpcClient userClient;
-    private final PermissionMapper permissionMapper;
 
     public List<RoleResponse> getRoles() {
         return toRoleResponses(userClient.getRoles().getRolesList());
@@ -35,36 +34,22 @@ public class RoleService {
     }
 
     public ActionResultResponse createRole(UpsertRoleRequest request) {
-        if (request.name() == null || request.name().isBlank()) {
-            return new ActionResultResponse(false, "Role name cannot be empty");
-        }
         String name = request.name().trim();
-        com.furnisight.admin.user.RoleListResponse before = userClient.getRoles();
-        if (before.getRolesList().stream().anyMatch(role -> role.getName().equalsIgnoreCase(name))) {
-            return new ActionResultResponse(false, "Role already exists");
-        }
         return toActionResult(userClient.createRole(
                 name,
-                resolvePosition(request, before.getRolesCount() + 1),
-                List.copyOf(permissionMapper.toBackendPermissions(request.permissions()))));
+                request.position() != null ? request.position() : 0,
+                request.permissions() == null ? List.of() : List.copyOf(request.permissions())));
     }
 
     public ActionResultResponse updateRole(String id, UpsertRoleRequest request) {
-        UUID roleId = parseUuid(id);
-        if (roleId == null) {
-            return new ActionResultResponse(false, "Invalid role id");
-        }
         return toActionResult(userClient.updateRole(
-                id, request.name(), resolvePosition(request, 1),
-                List.copyOf(permissionMapper.toBackendPermissions(request.permissions()))));
+                id, request.name(), 
+                request.position() != null ? request.position() : 0,
+                request.permissions() == null ? List.of() : List.copyOf(request.permissions())));
     }
 
     public ActionResultResponse deleteRole(String id) {
-        UUID roleId = parseUuid(id);
-        if (roleId == null) {
-            return new ActionResultResponse(false, "Invalid role id");
-        }
-        return toActionResult(userClient.deleteRole(roleId.toString()));
+        return toActionResult(userClient.deleteRole(id));
     }
 
     public ActionResultResponse assignRole(UUID adminId, UUID accountId, UUID roleId) {
@@ -79,7 +64,7 @@ public class RoleService {
         return roles.stream()
                 .map(role -> new RoleResponse(
                         role.getId(), role.getName(),
-                        permissionMapper.toFrontendPermissions(role.getPermissionsList())))
+                        role.getPermissionsList() == null ? List.of() : role.getPermissionsList()))
                 .toList();
     }
 
@@ -87,18 +72,4 @@ public class RoleService {
         return new ActionResultResponse(response.getSuccess(), response.getMessage());
     }
 
-    private int resolvePosition(UpsertRoleRequest request, int fallback) {
-        return request.position() == null || request.position() <= 0 ? fallback : request.position();
-    }
-
-    private UUID parseUuid(String value) {
-        if (value == null || value.isBlank()) {
-            return null;
-        }
-        try {
-            return UUID.fromString(value);
-        } catch (Exception ignored) {
-            return null;
-        }
-    }
 }

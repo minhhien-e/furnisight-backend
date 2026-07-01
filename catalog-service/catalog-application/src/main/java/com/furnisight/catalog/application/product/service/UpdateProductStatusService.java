@@ -5,6 +5,7 @@ import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductS
 import com.furnisight.catalog.domain.repository.ProductRepository;
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.exceptions.*;
+import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class UpdateProductStatusService implements UpdateProductStatusUseCase {
     private final ProductRepository productRepository;
+    private final ProductLifecycleService productLifecycleService;
     private final ProductUpdateEventService productUpdateEventService;
 
     @Override
@@ -21,11 +23,7 @@ public class UpdateProductStatusService implements UpdateProductStatusUseCase {
         Product product = productRepository.findById(command.getProductId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
 
-        switch (command.getStatus()) {
-            case ACTIVE -> product.activate();
-            case INACTIVE -> product.deactivate();
-            default -> throw new IllegalArgumentException("Invalid product status: " + command.getStatus());
-        }
+        productLifecycleService.updateStatus(product, command.getStatus());
 
         productRepository.save(product);
         productUpdateEventService.enqueue(product);

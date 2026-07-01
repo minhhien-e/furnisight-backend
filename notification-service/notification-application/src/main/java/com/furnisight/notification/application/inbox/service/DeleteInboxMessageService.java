@@ -3,7 +3,8 @@ package com.furnisight.notification.application.inbox.service;
 import com.furnisight.notification.application.inbox.port.in.dto.command.DeleteInboxMessageCommand;
 import com.furnisight.notification.application.inbox.port.in.usecase.DeleteInboxMessageUseCase;
 import com.furnisight.notification.application.inbox.port.out.repository.InboxMessageRepository;
-import com.furnisight.notification.domain.exception.InboxMessageNotFoundException;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import com.furnisight.notification.domain.model.entity.InboxMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,7 +23,7 @@ public class DeleteInboxMessageService implements DeleteInboxMessageUseCase {
             inboxMessageRepository.deleteById(command.getMessageId());
         } else {
             InboxMessage message = inboxMessageRepository.findById(command.getMessageId())
-                    .orElseThrow(() -> new InboxMessageNotFoundException(command.getMessageId()));
+                    .orElseThrow(() -> new NotFoundException(ErrorCode.INBOX_MESSAGE_NOT_FOUND));
             message.markAsDeleted();
             inboxMessageRepository.save(message);
         }

@@ -17,7 +17,7 @@ public class DashboardController {
     private final DashboardService adminDashboardService;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<DashboardResponse> getDashboardData() {
         return ResponseEntity.ok(adminDashboardService.getDashboardData());
     }

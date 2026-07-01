@@ -18,17 +18,17 @@ public class UserProfileLifecycleService {
 
     private final UserProfileRepository userProfileRepository;
 
-    public UserProfile createProfile(UUID accountId, String firstName, String lastName,
+    public UserProfile createProfile(UUID accountId, String fullName,
             String email) {
         Email emailVO = email != null ? new Email(email) : null;
-        UserProfile newProfile = new UserProfile(accountId, firstName, lastName, emailVO);
+        UserProfile newProfile = new UserProfile(accountId, fullName, emailVO);
         return userProfileRepository.save(newProfile);
     }
 
-    public UserProfile createProfile(UUID accountId, String firstName, String lastName,
+    public UserProfile createProfile(UUID accountId, String fullName,
             String email, String avatarUrl) {
         Email emailVO = email != null ? new Email(email) : null;
-        UserProfile newProfile = new UserProfile(accountId, firstName, lastName, emailVO, avatarUrl);
+        UserProfile newProfile = new UserProfile(accountId, fullName, emailVO, avatarUrl);
         return userProfileRepository.save(newProfile);
     }
 
@@ -37,13 +37,13 @@ public class UserProfileLifecycleService {
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PROFILE_NOT_FOUND));
     }
 
-    public UserProfile updateProfile(UserProfile profile, String displayName, String firstName, String lastName,
+    public UserProfile updateProfile(UserProfile profile, String displayName, String fullName,
             UUID avatarMediaId, String bio,
             LocalDate dateOfBirth, String gender) {
         Gender genderEnum = (gender != null && !gender.isBlank())
                 ? Gender.valueOf(gender.toUpperCase())
                 : null;
-        profile.updateProfile(displayName, firstName, lastName, avatarMediaId, bio, dateOfBirth, genderEnum);
+        profile.updateProfile(displayName, fullName, avatarMediaId, bio, dateOfBirth, genderEnum);
         return profile;
     }
 }

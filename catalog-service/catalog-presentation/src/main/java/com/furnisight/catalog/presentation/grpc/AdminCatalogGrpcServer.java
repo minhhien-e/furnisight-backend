@@ -141,7 +141,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                     .setTotalProducts(active + inactive)
                     .setActiveProducts(active)
                     .setInactiveProducts(inactive)
-                    .setLowStockProducts(productReadRepository.countLowStockProducts(LOW_STOCK_THRESHOLD))
+                    .setLowStockProducts(productReadRepository.countLowStockProducts())
                     .setOutOfStockProducts(productReadRepository.countOutOfStockProducts())
                     .build();
             responseObserver.onNext(response);
@@ -155,10 +155,9 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     @Override
     public void getLowStockProducts(GetLowStockProductsRequest request, StreamObserver<LowStockProductListResponse> responseObserver) {
         try {
-            int threshold = request.getThreshold() > 0 ? request.getThreshold() : LOW_STOCK_THRESHOLD;
             int limit = request.getLimit() > 0 ? request.getLimit() : 5;
             LowStockProductListResponse response = LowStockProductListResponse.newBuilder()
-                    .addAllProducts(productReadRepository.findLowStockProducts(threshold, limit).stream()
+                    .addAllProducts(productReadRepository.findLowStockProducts(limit).stream()
                             .map(this::toLowStockDto)
                             .toList())
                     .build();

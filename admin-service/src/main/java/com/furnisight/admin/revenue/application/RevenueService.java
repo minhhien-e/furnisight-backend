@@ -4,6 +4,7 @@ import com.furnisight.admin.revenue.web.dto.response.RevenueMonthlyItemResponse;
 import com.furnisight.admin.revenue.web.dto.response.RevenueResponse;
 import com.furnisight.admin.revenue.web.dto.response.TopProductItemResponse;
 import com.furnisight.admin.shared.web.KpiResponse;
+import com.furnisight.admin.shared.web.KpiType;
 import com.furnisight.admin.revenue.infrastructure.persistence.RevenueSnapshot;
 import com.furnisight.admin.order.infrastructure.grpc.AdminOrderGrpcClient;
 import com.furnisight.admin.order.MonthlyRevenue;
@@ -13,7 +14,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.text.NumberFormat;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -79,21 +79,16 @@ public class RevenueService {
 
         // KPI cards
         List<KpiResponse> kpis = List.of(
-                new KpiResponse("revenue_total", "Tổng doanh thu",
-                        formatCurrency(totalRevenue), "", "", true, "gold", "trendingUp"),
-                new KpiResponse("revenue_month", "Doanh thu tháng này",
-                        formatCurrency(revenueThisMonth), "",
-                        buildMomSubtitle(latestMonth.getMomChangePct()), true, "blue", "calendar"),
-                new KpiResponse("orders_total", "Tổng đơn hàng",
-                        String.valueOf(totalOrders), "", "", true, "green", "box"),
-                new KpiResponse("orders_month", "Đơn tháng này",
-                        String.valueOf(ordersThisMonth), "", "", true, "default", "shoppingCart")
+                new KpiResponse(KpiType.REVENUE_TOTAL, totalRevenue, null),
+                new KpiResponse(KpiType.REVENUE_MONTH, revenueThisMonth, latestMonth.getMomChangePct()),
+                new KpiResponse(KpiType.ORDERS_TOTAL, totalOrders, null),
+                new KpiResponse(KpiType.ORDERS_MONTH, ordersThisMonth, null)
         );
 
         // Biểu đồ
-        List<String> monthLabels = recent.stream().map(RevenueSnapshot::getLabel).toList();
+        List<String> months = recent.stream().map(RevenueSnapshot::getFormattedMonth).toList();
         List<Double> monthData   = recent.stream()
-                .map(s -> Math.round(s.getTotalRevenue() / 1_000_000D * 100D) / 100D)
+                .map(s -> s.getTotalRevenue())
                 .toList();
 
         // Bảng chi tiết tháng
@@ -112,9 +107,9 @@ public class RevenueService {
                             p.getProductName(),
                             p.getCategoryName(),
                             p.getImageUrl(),
-                            formatCurrency(p.getPrice()),
+                            p.getPrice(),
                             p.getSoldCount(),
-                            formatCurrency(p.getTotalRevenue())
+                            p.getTotalRevenue()
                     ))
                     .toList();
         } catch (Exception ex) {
@@ -125,7 +120,7 @@ public class RevenueService {
                 ? latestMonth.getSnapshotAt().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"))
                 : "";
 
-        return new RevenueResponse(kpis, monthLabels, monthData, rows, topProducts, snapshotAt);
+        return new RevenueResponse(kpis, months, monthData, rows, topProducts, snapshotAt);
     }
 
     // ---------------------------------------------------------------------------
@@ -148,7 +143,6 @@ public class RevenueService {
         RevenueSnapshot snapshot = snapshotRepository.findByYearMonth(monthly.getYearMonth())
                 .orElseGet(RevenueSnapshot::new);
         snapshot.setYearMonth(monthly.getYearMonth());
-        snapshot.setLabel(monthly.getLabel());
         snapshot.setTotalRevenue(monthly.getRevenue());
         snapshot.setOrderCount(monthly.getOrderCount());
         snapshot.setMomChangePct(monthly.getMomChangePct() == 0 ? null : monthly.getMomChangePct());
@@ -161,33 +155,14 @@ public class RevenueService {
     // ---------------------------------------------------------------------------
 
     private RevenueMonthlyItemResponse toMonthlyRow(RevenueSnapshot s) {
-        String mom = formatMom(s.getMomChangePct());
-        String momClass = s.getMomChangePct() != null && s.getMomChangePct() >= 0 ? "up" : "down";
         return new RevenueMonthlyItemResponse(
-                s.getLabel(),
+                s.getFormattedMonth(),
                 s.getOrderCount(),
-                formatCurrency(s.getTotalRevenue()),
-                mom,
-                momClass,
+                s.getTotalRevenue(),
+                s.getMomChangePct(),
                 "—",
                 "—"
         );
-    }
-
-    private String formatCurrency(double value) {
-        if (value == 0) return "0đ";
-        NumberFormat formatter = NumberFormat.getInstance(Locale.forLanguageTag("vi-VN"));
-        return formatter.format(Math.round(value)) + "đ";
-    }
-
-    private String formatMom(Double pct) {
-        if (pct == null) return "—";
-        return (pct >= 0 ? "+" : "") + String.format("%.1f", pct) + "%";
-    }
-
-    private String buildMomSubtitle(Double pct) {
-        if (pct == null) return "";
-        return (pct >= 0 ? "+" : "") + String.format("%.1f", pct) + "% so tháng trước";
     }
 
     private RevenueResponse emptyResponse() {

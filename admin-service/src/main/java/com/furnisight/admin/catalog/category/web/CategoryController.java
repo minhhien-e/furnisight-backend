@@ -24,44 +24,44 @@ public class CategoryController {
     private final CurrentUserProvider currentUserProvider;
 
     @GetMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<List<CategoryResponse>> getCategories(@RequestParam(required = false) String query) {
         return ResponseEntity.ok(categoryService.getCategories(query));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> createCategory(
             @RequestBody UpsertCategoryRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.createCategory(request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "create", "Tạo danh mục", "CATEGORY",
-                request.slug(), result, "Tên danh mục: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_CATEGORY,
+                request.slug(), result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateCategory(
             @PathVariable String id, @RequestBody UpsertCategoryRequest request,
             HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.updateCategory(id, request);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "update", "Cập nhật danh mục", "CATEGORY",
-                id, result, "Tên danh mục: " + request.name(), httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_CATEGORY,
+                id, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> deleteCategory(
             @PathVariable String id, HttpServletRequest httpRequest) {
         ActionResultResponse result = categoryService.deleteCategory(id);
-        auditLogService.record(currentUserProvider.getCurrentUserId(), "delete", "Xóa danh mục", "CATEGORY",
-                id, result, "Category id: " + id, httpRequest);
+        auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.DELETE_CATEGORY,
+                id, result, null, httpRequest);
         return ResponseEntity.ok(result);
     }
 
     @GetMapping("/icon-options")
-    @PreAuthorize("hasAuthority(\'PRODUCT_MANAGE\') or hasAuthority(\'ADMIN\')")
+    @PreAuthorize("hasAuthority('PRODUCT_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<List<CategoryResponse>> getCategoryIconOptions() {
         return ResponseEntity.ok(List.of());
     }

@@ -1,9 +1,9 @@
 package com.furnisight.promotion.application.service;
 
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.application.port.CatalogStockPort;
-import com.furnisight.promotion.application.port.PromotionComboItemRepository;
-import com.furnisight.promotion.application.port.PromotionComboRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionComboItemRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionComboRepository;
 import com.furnisight.promotion.domain.entities.PromotionCombo;
 import com.furnisight.promotion.domain.entities.PromotionComboItem;
 import com.furnisight.promotion.domain.enums.ComboDiscountType;

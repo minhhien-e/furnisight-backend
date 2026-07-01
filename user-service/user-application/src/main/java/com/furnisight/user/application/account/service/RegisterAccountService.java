@@ -27,22 +27,10 @@ public class RegisterAccountService implements RegisterAccountUseCase {
         Account account = accountLifecycleService.register(email, command.password());
         
         String fullName = command.fullName() == null ? "" : command.fullName().trim();
-        String firstName = "";
-        String lastName = "";
-        if (!fullName.isEmpty()) {
-            int firstSpace = fullName.indexOf(' ');
-            if (firstSpace == -1) {
-                lastName = fullName;
-            } else {
-                lastName = fullName.substring(0, firstSpace);
-                firstName = fullName.substring(firstSpace + 1).trim();
-            }
-        }
 
         userProfileLifecycleService.createProfile(
                 account.getId(),
-                firstName,
-                lastName,
+                fullName,
                 command.email());
         return tokenLifeCycleService.generateAccountToken(account);
     }

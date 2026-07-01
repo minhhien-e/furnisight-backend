@@ -3,7 +3,8 @@ package com.furnisight.notification.adapter.out.repository.jpa.impl;
 import com.furnisight.notification.adapter.out.repository.jpa.NotificationTemplateJpaRepository;
 import com.furnisight.notification.application.template.port.out.repository.NotificationTemplateRepository;
 import com.furnisight.notification.domain.model.entity.NotificationTemplate;
-import com.furnisight.notification.domain.exception.NotificationTemplateNotFoundException;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.query.Criteria;
@@ -42,7 +43,7 @@ public class NotificationTemplateRepositoryImpl implements NotificationTemplateR
     @Override
     public NotificationTemplate findByCode(String code) {
         return jpaRepository.findByCode(code)
-                .orElseThrow(() -> new NotificationTemplateNotFoundException("code", code));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.NOTIFICATION_TEMPLATE_NOT_FOUND));
     }
 
     @Override

@@ -72,4 +72,5 @@ public class CatalogGrpcClient {
 
     public record ProductLookupItem(String productId, String selectedVariantId) {
     }
+
 }

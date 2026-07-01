@@ -34,11 +34,8 @@ public class UserProfile extends AggregateRoot {
     @Column(name = "display_name", length = 100)
     private String displayName;
 
-    @Column(name = "first_name")
-    private String firstName;
-
-    @Column(name = "last_name")
-    private String lastName;
+    @Column(name = "full_name")
+    private String fullName;
 
     @Column(name = "avatar_media_id")
     private UUID avatarMediaId;
@@ -59,29 +56,26 @@ public class UserProfile extends AggregateRoot {
     @Column(name = "gender", length = 10)
     private Gender gender;
 
-    public UserProfile(UUID accountId, String firstName, String lastName, Email email) {
+    public UserProfile(UUID accountId, String fullName, Email email) {
         this.id = UUID.randomUUID();
         this.accountId = accountId;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.email = email;
     }
 
-    public UserProfile(UUID accountId, String firstName, String lastName, Email email, String avatarUrl) {
+    public UserProfile(UUID accountId, String fullName, Email email, String avatarUrl) {
         this.id = UUID.randomUUID();
         this.accountId = accountId;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.email = email;
         this.avatarUrl = avatarUrl;
     }
 
-    public void updateProfile(String displayName, String firstName, String lastName,
+    public void updateProfile(String displayName, String fullName,
                               UUID avatarMediaId, String bio,
                               LocalDate dateOfBirth, Gender gender) {
         this.displayName = displayName;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.avatarMediaId = avatarMediaId;
         this.bio = bio;
         this.dateOfBirth = dateOfBirth;

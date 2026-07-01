@@ -4,7 +4,6 @@ import com.furnisight.user.domain.enums.identity.AccountStatus;
 import com.furnisight.user.domain.seedwork.AggregateRoot;
 import com.furnisight.user.domain.valueobjects.identity.Email;
 import com.furnisight.user.domain.valueobjects.identity.Password;
-import com.furnisight.user.domain.valueobjects.identity.Username;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,9 +21,6 @@ public class Account extends AggregateRoot {
     private UUID id;
 
     @Embedded
-    private Username username;
-
-    @Embedded
     private Email email;
 
     @Embedded
@@ -40,9 +36,11 @@ public class Account extends AggregateRoot {
     @Column(name = "lockout_end")
     private LocalDateTime lockoutEnd;
 
-    public Account(Username username, Email email, Password password) {
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin = false;
+
+    public Account(Email email, Password password) {
         this.id = UUID.randomUUID();
-        this.username = username;
         this.email = email;
         this.password = password;
     }
@@ -57,6 +55,10 @@ public class Account extends AggregateRoot {
 
     public void activate() {
         this.status = AccountStatus.ACTIVE;
+    }
+
+    public void promoteToAdmin() {
+        this.isAdmin = true;
     }
 
     public boolean isBanned() {
