@@ -59,12 +59,7 @@ message:
 
 
 management:
-  tracing:
-    sampling:
-      probability: ${MANAGEMENT_TRACING_SAMPLING_PROBABILITY:1.0}
-  zipkin:
-    tracing:
-      endpoint: ${ZIPKIN_URL:http://zipkin:9411/api/v2/spans}
+
   endpoints:
     web:
       exposure:

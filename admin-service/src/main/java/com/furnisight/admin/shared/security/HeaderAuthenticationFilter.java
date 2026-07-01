@@ -23,12 +23,15 @@ public class HeaderAuthenticationFilter extends OncePerRequestFilter {
 
         String userId = request.getHeader("X-User-Id");
         String permissionsHeader = request.getHeader("X-User-Permissions");
+        String isAdminHeader = request.getHeader("X-User-Is-Admin");
 
         if (userId != null && !userId.isBlank()) {
             List<SimpleGrantedAuthority> authorities = List.of();
             if (permissionsHeader != null && !permissionsHeader.isBlank()) {
                 java.util.Set<String> expanded = new java.util.HashSet<>();
-                expanded.add("ADMIN");
+                if ("true".equalsIgnoreCase(isAdminHeader)) {
+                    expanded.add("ADMIN");
+                }
                 for (String permission : permissionsHeader.split(",")) {
                     String p = permission.trim().toUpperCase();
                     if (!p.isBlank()) {

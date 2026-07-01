@@ -1,6 +1,28 @@
 x-common-service: &common-service
   restart: always
 
+x-deploy-small: &deploy-small
+  resources:
+    limits:
+      cpus: '0.5'
+      memory: 512M
+
+x-deploy-medium: &deploy-medium
+  resources:
+    limits:
+      cpus: '1.0'
+      memory: 1G
+
+x-deploy-large: &deploy-large
+  resources:
+    limits:
+      cpus: '2.0'
+      memory: 3G
+
+x-java-env: &java-env
+  JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"
+  SERVER_PORT: 8080
+
 x-java-build: &java-build
   dockerfile: Dockerfile
   args:
@@ -11,7 +33,7 @@ x-java-build: &java-build
 x-java-service: &java-service
   <<: *common-service
   environment:
-    SERVER_PORT: 8080
+    <<: *java-env
   expose:
     - "8080"
 
@@ -41,6 +63,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy: *deploy-small
 
   mongo:
     image: mongo:7
@@ -51,6 +74,7 @@ services:
     command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
     volumes:
       - mongo_data:/data/db
+    deploy: *deploy-medium
 
   mongo-init:
     image: mongo:7
@@ -66,6 +90,7 @@ services:
         sleep 5 &&
         mongosh --host mongo:27017 /mongo-init.js
       "
+    deploy: *deploy-small
 
   redis:
     image: redis:7
@@ -80,6 +105,7 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+    deploy: *deploy-small
 
   libretranslate:
     image: libretranslate/libretranslate:latest
@@ -99,6 +125,7 @@ services:
       timeout: 10s
       retries: 20
       start_period: 60s
+    deploy: *deploy-medium
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -133,13 +160,8 @@ services:
       timeout: 10s
       retries: 10
       start_period: 40s
+    deploy: *deploy-medium
 
-  zipkin:
-    image: openzipkin/zipkin:latest
-    container_name: zipkin
-    <<: *common-service
-    ports:
-      - "9411:9411"
 
   gateway:
     image: furnisight-gateway:latest
@@ -152,10 +174,10 @@ services:
       - "127.0.0.1:8080:8080"
     env_file:
       - ./gateway/.env
+    environment:
+      <<: *java-env
     depends_on:
       redis:
-        condition: service_started
-      zipkin:
         condition: service_started
       user-service:
         condition: service_healthy
@@ -181,6 +203,7 @@ services:
         condition: service_started
       admin-service:
         condition: service_started
+    deploy: *deploy-medium
 
   user-service:
     <<: *java-service
@@ -202,6 +225,7 @@ services:
       timeout: 5s
       retries: 18
       start_period: 30s
+    deploy: *deploy-small
 
   admin-service:
     <<: *java-service
@@ -213,15 +237,13 @@ services:
     env_file:
       - ./admin-service/.env
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
       REVIEW_SERVICE_GRPC_HOST: review-service
     volumes:
       - admin_data:/app/data
     depends_on:
       postgres:
         condition: service_healthy
-      zipkin:
-        condition: service_started
       user-service:
         condition: service_started
       order-service:
@@ -234,6 +256,7 @@ services:
         condition: service_started
       review-service:
         condition: service_started
+    deploy: *deploy-small
 
   catalog-service:
     <<: *java-service
@@ -245,7 +268,7 @@ services:
     env_file:
       - ./catalog-service/.env
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
       REDIS_HOST: redis
       TRANSLATION_BASE_URL: http://libretranslate:5000
       REVIEW_SERVICE_GRPC_HOST: review-service
@@ -260,6 +283,7 @@ services:
         condition: service_healthy
       review-service:
         condition: service_started
+    deploy: *deploy-small
 
   review-service:
     <<: *java-service
@@ -271,7 +295,7 @@ services:
     env_file:
       - ./review-service/.env
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
     expose:
       - "8080"
       - "9097"
@@ -283,6 +307,7 @@ services:
         condition: service_started
       ai-review-sentiment:
         condition: service_started
+    deploy: *deploy-small
 
   cart-service:
     <<: *java-service
@@ -296,8 +321,11 @@ services:
       - "9094"
     env_file:
       - ./cart-service/.env
+    environment:
+      <<: *java-env
     depends_on:
       - mongo
+    deploy: *deploy-small
 
   notification-service:
     <<: *java-service
@@ -312,7 +340,7 @@ services:
     env_file:
       - ./notification-service/.env
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
       TRANSLATION_BASE_URL: http://libretranslate:5000
     depends_on:
       mongo:
@@ -321,6 +349,7 @@ services:
         condition: service_started
       libretranslate:
         condition: service_healthy
+    deploy: *deploy-small
 
   order-service:
     <<: *java-service
@@ -335,12 +364,13 @@ services:
     env_file:
       - ./order-service/.env
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
       TRANSLATION_BASE_URL: http://libretranslate:5000
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
       libretranslate:
         condition: service_healthy
+    deploy: *deploy-small
 
   promotion-service:
     <<: *java-service
@@ -355,7 +385,7 @@ services:
     env_file:
       - ./promotion-service/.env
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
       TRANSLATION_BASE_URL: http://libretranslate:5000
     depends_on:
       postgres:
@@ -374,6 +404,7 @@ services:
         condition: service_started
       libretranslate:
         condition: service_healthy
+    deploy: *deploy-small
 
   ai-image-classifier:
     image: furnisight-ai-image-classifier:latest
@@ -391,6 +422,7 @@ services:
     volumes:
       - ./ai-image-classifier/models:/app/models:ro
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    deploy: *deploy-medium
 
   ai-image-reconstruction:
     image: furnisight-ai-image-reconstruction:latest
@@ -413,6 +445,7 @@ services:
       - ./ai-image-reconstruction/outputs:/app/outputs
     expose:
       - "8080"
+    deploy: *deploy-large
 
   ai-review-sentiment:
     image: furnisight-ai-review-sentiment:latest
@@ -426,6 +459,7 @@ services:
     expose:
       - "8080"
       - "50051"
+    deploy: *deploy-medium
 
   media-service:
     <<: *java-service
@@ -436,6 +470,8 @@ services:
       <<: *java-build
     env_file:
       - ./media-service/.env
+    environment:
+      <<: *java-env
     volumes:
       - media_storage:/app/storage
     depends_on:
@@ -443,6 +479,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+    deploy: *deploy-medium
 
   message-service:
     <<: *java-service
@@ -457,7 +494,7 @@ services:
       - "8080"
       - "9097"
     environment:
-      SERVER_PORT: 8080
+      <<: *java-env
       USER_SERVICE_GRPC_ADDRESS: static://user-service:9091
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
@@ -469,6 +506,7 @@ services:
       timeout: 5s
       retries: 12
       start_period: 30s
+    deploy: *deploy-small
 
 volumes:
   postgres_data:

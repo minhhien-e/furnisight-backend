@@ -45,7 +45,7 @@ public class JwtAccessTokenGenerator implements AccessTokenGenerator {
             .subject(account.getId().toString())
             .claim("roles", roles.stream().map(role -> role.getName().getValue()).toList())
             .claim("permissions", permissionNames)
-            .claim("isAdmin", !permissionNames.isEmpty())
+            .claim("isAdmin", account.isAdmin())
             .issuedAt(now)
             .expiresAt(expiresAt)
             .build();

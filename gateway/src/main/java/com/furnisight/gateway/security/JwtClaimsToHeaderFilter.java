@@ -29,6 +29,7 @@ public class JwtClaimsToHeaderFilter implements GlobalFilter, Ordered {
                     String userId = jwt.getSubject();
                     List<String> roles = jwt.getClaimAsStringList("roles");
                     List<String> permissions = jwt.getClaimAsStringList("permissions");
+                    Boolean isAdmin = jwt.getClaimAsBoolean("isAdmin");
 
                     ServerHttpRequest.Builder requestBuilder = exchange.getRequest().mutate();
 
@@ -42,6 +43,10 @@ public class JwtClaimsToHeaderFilter implements GlobalFilter, Ordered {
 
                     if (permissions != null && !permissions.isEmpty()) {
                         requestBuilder.header("X-User-Permissions", String.join(",", permissions));
+                    }
+
+                    if (isAdmin != null) {
+                        requestBuilder.header("X-User-Is-Admin", isAdmin.toString());
                     }
 
                     return exchange.mutate().request(requestBuilder.build()).build();
