@@ -4,7 +4,8 @@ import com.furnisight.notification.application.profile.port.in.command.CreateDef
 import com.furnisight.notification.application.profile.port.in.dto.response.NotificationProfileResponse;
 import com.furnisight.notification.application.profile.port.in.usecase.CreateDefaultNotificationProfileUseCase;
 import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
-import com.furnisight.notification.domain.exception.NotificationProfileNotFoundException;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import com.furnisight.notification.domain.model.entity.NotificationProfile;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -21,7 +22,7 @@ public class CreateDefaultNotificationProfileService implements CreateDefaultNot
     public NotificationProfileResponse execute(CreateDefaultNotificationProfileCommand command) {
         try {
             return NotificationProfileResponse.from(notificationProfileRepository.findByUserId(command.getUserId()));
-        } catch (NotificationProfileNotFoundException ignored) {
+        } catch (NotFoundException ignored) {
             // Create the default profile below.
         }
 

@@ -35,8 +35,7 @@ public class ProfileController {
         var command = new UpdateProfileCommand(
             accountId,
             request.displayName(),
-            request.firstName(),
-            request.lastName(),
+            request.fullName(),
             request.avatarMediaId(),
             request.bio(),
             request.birthday(),

@@ -34,7 +34,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         String picture        = oauthUser.getAttribute("picture");
 
         LoginWithSocialAccountCommand command = new LoginWithSocialAccountCommand(
-                providerUserId, provider, email, picture, name, null, null
+                providerUserId, provider, email, picture, name
         );
 
         AccountToken token = loginWithSocialAccountUseCase.execute(command);

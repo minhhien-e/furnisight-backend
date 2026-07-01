@@ -21,14 +21,15 @@ import com.furnisight.message.dto.event.UploadActiveEvent;
 import com.furnisight.message.dto.req.Message.ConversationReq;
 import com.furnisight.message.dto.res.ConversationResponse;
 import com.furnisight.message.dto.res.CustomerProfile;
-import com.furnisight.message.exception.imp.MessageException;
+import com.furnisight.message.domain.exceptions.ErrorCode;
+import com.furnisight.message.domain.exceptions.NotFoundException;
 import com.furnisight.message.service.kafka.KafkaProducer;
 import com.furnisight.message.service.User.UserProfileGrpcClient;
 import com.furnisight.message.util.enums.ConversationChannel;
 import com.furnisight.message.util.enums.ConversationPriority;
 import com.furnisight.message.util.enums.ConversationStatus;
 import com.furnisight.message.util.enums.MessageType;
-import com.furnisight.message.util.error.MessageErrorCode;
+
 
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
@@ -179,7 +180,7 @@ public class ConversationService {
 
     public ResponseEntity<AType> getConversationById(int id) {
         Conversation conversation = conversationRepository.findById(id)
-                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MESSAGE_NOT_FOUND));
 
         return ResponseEntity.ok(ApiType.success(
                 ConversationResponse.from(conversation, userProfileGrpcClient.resolveBuyerProfile(conversation.getBuyerId()))));
@@ -192,7 +193,7 @@ public class ConversationService {
     @Transactional
     public ResponseEntity<AType> updateConversationStatus(Integer conversationId, ConversationStatus status) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MESSAGE_NOT_FOUND));
 
         applyStatus(conversation, status);
         conversationRepository.save(conversation);
@@ -202,7 +203,7 @@ public class ConversationService {
     @Transactional
     public ResponseEntity<AType> updateConversationPriority(Integer conversationId, ConversationPriority priority) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MESSAGE_NOT_FOUND));
 
         conversation.setPriority(priority);
         conversationRepository.save(conversation);
@@ -212,7 +213,7 @@ public class ConversationService {
     @Transactional
     public ResponseEntity<AType> assignConversation(Integer conversationId, Integer adminId) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MESSAGE_NOT_FOUND));
 
         conversation.setAssignedAdminId(adminId);
         conversation.setStaffId(adminId);
@@ -225,7 +226,7 @@ public class ConversationService {
     @Transactional
     public ResponseEntity<AType> closeConversation(Integer conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new MessageException(MessageErrorCode.MESSAGE_NOT_FOUND));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MESSAGE_NOT_FOUND));
 
         applyStatus(conversation, ConversationStatus.CLOSED);
         conversationRepository.save(conversation);

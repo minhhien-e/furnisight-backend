@@ -1,7 +1,7 @@
 package com.furnisight.promotion.adapter.out.repository;
 
 import com.furnisight.promotion.adapter.out.repository.jpa.UserVoucherJpaRepository;
-import com.furnisight.promotion.application.port.UserVoucherRepository;
+import com.furnisight.promotion.domain.repository.promotion.UserVoucherRepository;
 import com.furnisight.promotion.domain.entities.UserVoucher;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;

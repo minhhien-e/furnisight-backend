@@ -19,7 +19,7 @@ import com.furnisight.catalog.domain.valueobjects.product.ProductSlug;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
-import com.furnisight.catalog.domain.valueobjects.product.ProductStatus;
+import com.furnisight.catalog.domain.enums.ProductStatus;
 import java.util.ArrayList;
 import java.util.Locale;
 

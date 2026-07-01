@@ -14,7 +14,6 @@ import com.furnisight.user.domain.events.identity.AccountDeletedEvent;
 import com.furnisight.user.domain.events.identity.SocialAccountCreatedEvent;
 import com.furnisight.user.domain.valueobjects.identity.Email;
 import com.furnisight.user.domain.valueobjects.identity.Password;
-import com.furnisight.user.domain.valueobjects.identity.Username;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -32,13 +31,12 @@ public class AccountLifecycleService {
     private final VerificationService verificationService;
 
     public Account register(Email email, String password) {
-        Username username = Username.fromEmail(email.getValue());
-        if (accountRepository.existsAccount(username, email)) {
+        if (accountRepository.existsAccount(email)) {
             throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALREADY_EXISTS);
         }
         passwordPolicy.validate(password);
         Password hashedPassword = new Password(passwordHasher.hash(password));
-        Account account = new Account(username, email, hashedPassword);
+        Account account = new Account(email, hashedPassword);
         account.registerEvent(new AccountCreatedEvent(account.getId(), email.getValue(), LocalDateTime.now()));
         account = accountRepository.save(account);
         verificationService.requestVerification(account, account.getEmail().getValue());
@@ -46,13 +44,12 @@ public class AccountLifecycleService {
     }
 
     public Account provision(Email email, String password) {
-        Username username = Username.fromEmail(email.getValue());
-        if (accountRepository.existsAccount(username, email)) {
+        if (accountRepository.existsAccount(email)) {
             throw new AlreadyExistsException(ErrorCode.ACCOUNT_ALREADY_EXISTS);
         }
         passwordPolicy.validate(password);
         Password hashedPassword = new Password(passwordHasher.hash(password));
-        Account account = new Account(username, email, hashedPassword);
+        Account account = new Account(email, hashedPassword);
         account.activate();
         account.registerEvent(new AccountCreatedEvent(account.getId(), email.getValue(), LocalDateTime.now()));
         return accountRepository.save(account);
@@ -67,13 +64,10 @@ public class AccountLifecycleService {
             return accountRepository.findById(existingSocialAccount.get().getAccountId())
                     .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
         }
-        String rawUsername = (email != null) ? email.getValue() : UUID.randomUUID().toString();
-        Username username = new Username(rawUsername);
-
         String randomPassword = UUID.randomUUID().toString();
         Password hashedPassword = new Password(passwordHasher.hash(randomPassword));
 
-        Account account = new Account(username, email, hashedPassword);
+        Account account = new Account(email, hashedPassword);
         account.activate();
         account.registerEvent(new AccountCreatedEvent(
                 account.getId(),

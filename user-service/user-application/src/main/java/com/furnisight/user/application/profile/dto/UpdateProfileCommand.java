@@ -6,8 +6,7 @@ import java.util.UUID;
 public record UpdateProfileCommand(
         UUID accountId,
         String displayName,
-        String firstName,
-        String lastName,
+        String fullName,
         UUID avatarMediaId,
         String bio,
         LocalDate dateOfBirth,

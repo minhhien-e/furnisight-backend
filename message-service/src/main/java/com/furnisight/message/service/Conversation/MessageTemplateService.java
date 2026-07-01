@@ -5,7 +5,8 @@ import com.furnisight.message.database.repository.MessageTemplateRepository;
 import com.furnisight.message.dto.API.AType;
 import com.furnisight.message.dto.API.ApiType;
 import com.furnisight.message.dto.req.MessageTemplateReq;
-import com.furnisight.message.exception.BaseException;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class MessageTemplateService {
 
     public ResponseEntity<AType> getTemplateById(Integer id) {
         MessageTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new BaseException(404, "Template not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Template not found"));
         return ResponseEntity.ok(ApiType.success(template));
     }
 
@@ -42,7 +43,7 @@ public class MessageTemplateService {
 
     public ResponseEntity<AType> updateTemplate(Integer id, MessageTemplateReq req) {
         MessageTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new BaseException(404, "Template not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Template not found"));
 
         if (req.getTitle() != null) template.setTitle(req.getTitle());
         if (req.getContent() != null) template.setContent(req.getContent());
@@ -55,7 +56,7 @@ public class MessageTemplateService {
 
     public ResponseEntity<AType> deleteTemplate(Integer id) {
         MessageTemplate template = templateRepository.findById(id)
-                .orElseThrow(() -> new BaseException(404, "Template not found"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Template not found"));
         templateRepository.delete(template);
         return ResponseEntity.ok(ApiType.success(null));
     }

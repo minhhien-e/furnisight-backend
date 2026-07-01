@@ -2,12 +2,13 @@ package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.application.common.CurrentUserProvider;
 import com.furnisight.promotion.application.dto.PromotionDto;
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.application.dto.RecommendVouchersCommand;
 import com.furnisight.promotion.application.dto.RecommendVouchersResponse;
 import com.furnisight.promotion.application.dto.ValidateVoucherCommand;
 import com.furnisight.promotion.application.dto.ValidateVoucherResponse;
-import com.furnisight.promotion.application.service.PromotionService;
+import com.furnisight.promotion.application.port.in.usecase.*;
+import com.furnisight.promotion.application.port.in.query.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -29,7 +30,11 @@ import java.util.UUID;
 @RequestMapping("/vouchers")
 @RequiredArgsConstructor
 public class VoucherController {
-    private final PromotionService promotionService;
+    private final GetAvailableVouchersUseCase getAvailableVouchersUseCase;
+    private final GetPublicVouchersUseCase getPublicVouchersUseCase;
+    private final RecommendVouchersUseCase recommendVouchersUseCase;
+    private final ValidateVoucherUseCase validateVoucherUseCase;
+    private final SaveUserVoucherUseCase saveUserVoucherUseCase;
     private final CurrentUserProvider currentUserProvider;
     private final PromotionTranslationService promotionTranslationService;
 
@@ -39,7 +44,7 @@ public class VoucherController {
             @RequestParam(name = "lang", required = false) String lang) {
         UUID userId = currentUserProvider.getCurrentUserId();
         return ResponseEntity.ok(promotionTranslationService.localizePromotions(
-                promotionService.getAvailableVouchers(userId),
+                getAvailableVouchersUseCase.getAvailableVouchers(GetAvailableVouchersQuery.builder().userId(userId).build()),
                 resolveLocale(lang, acceptLanguage)
         ));
     }
@@ -52,7 +57,7 @@ public class VoucherController {
             @RequestParam(required = false) Integer size,
             @RequestParam(required = false, defaultValue = "all") String filter) {
         return ResponseEntity.ok(promotionTranslationService.localizePromotionPage(
-                promotionService.getPublicVouchers(currentUserIdOrNull(), page, size, filter),
+                getPublicVouchersUseCase.getPublicVouchers(GetPublicVouchersQuery.builder().userId(currentUserIdOrNull()).page(page).size(size).filter(filter).build()),
                 resolveLocale(lang, acceptLanguage)
         ));
     }
@@ -63,7 +68,7 @@ public class VoucherController {
             @RequestParam(name = "lang", required = false) String lang,
             @RequestBody RecommendVouchersCommand command) {
         return ResponseEntity.ok(promotionTranslationService.localizeRecommendResponse(
-                promotionService.recommendVouchers(currentUserProvider.getCurrentUserId(), command),
+                recommendVouchersUseCase.recommendVouchers(RecommendVouchersQuery.builder().userId(currentUserProvider.getCurrentUserId()).command(command).build()),
                 resolveLocale(lang, acceptLanguage)
         ));
     }
@@ -75,20 +80,20 @@ public class VoucherController {
             @RequestBody ValidateVoucherCommand command) {
         command.setUserId(currentUserProvider.getCurrentUserId());
         return ResponseEntity.ok(promotionTranslationService.localizeValidateVoucherResponse(
-                promotionService.validateVoucher(command),
+                validateVoucherUseCase.validateVoucher(command),
                 resolveLocale(lang, acceptLanguage)
         ));
     }
 
     @PostMapping("/{code}/save")
     public ResponseEntity<Void> saveVoucher(@PathVariable String code) {
-        promotionService.saveVoucher(currentUserProvider.getCurrentUserId(), code);
+        saveUserVoucherUseCase.saveVoucher(SaveUserVoucherQuery.builder().userId(currentUserProvider.getCurrentUserId()).code(code).build());
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/save")
     public ResponseEntity<Void> saveVoucherByQuery(@RequestParam String code) {
-        promotionService.saveVoucher(currentUserProvider.getCurrentUserId(), code);
+        saveUserVoucherUseCase.saveVoucher(SaveUserVoucherQuery.builder().userId(currentUserProvider.getCurrentUserId()).code(code).build());
         return ResponseEntity.ok().build();
     }
 

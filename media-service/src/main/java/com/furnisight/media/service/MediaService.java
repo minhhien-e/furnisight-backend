@@ -9,7 +9,8 @@ import com.furnisight.media.dto.response.MediaResponse;
 import com.furnisight.media.entity.MediaAsset;
 import com.furnisight.media.enums.AssetState;
 import com.furnisight.media.enums.MediaType;
-import com.furnisight.media.exception.MediaNotFoundException;
+import com.furnisight.media.domain.exceptions.ErrorCode;
+import com.furnisight.media.domain.exceptions.NotFoundException;
 import com.furnisight.media.repository.MediaAssetRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -79,7 +80,7 @@ public class MediaService {
     @Transactional
     public MediaResponse completeUpload(UUID mediaId, CompleteUploadRequest request) {
         MediaAsset asset = mediaAssetRepository.findById(mediaId)
-                .orElseThrow(() -> new MediaNotFoundException(mediaId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEDIA_NOT_FOUND));
 
         if (asset.getState() != AssetState.UPLOADING) {
             throw new IllegalArgumentException("Media asset is not waiting for upload completion");
@@ -138,7 +139,7 @@ public class MediaService {
     @Transactional
     public void cancelUpload(UUID mediaId) {
         MediaAsset asset = mediaAssetRepository.findById(mediaId)
-                .orElseThrow(() -> new MediaNotFoundException(mediaId));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEDIA_NOT_FOUND));
 
         deleteFromCloudinary(asset);
         mediaAssetRepository.delete(asset);
@@ -151,7 +152,7 @@ public class MediaService {
     @Transactional(readOnly = true)
     public MediaResponse getById(UUID id) {
         MediaAsset asset = mediaAssetRepository.findById(id)
-                .orElseThrow(() -> new MediaNotFoundException(id));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEDIA_NOT_FOUND));
         return MediaResponse.from(asset);
     }
 
@@ -161,7 +162,7 @@ public class MediaService {
     @Transactional
     public void delete(UUID id) {
         MediaAsset asset = mediaAssetRepository.findById(id)
-                .orElseThrow(() -> new MediaNotFoundException(id));
+                .orElseThrow(() -> new NotFoundException(ErrorCode.MEDIA_NOT_FOUND));
         deleteFromCloudinary(asset);
         mediaAssetRepository.delete(asset);
         log.info("Deleted media id={} publicId={}", id, asset.getCloudinaryPublicId());

@@ -70,7 +70,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
 
     @Override
     public void getAccountStats(Empty request, StreamObserver<AccountStatsResponse> responseObserver) {
-        try {
             LocalDate firstDayOfMonth = LocalDate.now().withDayOfMonth(1);
             LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
             LocalDateTime nextMonthStart = firstDayOfMonth.plusMonths(1).atStartOfDay();
@@ -83,14 +82,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void getAccounts(GetAccountsRequest request, StreamObserver<AccountPageResponse> responseObserver) {
-        try {
             int page = request.getPage() > 0 ? request.getPage() - 1 : 0;
             int size = request.getSize() > 0 ? request.getSize() : 10;
             Pageable pageable = PageRequest.of(page, size);
@@ -122,7 +117,7 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
 
                 return AccountDto.newBuilder()
                         .setId(account.getId().toString())
-                        .setUsername(account.getUsername().getValue())
+                        .setUsername("")
                         .setName(resolveDisplayName(account, profile))
                         .setEmail(account.getEmail().getValue())
                         .setStatus(account.getStatus().name())
@@ -141,15 +136,11 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
 
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void listMarketingUserIds(ListMarketingUserIdsRequest request,
                                      StreamObserver<MarketingUserIdsResponse> responseObserver) {
-        try {
             LocalDateTime cutoff = LocalDateTime.now().minusDays(30);
             List<Account> candidates = switch (request.getSegment()) {
                 case MARKETING_USER_SEGMENT_NEW_USERS ->
@@ -161,21 +152,16 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             };
 
             List<String> userIds = candidates.stream()
-                    .filter(account -> !hasAdministrativeRole(account.getId()))
+                    .filter(account -> !account.isAdmin())
                     .map(account -> account.getId().toString())
                     .toList();
             responseObserver.onNext(MarketingUserIdsResponse.newBuilder().addAllUserIds(userIds).build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error listing marketing user ids", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void batchGetMarketingUsers(BatchGetMarketingUsersRequest request,
                                        StreamObserver<MarketingUsersResponse> responseObserver) {
-        try {
             List<UUID> userIds = request.getUserIdsList().stream()
                     .map(this::parseUuid)
                     .filter(java.util.Objects::nonNull)
@@ -195,16 +181,11 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             });
             responseObserver.onNext(response.build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error getting marketing users", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void filterMarketingUserIds(FilterMarketingUserIdsRequest request,
                                        StreamObserver<FilterMarketingUserIdsResponse> responseObserver) {
-        try {
             List<UUID> requestedIds = request.getUserIdsList().stream()
                     .map(this::parseUuid)
                     .filter(java.util.Objects::nonNull)
@@ -220,10 +201,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             });
             responseObserver.onNext(response.build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error filtering marketing user ids", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
 
@@ -237,7 +214,6 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
 
     @Override
     public void getAccountById(GetAccountByIdRequest request, StreamObserver<AccountDetailResponse> responseObserver) {
-        try {
             Account account = accountRepository.findById(UUID.fromString(request.getId()))
                     .orElseThrow(() -> new IllegalArgumentException("Account not found"));
 
@@ -247,11 +223,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             AccountDetailResponse.Builder builder = AccountDetailResponse.newBuilder()
                     .setId(account.getId().toString())
                     .setEmail(account.getEmail().getValue())
-                    .setUsername(account.getUsername().getValue())
+                    .setUsername("")
                     .setName(resolveDisplayName(account, profile))
                     .setPhone(profile == null || profile.getId() == null ? "" : profile.getId().toString())
-                    .setFirstName(profile == null || profile.getFirstName() == null ? "" : profile.getFirstName())
-                    .setLastName(profile == null || profile.getLastName() == null ? "" : profile.getLastName())
+
                     .setAvatarUrl(profile == null || profile.getAvatarUrl() == null ? "" : profile.getAvatarUrl())
                     .setCreatedAt(account.getCreatedAt() == null ? "" : account.getCreatedAt().toString())
                     .setStatus(account.getStatus().name());
@@ -266,15 +241,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
 
             responseObserver.onNext(builder.build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error getting account details", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void banAccount(BanAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             BanAccountCommand command = new BanAccountCommand(
                     UUID.fromString(request.getAdminId()),
                     UUID.fromString(request.getAccountId()),
@@ -284,15 +254,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(
                     AdminActionResponse.newBuilder().setSuccess(true).setMessage("Banned successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error banning account", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void unbanAccount(UnbanAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             UnbanAccountCommand command = new UnbanAccountCommand(
                     UUID.fromString(request.getAdminId()),
                     UUID.fromString(request.getAccountId()));
@@ -300,15 +265,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(
                     AdminActionResponse.newBuilder().setSuccess(true).setMessage("Unbanned successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error unbanning account", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void activateAccount(ActivateAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             ActivateAccountCommand command = new ActivateAccountCommand(
                     UUID.fromString(request.getAdminId()),
                     UUID.fromString(request.getAccountId()));
@@ -316,15 +276,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(
                     AdminActionResponse.newBuilder().setSuccess(true).setMessage("Activated successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error activating account", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void deleteAccount(DeleteAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             DeleteAccountCommand command = new DeleteAccountCommand(
                     UUID.fromString(request.getAdminId()),
                     UUID.fromString(request.getAccountId()));
@@ -332,15 +287,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(
                     AdminActionResponse.newBuilder().setSuccess(true).setMessage("Deleted successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error deleting account", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void getRoles(Empty request, StreamObserver<RoleListResponse> responseObserver) {
-        try {
             RoleListResponse response = RoleListResponse.newBuilder()
                     .addAllRoles(roleRepository.findAll().stream()
                             .map(role -> RoleDto.newBuilder()
@@ -352,15 +302,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .build();
             responseObserver.onNext(response);
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error getting roles", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void createRole(CreateRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             Role role = addRoleUseCase.execute(new AddRoleCommand(request.getName(), request.getPosition()));
             syncRolePermissions(role.getId(), request.getPermissionsList());
             responseObserver.onNext(AdminActionResponse.newBuilder()
@@ -368,15 +313,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .setMessage("Role created successfully")
                     .build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error creating role", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void updateRole(UpdateRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             UUID roleId = UUID.fromString(request.getId());
             updateRoleUseCase.execute(new UpdateRoleCommand(roleId, request.getName(), request.getPosition()));
             syncRolePermissions(roleId, request.getPermissionsList());
@@ -385,45 +325,30 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
                     .setMessage("Role updated successfully")
                     .build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error updating role", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void deleteRole(DeleteRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             deleteRoleUseCase.execute(new DeleteRoleCommand(UUID.fromString(request.getId())));
             responseObserver.onNext(AdminActionResponse.newBuilder()
                     .setSuccess(true)
                     .setMessage("Role deleted successfully")
                     .build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error deleting role", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void syncRolePermissions(SyncRolePermissionsRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             syncRolePermissions(UUID.fromString(request.getRoleId()), request.getPermissionsList());
             responseObserver.onNext(AdminActionResponse.newBuilder()
                     .setSuccess(true)
                     .setMessage("Role permissions synced successfully")
                     .build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error syncing role permissions", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void assignRole(AssignRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             AssignRoleCommand command = new AssignRoleCommand(
                     UUID.fromString(request.getAdminId()),
                     UUID.fromString(request.getAccountId()),
@@ -432,15 +357,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(
                     AdminActionResponse.newBuilder().setSuccess(true).setMessage("Assigned successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error assigning role", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void revokeRole(RevokeRoleRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             RevokeRoleCommand command = new RevokeRoleCommand(
                     UUID.fromString(request.getAdminId()),
                     UUID.fromString(request.getAccountId()),
@@ -449,15 +369,10 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(
                     AdminActionResponse.newBuilder().setSuccess(true).setMessage("Revoked successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error revoking role", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void createAccount(CreateAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             String password = request.getPassword().isBlank() ? UUID.randomUUID().toString() : request.getPassword();
             UUID roleId = request.getRoleId().isBlank() ? null : UUID.fromString(request.getRoleId());
 
@@ -478,41 +393,28 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             responseObserver.onNext(AdminActionResponse.newBuilder().setSuccess(true)
                     .setMessage("Account created successfully").build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error creating account", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     @Override
     public void updateAccountProfile(UpdateAccountProfileRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        try {
             UUID accountId = UUID.fromString(request.getAccountId());
             UserProfile profile = userProfileRepository.findByAccountId(accountId)
                     .orElseThrow(() -> new IllegalArgumentException("Profile not found"));
             String displayName = clean(request.getDisplayName());
-            String firstName = clean(request.getFirstName());
-            String lastName = clean(request.getLastName());
-
-            if (!displayName.isBlank() && firstName.isBlank() && lastName.isBlank()) {
-                NameParts parts = splitName(displayName);
-                firstName = parts.firstName();
-                lastName = parts.lastName();
+            String fullName = clean(request.getFirstName()) + " " + clean(request.getLastName());
+            fullName = fullName.trim();
+            if (fullName.isBlank()) {
+                fullName = displayName;
             }
 
             profile.setDisplayName(displayName);
-            profile.setFirstName(firstName);
-            profile.setLastName(lastName);
+            profile.setFullName(fullName);
             userProfileRepository.save(profile);
             responseObserver.onNext(AdminActionResponse.newBuilder()
                     .setSuccess(true)
                     .setMessage("Profile updated successfully")
                     .build());
             responseObserver.onCompleted();
-        } catch (Exception e) {
-            log.error("Error updating account profile", e);
-            responseObserver.onError(mapToGrpcException(e));
-        }
     }
 
     private AccountStatus parseStatus(String rawStatus) {
@@ -552,55 +454,17 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
             if (profile.getDisplayName() != null && !profile.getDisplayName().isBlank()) {
                 return profile.getDisplayName();
             }
-            String fullName = ((profile.getFirstName() == null ? "" : profile.getFirstName()) + " "
-                    + (profile.getLastName() == null ? "" : profile.getLastName())).trim();
-            if (!fullName.isBlank()) {
-                return fullName;
+            if (profile.getFullName() != null && !profile.getFullName().isBlank()) {
+                return profile.getFullName();
             }
         }
-        return account.getUsername() == null ? "" : account.getUsername().getValue();
+        return account.getEmail() == null ? "" : account.getEmail().getValue();
     }
-
-    private NameParts splitName(String rawName) {
-        String name = rawName == null ? "" : rawName.trim();
-        if (name.isBlank()) {
-            return new NameParts("", "");
-        }
-        String[] parts = name.split("\\s+", 2);
-        if (parts.length == 1) {
-            return new NameParts(parts[0], "");
-        }
-        return new NameParts(parts[0], parts[1]);
-    }
-
 
     private String clean(String value) {
         return value == null ? "" : value.trim();
     }
 
-    private record NameParts(String firstName, String lastName) {
-    }
 
-    private io.grpc.StatusRuntimeException mapToGrpcException(Exception ex) {
-        if (ex instanceof DomainException domainException) {
-            io.grpc.Status status = io.grpc.Status.INVALID_ARGUMENT;
-            if (domainException instanceof NotFoundException) {
-                status = io.grpc.Status.NOT_FOUND;
-            } else if (domainException instanceof AlreadyExistsException) {
-                status = io.grpc.Status.ALREADY_EXISTS;
-            } else if (domainException instanceof ForbiddenException) {
-                status = io.grpc.Status.PERMISSION_DENIED;
-            } else if (domainException instanceof UnauthorizedException) {
-                status = io.grpc.Status.UNAUTHENTICATED;
-            } else if (domainException instanceof InvalidOperationException
-                    && domainException.getErrorCode() == ErrorCode.NOT_ENOUGH_PERMISSION) {
-                status = io.grpc.Status.PERMISSION_DENIED;
-            }
-            return status.withDescription(domainException.getMessage()).withCause(ex).asRuntimeException();
-        }
-        if (ex instanceof IllegalArgumentException || ex.getClass().getSimpleName().contains("ValidationException")) {
-            return io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
-        }
-        return io.grpc.Status.INTERNAL.withDescription(ex.getMessage() != null ? ex.getMessage() : "Internal server error").withCause(ex).asRuntimeException();
-    }
+
 }

@@ -40,20 +40,9 @@ public class LoginWithSocialAccountService implements LoginWithSocialAccountUseC
                                 emailVO);
 
                 if (existingSocialAccount.isEmpty()) {
-                        String resolvedFirstName = command.firstName() != null
-                                        ? command.firstName()
-                                        : (command.fullName() != null ? command.fullName().split(" ")[0] : null);
-                        String resolvedLastName = command.lastName() != null
-                                        ? command.lastName()
-                                        : (command.fullName() != null && command.fullName().contains(" ")
-                                                        ? command.fullName()
-                                                                        .substring(command.fullName().indexOf(' ') + 1)
-                                                        : null);
-
                         userProfileLifecycleService.createProfile(
                                         account.getId(),
-                                        resolvedFirstName,
-                                        resolvedLastName,
+                                        command.fullName(),
                                         command.email(),
                                         command.avatarUrl());
                 }

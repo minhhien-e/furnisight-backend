@@ -11,7 +11,6 @@ import com.furnisight.user.domain.services.identity.account.PasswordHasher;
 import com.furnisight.user.domain.valueobjects.identity.Email;
 import com.furnisight.user.domain.valueobjects.identity.Password;
 import com.furnisight.user.domain.valueobjects.identity.RoleName;
-import com.furnisight.user.domain.valueobjects.identity.Username;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationArguments;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 @RequiredArgsConstructor
 public class AdminDataSeeder implements ApplicationRunner {
 
-    private static final String ADMIN_USERNAME = "admin";
     private static final String ADMIN_EMAIL    = "admin@furnisight.com";
     private static final String ADMIN_PASSWORD  = "admin";
     private static final String ADMIN_ROLE_NAME = "ADMIN";
@@ -56,15 +54,14 @@ public class AdminDataSeeder implements ApplicationRunner {
     }
 
     private void seedAdminAccount(Role adminRole) {
-        Username username = new Username(ADMIN_USERNAME);
-        accountRepository.findByUsername(username).ifPresentOrElse(
+        Email email = new Email(ADMIN_EMAIL);
+        accountRepository.findByEmail(email).ifPresentOrElse(
                 existing -> log.info("[Seeder] Admin account already exists, skipping."),
                 () -> {
                     log.info("[Seeder] Creating admin account...");
                     String hashedPassword = passwordHasher.hash(ADMIN_PASSWORD);
                     Account account = new Account(
-                            username,
-                            new Email(ADMIN_EMAIL),
+                            email,
                             new Password(hashedPassword)
                     );
                     account.activate(); // set ACTIVE immediately — no email verification needed

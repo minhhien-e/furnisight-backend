@@ -9,7 +9,8 @@ import com.furnisight.message.dto.API.AType;
 import com.furnisight.message.dto.API.ApiType;
 import com.furnisight.message.dto.event.AdminInboxEvent;
 import com.furnisight.message.dto.req.Message.ConversationReq;
-import com.furnisight.message.exception.BaseException;
+import org.springframework.web.server.ResponseStatusException;
+import org.springframework.http.HttpStatus;
 import com.furnisight.message.service.Conversation.AdminInboxEventFactory;
 import com.furnisight.message.util.enums.ConversationPriority;
 import com.furnisight.message.util.enums.ConversationChannel;
@@ -98,7 +99,7 @@ public class ConversationController {
         try {
             return Enum.valueOf(enumClass, value.toUpperCase());
         } catch (IllegalArgumentException ex) {
-            throw new BaseException(400, "Invalid " + fieldName + " value: " + value);
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid " + fieldName + " value: " + value);
         }
     }
 }

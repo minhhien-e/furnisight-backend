@@ -57,7 +57,7 @@ public class GrpcMediaService extends MediaServiceGrpc.MediaServiceImplBase {
             mediaService.delete(mediaId);
             responseObserver.onNext(DeleteMediaResponse.newBuilder().setDeleted(true).build());
             responseObserver.onCompleted();
-        } catch (com.furnisight.media.exception.MediaNotFoundException ex) {
+        } catch (com.furnisight.media.domain.exceptions.NotFoundException ex) {
             responseObserver.onError(
                 Status.NOT_FOUND.withDescription("Media not found: " + mediaId).asRuntimeException());
         }

@@ -288,8 +288,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
                         ? "" : product.getDefaultVariantId().toString())
                 .setRating(product.getRating() == null ? 0D : product.getRating())
                 .setRatingCount(product.getRatingCount() == null ? 0 : product.getRatingCount())
-                .setSoldCount(product.getSoldCount() == null ? 0 : product.getSoldCount())
-                .addAllTags(product.getTags() == null ? List.of() : product.getTags());
+                .setSoldCount(product.getSoldCount() == null ? 0 : product.getSoldCount());
 
         if (product.getPrice() != null) {
             builder.setPrice(product.getPrice());

@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/admin/marketing")
@@ -33,7 +34,7 @@ public class MarketingController {
 
     @PostMapping("/campaigns")
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
-    public ResponseEntity<ActionResultResponse> createCampaign(@RequestBody MarketingCampaignRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ActionResultResponse> createCampaign(@Valid @RequestBody MarketingCampaignRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.createCampaign(request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_CAMPAIGN, null, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
@@ -41,7 +42,7 @@ public class MarketingController {
 
     @PutMapping("/campaigns/{id}")
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
-    public ResponseEntity<ActionResultResponse> updateCampaign(@PathVariable String id, @RequestBody MarketingCampaignRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ActionResultResponse> updateCampaign(@PathVariable String id, @Valid @RequestBody MarketingCampaignRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.updateCampaign(id, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_CAMPAIGN, id, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
@@ -63,7 +64,7 @@ public class MarketingController {
 
     @PostMapping("/combos")
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
-    public ResponseEntity<ActionResultResponse> createCombo(@RequestBody MarketingComboRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ActionResultResponse> createCombo(@Valid @RequestBody MarketingComboRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.createCombo(request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_COMBO, null, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
@@ -71,7 +72,7 @@ public class MarketingController {
 
     @PutMapping("/combos/{id}")
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
-    public ResponseEntity<ActionResultResponse> updateCombo(@PathVariable String id, @RequestBody MarketingComboRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ActionResultResponse> updateCombo(@PathVariable String id, @Valid @RequestBody MarketingComboRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.updateCombo(id, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_COMBO, id, result, request.name(), httpRequest);
         return ResponseEntity.ok(result);
@@ -93,7 +94,7 @@ public class MarketingController {
 
     @PostMapping("/notifications")
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
-    public ResponseEntity<ActionResultResponse> createNotification(@RequestBody MarketingNotificationRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ActionResultResponse> createNotification(@Valid @RequestBody MarketingNotificationRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.createNotification(request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_MARKETING_NOTIFICATION, null, result, request.title(), httpRequest);
         return ResponseEntity.ok(result);
@@ -101,7 +102,7 @@ public class MarketingController {
 
     @PutMapping("/notifications/{id}")
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
-    public ResponseEntity<ActionResultResponse> updateNotification(@PathVariable String id, @RequestBody MarketingNotificationRequest request, HttpServletRequest httpRequest) {
+    public ResponseEntity<ActionResultResponse> updateNotification(@PathVariable String id, @Valid @RequestBody MarketingNotificationRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = marketingService.updateNotification(id, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_MARKETING_NOTIFICATION, id, result, request.title(), httpRequest);
         return ResponseEntity.ok(result);

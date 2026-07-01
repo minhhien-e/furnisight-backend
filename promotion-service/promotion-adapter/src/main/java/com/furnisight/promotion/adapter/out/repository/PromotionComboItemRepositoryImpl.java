@@ -1,7 +1,7 @@
 package com.furnisight.promotion.adapter.out.repository;
 
 import com.furnisight.promotion.adapter.out.repository.jpa.PromotionComboItemJpaRepository;
-import com.furnisight.promotion.application.port.PromotionComboItemRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionComboItemRepository;
 import com.furnisight.promotion.domain.entities.PromotionComboItem;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;

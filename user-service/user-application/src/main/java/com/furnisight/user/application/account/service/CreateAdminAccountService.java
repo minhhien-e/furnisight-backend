@@ -47,22 +47,10 @@ public class CreateAdminAccountService implements CreateAdminAccountUseCase {
 
         // 4. Create target user profile
         String fullName = command.fullName() == null ? "" : command.fullName().trim();
-        String firstName = "";
-        String lastName = "";
-        if (!fullName.isEmpty()) {
-            int firstSpace = fullName.indexOf(' ');
-            if (firstSpace == -1) {
-                lastName = fullName;
-            } else {
-                lastName = fullName.substring(0, firstSpace);
-                firstName = fullName.substring(firstSpace + 1).trim();
-            }
-        }
 
         userProfileLifecycleService.createProfile(
                 targetAccount.getId(),
-                firstName,
-                lastName,
+                fullName,
                 command.email());
 
         return null;

@@ -1,8 +1,8 @@
 package com.furnisight.promotion.adapter.out.repository;
 
 import com.furnisight.promotion.adapter.out.repository.jpa.PromotionComboJpaRepository;
-import com.furnisight.promotion.application.port.PromotionComboRepository;
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.repository.promotion.PromotionComboRepository;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.domain.entities.PromotionCombo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;

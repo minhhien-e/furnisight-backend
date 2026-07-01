@@ -33,7 +33,6 @@ public class CartService {
 
     public CartResponse getCart(UUID userId, String locale) {
         Cart cart = getOrCreateCart(userId);
-        Cart cart = getOrCreateCart(userId);
         return toResponse(cartEnrichmentPolicy.enrichCart(cart, locale));
     }
 
@@ -190,5 +189,26 @@ public class CartService {
                 .build();
     }
 
+    private CartResponse toResponse(Cart cart) {
+        return CartResponse.builder()
+                .id(cart.getId())
+                .total(cart.getTotal())
+                .createdAt(cart.getCreatedAt())
+                .updatedAt(cart.getUpdatedAt())
+                .items(cart.getItems() == null ? List.of() : cart.getItems().stream().map(this::toItemResponse).toList())
+                .build();
+    }
 
+    private CartItemResponse toItemResponse(CartItem item) {
+        return CartItemResponse.builder()
+                .productId(item.getProductId())
+                .variantId(item.getVariantId())
+                .name(item.getName())
+                .price(item.getPrice())
+                .imageUrl(item.getImageUrl())
+                .quantity(item.getQuantity())
+                .stockQuantity(item.getStockQuantity())
+                .variants(toVariantResponses(item.getVariants()))
+                .build();
+    }
 }

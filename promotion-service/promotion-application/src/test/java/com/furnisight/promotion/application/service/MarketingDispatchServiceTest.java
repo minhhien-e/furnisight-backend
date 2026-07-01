@@ -1,11 +1,11 @@
 package com.furnisight.promotion.application.service;
 
 import com.furnisight.promotion.application.dto.PublishVoucherCommand;
-import com.furnisight.promotion.application.port.MarketingDispatchLogRepository;
+import com.furnisight.promotion.domain.repository.marketing.MarketingDispatchLogRepository;
 import com.furnisight.promotion.application.port.MarketingNotificationGateway;
 import com.furnisight.promotion.application.port.MarketingTargetGateway;
-import com.furnisight.promotion.application.port.PromotionRepository;
-import com.furnisight.promotion.application.port.UserVoucherRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionRepository;
+import com.furnisight.promotion.domain.repository.promotion.UserVoucherRepository;
 import com.furnisight.promotion.domain.entities.Promotion;
 import com.furnisight.promotion.domain.enums.MarketingChannel;
 import org.junit.jupiter.api.BeforeEach;

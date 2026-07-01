@@ -22,8 +22,8 @@ public class RevenueSnapshot {
     @Id
     private UUID id;
 
-    /** Format: "yyyy-MM", e.g. "2026-05" */
-    @Column(name = "year_month", unique = true, nullable = false, length = 7)
+    /** Format: "yyyy-MM-dd", e.g. "2026-05-01" */
+    @Column(name = "year_month", unique = true, nullable = false, length = 20)
     private String yearMonth;
 
     @Column(name = "total_revenue", nullable = false)
@@ -36,8 +36,6 @@ public class RevenueSnapshot {
     @Column(name = "mom_change_pct")
     private Double momChangePct;
 
-    @Column(name = "label", nullable = false, length = 20)
-    private String label;
 
     @Column(name = "snapshot_at", nullable = false)
     private LocalDateTime snapshotAt;
@@ -59,6 +57,19 @@ public class RevenueSnapshot {
 
     public String getYearMonth() { return yearMonth; }
     public void setYearMonth(String yearMonth) { this.yearMonth = yearMonth; }
+    
+    public LocalDateTime getRevenueDate() {
+        try {
+            return java.time.LocalDate.parse(this.yearMonth).atStartOfDay();
+        } catch (Exception e) {
+            // Fallback if old data is "yyyy-MM"
+            return java.time.YearMonth.parse(this.yearMonth).atDay(1).atStartOfDay();
+        }
+    }
+
+    public String getFormattedMonth() {
+        return getRevenueDate().format(java.time.format.DateTimeFormatter.ofPattern("MM/yyyy"));
+    }
 
     public double getTotalRevenue() { return totalRevenue; }
     public void setTotalRevenue(double totalRevenue) { this.totalRevenue = totalRevenue; }
@@ -69,8 +80,6 @@ public class RevenueSnapshot {
     public Double getMomChangePct() { return momChangePct; }
     public void setMomChangePct(Double momChangePct) { this.momChangePct = momChangePct; }
 
-    public String getLabel() { return label; }
-    public void setLabel(String label) { this.label = label; }
 
     public LocalDateTime getSnapshotAt() { return snapshotAt; }
     public void setSnapshotAt(LocalDateTime snapshotAt) { this.snapshotAt = snapshotAt; }

@@ -15,7 +15,6 @@ import com.furnisight.user.domain.repository.identity.RoleRepository;
 import com.furnisight.user.domain.services.identity.token.TokenLifeCycleService;
 import com.furnisight.user.domain.valueobjects.identity.BanReason;
 import com.furnisight.user.domain.valueobjects.identity.Email;
-import com.furnisight.user.domain.valueobjects.identity.Username;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

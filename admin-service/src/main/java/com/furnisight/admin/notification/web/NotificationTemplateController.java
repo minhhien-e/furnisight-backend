@@ -12,6 +12,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 import java.util.UUID;
@@ -43,7 +44,7 @@ public class NotificationTemplateController {
     @PostMapping
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
     public ResponseEntity<NotificationTemplateResponse> createTemplate(
-            @RequestBody CreateNotificationTemplateRequest request,
+            @Valid @RequestBody CreateNotificationTemplateRequest request,
             HttpServletRequest httpRequest) {
         NotificationTemplateResponse response = notificationTemplateService.createTemplate(request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_NOTIFICATION, null, new ActionResultResponse(true, "Mẫu thông báo đã được tạo"), request.getName(), httpRequest);
@@ -54,7 +55,7 @@ public class NotificationTemplateController {
     @PreAuthorize("hasAuthority('CUSTOMER_SUPPORT') or hasAuthority('ADMIN')")
     public ResponseEntity<NotificationTemplateResponse> updateTemplate(
             @PathVariable UUID templateId,
-            @RequestBody UpdateNotificationTemplateRequest request,
+            @Valid @RequestBody UpdateNotificationTemplateRequest request,
             HttpServletRequest httpRequest) {
         NotificationTemplateResponse response = notificationTemplateService.updateTemplate(templateId, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_NOTIFICATION, templateId.toString(), new ActionResultResponse(true, "Mẫu thông báo đã được cập nhật"), request.getName(), httpRequest);

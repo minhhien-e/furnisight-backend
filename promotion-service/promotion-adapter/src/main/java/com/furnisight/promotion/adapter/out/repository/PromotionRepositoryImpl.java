@@ -1,8 +1,8 @@
 package com.furnisight.promotion.adapter.out.repository;
 
 import com.furnisight.promotion.adapter.out.repository.jpa.PromotionJpaRepository;
-import com.furnisight.promotion.application.port.PromotionRepository;
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.repository.promotion.PromotionRepository;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.domain.entities.Promotion;
 import com.furnisight.promotion.domain.enums.DiscountType;
 import lombok.RequiredArgsConstructor;

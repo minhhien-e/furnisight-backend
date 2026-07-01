@@ -86,7 +86,7 @@ public class RevenueService {
         );
 
         // Biểu đồ
-        List<String> monthLabels = recent.stream().map(RevenueSnapshot::getLabel).toList();
+        List<String> months = recent.stream().map(RevenueSnapshot::getFormattedMonth).toList();
         List<Double> monthData   = recent.stream()
                 .map(s -> s.getTotalRevenue())
                 .toList();
@@ -120,7 +120,7 @@ public class RevenueService {
                 ? latestMonth.getSnapshotAt().format(DateTimeFormatter.ofPattern("HH:mm dd/MM/yyyy"))
                 : "";
 
-        return new RevenueResponse(kpis, monthLabels, monthData, rows, topProducts, snapshotAt);
+        return new RevenueResponse(kpis, months, monthData, rows, topProducts, snapshotAt);
     }
 
     // ---------------------------------------------------------------------------
@@ -143,7 +143,6 @@ public class RevenueService {
         RevenueSnapshot snapshot = snapshotRepository.findByYearMonth(monthly.getYearMonth())
                 .orElseGet(RevenueSnapshot::new);
         snapshot.setYearMonth(monthly.getYearMonth());
-        snapshot.setLabel(monthly.getLabel());
         snapshot.setTotalRevenue(monthly.getRevenue());
         snapshot.setOrderCount(monthly.getOrderCount());
         snapshot.setMomChangePct(monthly.getMomChangePct() == 0 ? null : monthly.getMomChangePct());
@@ -157,7 +156,7 @@ public class RevenueService {
 
     private RevenueMonthlyItemResponse toMonthlyRow(RevenueSnapshot s) {
         return new RevenueMonthlyItemResponse(
-                s.getLabel(),
+                s.getFormattedMonth(),
                 s.getOrderCount(),
                 s.getTotalRevenue(),
                 s.getMomChangePct(),

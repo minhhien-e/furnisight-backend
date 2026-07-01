@@ -1,12 +1,12 @@
 package com.furnisight.promotion.application.service;
 
 import com.furnisight.promotion.application.dto.ValidateVoucherCommand;
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.application.dto.RecommendVouchersCommand;
-import com.furnisight.promotion.application.port.MarketingCampaignRepository;
-import com.furnisight.promotion.application.port.PromotionRepository;
-import com.furnisight.promotion.application.port.PromotionComboRepository;
-import com.furnisight.promotion.application.port.UserVoucherRepository;
+import com.furnisight.promotion.domain.repository.marketing.MarketingCampaignRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionComboRepository;
+import com.furnisight.promotion.domain.repository.promotion.UserVoucherRepository;
 import com.furnisight.promotion.domain.entities.MarketingCampaign;
 import com.furnisight.promotion.domain.entities.PromotionCombo;
 import com.furnisight.promotion.domain.entities.Promotion;

@@ -10,15 +10,13 @@ import java.util.UUID;
 public class UserProfileUpdatedEvent implements DomainEvent {
 
     private final UUID accountId;
-    private final String firstName;
-    private final String lastName;
+    private final String fullName;
     private final UUID avatarMediaId;
     private final LocalDateTime occurredOn;
 
-    public UserProfileUpdatedEvent(UUID accountId, String firstName, String lastName, UUID avatarMediaId) {
+    public UserProfileUpdatedEvent(UUID accountId, String fullName, UUID avatarMediaId) {
         this.accountId = accountId;
-        this.firstName = firstName;
-        this.lastName = lastName;
+        this.fullName = fullName;
         this.avatarMediaId = avatarMediaId;
         this.occurredOn = LocalDateTime.now();
     }

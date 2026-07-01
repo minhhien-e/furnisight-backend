@@ -10,8 +10,12 @@ public class ValidationException extends DomainException {
     public ValidationException(ErrorCode errorCode, String message) {
         super(errorCode, message);
     }
+
+    public ValidationException(ErrorCode errorCode, Map<String, Object> details) {
+        super(errorCode, details);
+    }
     
-    public ValidationException(ErrorCode errorCode, Map<String, Object> attributes) {
-        super(errorCode, attributes);
+    public ValidationException(ErrorCode errorCode, String message, Map<String, Object> details) {
+        super(errorCode, message, details);
     }
 }

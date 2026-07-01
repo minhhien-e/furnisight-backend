@@ -1,0 +1,15 @@
+package com.furnisight.promotion.application.port.in.query;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import java.util.UUID;
+import com.furnisight.promotion.application.dto.*;
+
+@Data
+@Builder
+@NoArgsConstructor
+public class GetPromotionStatsQuery {
+    
+}

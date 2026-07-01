@@ -1,10 +1,11 @@
 package com.furnisight.promotion.adapter.in.web.rest;
 
 import com.furnisight.promotion.application.dto.MarketingComboDto;
-import com.furnisight.promotion.application.dto.PageResponse;
+import com.furnisight.promotion.domain.common.PageResponse;
 import com.furnisight.promotion.application.dto.ValidateComboCommand;
 import com.furnisight.promotion.application.dto.ValidateComboResponse;
-import com.furnisight.promotion.application.service.MarketingService;
+import com.furnisight.promotion.application.port.in.usecase.*;
+import com.furnisight.promotion.application.port.in.query.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +23,9 @@ import java.util.List;
 @RequiredArgsConstructor
 @RequestMapping("/combos")
 public class ComboController {
-    private final MarketingService marketingService;
+    private final GetActiveCombosUseCase getActiveCombosUseCase;
+    private final GetPublicCombosUseCase getPublicCombosUseCase;
+    private final ValidateComboUseCase validateComboUseCase;
     private final PromotionTranslationService promotionTranslationService;
 
     @GetMapping("/active")
@@ -30,7 +33,7 @@ public class ComboController {
             @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
             @RequestParam(name = "lang", required = false) String lang) {
         return ResponseEntity.ok(promotionTranslationService.localizeCombos(
-                marketingService.getActiveCombos(),
+                getActiveCombosUseCase.getActiveCombos(new GetActiveCombosQuery()),
                 resolveLocale(lang, acceptLanguage)
         ));
     }
@@ -44,7 +47,7 @@ public class ComboController {
             @RequestParam(required = false) Integer page,
             @RequestParam(required = false) Integer size) {
         return ResponseEntity.ok(promotionTranslationService.localizeComboPage(
-                marketingService.getPublicCombos(availableOnly, sort, page, size),
+                getPublicCombosUseCase.getPublicCombos(GetPublicCombosQuery.builder().availableOnly(availableOnly).sort(sort).page(page).size(size).build()),
                 resolveLocale(lang, acceptLanguage)
         ));
     }
@@ -55,7 +58,7 @@ public class ComboController {
             @RequestParam(name = "lang", required = false) String lang,
             @RequestBody ValidateComboCommand command) {
         return ResponseEntity.ok(promotionTranslationService.localizeValidateComboResponse(
-                marketingService.validateCombo(command),
+                validateComboUseCase.validateCombo(command),
                 resolveLocale(lang, acceptLanguage)
         ));
     }

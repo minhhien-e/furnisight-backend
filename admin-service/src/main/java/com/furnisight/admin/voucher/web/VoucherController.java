@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import jakarta.validation.Valid;
 
 import java.util.List;
 
@@ -43,7 +44,7 @@ public class VoucherController {
     @PostMapping
     @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> createVoucher(
-            @RequestBody UpsertVoucherRequest request, HttpServletRequest httpRequest) {
+            @Valid @RequestBody UpsertVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.createVoucher(request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.CREATE_VOUCHER,
                 request.code(), result, request.name(), httpRequest);
@@ -53,7 +54,7 @@ public class VoucherController {
     @PutMapping("/{id}")
     @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> updateVoucher(
-            @PathVariable String id, @RequestBody UpsertVoucherRequest request,
+            @PathVariable String id, @Valid @RequestBody UpsertVoucherRequest request,
             HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.updateVoucher(id, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.UPDATE_VOUCHER,
@@ -74,7 +75,7 @@ public class VoucherController {
     @PostMapping("/{id}/publish")
     @PreAuthorize("hasAuthority('VOUCHER_MANAGE') or hasAuthority('ADMIN')")
     public ResponseEntity<ActionResultResponse> publishVoucher(
-            @PathVariable String id, @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
+            @PathVariable String id, @Valid @RequestBody PublishVoucherRequest request, HttpServletRequest httpRequest) {
         ActionResultResponse result = voucherService.publishVoucher(id, request);
         auditLogService.record(currentUserProvider.getCurrentUserId(), com.furnisight.admin.audit.domain.AuditAction.PUBLISH_VOUCHER,
                 id, result, null, httpRequest);

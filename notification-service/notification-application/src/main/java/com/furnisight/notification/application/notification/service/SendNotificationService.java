@@ -3,7 +3,8 @@ package com.furnisight.notification.application.notification.service;
 import com.furnisight.notification.application.notification.port.in.dto.command.SendNotificationCommand;
 import com.furnisight.notification.application.notification.port.in.usecase.SendNotificationUseCase;
 import com.furnisight.notification.application.notification.port.out.sender.NotificationSender;
-import com.furnisight.notification.domain.exception.UnsupportedNotificationChannelException;
+import com.furnisight.notification.domain.exceptions.InvalidOperationException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +24,7 @@ public class SendNotificationService implements SendNotificationUseCase {
         NotificationSender sender = senders.stream()
                 .filter(s -> s.getChannel() == command.getChannel())
                 .findFirst()
-                .orElseThrow(() -> new UnsupportedNotificationChannelException(command.getChannel()));
+                .orElseThrow(() -> new InvalidOperationException(ErrorCode.UNSUPPORTED_NOTIFICATION_CHANNEL));
 
         sender.send(command);
         return null;

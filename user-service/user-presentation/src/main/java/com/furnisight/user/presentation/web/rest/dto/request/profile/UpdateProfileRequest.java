@@ -5,8 +5,7 @@ import java.util.UUID;
 
 public record UpdateProfileRequest(
         String displayName,
-        String firstName,
-        String lastName,
+        String fullName,
         UUID avatarMediaId,
         String bio,
         LocalDate birthday,
