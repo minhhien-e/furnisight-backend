@@ -15,6 +15,7 @@ import com.furnisight.catalog.SearchRecommendedProductsResponse;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
 import com.furnisight.catalog.application.product.service.ProductTranslationService;
+import com.furnisight.catalog.application.product.service.ProductReviewStatsEnricher;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +31,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
 
     private final ProductReadRepository productReadRepository;
     private final ProductTranslationService productTranslationService;
+    private final ProductReviewStatsEnricher productReviewStatsEnricher;
 
     @Override
     public void getProductSummaries(
@@ -121,6 +123,11 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
             responseObserver.onNext(SearchRecommendedProductsResponse.newBuilder()
                     .addAllProducts(productReadRepository
                             .findRecommendedProducts(categorySlug, status, limit)
+                            .stream()
+                            .collect(java.util.stream.Collectors.collectingAndThen(
+                                    java.util.stream.Collectors.toList(),
+                                    productReviewStatsEnricher::enrichAll
+                            ))
                             .stream()
                             .map(this::toRecommendedProduct)
                             .toList())
@@ -288,8 +295,7 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
                         ? "" : product.getDefaultVariantId().toString())
                 .setRating(product.getRating() == null ? 0D : product.getRating())
                 .setRatingCount(product.getRatingCount() == null ? 0 : product.getRatingCount())
-                .setSoldCount(product.getSoldCount() == null ? 0 : product.getSoldCount())
-                .addAllTags(product.getTags() == null ? List.of() : product.getTags());
+                .setSoldCount(product.getSoldCount() == null ? 0 : product.getSoldCount());
 
         if (product.getPrice() != null) {
             builder.setPrice(product.getPrice());

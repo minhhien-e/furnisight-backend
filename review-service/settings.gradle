@@ -1,0 +1,6 @@
+rootProject.name = 'review-service'
+
+include 'review-domain'
+include 'review-application'
+include 'review-adapter'
+include 'review-bootstrap'

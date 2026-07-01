@@ -17,6 +17,7 @@ public class SearchProductsService implements SearchProductsUseCase {
 
     private final ProductReadRepository productReadRepository;
     private final ProductTranslationService productTranslationService;
+    private final ProductReviewStatsEnricher productReviewStatsEnricher;
 
     @Override
     public PageResponse<ProductResponse> execute(SearchProductsQuery query) {
@@ -36,8 +37,8 @@ public class SearchProductsService implements SearchProductsUseCase {
                 .size(query.getSize())
                 .build();
 
-        return productTranslationService.localizePage(
-                productReadRepository.searchProducts(effectiveQuery),
-                effectiveQuery.getLang());
+        var page = productReadRepository.searchProducts(effectiveQuery);
+        productReviewStatsEnricher.enrichAll(page.items());
+        return productTranslationService.localizePage(page, effectiveQuery.getLang());
     }
 }
