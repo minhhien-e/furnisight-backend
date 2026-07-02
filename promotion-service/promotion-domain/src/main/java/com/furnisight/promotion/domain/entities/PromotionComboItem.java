@@ -18,6 +18,7 @@ public class PromotionComboItem {
     private UUID comboId;
     private String productId;
     private String variantId;
+    private String productSlug;
     private String productName;
     private String sku;
     private String categoryName;

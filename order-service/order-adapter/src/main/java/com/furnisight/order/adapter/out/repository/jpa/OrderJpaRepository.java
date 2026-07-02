@@ -40,10 +40,10 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
 
     long countByStatusAndCreatedAtBetween(OrderStatus status, LocalDateTime start, LocalDateTime end);
 
-    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.status not in :statuses")
+    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.status in :statuses")
     Double sumTotalAmount(@Param("statuses") List<OrderStatus> statuses);
 
-    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.status not in :statuses and o.createdAt between :start and :end")
+    @Query("select coalesce(sum(o.totalAmount), 0) from Order o where o.status in :statuses and o.createdAt between :start and :end")
     Double sumTotalAmountCreatedAtBetween(@Param("statuses") List<OrderStatus> statuses, @Param("start") LocalDateTime start, @Param("end") LocalDateTime end);
 
     @Query(value = "SELECT oi.productSnapshot.productId AS productId, " +
@@ -54,7 +54,7 @@ public interface OrderJpaRepository extends JpaRepository<Order, UUID> {
                    "SUM(oi.quantity) AS soldCount, " +
                    "SUM(oi.price * oi.quantity) AS totalRevenue " +
                    "FROM Order o JOIN o.items oi " +
-                   "WHERE o.status NOT IN :statuses " +
+                   "WHERE o.status IN :statuses " +
                    "GROUP BY oi.productSnapshot.productId " +
                    "ORDER BY SUM(oi.quantity) DESC")
     List<TopSellingProductRow> findTopSellingProducts(@Param("statuses") List<OrderStatus> statuses, Pageable pageable);

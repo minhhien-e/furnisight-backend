@@ -204,6 +204,7 @@ public class CartService {
                 .productId(item.getProductId())
                 .variantId(item.getVariantId())
                 .name(item.getName())
+                .slug(item.getSlug())
                 .price(item.getPrice())
                 .imageUrl(item.getImageUrl())
                 .quantity(item.getQuantity())

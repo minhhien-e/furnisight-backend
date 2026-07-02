@@ -102,6 +102,7 @@ public class UpdateOrderStatusService implements UpdateOrderStatusUseCase {
     private static Map<OrderStatus, OrderOperation> statusOperations() {
         Map<OrderStatus, OrderOperation> operations = new EnumMap<>(OrderStatus.class);
         operations.put(OrderStatus.CANCELLED, OrderOperation.CANCEL);
+        operations.put(OrderStatus.CANCELLED_BY_ADMIN, OrderOperation.CANCEL);
         operations.put(OrderStatus.REFUNDED, OrderOperation.CONFIRM_REFUND);
         return Map.copyOf(operations);
     }

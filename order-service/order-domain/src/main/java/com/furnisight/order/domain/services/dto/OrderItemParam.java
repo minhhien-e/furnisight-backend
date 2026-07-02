@@ -5,6 +5,7 @@ package com.furnisight.order.domain.services.dto;
 public class OrderItemParam {
     private String productId;
     private String variantId;
+    private String slug;
     private String categoryName;
     private String productName;
     private String color;

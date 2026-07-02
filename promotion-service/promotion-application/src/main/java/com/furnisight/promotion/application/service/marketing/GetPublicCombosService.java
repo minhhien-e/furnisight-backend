@@ -33,17 +33,13 @@ public class GetPublicCombosService implements GetPublicCombosUseCase {
     private final UserVoucherRepository userVoucherRepository;
     private final MarketingNotificationGateway notificationGateway;
     private final MarketingTargetGateway targetGateway;
-    private final CatalogStockPort catalogStockPort;
-    
-    // Inject self for async if needed or just other usecases
-    
-    
+    private final CatalogStockPort catalogStockPort;    
 
     @Override
     @Transactional(readOnly = true)
     public PageResponse<MarketingComboDto> getPublicCombos(GetPublicCombosQuery query) {
         int safeSize = Math.max(1, Math.min(24, query.getSize() == null ? 6 : query.getSize()));
-        int safePage = query.getPage() == null ? 1 : Math.max(1, query.getPage());
+        int safePage = query.getPage() == null ? 0 : Math.max(0, query.getPage());
         LocalDateTime now = LocalDateTime.now();
         if (!query.isAvailableOnly()) {
             var dbPage = comboRepository.findActivePage(now, safePage, safeSize, query.getSort());

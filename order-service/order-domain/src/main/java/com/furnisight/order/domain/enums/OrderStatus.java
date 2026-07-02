@@ -8,6 +8,7 @@ public enum OrderStatus {
     SHIPPING,
     DELIVERED,
     CANCELLED,
+    CANCELLED_BY_ADMIN,
     REFUND_PENDING,
     REFUNDED,
     PAYMENT_FAILED

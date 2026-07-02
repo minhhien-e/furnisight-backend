@@ -41,7 +41,7 @@ public class RevenueService {
     private final RevenueSnapshotRepository snapshotRepository;
 
     public RevenueResponse getRevenueSummary() {
-        String currentYearMonth = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyy-MM"));
+        String currentYearMonth = LocalDate.now().withDayOfMonth(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
         // Kiểm tra xem snapshot tháng hiện tại có cần refresh không
         Optional<RevenueSnapshot> currentSnapshot = snapshotRepository.findByYearMonth(currentYearMonth);

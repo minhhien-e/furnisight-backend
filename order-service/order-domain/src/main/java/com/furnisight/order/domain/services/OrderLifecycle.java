@@ -82,6 +82,7 @@ public class OrderLifecycle {
                         .productSnapshot(ProductSnapshot.builder()
                                 .productId(param.getProductId())
                                 .variantId(param.getVariantId())
+                                .slug(param.getSlug())
                                 .categoryName(param.getCategoryName())
                                 .productName(param.getProductName())
                                 .color(param.getColor())

@@ -23,6 +23,7 @@ public class SaveMarketingComboCommand {
     public static class Item {
         private String productId;
         private String variantId;
+        private String productSlug;
         private Integer quantity;
         private String productName;
         private String sku;

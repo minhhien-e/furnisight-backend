@@ -13,7 +13,7 @@ public class ShippingOrderStatusHandler extends AbstractOrderStatusHandler {
     public OrderStatus status() { return OrderStatus.SHIPPING; }
     protected Set<OrderStatus> allowedTargets(OrderProcessingContext context) {
         return context.getOrder().isCodOrder()
-                ? Set.of(OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED)
-                : Set.of(OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED, OrderStatus.REFUND_PENDING);
+                ? Set.of(OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED, OrderStatus.CANCELLED_BY_ADMIN)
+                : Set.of(OrderStatus.IN_TRANSIT, OrderStatus.CANCELLED, OrderStatus.CANCELLED_BY_ADMIN, OrderStatus.REFUND_PENDING);
     }
 }

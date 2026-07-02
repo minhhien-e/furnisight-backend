@@ -102,6 +102,7 @@ public class OrderResponse {
     public static class ProductSnapshotResponse {
         private String productId;
         private String variantId;
+        private String slug;
         private String categoryName;
         private String productName;
         private String color;
@@ -117,6 +118,7 @@ public class OrderResponse {
             return ProductSnapshotResponse.builder()
                     .productId(snapshot.getProductId())
                     .variantId(snapshot.getVariantId())
+                    .slug(snapshot.getSlug())
                     .categoryName(snapshot.getCategoryName())
                     .productName(snapshot.getProductName())
                     .color(snapshot.getColor())

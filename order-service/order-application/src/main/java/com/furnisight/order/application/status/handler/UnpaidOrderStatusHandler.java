@@ -13,7 +13,7 @@ public class UnpaidOrderStatusHandler extends AbstractOrderStatusHandler {
     public OrderStatus status() { return OrderStatus.UNPAID; }
     protected Set<OrderStatus> allowedTargets(OrderProcessingContext context) {
         return context.getOrder().isCodOrder()
-                ? Set.of(OrderStatus.SHIPPING, OrderStatus.CANCELLED)
-                : Set.of(OrderStatus.PAID, OrderStatus.PAYMENT_FAILED, OrderStatus.CANCELLED);
+                ? Set.of(OrderStatus.SHIPPING, OrderStatus.CANCELLED, OrderStatus.CANCELLED_BY_ADMIN)
+                : Set.of(OrderStatus.PAID, OrderStatus.PAYMENT_FAILED, OrderStatus.CANCELLED, OrderStatus.CANCELLED_BY_ADMIN);
     }
 }

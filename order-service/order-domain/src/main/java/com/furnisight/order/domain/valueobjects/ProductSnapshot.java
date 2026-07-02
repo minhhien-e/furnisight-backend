@@ -15,6 +15,7 @@ import lombok.NoArgsConstructor;
 public class ProductSnapshot {
     private String productId;
     private String variantId;
+    private String slug;
     
     // Product details
     private String categoryName;
@@ -30,7 +31,7 @@ public class ProductSnapshot {
     private String imageUrl;
 
     @Builder
-    public ProductSnapshot(String productId, String variantId, String categoryName, 
+    public ProductSnapshot(String productId, String variantId, String slug, String categoryName, 
                            String productName, String color, String material, 
                            String warranty, ProductDimensions dimensions, String imageUrl) {
         if (productId == null || productId.trim().isEmpty()) {
@@ -41,6 +42,7 @@ public class ProductSnapshot {
         }
         this.productId = productId;
         this.variantId = variantId;
+        this.slug = slug;
         this.categoryName = categoryName;
         this.productName = productName;
         this.color = color;

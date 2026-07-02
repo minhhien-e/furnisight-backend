@@ -39,6 +39,7 @@ public class CreateOrderCommand {
     public static class OrderItemCommand {
         private String productId;
         private String variantId;
+        private String slug;
         private String categoryName;
         private String productName;
         private Double price;

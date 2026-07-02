@@ -30,7 +30,7 @@ public class GetRevenueSummaryService implements GetRevenueSummaryUseCase {
         LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
         LocalDateTime nextMonthStart = firstDayOfMonth.plusMonths(1).atStartOfDay();
         double revenueThisMonth = orderRepository.sumTotalAmountCreatedAtBetween(monthStart, nextMonthStart);
-        long ordersThisMonth = orderRepository.countCreatedAtBetween(monthStart, nextMonthStart);
+        long ordersThisMonth = orderRepository.countByStatusCreatedAtBetween(com.furnisight.order.domain.enums.OrderStatus.DELIVERED, monthStart, nextMonthStart);
 
         List<MonthlyRevenueResult> monthlyList = new ArrayList<>();
         double prevRevenue = -1;
@@ -40,7 +40,7 @@ public class GetRevenueSummaryService implements GetRevenueSummaryUseCase {
             LocalDateTime end = bucket.plusMonths(1).atStartOfDay();
 
             double revenue = orderRepository.sumTotalAmountCreatedAtBetween(start, end);
-            long orderCount = orderRepository.countCreatedAtBetween(start, end);
+            long orderCount = orderRepository.countByStatusCreatedAtBetween(com.furnisight.order.domain.enums.OrderStatus.DELIVERED, start, end);
 
             double momChangePct = 0;
             if (prevRevenue > 0) {
@@ -60,7 +60,7 @@ public class GetRevenueSummaryService implements GetRevenueSummaryUseCase {
 
         return RevenueSummaryResult.builder()
                 .totalRevenue(orderRepository.sumTotalAmount())
-                .totalOrders(orderRepository.countAll())
+                .totalOrders(orderRepository.countByStatus(com.furnisight.order.domain.enums.OrderStatus.DELIVERED))
                 .revenueThisMonth(revenueThisMonth)
                 .ordersThisMonth(ordersThisMonth)
                 .monthly(monthlyList)

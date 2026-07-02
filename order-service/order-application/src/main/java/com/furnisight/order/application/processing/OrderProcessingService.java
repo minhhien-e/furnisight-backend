@@ -61,7 +61,7 @@ public class OrderProcessingService {
 
         statusHandlers.resolve(previousStatus).handle(context);
         if (context.getOperation() == OrderOperation.CANCEL
-                && (targetStatus == OrderStatus.CANCELLED || targetStatus == OrderStatus.REFUND_PENDING)) {
+                && (targetStatus == OrderStatus.CANCELLED || targetStatus == OrderStatus.CANCELLED_BY_ADMIN || targetStatus == OrderStatus.REFUND_PENDING)) {
             context.getOrder().recordCancellation();
         }
         return true;

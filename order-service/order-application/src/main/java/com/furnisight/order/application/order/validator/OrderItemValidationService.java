@@ -46,6 +46,7 @@ public class OrderItemValidationService {
         return OrderItemParam.builder()
                 .productId(item.getProductId())
                 .variantId(item.getVariantId())
+                .slug(item.getSlug())
                 .categoryName(item.getCategoryName())
                 .productName(item.getProductName())
                 .price(item.getPrice())
