@@ -95,7 +95,9 @@ public class CartService {
         Cart savedCart = saveCart(cart);
         Cart enrichedCart = cartEnrichmentPolicy.enrichCart(savedCart, locale);
         clampCartQuantities(enrichedCart);
-        return toResponse(saveCart(enrichedCart));
+        CartResponse response = toResponse(enrichedCart); // build response trước khi save lần 2
+        saveCart(enrichedCart);                            // persist clamped quantities, bỏ qua return value
+        return response;
     }
 
     private Cart saveCart(Cart cart) {
