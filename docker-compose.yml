@@ -122,6 +122,8 @@ services:
       - "127.0.0.1:5000:5000"
     expose:
       - "5000"
+    environment:
+      - LT_LOAD_ONLY=en,vi
     healthcheck:
       test: ["CMD-SHELL", "./venv/bin/python scripts/healthcheck.py"]
       interval: 15s
