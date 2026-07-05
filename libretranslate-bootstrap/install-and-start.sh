@@ -1,6 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
+# Reinstall any persisted Argos models before starting LibreTranslate.
 PACKAGES_DIR="/home/libretranslate/.local/share/argos-translate/packages"
 PYTHON_BIN="/app/venv/bin/python"
 
