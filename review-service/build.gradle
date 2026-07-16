@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-    protoLibVersion = '1.0.1783340000000'
+    protoLibVersion = '1.0.1784214304822'
 }
 
 allprojects {

@@ -23,14 +23,22 @@ public class GetRevenueSummaryService implements GetRevenueSummaryUseCase {
     @Override
     @Transactional(readOnly = true)
     public RevenueSummaryResult getRevenueSummary(GetRevenueSummaryQuery query) {
-        int months = query.getMonths() > 0 ? Math.min(query.getMonths(), 24) : 12;
-        LocalDate today = LocalDate.now();
-        LocalDate firstDayOfMonth = today.withDayOfMonth(1);
+        int months = 12;
+        LocalDate firstDayOfMonth;
+        
+        if (query.getYear() > 0) {
+            // For a specific year, we want 12 months starting from Dec backwards to Jan
+            firstDayOfMonth = LocalDate.of(query.getYear(), 12, 1);
+        } else {
+            months = query.getMonths() > 0 ? Math.min(query.getMonths(), 24) : 12;
+            firstDayOfMonth = LocalDate.now().withDayOfMonth(1);
+        }
 
-        LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
-        LocalDateTime nextMonthStart = firstDayOfMonth.plusMonths(1).atStartOfDay();
-        double revenueThisMonth = orderRepository.sumTotalAmountCreatedAtBetween(monthStart, nextMonthStart);
-        long ordersThisMonth = orderRepository.countByStatusCreatedAtBetween(com.furnisight.order.domain.enums.OrderStatus.DELIVERED, monthStart, nextMonthStart);
+        LocalDate today = LocalDate.now();
+        LocalDateTime currentMonthStart = today.withDayOfMonth(1).atStartOfDay();
+        LocalDateTime currentNextMonthStart = today.withDayOfMonth(1).plusMonths(1).atStartOfDay();
+        double revenueThisMonth = orderRepository.sumTotalAmountCreatedAtBetween(currentMonthStart, currentNextMonthStart);
+        long ordersThisMonth = orderRepository.countByStatusCreatedAtBetween(com.furnisight.order.domain.enums.OrderStatus.DELIVERED, currentMonthStart, currentNextMonthStart);
 
         List<MonthlyRevenueResult> monthlyList = new ArrayList<>();
         double prevRevenue = -1;
@@ -38,6 +46,12 @@ public class GetRevenueSummaryService implements GetRevenueSummaryUseCase {
             LocalDate bucket = firstDayOfMonth.minusMonths(i);
             LocalDateTime start = bucket.atStartOfDay();
             LocalDateTime end = bucket.plusMonths(1).atStartOfDay();
+
+            if (i == months - 1) { // Lấy doanh thu tháng trước đó để tính MoM cho tháng đầu tiên
+                LocalDateTime prevStart = bucket.minusMonths(1).atStartOfDay();
+                LocalDateTime prevEnd = bucket.atStartOfDay();
+                prevRevenue = orderRepository.sumTotalAmountCreatedAtBetween(prevStart, prevEnd);
+            }
 
             double revenue = orderRepository.sumTotalAmountCreatedAtBetween(start, end);
             long orderCount = orderRepository.countByStatusCreatedAtBetween(com.furnisight.order.domain.enums.OrderStatus.DELIVERED, start, end);

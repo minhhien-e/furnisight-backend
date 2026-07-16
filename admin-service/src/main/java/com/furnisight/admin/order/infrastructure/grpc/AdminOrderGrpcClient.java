@@ -80,10 +80,13 @@ public class AdminOrderGrpcClient {
                 .build());
     }
 
-    public RevenueSummaryResponse getRevenueSummary(int months) {
-        return adminOrderServiceStub.getRevenueSummary(GetRevenueSummaryRequest.newBuilder()
-                .setMonths(months)
-                .build());
+    public RevenueSummaryResponse getRevenueSummary(int months, Integer year) {
+        GetRevenueSummaryRequest.Builder builder = GetRevenueSummaryRequest.newBuilder()
+                .setMonths(months);
+        if (year != null) {
+            builder.setYear(year);
+        }
+        return adminOrderServiceStub.getRevenueSummary(builder.build());
     }
 
     public TopSellingProductsResponse getTopSellingProducts(int limit) {

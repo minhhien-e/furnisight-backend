@@ -107,6 +107,7 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     public void getRevenueSummary(GetRevenueSummaryRequest request, StreamObserver<RevenueSummaryResponse> responseObserver) {
         RevenueSummaryResult result = getRevenueSummaryUseCase.getRevenueSummary(GetRevenueSummaryQuery.builder()
                 .months(request.getMonths())
+                .year(request.getYear())
                 .build());
         responseObserver.onNext(mapper.toRevenueSummaryResponse(result));
         responseObserver.onCompleted();

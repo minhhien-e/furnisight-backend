@@ -22,4 +22,5 @@ public class CategoryResponse {
     private String description;
     private String imageUrl;
     private String iconUrl;
+    private java.time.LocalDateTime createdAt;
 }

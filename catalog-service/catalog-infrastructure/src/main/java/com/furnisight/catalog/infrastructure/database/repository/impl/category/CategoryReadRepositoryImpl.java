@@ -119,6 +119,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     private CategoryResponse mapRowToDto(ResultSet rs) throws SQLException {
+        java.sql.Timestamp createdTimestamp = rs.getTimestamp("created_at");
         return CategoryResponse.builder()
                 .id((UUID) rs.getObject("id"))
                 .name(rs.getString("name"))
@@ -130,6 +131,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
                 .description(rs.getString("description"))
                 .imageUrl(rs.getString("image_url"))
                 .iconUrl(rs.getString("icon_url"))
+                .createdAt(createdTimestamp != null ? createdTimestamp.toLocalDateTime() : null)
                 .build();
     }
 }

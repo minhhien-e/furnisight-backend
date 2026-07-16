@@ -8,7 +8,7 @@ dependencies {
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-security'
     implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
-    implementation 'com.furnisight:proto-lib:1.0.1783340000000'
+    implementation 'com.furnisight:proto-lib:1.0.1784217958952'
     implementation 'com.github.ben-manes.caffeine:caffeine'
 
     implementation 'org.flywaydb:flyway-core'

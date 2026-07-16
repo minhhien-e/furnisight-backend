@@ -22,7 +22,9 @@ public class RevenueController {
 
     @GetMapping("/revenue")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<RevenueResponse> getRevenueSummary() {
-        return ResponseEntity.ok(adminRevenueService.getRevenueSummary());
+    public ResponseEntity<RevenueResponse> getRevenueSummary(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) Integer year
+    ) {
+        return ResponseEntity.ok(adminRevenueService.getRevenueSummary(year));
     }
 }

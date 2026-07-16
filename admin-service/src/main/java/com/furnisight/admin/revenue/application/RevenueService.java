@@ -40,23 +40,37 @@ public class RevenueService {
     private final AdminOrderGrpcClient orderClient;
     private final RevenueSnapshotRepository snapshotRepository;
 
-    public RevenueResponse getRevenueSummary() {
+    public RevenueResponse getRevenueSummary(Integer requestedYear) {
         String currentYearMonth = LocalDate.now().withDayOfMonth(1).format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        int currentYear = LocalDate.now().getYear();
+        int targetYear = requestedYear != null && requestedYear > 0 ? requestedYear : currentYear;
 
-        // Kiểm tra xem snapshot tháng hiện tại có cần refresh không
-        Optional<RevenueSnapshot> currentSnapshot = snapshotRepository.findByYearMonth(currentYearMonth);
-        boolean needsRebuild = currentSnapshot.isEmpty()
-                || currentSnapshot.get().getSnapshotAt().isBefore(
-                        LocalDateTime.now().minusMinutes(STALE_MINUTES));
-
-        if (needsRebuild) {
-            rebuildSnapshots();
+        // Kiểm tra xem có cần rebuild không
+        boolean needsRebuild = false;
+        if (targetYear == currentYear) {
+            Optional<RevenueSnapshot> currentSnapshot = snapshotRepository.findByYearMonth(currentYearMonth);
+            needsRebuild = currentSnapshot.isEmpty()
+                    || currentSnapshot.get().getSnapshotAt().isBefore(
+                            LocalDateTime.now().minusMinutes(STALE_MINUTES));
+        } else {
+            // Đối với năm cũ, kiểm tra xem đã có đủ 12 tháng chưa (hoặc ít nhất có dữ liệu cho năm đó không)
+            long countForYear = snapshotRepository.findAllByOrderByYearMonthAsc().stream()
+                    .filter(s -> s.getYearMonth().startsWith(String.valueOf(targetYear)))
+                    .count();
+            if (countForYear == 0) {
+                needsRebuild = true;
+            }
         }
 
-        // Load tất cả snapshots đã lưu (12 tháng gần nhất)
+        if (needsRebuild) {
+            rebuildSnapshots(targetYear);
+        }
+
+        // Load snapshots cho targetYear
         List<RevenueSnapshot> snapshots = snapshotRepository.findAllByOrderByYearMonthAsc()
                 .stream()
-                .filter(s -> s.getYearMonth().compareTo(currentYearMonth) <= 0)
+                .filter(s -> s.getYearMonth().startsWith(String.valueOf(targetYear)))
+                .filter(s -> s.getYearMonth().compareTo(currentYearMonth) <= 0) // không lấy tháng tương lai của năm hiện tại nếu có
                 .sorted((a, b) -> a.getYearMonth().compareTo(b.getYearMonth()))
                 .toList();
 
@@ -127,15 +141,15 @@ public class RevenueService {
     // Snapshot rebuild
     // ---------------------------------------------------------------------------
 
-    private void rebuildSnapshots() {
+    private void rebuildSnapshots(int targetYear) {
         try {
-            RevenueSummaryResponse grpcResponse = orderClient.getRevenueSummary(SNAPSHOT_MONTHS);
+            RevenueSummaryResponse grpcResponse = orderClient.getRevenueSummary(SNAPSHOT_MONTHS, targetYear);
             for (MonthlyRevenue monthly : grpcResponse.getMonthlyList()) {
                 upsertSnapshot(monthly);
             }
-            log.info("Revenue snapshots rebuilt successfully ({} months)", grpcResponse.getMonthlyCount());
+            log.info("Revenue snapshots rebuilt successfully ({} months) for year {}", grpcResponse.getMonthlyCount(), targetYear);
         } catch (Exception ex) {
-            log.warn("Failed to rebuild revenue snapshots: {}", ex.getMessage());
+            log.warn("Failed to rebuild revenue snapshots for year {}: {}", targetYear, ex.getMessage());
         }
     }
 

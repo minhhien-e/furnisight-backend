@@ -47,7 +47,7 @@ public class DashboardService {
                 new KpiResponse(KpiType.ORDERS, orderStats.getTotalOrders(), (double) orderStats.getOrdersToday()),
                 new KpiResponse(KpiType.PRODUCTS, productStats.getTotalProducts(), (double) productStats.getLowStockProducts()));
 
-        List<String> validStatuses = List.of("CONFIRMED", "PAID", "SHIPPING", "DELIVERED", "CANCELLED");
+        List<String> validStatuses = List.of("DELIVERED", "CANCELLED", "CANCELLED_BY_ADMIN");
 
         return new DashboardResponse(
                 welcome,
