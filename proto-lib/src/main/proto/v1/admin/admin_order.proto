@@ -163,6 +163,7 @@ message UpdateOrderStatusRequest {
 // Revenue summary
 message GetRevenueSummaryRequest {
     int32 months = 1; // số tháng gần nhất, mặc định 12
+    int32 year = 2;   // nếu > 0 sẽ lấy 12 tháng của năm cụ thể
 }
 
 message RevenueSummaryResponse {
