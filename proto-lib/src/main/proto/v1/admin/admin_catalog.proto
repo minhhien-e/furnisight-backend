@@ -210,6 +210,7 @@ message CategoryDto {
     string icon_id = 8;
     string description = 9;
     string image_url = 10;
+    string parent_id = 11;
 }
 
 message CategoryStatsResponse {
