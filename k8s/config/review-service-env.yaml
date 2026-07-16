@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+  # --- DATABASE ---
+  DB_URL: jdbc:postgresql://postgres.furnisight-infras.svc.cluster.local:5432/furnisight_review_db
+  DB_USERNAME: postgres
+
+kind: ConfigMap
+metadata:
+  name: review-service-env
+  namespace: furnisight-apps

@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+  FRONTEND_URL: https://furnisight.store
+
+  # --- DATABASE ---
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres.furnisight-infras.svc.cluster.local:5432/furnisight_order_db
+  SPRING_DATASOURCE_USERNAME: postgres
+
+  # --- HẠ TẦNG (KAFKA, REDIS, CACHE...) ---
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+
+kind: ConfigMap
+metadata:
+  name: order-service-env
+  namespace: furnisight-apps

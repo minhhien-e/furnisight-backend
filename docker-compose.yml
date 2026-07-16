@@ -504,7 +504,7 @@ services:
       - "9097"
     environment:
       <<: *java-env
-      USER_SERVICE_GRPC_ADDRESS: static://user-service:9091
+      USER_SERVICE_GRPC_ADDRESS: dns:///user-service:9091
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
       user-service:

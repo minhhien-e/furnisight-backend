@@ -1,4 +1,4 @@
-﻿import os
+import os
 import uuid
 from argparse import Namespace
 from pathlib import Path
@@ -262,3 +262,7 @@ async def predict(
     return {
         "model_url": _store_mesh_or_raise(request, mesh_path, name),
     }
+
+@app.get("/health")
+def health():
+    return {"status": "UP"}

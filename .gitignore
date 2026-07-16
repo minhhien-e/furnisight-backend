@@ -5,7 +5,7 @@
 **/.env.*
 !**/.env.example
 **/*.local
-
+**/secret-env.yaml
 # =========================
 # IDEs / Editors
 # =========================

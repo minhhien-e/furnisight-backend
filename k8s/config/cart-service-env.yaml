@@ -1,0 +1,14 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+
+
+  # --- DATABASE ---
+  MONGODB_URI: mongodb://mongo.furnisight-infras.svc.cluster.local:27017/furnisight_cart?replicaSet=rs0
+
+  # --- KẾT NỐI GRPC (GRPC CLIENTS) ---
+
+kind: ConfigMap
+metadata:
+  name: cart-service-env
+  namespace: furnisight-apps

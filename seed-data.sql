@@ -4,6 +4,7 @@
 --v
 -- Cach chay:
 --   docker exec -i furnisight_user_postgres psql -v ON_ERROR_STOP=1 -U postgres < seed-data.sql
+--   kubectl exec -i $(kubectl get pods -n furnisight-infras -l app=postgres -o jsonpath='{.items[0].metadata.name}') -n furnisight-infras -- psql -v ON_ERROR_STOP=1 -U postgres < seed-data.sql
 -- ============================================================
 
 SELECT 'CREATE DATABASE furnisight_promotion_db'
@@ -491,8 +492,6 @@ CREATE TEMP TABLE seed_extra_products ON COMMIT DROP AS
 SELECT ('e0000000-0000-0000-0000-' || lpad(product_no::text, 12, '0'))::uuid AS id
 FROM generate_series(11, 40) AS product_no;
 
-
-
 DELETE FROM product_favorite_logs
 WHERE
     product_id IN (
@@ -520,8 +519,6 @@ WHERE
         SELECT id
         FROM seed_extra_products
     );
-
-
 
 DELETE FROM product_favorite_logs
 WHERE
@@ -2573,8 +2570,6 @@ VALUES (
         NOW() - INTERVAL '2 days',
         NOW() - INTERVAL '2 days'
     );
-
-
 
 COMMIT;
 

@@ -1,0 +1,21 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+  FRONTEND_URL: https://furnisight.store
+  LOGGING_LEVEL_COM_FURNISIGHT_USER: INFO
+  LOGGING_LEVEL_ROOT: INFO
+
+  # --- DATABASE ---
+  DB_URL: jdbc:postgresql://postgres.furnisight-infras.svc.cluster.local:5432/furnisight_user_db
+  DB_USERNAME: postgres
+
+  # --- HẠ TẦNG (KAFKA, REDIS, CACHE...) ---
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+  OAUTH2_REDIRECT_URI: https://api.furnisight.store/users/login/oauth2/code/google
+  VERIFY_URL: https://furnisight.store/auth/verify?otpCode=
+
+kind: ConfigMap
+metadata:
+  name: user-service-env
+  namespace: furnisight-apps

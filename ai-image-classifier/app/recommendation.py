@@ -21,7 +21,8 @@ class RecommendationService:
         stub: Any = None,
         channel_factory: Any = grpc.insecure_channel,
     ):
-        self.catalog_grpc_target = catalog_grpc_target or settings.CATALOG_GRPC_TARGET
+        raw_target = catalog_grpc_target or settings.CATALOG_SERVICE_GRPC_ADDRESS
+        self.catalog_grpc_target = raw_target.replace("dns:///", "").replace("static://", "")
         self.limit = limit if limit is not None else settings.RECOMMENDATION_LIMIT
         self.timeout_seconds = (
             timeout_seconds

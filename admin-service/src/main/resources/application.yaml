@@ -31,22 +31,22 @@ spring:
 grpc:
   client:
     user-service:
-      address: "dns:///${USER_SERVICE_GRPC_HOST:localhost}:${USER_SERVICE_GRPC_PORT:9091}"
+      address: ${USER_SERVICE_GRPC_ADDRESS:dns:///localhost:9091}
       negotiation-type: plaintext
     order-service:
-      address: "dns:///${ORDER_SERVICE_GRPC_HOST:localhost}:${ORDER_SERVICE_GRPC_PORT:9095}"
+      address: ${ORDER_SERVICE_GRPC_ADDRESS:dns:///localhost:9095}
       negotiation-type: plaintext
     catalog-service:
-      address: "dns:///${CATALOG_SERVICE_GRPC_HOST:localhost}:${CATALOG_SERVICE_GRPC_PORT:9093}"
+      address: ${CATALOG_SERVICE_GRPC_ADDRESS:dns:///localhost:9093}
       negotiation-type: plaintext
     reviewService:
-      address: "dns:///${REVIEW_SERVICE_GRPC_HOST:localhost}:${REVIEW_SERVICE_GRPC_PORT:9097}"
+      address: ${REVIEW_SERVICE_GRPC_ADDRESS:dns:///localhost:9097}
       negotiation-type: plaintext
     promotion-service:
-      address: "dns:///${PROMOTION_SERVICE_GRPC_HOST:localhost}:${PROMOTION_SERVICE_GRPC_PORT:9096}"
+      address: ${PROMOTION_SERVICE_GRPC_ADDRESS:dns:///localhost:9096}
       negotiation-type: plaintext
     message-service:
-      address: "dns:///${MESSAGE_SERVICE_GRPC_HOST:localhost}:${MESSAGE_SERVICE_GRPC_PORT:9097}"
+      address: ${MESSAGE_SERVICE_GRPC_ADDRESS:dns:///localhost:9097}
       negotiation-type: plaintext
 
 promotion:

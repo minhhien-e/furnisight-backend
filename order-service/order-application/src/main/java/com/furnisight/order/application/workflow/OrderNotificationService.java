@@ -23,12 +23,17 @@ public class OrderNotificationService {
     private final UserEmailPort userEmailPort;
 
     public void enqueue(OrderProcessingContext context, OrderStatus previousStatus) {
+        String paymentMethod = context.getOrder().getPaymentDetail() != null 
+                ? context.getOrder().getPaymentDetail().getPaymentMethod() 
+                : null;
+                
         OrderStatusChangedPayload payload = new OrderStatusChangedPayload(
                 context.getOrder().getUserId(),
                 userEmailPort.getEmailByUserId(context.getOrder().getUserId()),
                 context.getOrder().getOrderCode(),
                 previousStatus,
                 context.getOrder().getStatus(),
+                paymentMethod,
                 LocalDateTime.now());
         repository.save(new OutboxMessage(
                 "Order",
@@ -72,6 +77,7 @@ public class OrderNotificationService {
             String orderCode,
             OrderStatus previousStatus,
             OrderStatus nextStatus,
+            String paymentMethod,
             LocalDateTime occurredAt
     ) {}
 

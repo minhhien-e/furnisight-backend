@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+
+  # --- DATABASE ---
+  SPRING_DATASOURCE_URL: jdbc:postgresql://postgres.furnisight-infras.svc.cluster.local:5432/furnisight_admin_db
+  SPRING_DATASOURCE_USERNAME: postgres
+
+  # --- HẠ TẦNG (KAFKA, REDIS, CACHE...) ---
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+  ADMIN_INVENTORY_DEFAULT_LOW_STOCK_THRESHOLD: "5"
+  ADMIN_INVENTORY_SETTINGS_FILE: /app/data/inventory-warning-settings.json
+
+kind: ConfigMap
+metadata:
+  name: admin-service-env
+  namespace: furnisight-apps

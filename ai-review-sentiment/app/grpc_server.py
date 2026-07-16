@@ -18,11 +18,19 @@ class ReviewSentimentServicer(review_sentiment_pb2_grpc.ReviewSentimentServiceSe
         self.engine = engine
 
     def AnalyzeReviewSentiment(self, request, context):
-        result = self.engine.analyze(request.text)
-        return review_sentiment_pb2.AnalyzeReviewSentimentResponse(
-            sentiment=result.label,
-            confidence=result.confidence,
-        )
+        logger.info(f"Received AnalyzeReviewSentiment request for text length: {len(request.text)}")
+        try:
+            result = self.engine.analyze(request.text)
+            logger.info(f"Analyzed sentiment: {result.label} ({result.confidence})")
+            return review_sentiment_pb2.AnalyzeReviewSentimentResponse(
+                sentiment=result.label,
+                confidence=result.confidence,
+            )
+        except Exception as e:
+            logger.error(f"Error analyzing sentiment: {e}", exc_info=True)
+            context.set_code(grpc.StatusCode.INTERNAL)
+            context.set_details(str(e))
+            raise
 
 
 def start_grpc_server() -> grpc.Server:

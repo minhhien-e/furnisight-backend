@@ -75,5 +75,5 @@ grpc:
     port: ${GRPC_SERVER_PORT:9097}
   client:
     user-service:
-      address: ${USER_SERVICE_GRPC_ADDRESS:static://localhost:9091}
+      address: ${USER_SERVICE_GRPC_ADDRESS:dns:///localhost:9091}
       negotiation-type: plaintext

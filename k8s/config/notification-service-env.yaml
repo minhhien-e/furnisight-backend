@@ -1,0 +1,18 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+  LOGGING_LEVEL_ROOT: INFO
+
+  # --- DATABASE ---
+  LOGGING_LEVEL_ORG_SPRINGFRAMEWORK_DATA_MONGODB: INFO
+  MONGODB_NAME: notification_db
+  MONGODB_URI: mongodb://mongo.furnisight-infras.svc.cluster.local:27017/notification_db?replicaSet=rs0
+
+  # --- HẠ TẦNG (KAFKA, REDIS, CACHE...) ---
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+
+kind: ConfigMap
+metadata:
+  name: notification-service-env
+  namespace: furnisight-apps

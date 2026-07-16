@@ -1,0 +1,20 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+  CHECKPOINT_DIR: ./checkpoints
+  CLOUDINARY_FOLDER: furnisight/ai-reconstruction
+  HOST_PORT: "8080"
+  OUTPUT_DIR: ./outputs
+  PORT: "8080"
+  PYTHON_VERSION: "3.8"
+  RETAIN_LOCAL_OUTPUTS: "false"
+  STORAGE_BACKEND: cloudinary
+  TORCH_WHEEL: https://download.pytorch.org/whl/cpu/torch-1.13.1%2Bcpu-cp38-cp38-linux_x86_64.whl
+
+kind: ConfigMap
+metadata:
+  name: ai-image-reconstruction-env
+  namespace: furnisight-apps

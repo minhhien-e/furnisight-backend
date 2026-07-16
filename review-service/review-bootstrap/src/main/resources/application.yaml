@@ -8,13 +8,13 @@ grpc:
     port: ${GRPC_SERVER_PORT:9097}
   client:
     media-service:
-      address: "static://${MEDIA_SERVICE_GRPC_HOST:localhost}:${MEDIA_SERVICE_GRPC_PORT:9094}"
+      address: ${MEDIA_SERVICE_GRPC_ADDRESS:dns:///localhost:9094}
       negotiationType: plaintext
     order-service:
-      address: "static://${ORDER_SERVICE_GRPC_HOST:localhost}:${ORDER_SERVICE_GRPC_PORT:9095}"
+      address: ${ORDER_SERVICE_GRPC_ADDRESS:dns:///localhost:9095}
       negotiationType: plaintext
     ai-review-sentiment:
-      address: "static://${AI_REVIEW_SENTIMENT_GRPC_HOST:localhost}:${AI_REVIEW_SENTIMENT_GRPC_PORT:50051}"
+      address: ${AI_REVIEW_SENTIMENT_GRPC_ADDRESS:dns:///localhost:9090}
       negotiationType: plaintext
 
 spring:
