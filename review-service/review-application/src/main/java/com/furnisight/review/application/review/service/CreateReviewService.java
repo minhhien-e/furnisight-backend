@@ -15,6 +15,7 @@ import com.furnisight.review.domain.services.review.ProfanityPolicy;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 import com.furnisight.review.application.review.port.out.ReviewSentimentTriggerPort;
 
 import java.util.UUID;
@@ -31,6 +32,7 @@ public class CreateReviewService implements CreateReviewUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"product_reviews", "product_reviews_sentiment", "top_random_reviews"}, allEntries = true)
     public void createReview(
             UUID userId,
             String productId,

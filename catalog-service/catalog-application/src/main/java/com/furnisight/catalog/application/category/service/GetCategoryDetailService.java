@@ -6,6 +6,7 @@ import com.furnisight.catalog.application.category.port.in.usecase.GetCategoryDe
 import com.furnisight.catalog.application.category.port.out.CategoryReadRepository;
 import com.furnisight.catalog.domain.exceptions.*;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -16,6 +17,7 @@ public class GetCategoryDetailService implements GetCategoryDetailUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "category_detail", key = "#p0.slug")
     public CategoryResponse execute(GetCategoryDetailQuery query) {
         return categoryReadRepository.findCategoryDetailBySlug(query.getSlug())
             .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));

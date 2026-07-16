@@ -59,11 +59,11 @@ public class PromotionTranslationService {
             return page;
         }
         return new PageResponse<>(
-                localizePromotions(page.items(), lang),
-                page.totalPages(),
-                page.totalElements(),
-                page.currentPage(),
-                page.pageSize()
+                localizePromotions(page.getItems(), lang),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getCurrentPage(),
+                page.getPageSize()
         );
     }
 
@@ -98,11 +98,11 @@ public class PromotionTranslationService {
             return page;
         }
         return new PageResponse<>(
-                localizeCombos(page.items(), lang),
-                page.totalPages(),
-                page.totalElements(),
-                page.currentPage(),
-                page.pageSize()
+                localizeCombos(page.getItems(), lang),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getCurrentPage(),
+                page.getPageSize()
         );
     }
 

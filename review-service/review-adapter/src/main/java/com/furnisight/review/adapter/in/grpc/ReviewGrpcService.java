@@ -147,16 +147,16 @@ public class ReviewGrpcService extends ReviewServiceGrpc.ReviewServiceImplBase {
 
     private ReviewDto toGrpcReview(ReviewResponse review) {
         ReviewDto.Builder builder = ReviewDto.newBuilder()
-                .setId(review.id().toString())
-                .setUserId(review.userId().toString())
-                .setUserName(review.userName() == null ? "" : review.userName())
-                .setUserAvatarUrl(review.userAvatarUrl() == null ? "" : review.userAvatarUrl())
-                .setProductId(review.productId().toString())
-                .setTitle(review.title() == null ? "" : review.title())
-                .setContent(review.content() == null ? "" : review.content())
-                .setRating(review.rating() == null ? 0 : review.rating())
-                .setStatus(review.status() == null ? "" : review.status())
-                .setCreatedAt(review.createdAt() == null ? "" : review.createdAt().toString());
+                .setId(review.getId().toString())
+                .setUserId(review.getUserId().toString())
+                .setUserName(review.getUserName() == null ? "" : review.getUserName())
+                .setUserAvatarUrl(review.getUserAvatarUrl() == null ? "" : review.getUserAvatarUrl())
+                .setProductId(review.getProductId().toString())
+                .setTitle(review.getTitle() == null ? "" : review.getTitle())
+                .setContent(review.getContent() == null ? "" : review.getContent())
+                .setRating(review.getRating() == null ? 0 : review.getRating())
+                .setStatus(review.getStatus() == null ? "" : review.getStatus())
+                .setCreatedAt(review.getCreatedAt() == null ? "" : review.getCreatedAt().toString());
         return builder.build();
     }
 }

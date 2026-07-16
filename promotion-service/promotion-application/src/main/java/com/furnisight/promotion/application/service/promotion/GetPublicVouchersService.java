@@ -11,6 +11,7 @@ import com.furnisight.promotion.domain.entities.*;
 import com.furnisight.promotion.domain.enums.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.Cacheable;
 import lombok.RequiredArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -29,6 +30,7 @@ public class GetPublicVouchersService implements GetPublicVouchersUseCase {
 
     @Override
     @Transactional(readOnly = true)
+    @Cacheable(value = "public_vouchers", key = "#p0.page + '_' + #p0.size + '_' + #p0.filter + '_' + #p0.userId")
     public PageResponse<PromotionDto> getPublicVouchers(GetPublicVouchersQuery query) {
 
         int safePage = Math.max(0, query.getPage() == null ? 0 : query.getPage());
@@ -42,9 +44,9 @@ public class GetPublicVouchersService implements GetPublicVouchersUseCase {
         var result = promotionRepository.findPublicActivePage(now,
                 "expiring".equals(normalizedFilter) ? now.plusDays(7) : null,
                 "freeship".equals(normalizedFilter), safePage, safeSize);
-        return new PageResponse<>(result.items().stream()
+        return new PageResponse<>(result.getItems().stream()
                 .map(p -> helper.toDto(p, userVouchers.get(p.getId())))
-                .toList(), result.totalPages(), result.totalElements(), safePage, safeSize);
+                .toList(), result.getTotalPages(), result.getTotalElements(), safePage, safeSize);
 
     }
 }

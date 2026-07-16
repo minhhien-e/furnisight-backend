@@ -64,25 +64,33 @@ public class AccountLifecycleService {
             return accountRepository.findById(existingSocialAccount.get().getAccountId())
                     .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
         }
-        String randomPassword = UUID.randomUUID().toString();
-        Password hashedPassword = new Password(passwordHasher.hash(randomPassword));
+        Account account;
+        Optional<Account> existingAccountByEmail = email != null ? accountRepository.findByEmail(email) : Optional.empty();
 
-        Account account = new Account(email, hashedPassword);
-        account.activate();
-        account.registerEvent(new AccountCreatedEvent(
-                account.getId(),
-                email != null ? email.getValue() : null,
-                LocalDateTime.now()));
+        if (existingAccountByEmail.isPresent()) {
+            account = existingAccountByEmail.get();
+        } else {
+            String randomPassword = UUID.randomUUID().toString();
+            Password hashedPassword = new Password(passwordHasher.hash(randomPassword));
 
-        if (email != null) {
-            account.registerEvent(new SocialAccountCreatedEvent(
+            account = new Account(email, hashedPassword);
+            account.activate();
+            account.registerEvent(new AccountCreatedEvent(
                     account.getId(),
-                    email.getValue(),
-                    randomPassword,
+                    email != null ? email.getValue() : null,
                     LocalDateTime.now()));
+
+            if (email != null) {
+                account.registerEvent(new SocialAccountCreatedEvent(
+                        account.getId(),
+                        email.getValue(),
+                        randomPassword,
+                        LocalDateTime.now()));
+            }
+
+            account = accountRepository.save(account);
         }
 
-        accountRepository.save(account);
         SocialAccount socialAccount = new SocialAccount(account.getId(), provider, providerUserId, email);
         socialAccountRepository.save(socialAccount);
         return account;

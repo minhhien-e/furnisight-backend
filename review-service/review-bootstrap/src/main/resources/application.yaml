@@ -20,6 +20,13 @@ grpc:
 spring:
   application:
     name: review-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+  cache:
+    redis:
+      time-to-live: 600000
   jackson:
     default-property-inclusion: non_null
   datasource:

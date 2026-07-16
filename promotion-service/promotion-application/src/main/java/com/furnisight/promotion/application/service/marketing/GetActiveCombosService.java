@@ -44,9 +44,9 @@ public class GetActiveCombosService implements GetActiveCombosUseCase {
         int page = 0;
         while (true) {
             var dbPage = comboRepository.findActivePage(LocalDateTime.now(), page, 24, "default");
-            result.addAll(helper.enrichStock(dbPage.items()));
+            result.addAll(helper.enrichStock(dbPage.getItems()));
             page++;
-            if (page >= dbPage.totalPages()) return result;
+            if (page >= dbPage.getTotalPages()) return result;
         }
     }
 }

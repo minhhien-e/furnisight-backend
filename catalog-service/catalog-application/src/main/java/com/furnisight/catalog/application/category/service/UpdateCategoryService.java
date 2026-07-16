@@ -9,6 +9,7 @@ import com.furnisight.catalog.domain.repository.CategoryRepository;
 import com.furnisight.catalog.domain.valueobjects.category.CategoryName;
 import com.furnisight.catalog.domain.valueobjects.category.CategorySlug;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class UpdateCategoryService implements UpdateCategoryUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"categories_root", "categories_sub", "categories_all", "category_detail"}, allEntries = true)
     public void execute(UpdateCategoryCommand command) {
         Category category = categoryRepository.findById(command.getCategoryId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));

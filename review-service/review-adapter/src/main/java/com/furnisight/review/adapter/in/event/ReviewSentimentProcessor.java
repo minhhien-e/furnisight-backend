@@ -32,7 +32,7 @@ public class ReviewSentimentProcessor {
             ReviewSentimentPort.SentimentResult result = reviewSentimentPort.analyze(text);
             review.markSentimentCompleted(result.sentiment(), BigDecimal.valueOf(result.confidence()));
         } catch (Exception ex) {
-            log.warn("Review sentiment analysis failed for reviewId={}: {}", reviewId, ex.getMessage());
+            log.warn("Review sentiment analysis failed for reviewId={}", reviewId, ex);
             review.markSentimentFailed(ex.getMessage());
         }
 

@@ -5,6 +5,7 @@ import com.furnisight.review.application.review.port.in.usecase.GetTopRandomRevi
 import com.furnisight.review.application.review.port.out.repository.ReviewQueryRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.cache.annotation.Cacheable;
 
 import java.util.List;
 
@@ -15,6 +16,7 @@ public class GetTopRandomReviewsService implements GetTopRandomReviewsUseCase {
     private final ReviewQueryRepository reviewQueryRepository;
 
     @Override
+    @Cacheable(value = "top_random_reviews", key = "#p0")
     public List<ReviewResponse> getTopRandomReviews(int limit) {
         return reviewQueryRepository.findTopRandomReviews(limit);
     }

@@ -305,11 +305,14 @@ services:
       - ./review-service/.env
     environment:
       <<: *java-env
+      REDIS_HOST: redis
     expose:
       - "8080"
       - "9097"
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
+      redis:
+        condition: service_started
       order-service:
         condition: service_started
       media-service:
@@ -396,7 +399,10 @@ services:
     environment:
       <<: *java-env
       TRANSLATION_BASE_URL: http://libretranslate:5000
+      REDIS_HOST: redis
     depends_on:
+      redis:
+        condition: service_started
       postgres:
         condition: service_healthy
       kafka:

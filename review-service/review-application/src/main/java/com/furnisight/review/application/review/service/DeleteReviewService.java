@@ -9,6 +9,7 @@ import com.furnisight.review.domain.exceptions.NotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.Map;
 import java.util.UUID;
@@ -22,6 +23,7 @@ public class DeleteReviewService implements DeleteReviewUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"product_reviews", "product_reviews_sentiment", "top_random_reviews"}, allEntries = true)
     public void deleteReview(UUID reviewId) {
         Review review = reviewWritePort.findById(reviewId)
             .orElseThrow(() -> new NotFoundException(

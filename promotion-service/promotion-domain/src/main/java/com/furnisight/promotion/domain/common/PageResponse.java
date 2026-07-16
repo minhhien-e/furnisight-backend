@@ -1,15 +1,28 @@
 package com.furnisight.promotion.domain.common;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.util.List;
 
-public record PageResponse<T>(
-        List<T> items,
-        int totalPages,
-        long totalElements,
-        int currentPage,
-        Integer pageSize
-) {
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class PageResponse<T> {
+    private List<T> items;
+    private int totalPages;
+    private long totalElements;
+    private int currentPage;
+    private Integer pageSize;
+
     public PageResponse(List<T> items, int totalPages, long totalElements, int currentPage) {
-        this(items, totalPages, totalElements, currentPage, null);
+        this.items = items;
+        this.totalPages = totalPages;
+        this.totalElements = totalElements;
+        this.currentPage = currentPage;
+        this.pageSize = null;
     }
 }

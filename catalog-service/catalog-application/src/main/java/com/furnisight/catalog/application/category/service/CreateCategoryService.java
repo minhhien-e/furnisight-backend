@@ -8,6 +8,7 @@ import com.furnisight.catalog.domain.valueobjects.category.CategoryName;
 import com.furnisight.catalog.domain.valueobjects.category.CategorySlug;
 import com.furnisight.catalog.domain.services.category.CategoryLifecycleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class CreateCategoryService implements CreateCategoryUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"categories_root", "categories_sub", "categories_all", "category_detail"}, allEntries = true)
     public void execute(CreateCategoryCommand command) {
         CategoryName name = new CategoryName(command.getName());
         CategorySlug slug = new CategorySlug(command.getSlug());

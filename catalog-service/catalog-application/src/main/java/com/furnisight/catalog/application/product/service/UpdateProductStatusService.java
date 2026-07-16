@@ -7,6 +7,7 @@ import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.exceptions.*;
 import com.furnisight.catalog.domain.services.product.ProductLifecycleService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +20,7 @@ public class UpdateProductStatusService implements UpdateProductStatusUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"top_products", "product_detail"}, allEntries = true)
     public void execute(UpdateProductStatusCommand command) {
         Product product = productRepository.findById(command.getProductId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));

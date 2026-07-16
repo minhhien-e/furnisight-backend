@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import com.furnisight.review.application.review.port.out.ReviewSentimentTriggerPort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.cache.annotation.CacheEvict;
 
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ public class UpdateReviewService implements UpdateReviewUseCase {
 
     @Override
     @Transactional
+    @CacheEvict(value = {"product_reviews", "product_reviews_sentiment", "top_random_reviews"}, allEntries = true)
     public void updateReview(UUID reviewId, String title, String content, Integer rating) {
         Review review = reviewWritePort.findById(reviewId)
             .orElseThrow(() -> new NotFoundException(ErrorCode.REVIEW_NOT_FOUND));

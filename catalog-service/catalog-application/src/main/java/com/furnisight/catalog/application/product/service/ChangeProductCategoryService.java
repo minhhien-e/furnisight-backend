@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.cache.annotation.CacheEvict;
 @Service
 @RequiredArgsConstructor
 public class ChangeProductCategoryService implements ChangeProductCategoryUseCase {
@@ -19,6 +20,7 @@ public class ChangeProductCategoryService implements ChangeProductCategoryUseCas
 
     @Override
     @Transactional
+    @CacheEvict(value = {"top_products", "product_detail"}, allEntries = true)
     public void execute(ChangeProductCategoryCommand command) {
         Product product = productRepository.findById(command.getProductId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));
