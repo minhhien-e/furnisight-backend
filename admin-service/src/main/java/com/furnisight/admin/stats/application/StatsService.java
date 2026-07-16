@@ -41,8 +41,9 @@ public class StatsService {
         ReviewSentimentStatsResponse reviewStats = reviewClient.getReviewSentimentStats();
 
         List<CategoryDto> topCategories = categories.getCategoriesList().stream()
+                .filter(c -> c.getCreatedAt() != null && !c.getCreatedAt().trim().isEmpty())
                 .sorted(Comparator.comparingInt(CategoryDto::getProductCount).reversed())
-                .limit(6)
+                .limit(5)
                 .toList();
 
         return new StatsResponse(

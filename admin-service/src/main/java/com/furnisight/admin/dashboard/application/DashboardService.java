@@ -47,6 +47,8 @@ public class DashboardService {
                 new KpiResponse(KpiType.ORDERS, orderStats.getTotalOrders(), (double) orderStats.getOrdersToday()),
                 new KpiResponse(KpiType.PRODUCTS, productStats.getTotalProducts(), (double) productStats.getLowStockProducts()));
 
+        List<String> validStatuses = List.of("CONFIRMED", "PAID", "SHIPPING", "DELIVERED", "CANCELLED");
+
         return new DashboardResponse(
                 welcome,
                 kpis,
@@ -54,8 +56,12 @@ public class DashboardService {
                         orderStats.getRevenueChartList().stream().map(point -> point.getLabel()).toList(),
                         orderStats.getRevenueChartList().stream().map(point -> (double) point.getValue()).toList()),
                 new ChartResponse(
-                        orderStats.getOrdersThisMonthByStatusList().stream().map(OrderStatusCount::getLabel).toList(),
-                        orderStats.getOrdersThisMonthByStatusList().stream().map(point -> (double) point.getCount()).toList()),
+                        orderStats.getOrdersThisMonthByStatusList().stream()
+                                .filter(s -> validStatuses.contains(s.getStatus()))
+                                .map(OrderStatusCount::getStatus).toList(),
+                        orderStats.getOrdersThisMonthByStatusList().stream()
+                                .filter(s -> validStatuses.contains(s.getStatus()))
+                                .map(point -> (double) point.getCount()).toList()),
                 orderService.getRecentOrders(5),
                 inventoryService.getLowStockProducts(5),
                 buildAlerts(orderStats, productStats, userStats));

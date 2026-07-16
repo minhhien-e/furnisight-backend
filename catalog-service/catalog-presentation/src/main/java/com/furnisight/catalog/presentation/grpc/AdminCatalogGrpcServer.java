@@ -687,7 +687,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setProductCount(category.getProductCount() == null ? 0 : category.getProductCount())
                 .setVisible(category.getVisible() == null || category.getVisible())
                 .setVisibleLabel(category.getVisible() == null || category.getVisible() ? "Hiển thị" : "Ẩn")
-                .setCreatedAt("")
+                .setCreatedAt(category.getParentId() == null ? "" : category.getParentId().toString())
                 .setIconId(resolveIconId(category.getIconUrl()))
                 .setDescription(safe(category.getDescription()))
                 .setImageUrl(safe(category.getImageUrl()))
