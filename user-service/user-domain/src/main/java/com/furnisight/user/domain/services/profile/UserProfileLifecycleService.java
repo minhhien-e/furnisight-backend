@@ -20,16 +20,20 @@ public class UserProfileLifecycleService {
 
     public UserProfile createProfile(UUID accountId, String fullName,
             String email) {
-        Email emailVO = email != null ? new Email(email) : null;
-        UserProfile newProfile = new UserProfile(accountId, fullName, emailVO);
-        return userProfileRepository.save(newProfile);
+        return userProfileRepository.findByAccountId(accountId).orElseGet(() -> {
+            Email emailVO = email != null ? new Email(email) : null;
+            UserProfile newProfile = new UserProfile(accountId, fullName, emailVO);
+            return userProfileRepository.save(newProfile);
+        });
     }
 
     public UserProfile createProfile(UUID accountId, String fullName,
             String email, String avatarUrl) {
-        Email emailVO = email != null ? new Email(email) : null;
-        UserProfile newProfile = new UserProfile(accountId, fullName, emailVO, avatarUrl);
-        return userProfileRepository.save(newProfile);
+        return userProfileRepository.findByAccountId(accountId).orElseGet(() -> {
+            Email emailVO = email != null ? new Email(email) : null;
+            UserProfile newProfile = new UserProfile(accountId, fullName, emailVO, avatarUrl);
+            return userProfileRepository.save(newProfile);
+        });
     }
 
     public UserProfile getProfile(UUID accountId) {
