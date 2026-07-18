@@ -1,3 +1,0 @@
-ALTER TABLE orders 
-ADD COLUMN IF NOT EXISTS shop_voucher_code VARCHAR(255),
-ADD COLUMN IF NOT EXISTS shipping_voucher_code VARCHAR(255);

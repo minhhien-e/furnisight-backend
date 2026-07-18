@@ -1,1 +1,0 @@
--- Empty migration: local voucher tables removed in favor of promotion-service

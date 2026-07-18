@@ -46,6 +46,7 @@ dependencies {
 	implementation 'com.furnisight:proto-lib:1.0.1784217958952'
 
 	runtimeOnly 'org.postgresql:postgresql'
+	runtimeOnly 'org.flywaydb:flyway-database-postgresql'
 
 	compileOnly 'org.projectlombok:lombok'
 	annotationProcessor 'org.projectlombok:lombok'

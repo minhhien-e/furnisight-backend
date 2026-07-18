@@ -1,1 +1,0 @@
-ALTER TABLE order_items ADD COLUMN slug VARCHAR(255);

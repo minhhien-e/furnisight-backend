@@ -1,3 +1,5 @@
+-- >>> Appended from V1__init_media_schema.sql <<<
+
 -- ============================================================
 -- V1__init_media_schema.sql
 -- Single-table media schema using Cloudinary as storage backend
@@ -24,3 +26,10 @@ CREATE TABLE media_assets
 );
 
 CREATE INDEX idx_media_assets_owner ON media_assets (owner_id, owner_type);
+
+-- >>> Appended from V2__allow_pending_direct_upload.sql <<<
+
+ALTER TABLE media_assets
+    ALTER COLUMN cloudinary_public_id DROP NOT NULL,
+    ALTER COLUMN url DROP NOT NULL,
+    ALTER COLUMN secure_url DROP NOT NULL;

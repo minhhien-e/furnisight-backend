@@ -1,3 +1,42 @@
+-- ============================================================
+-- V1__init_schema.sql
+-- Initial schema for promotion-service
+-- ============================================================
+
+CREATE TABLE IF NOT EXISTS promotions (
+    id UUID PRIMARY KEY,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    description TEXT,
+    icon VARCHAR(255),
+    voucher_type VARCHAR(50) NOT NULL DEFAULT 'PUBLIC',
+    discount_type VARCHAR(50) NOT NULL,
+    discount_value DOUBLE PRECISION NOT NULL,
+    max_discount DOUBLE PRECISION,
+    min_order DOUBLE PRECISION,
+    start_date TIMESTAMP,
+    end_date TIMESTAMP,
+    active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_promotions_public_window
+    ON promotions (voucher_type, active, end_date, code);
+
+CREATE TABLE IF NOT EXISTS user_vouchers (
+    id UUID PRIMARY KEY,
+    user_id UUID NOT NULL,
+    promotion_id UUID NOT NULL REFERENCES promotions(id) ON DELETE CASCADE,
+    is_used BOOLEAN DEFAULT FALSE,
+    used_at TIMESTAMP,
+    saved_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT unique_user_promotion UNIQUE (user_id, promotion_id)
+);
+
+CREATE INDEX IF NOT EXISTS idx_user_vouchers_user_unused
+    ON user_vouchers (user_id, is_used, promotion_id);
+
 CREATE TABLE IF NOT EXISTS marketing_campaigns (
     id UUID PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -46,7 +85,8 @@ CREATE TABLE IF NOT EXISTS promotion_combos (
     start_date TIMESTAMP,
     end_date TIMESTAMP,
     active BOOLEAN DEFAULT TRUE,
-    placements TEXT,
+    image_media_id UUID,
+    image_url TEXT,
     original_amount DOUBLE PRECISION DEFAULT 0,
     final_amount DOUBLE PRECISION DEFAULT 0,
     saved_amount DOUBLE PRECISION DEFAULT 0,
@@ -55,10 +95,14 @@ CREATE TABLE IF NOT EXISTS promotion_combos (
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE INDEX IF NOT EXISTS idx_promotion_combos_active_window
+    ON promotion_combos (active, saved_amount DESC, used_count DESC, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS promotion_combo_items (
     id UUID PRIMARY KEY,
     combo_id UUID NOT NULL REFERENCES promotion_combos(id) ON DELETE CASCADE,
     product_id VARCHAR(80) NOT NULL,
+    product_slug VARCHAR(255),
     variant_id VARCHAR(80),
     product_name VARCHAR(255),
     sku VARCHAR(120),
@@ -70,6 +114,9 @@ CREATE TABLE IF NOT EXISTS promotion_combo_items (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE INDEX IF NOT EXISTS idx_promotion_combo_items_combo
+    ON promotion_combo_items (combo_id);
 
 CREATE TABLE IF NOT EXISTS marketing_dispatch_logs (
     id UUID PRIMARY KEY,

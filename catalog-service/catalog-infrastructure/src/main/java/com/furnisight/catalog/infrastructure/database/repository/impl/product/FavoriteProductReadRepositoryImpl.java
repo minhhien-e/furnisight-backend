@@ -34,9 +34,9 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
                     p.id AS product_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
-                    p.image AS product_image,
-                    p.attributes AS product_attributes,
-                    p.metadata AS product_metadata,
+                    (SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.position ASC LIMIT 1) AS product_image,
+                    p.features AS product_attributes,
+                    p.features AS product_metadata,
                     c.name AS category_name,
                     MIN(pv.price) AS product_price,
                     COUNT(f.id) AS fav_count
@@ -49,9 +49,7 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
                     p.id,
                     p.name,
                     p.slug,
-                    p.image,
-                    p.attributes,
-                    p.metadata,
+                    p.features,
                     c.name
                 ORDER BY fav_count DESC
                 LIMIT :limit
