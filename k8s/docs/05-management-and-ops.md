@@ -96,13 +96,19 @@ kubectl scale deployment user-service --replicas=1 -n furnisight-apps
 ```
 
 ### 6.4. Xóa hoàn toàn (Teardown)
-Nếu bạn muốn xóa sạch cấu hình khỏi K8s để chạy lại lệnh `apply` từ đầu:
+Nếu bạn muốn xóa sạch cấu hình khỏi K8s để trả lại tài nguyên hoặc chạy lại lệnh `apply` từ đầu, bạn phải xóa theo thứ tự ngược lại so với lúc khởi chạy:
 
 ```bash
-# Xóa toàn bộ tầng ứng dụng (microservices)
+# 1. Xóa đường mạng (Ingress)
+kubectl delete -f ingress/
+
+# 2. Xóa toàn bộ tầng ứng dụng (microservices)
 kubectl delete -f services/
 
-# Xóa toàn bộ tầng hạ tầng (database, kafka...)
+# 3. Xóa toàn bộ tầng hạ tầng (database, kafka...)
 kubectl delete -f infrastructure/
+
+# 4. Xóa toàn bộ cấu hình, môi trường (ConfigMap & Secret)
+kubectl delete -f config/
 ```
-*(Lưu ý: Lệnh xóa `infrastructure/` có thể làm mất dữ liệu Database nếu bạn không cấu hình volume Persistent để giữ lại dữ liệu, hãy cẩn thận khi dùng ở môi trường Production).*
+*(Lưu ý: Lệnh xóa `infrastructure/` có thể làm mất dữ liệu Database/Kafka nếu bạn không cấu hình PersistentVolume (PVC) để giữ lại dữ liệu. Hãy cẩn thận khi dùng ở môi trường Production).*

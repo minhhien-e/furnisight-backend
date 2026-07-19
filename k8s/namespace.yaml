@@ -7,3 +7,8 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: furnisight-apps
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: furnisight-frontend
