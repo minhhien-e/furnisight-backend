@@ -30,7 +30,6 @@ public class CreateOrderService implements CreateOrderUseCase {
     private final UserEmailPort userEmailPort;
 
     @Override
-    @Transactional
     public OrderResponse createOrder(CreateOrderCommand command) {
         var addressInfo = OrderAddressInfo.builder()
                 .receiverName(command.getShippingAddressName())

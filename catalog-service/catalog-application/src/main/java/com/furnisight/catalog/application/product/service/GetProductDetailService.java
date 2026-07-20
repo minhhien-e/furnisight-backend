@@ -24,8 +24,7 @@ public class GetProductDetailService implements GetProductDetailQueryUseCase {
     private final ProductTranslationService productTranslationService;
 
     @Override
-    @Cacheable(value = "product_detail", key = "#p0.slug + '_' + #p0.lang")
-    @Transactional(readOnly = true)
+    @Cacheable(value = "product_detail", key = "#p0.slug + '_' + #p0.lang", sync = true)
     public ProductResponse execute(GetProductDetailQuery query) {
         ProductResponse product = findProductDetail(query.getSlug()).orElseThrow(
                 () -> new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND));

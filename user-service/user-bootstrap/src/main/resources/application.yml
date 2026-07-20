@@ -1,5 +1,10 @@
 server:
   port: 8081
+  tomcat:
+    threads:
+      max: 1000
+    accept-count: 2000
+    max-connections: 10000
   forward-headers-strategy: framework
   servlet:
     context-path: /api/v1
@@ -42,7 +47,7 @@ spring:
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 200
       minimum-idle: 2
       connection-timeout: 30000
 

@@ -36,23 +36,26 @@ public class CachedTextTranslationAdapter implements TextTranslationPort {
     }
 
     private String translateAndCache(String cacheKey, String originalText, String sourceLang, String targetLang) {
-        CompletableFuture<String> future = inFlight.computeIfAbsent(cacheKey, key ->
-                CompletableFuture.supplyAsync(() -> {
-                    try {
-                        String translated = libreTranslateHttpClient.translate(originalText, sourceLang, targetLang);
-                        translationCacheStore.put(cacheKey, translated);
-                        return translated;
-                    } catch (Exception ex) {
-                        log.warn("Translation failed for {} -> {} text='{}'", sourceLang, targetLang, originalText, ex);
-                        return originalText;
-                    }
-                }));
+        boolean[] isNew = {false};
+        CompletableFuture<String> future = inFlight.computeIfAbsent(cacheKey, key -> {
+            isNew[0] = true;
+            return new CompletableFuture<>();
+        });
 
-        try {
-            return future.join();
-        } finally {
-            inFlight.remove(cacheKey, future);
+        if (isNew[0]) {
+            try {
+                String translated = libreTranslateHttpClient.translate(originalText, sourceLang, targetLang);
+                translationCacheStore.put(cacheKey, translated);
+                future.complete(translated);
+            } catch (Exception ex) {
+                log.warn("Translation failed for {} -> {} text='{}'", sourceLang, targetLang, originalText, ex);
+                future.complete(originalText);
+            } finally {
+                inFlight.remove(cacheKey, future);
+            }
         }
+
+        return future.join();
     }
 
     private String buildCacheKey(String sourceLang, String targetLang, String text) {

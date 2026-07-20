@@ -17,8 +17,13 @@ metadata:
   namespace: furnisight-infras
 data:
   postgresql.conf: |
-    max_connections = 300
-    shared_buffers = 128MB
+    max_connections = 1000
+    shared_buffers = 512MB
+    effective_cache_size = 1536MB
+    work_mem = 4MB
+    maintenance_work_mem = 128MB
+    min_wal_size = 1GB
+    max_wal_size = 2GB
     listen_addresses = '*'
     log_timezone = 'Asia/Ho_Chi_Minh'
     datestyle = 'iso, mdy'
@@ -43,6 +48,7 @@ spec:
       containers:
         - name: postgres
           image: postgres:13.1-alpine
+          args: ["-c", "config_file=/etc/postgresql/postgresql.conf"]
           ports:
             - containerPort: 5432
           env:
@@ -65,11 +71,11 @@ spec:
               subPath: postgresql.conf
           resources:
             requests:
-              memory: "256Mi"
+              memory: "512Mi"
               cpu: "200m"
             limits:
-              memory: "768Mi"
-              cpu: "500m"
+              memory: "2Gi"
+              cpu: "2000m"
       volumes:
         - name: postgres-data
           persistentVolumeClaim:

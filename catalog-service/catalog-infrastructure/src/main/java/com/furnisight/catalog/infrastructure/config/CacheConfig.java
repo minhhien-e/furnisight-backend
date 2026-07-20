@@ -17,14 +17,7 @@ public class CacheConfig {
 
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
-        ObjectMapper objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new com.fasterxml.jackson.datatype.jsr310.JavaTimeModule());
-        objectMapper.activateDefaultTyping(
-            com.fasterxml.jackson.databind.jsontype.BasicPolymorphicTypeValidator.builder().allowIfBaseType(Object.class).build(),
-            ObjectMapper.DefaultTyping.NON_FINAL,
-            com.fasterxml.jackson.annotation.JsonTypeInfo.As.PROPERTY
-        );
-        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+        org.springframework.data.redis.serializer.JdkSerializationRedisSerializer serializer = new org.springframework.data.redis.serializer.JdkSerializationRedisSerializer();
 
         return RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(Duration.ofMinutes(30)) // Default TTL 30 minutes

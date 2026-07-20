@@ -17,7 +17,7 @@ public class GetTopProductsService implements GetTopProductsUseCase {
     private final ProductTranslationService productTranslationService;
 
     @Override
-    @Cacheable(value = "top_products")
+    @Cacheable(value = "top_products", sync = true)
     public List<ProductResponse> execute(int limit, String lang) {
         List<ProductResponse> products = productReadRepository.findTopProducts(limit);
         return productTranslationService.localizeProducts(

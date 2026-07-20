@@ -7,11 +7,13 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
+import java.io.Serializable;
+
 @Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class SearchProductsQuery {
+public class SearchProductsQuery implements Serializable {
     private String lang;
     private String q;
     private String category;

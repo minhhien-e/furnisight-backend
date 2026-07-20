@@ -1,5 +1,6 @@
 package com.furnisight.catalog.application.common.dto;
 
+import java.io.Serializable;
 import java.util.List;
 
 public record PageResponse<T>(
@@ -8,5 +9,5 @@ public record PageResponse<T>(
         long totalElements,
         int currentPage,
         Integer pageSize
-) {
+) implements Serializable {
 }

@@ -156,7 +156,10 @@ spring:
       httpclient:
         response-timeout: 30s
         connect-timeout: 5000
-
+        pool:
+          type: elastic
+          max-connections: 10000
+          acquire-timeout: 30000
 
 app:
   security:

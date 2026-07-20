@@ -33,7 +33,8 @@ public class CartService {
 
     public CartResponse getCart(UUID userId, String locale) {
         Cart cart = getOrCreateCart(userId);
-        return toResponse(cartEnrichmentPolicy.enrichCart(cart, locale));
+        clampCartQuantities(cart);
+        return toResponse(cart);
     }
 
     public CartResponse addToCart(UUID userId, AddToCartRequest request, String locale) {
@@ -59,7 +60,10 @@ public class CartService {
                     .build());
         }
 
-        return saveAndRespond(cart, locale);
+        // Fetch exact price and info for the newly added item using gRPC
+        cartEnrichmentPolicy.enrichCart(cart, locale);
+        
+        return saveAndRespond(cart);
     }
 
     public CartResponse updateCartItem(
@@ -74,7 +78,7 @@ public class CartService {
         findItem(cart, productId, variantId)
                 .ifPresent(item -> updateExistingItem(cart, item, request));
 
-        return saveAndRespond(cart, locale);
+        return saveAndRespond(cart);
     }
 
     public CartResponse removeCartItem(UUID userId, String productId, String variantId, String locale) {
@@ -82,7 +86,7 @@ public class CartService {
 
         cart.getItems().removeIf(item -> CartUtils.isSameItem(item, productId, variantId));
 
-        return saveAndRespond(cart, locale);
+        return saveAndRespond(cart);
     }
 
     public void clearCart(UUID userId) {
@@ -91,13 +95,10 @@ public class CartService {
         saveCart(cart);
     }
 
-    private CartResponse saveAndRespond(Cart cart, String locale) {
+    private CartResponse saveAndRespond(Cart cart) {
+        clampCartQuantities(cart);
         Cart savedCart = saveCart(cart);
-        Cart enrichedCart = cartEnrichmentPolicy.enrichCart(savedCart, locale);
-        clampCartQuantities(enrichedCart);
-        CartResponse response = toResponse(enrichedCart); // build response trước khi save lần 2
-        saveCart(enrichedCart);                            // persist clamped quantities, bỏ qua return value
-        return response;
+        return toResponse(savedCart);
     }
 
     private Cart saveCart(Cart cart) {

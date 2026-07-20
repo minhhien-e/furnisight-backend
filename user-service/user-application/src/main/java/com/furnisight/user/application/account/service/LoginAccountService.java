@@ -23,13 +23,16 @@ public class LoginAccountService implements LoginAccountUseCase {
     private final AccountRepository accountRepository;
 
     @Override
-    @Transactional
     public AccountToken execute(LoginAccountCommand command) {
         String identifier = command.identifier() == null ? "" : command.identifier().trim();
         Account account = accountRepository.findByCredential(identifier)
             .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
-        if (!authenticationService.login(account, command.password()))
+        boolean isValidPassword = authenticationService.login(account, command.password());
+        accountRepository.save(account);
+        
+        if (!isValidPassword)
             throw new DomainException(ErrorCode.INVALID_PASSWORD);
+            
         return tokenLifeCycleService.generateAccountToken(account);
     }
 }

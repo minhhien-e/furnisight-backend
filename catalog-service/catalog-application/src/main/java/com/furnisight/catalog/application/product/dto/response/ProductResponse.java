@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class ProductResponse {
+public class ProductResponse implements java.io.Serializable {
     private UUID id;
     private UUID shopId;
     private String name;
@@ -34,7 +34,6 @@ public class ProductResponse {
     private List<String> gallery;
     private List<String> features;
     private List<Review> reviews;
-    private List<QA> qa;
     @com.fasterxml.jackson.annotation.JsonIgnore
     private String modelUrl;
     private UUID defaultVariantId;
@@ -46,7 +45,7 @@ public class ProductResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class CategoryInfo {
+    public static class CategoryInfo implements java.io.Serializable {
         private String id;
         private String label;
         private String path;
@@ -58,7 +57,7 @@ public class ProductResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class Review {
+    public static class Review implements java.io.Serializable {
         private String id;
         private String user;
         private String avatar;
@@ -71,19 +70,7 @@ public class ProductResponse {
     @Builder
     @NoArgsConstructor
     @AllArgsConstructor
-    public static class QA {
-        private String id;
-        private String question;
-        private String answer;
-        private String asker;
-        private String date;
-    }
-
-    @Data
-    @Builder
-    @NoArgsConstructor
-    @AllArgsConstructor
-    public static class VariantDto {
+    public static class VariantDto implements java.io.Serializable {
         private UUID id;
         private Double price;
         private Integer stockQuantity;

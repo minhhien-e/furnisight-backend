@@ -126,7 +126,7 @@ INSERT INTO
 VALUES (
         '52379d96-5238-4fd9-8383-bae82736bb3b',
         'minhhien7840@gmail.com',
-        '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
+        '$2a$04$t1MWsV/4axK/bHxX3pGfuOtkSI.CLwk0XiYwKuNoWYygduDZvQLOG',
         'ACTIVE',
         0,
         NULL,
@@ -137,7 +137,7 @@ VALUES (
     (
         'f85b5fd8-d60e-4c7e-87ae-5912796d668e',
         'admin@furnisight.store',
-        '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
+        '$2a$04$t1MWsV/4axK/bHxX3pGfuOtkSI.CLwk0XiYwKuNoWYygduDZvQLOG',
         'ACTIVE',
         0,
         NULL,
@@ -148,7 +148,7 @@ VALUES (
     (
         '4b33e5c1-cae1-458d-b4b1-e568ddd766f6',
         '22130080@st.hcmuaf.edu.vn',
-        '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
+        '$2a$04$t1MWsV/4axK/bHxX3pGfuOtkSI.CLwk0XiYwKuNoWYygduDZvQLOG',
         'ACTIVE',
         0,
         NULL,
@@ -159,7 +159,7 @@ VALUES (
     (
         '7c22e6d3-1111-4aab-b999-aabbcc001122',
         'user02@furnisight.store',
-        '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
+        '$2a$04$t1MWsV/4axK/bHxX3pGfuOtkSI.CLwk0XiYwKuNoWYygduDZvQLOG',
         'ACTIVE',
         0,
         NULL,
@@ -170,7 +170,7 @@ VALUES (
     (
         '8d33f7e4-2222-4bbc-caaa-bbccdd002233',
         'user03@furnisight.store',
-        '$2b$10$MvTGAhLM9CISs.j9l9kNie733z5HhDKZZ3UBxhEH21uaP8VSIZT7a',
+        '$2a$04$t1MWsV/4axK/bHxX3pGfuOtkSI.CLwk0XiYwKuNoWYygduDZvQLOG',
         'ACTIVE',
         0,
         NULL,

@@ -14,6 +14,7 @@ data:
   # --- CẤU HÌNH KHÁC (OTHERS) ---
   OAUTH2_REDIRECT_URI: https://api.furnisight.store/users/login/oauth2/code/google
   VERIFY_URL: https://furnisight.store/auth/verify?otpCode=
+  SPRING_DATASOURCE_HIKARI_MAXIMUM_POOL_SIZE: "20"
 
 kind: ConfigMap
 metadata:
