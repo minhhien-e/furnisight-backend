@@ -1,0 +1,5 @@
+Label,# Samples,Average,Min,Max,Std. Dev.,Error %,Throughput,Received KB/sec,Sent KB/sec,Avg. Bytes
+[Level 1] Search Products,200,1274,712,5316,497.11,0.000%,35.18649,602.32,4.98,17528.8
+[Level 2] Search Products,500,1480,246,10552,1113.08,0.000%,44.14231,285.07,6.34,6612.9
+[Level 3] Search Products,1000,3431,287,30538,1972.03,1.800%,31.81370,203.49,4.48,6549.8
+TOTAL,1700,2604,246,30538,1913.96,1.059%,35.08917,269.34,4.98,7860.0
