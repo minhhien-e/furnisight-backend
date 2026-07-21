@@ -9,15 +9,19 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+import com.furnisight.catalog.application.product.service.ProductTranslationService;
+
 @Service
 @RequiredArgsConstructor
 public class ListRootCategoriesService implements ListRootCategoriesUseCase {
 
     private final CategoryReadRepository categoryReadRepository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
-    @Cacheable(value = "categories_root")
-    public List<CategoryResponse> execute() {
-        return categoryReadRepository.findRootCategories();
+    @Cacheable(value = "categories_root", sync = true)
+    public List<CategoryResponse> execute(String lang) {
+        List<CategoryResponse> categories = categoryReadRepository.findRootCategories();
+        return productTranslationService.localizeCategories(categories, lang);
     }
 }

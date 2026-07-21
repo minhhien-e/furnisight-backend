@@ -69,10 +69,8 @@ public class CategoryController {
     public ResponseEntity<List<CategoryResponse>> listCategories(
             @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
             @RequestParam(name = "lang", required = false) String lang) {
-        List<CategoryResponse> results = productTranslationService.localizeCategories(
-                listCategoriesUseCase.execute(),
-                resolveLang(lang, acceptLanguage)
-        );
+        String resolvedLang = resolveLang(lang, acceptLanguage);
+        List<CategoryResponse> results = listCategoriesUseCase.execute(resolvedLang);
         return ResponseEntity.ok(results);
     }
 
@@ -80,10 +78,8 @@ public class CategoryController {
     public ResponseEntity<List<CategoryResponse>> listRootCategories(
             @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
             @RequestParam(name = "lang", required = false) String lang) {
-        List<CategoryResponse> results = productTranslationService.localizeCategories(
-                listRootCategoriesUseCase.execute(),
-                resolveLang(lang, acceptLanguage)
-        );
+        String resolvedLang = resolveLang(lang, acceptLanguage);
+        List<CategoryResponse> results = listRootCategoriesUseCase.execute(resolvedLang);
         return ResponseEntity.ok(results);
     }
 
@@ -92,10 +88,8 @@ public class CategoryController {
             @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
             @RequestParam(name = "lang", required = false) String lang,
             @PathVariable String slug) {
-        List<CategoryResponse> results = productTranslationService.localizeCategories(
-                listSubcategoriesUseCase.execute(slug),
-                resolveLang(lang, acceptLanguage)
-        );
+        String resolvedLang = resolveLang(lang, acceptLanguage);
+        List<CategoryResponse> results = listSubcategoriesUseCase.execute(slug, resolvedLang);
         return ResponseEntity.ok(results);
     }
 
@@ -104,11 +98,9 @@ public class CategoryController {
             @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
             @RequestParam(name = "lang", required = false) String lang,
             @PathVariable String slug){
-        GetCategoryDetailQuery query = new GetCategoryDetailQuery(slug);
-        CategoryResponse result = productTranslationService.localizeCategory(
-                getCategoryDetailUseCase.execute(query),
-                resolveLang(lang, acceptLanguage)
-        );
+        String resolvedLang = resolveLang(lang, acceptLanguage);
+        GetCategoryDetailQuery query = new GetCategoryDetailQuery(slug, resolvedLang);
+        CategoryResponse result = getCategoryDetailUseCase.execute(query);
         return ResponseEntity.ok(result);
     }
 

@@ -16,6 +16,7 @@ data:
   KAFKA_PORT: "29092"
   REDIS_HOST: "redis.furnisight-infras.svc.cluster.local"
   TRANSLATION_BASE_URL: "http://libretranslate.furnisight-infras.svc.cluster.local:5000"
+  TRANSLATION_ENABLED: "true"
 
   # --- KẾT NỐI GRPC (GRPC CLIENTS) ---
   AI_REVIEW_SENTIMENT_GRPC_ADDRESS: "static://ai-review-sentiment.furnisight-apps.svc.cluster.local:9090"

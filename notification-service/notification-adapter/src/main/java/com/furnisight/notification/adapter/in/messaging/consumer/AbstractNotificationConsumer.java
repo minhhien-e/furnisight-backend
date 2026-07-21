@@ -27,16 +27,20 @@ public abstract class AbstractNotificationConsumer<T> {
             .templateCode(templateCode)
             .data(TemplateEventData.from(objectMapper, event)).build());
 
-        sendNotificationUseCase.execute(SendNotificationCommand.builder()
-            .userId(getAccountId(event))
-            .destination(getDestination(event))
-            .title(renderResult.getTitle())
-            .body(renderResult.getBody())
-            .image("")
-            .actionUrl("")
-            .type(NotificationType.SYSTEM)
-            .channel(getChannel(event))
-            .build());
+        try {
+            sendNotificationUseCase.execute(SendNotificationCommand.builder()
+                .userId(getAccountId(event))
+                .destination(getDestination(event))
+                .title(renderResult.getTitle())
+                .body(renderResult.getBody())
+                .image("")
+                .actionUrl("")
+                .type(NotificationType.SYSTEM)
+                .channel(getChannel(event))
+                .build());
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(getClass()).error("Failed to send notification for template {}: {}", templateCode, e.getMessage(), e);
+        }
     }
 
     protected abstract UUID getAccountId(T event);

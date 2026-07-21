@@ -10,16 +10,20 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.furnisight.catalog.application.product.service.ProductTranslationService;
+
 @Service
 @RequiredArgsConstructor
 public class GetCategoryDetailService implements GetCategoryDetailUseCase {
     private final CategoryReadRepository categoryReadRepository;
+    private final ProductTranslationService productTranslationService;
 
     @Override
     @Transactional(readOnly = true)
-    @Cacheable(value = "category_detail", key = "#p0.slug")
+    @Cacheable(value = "category_detail", key = "#p0.slug + '_' + #p0.lang", sync = true)
     public CategoryResponse execute(GetCategoryDetailQuery query) {
-        return categoryReadRepository.findCategoryDetailBySlug(query.getSlug())
+        CategoryResponse category = categoryReadRepository.findCategoryDetailBySlug(query.getSlug())
             .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
+        return productTranslationService.localizeCategory(category, query.getLang());
     }
 }

@@ -11,7 +11,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class CategoryResponse {
+public class CategoryResponse implements java.io.Serializable {
     private UUID id;
     private String name;
     private String slug;
