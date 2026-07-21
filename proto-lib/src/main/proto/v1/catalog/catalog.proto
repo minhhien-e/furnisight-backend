@@ -11,4 +11,5 @@ service CatalogService {
     rpc GetProductSummaries (GetProductSummariesRequest) returns (GetProductSummariesResponse);
     rpc GetFavoriteProductSummaries (GetFavoriteProductSummariesRequest) returns (GetFavoriteProductSummariesResponse);
     rpc SearchRecommendedProducts (SearchRecommendedProductsRequest) returns (SearchRecommendedProductsResponse);
+    rpc CheckProductStocks (CheckProductStocksRequest) returns (CheckProductStocksResponse);
 }

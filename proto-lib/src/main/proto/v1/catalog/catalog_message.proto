@@ -11,6 +11,20 @@ message GetProductSummariesRequest {
   string locale = 3;
 }
 
+message CheckProductStocksRequest {
+  repeated string variant_ids = 1;
+}
+
+message CheckProductStocksResponse {
+  repeated ProductStock stocks = 1;
+}
+
+message ProductStock {
+  string product_id = 1;
+  string variant_id = 2;
+  int32 stock_quantity = 3;
+}
+
 message GetProductSummariesResponse {
   repeated ProductSummary products = 1;
 }

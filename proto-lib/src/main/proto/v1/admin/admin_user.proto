@@ -11,6 +11,7 @@ import "google/protobuf/empty.proto";
 service AdminUserService {
     rpc GetAccounts (GetAccountsRequest) returns (AccountPageResponse);
     rpc GetAccountById (GetAccountByIdRequest) returns (AccountDetailResponse);
+    rpc GetAccountEmailById (GetAccountByIdRequest) returns (AccountEmailResponse);
     rpc GetAccountStats (google.protobuf.Empty) returns (AccountStatsResponse);
     rpc BanAccount (BanAccountRequest) returns (AdminActionResponse);
     rpc UnbanAccount (UnbanAccountRequest) returns (AdminActionResponse);
@@ -113,6 +114,10 @@ message AccountDto {
 
 message GetAccountByIdRequest {
     string id = 1;
+}
+
+message AccountEmailResponse {
+    string email = 1;
 }
 
 message AccountDetailResponse {
