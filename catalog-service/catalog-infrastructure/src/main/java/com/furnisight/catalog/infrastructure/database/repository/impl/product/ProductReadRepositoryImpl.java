@@ -121,6 +121,88 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
+    public List<ProductResponse> findProductDetailsByIds(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = """
+                SELECT
+                    p.id AS product_id,
+                    p.category_id,
+                    p.name AS product_name,
+                    p.slug AS product_slug,
+                    p.sku AS product_sku,
+                    p.description AS product_description,
+                    p.product_status,
+                    p.features AS product_features,
+                    (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
+                    (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
+                    EXISTS(SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true) AS supports_3d,
+                    p.sold_count,
+                    c.name AS category_name,
+                    c.slug AS category_slug,
+                    pc.name AS parent_category_name,
+                    pc.slug AS parent_category_slug,
+                    p.rating AS avg_rating,
+                    p.rating_count AS review_count
+                FROM products p
+                LEFT JOIN categories c ON p.category_id = c.id
+                LEFT JOIN categories pc ON c.parent_id = pc.id
+                WHERE p.id IN (:productIds)
+                """;
+
+        List<ProductResponse> products = jdbcTemplate.query(
+                sql,
+                Map.of("productIds", productIds),
+                (rs, rowNum) -> mapRowToProductDetail(rs));
+
+        if (!products.isEmpty()) {
+            Map<UUID, List<ProductResponse.VariantDto>> variantsMap = fetchVariantsInBatch(productIds);
+            Map<UUID, List<String>> galleryMap = fetchGalleryInBatch(productIds);
+
+            for (ProductResponse dto : products) {
+                List<ProductResponse.VariantDto> variants = variantsMap.getOrDefault(dto.getId(), new ArrayList<>());
+                dto.setVariants(variants);
+
+                if (!variants.isEmpty()) {
+                    dto.setPrice(variants.get(0).getPrice());
+                }
+
+                dto.setGallery(galleryMap.getOrDefault(dto.getId(), new ArrayList<>()));
+            }
+        }
+
+        return products;
+    }
+
+    @Override
+    public List<ProductResponse.ProductStockDto> findStockByVariantIds(List<UUID> variantIds) {
+        if (variantIds == null || variantIds.isEmpty()) {
+            return List.of();
+        }
+
+        String sql = """
+                SELECT
+                    v.id,
+                    v.product_id,
+                    v.stock_quantity
+                FROM product_variants v
+                WHERE v.id IN (:variantIds)
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of("variantIds", variantIds),
+                (rs, rowNum) -> ProductResponse.ProductStockDto.builder()
+                        .variantId((UUID) rs.getObject("id"))
+                        .productId((UUID) rs.getObject("product_id"))
+                        .stockQuantity(rs.getInt("stock_quantity"))
+                        .build()
+        );
+    }
+
+    @Override
     public PageResponse<ProductResponse> searchProducts(SearchProductsQuery queryParam) {
         StringBuilder whereClause = new StringBuilder(" WHERE 1 = 1 ");
         Map<String, Object> params = new HashMap<>();
@@ -141,48 +223,44 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         params.put("offset", offset);
 
         String mainSql = """
+                WITH paged_products AS (
+                    SELECT p.id, p.name, p.slug, p.sold_count, p.rating, p.rating_count, p.created_at, p.category_id
+                    """ + (queryParam.getSort() != null && queryParam.getSort().toLowerCase().contains("price") 
+                           ? ", (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price " 
+                           : "") + """
+                    FROM products p
+                    """ + whereClause + resolveOrderBy(queryParam) + """
+                    LIMIT :limit OFFSET :offset
+                )
                 SELECT
-                    p.id AS product_id,
-                    p.name AS product_name,
-                    p.slug AS product_slug,
-                    p.sold_count AS product_sold_count,
+                    pp.id AS product_id,
+                    pp.name AS product_name,
+                    pp.slug AS product_slug,
+                    pp.sold_count AS product_sold_count,
                     v3d.model_url,
                     COALESCE(v3d.supports_3d, false) AS supports_3d,
                     c.name AS category_name,
-                    MIN(pv.price) AS product_price,
+                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = pp.id) AS product_price,
                     (
                         SELECT pi.image_url
                         FROM product_images pi
-                        WHERE pi.product_id = p.id
+                        WHERE pi.product_id = pp.id
                         ORDER BY pi.position ASC
                         LIMIT 1
                     ) AS product_image,
-                    p.rating AS product_rating,
-                    p.rating_count AS product_rating_count
-                FROM products p
-                LEFT JOIN categories c ON p.category_id = c.id
-                LEFT JOIN product_variants pv ON pv.product_id = p.id
+                    pp.rating AS product_rating,
+                    pp.rating_count AS product_rating_count,
+                    pp.created_at
+                FROM paged_products pp
+                LEFT JOIN categories c ON pp.category_id = c.id
                 LEFT JOIN LATERAL (
                     SELECT pv.model_url, pv.supports_3d
                     FROM product_variants pv
-                    WHERE pv.product_id = p.id AND pv.supports_3d = true
+                    WHERE pv.product_id = pp.id AND pv.supports_3d = true
                     ORDER BY pv.price ASC
                     LIMIT 1
                 ) v3d ON TRUE
-                """ + whereClause + """
-                GROUP BY
-                    p.id,
-                    p.name,
-                    p.slug,
-                    p.sold_count,
-                    v3d.model_url,
-                    v3d.supports_3d,
-                    c.name,
-                    p.created_at,
-                    p.rating,
-                    p.rating_count
-                """ + resolveOrderBy(queryParam) + """
-                LIMIT :limit OFFSET :offset
+                """ + resolveOrderByPagedProducts(queryParam) + """
                 """;
 
         List<ProductResponse> products = jdbcTemplate.query(mainSql, params, this::mapRowToProductSummary);
@@ -293,7 +371,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.name AS category_name,
                     v3d.model_url,
                     COALESCE(v3d.supports_3d, false) AS supports_3d,
-                    MIN(pv.price) AS product_price,
+                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price,
                     (
                         SELECT pi.image_url
                         FROM product_images pi
@@ -305,7 +383,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.rating_count AS product_rating_count
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
-                LEFT JOIN product_variants pv ON pv.product_id = p.id
                 LEFT JOIN LATERAL (
                     SELECT pv.model_url, pv.supports_3d
                     FROM product_variants pv
@@ -314,17 +391,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     LIMIT 1
                 ) v3d ON TRUE
                 WHERE p.product_status = 'ACTIVE'
-                GROUP BY
-                    p.id,
-                    p.name,
-                    p.slug,
-                    p.sold_count,
-                    c.name,
-                    v3d.model_url,
-                    v3d.supports_3d,
-                    p.created_at,
-                    p.rating,
-                    p.rating_count
                 ORDER BY p.created_at DESC
                 LIMIT :limit
                 """;
@@ -352,13 +418,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
                     (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
                     c.name AS category_name,
-                    MIN(pv.price) AS product_price,
-                    COALESCE(SUM(pv.stock_quantity), 0) AS product_stock
+                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price,
+                    (SELECT COALESCE(SUM(pv.stock_quantity), 0) FROM product_variants pv WHERE pv.product_id = p.id) AS product_stock
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
-                LEFT JOIN product_variants pv ON pv.product_id = p.id
                 """ + whereClause + """
-                GROUP BY p.id, p.name, p.slug, p.sku, p.product_status, c.name, p.created_at
                 ORDER BY p.created_at DESC
                 LIMIT :limit OFFSET :offset
                 """;
@@ -371,7 +435,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         Map<String, Object> params = new HashMap<>();
         String whereClause = buildAdminProductWhereClause(query, status, category, params);
         Long total = jdbcTemplate.queryForObject(
-                "SELECT COUNT(DISTINCT p.id) FROM products p LEFT JOIN categories c ON p.category_id = c.id " + whereClause,
+                "SELECT COUNT(p.id) FROM products p LEFT JOIN categories c ON p.category_id = c.id " + whereClause,
                 params,
                 Long.class);
         return total == null ? 0L : total;
@@ -632,9 +696,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
     private Long countProducts(StringBuilder whereClause, Map<String, Object> params) {
         String countSql = """
-                SELECT COUNT(DISTINCT p.id)
+                SELECT COUNT(p.id)
                 FROM products p
-                LEFT JOIN categories c ON p.category_id = c.id
                 """ + whereClause;
 
         Long total = jdbcTemplate.queryForObject(countSql, params, Long.class);
@@ -648,10 +711,26 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
         return switch (query.getSort().trim().toLowerCase()) {
             case "newest" -> " ORDER BY p.created_at DESC ";
-            case "price-asc" -> " ORDER BY MIN(pv.price) ASC NULLS LAST ";
-            case "price-desc" -> " ORDER BY MIN(pv.price) DESC NULLS LAST ";
-            case "rating", "popular" -> " ORDER BY p.created_at DESC ";
+            case "price-asc" -> " ORDER BY product_price ASC NULLS LAST, p.id ASC ";
+            case "price-desc" -> " ORDER BY product_price DESC NULLS LAST, p.id ASC ";
+            case "rating" -> " ORDER BY p.rating DESC NULLS LAST, p.rating_count DESC, p.id ASC ";
+            case "popular" -> " ORDER BY p.sold_count DESC NULLS LAST, p.id ASC ";
             default -> " ORDER BY p.created_at DESC ";
+        };
+    }
+
+    private String resolveOrderByPagedProducts(SearchProductsQuery query) {
+        if (query.getSort() == null) {
+            return " ORDER BY pp.created_at DESC ";
+        }
+
+        return switch (query.getSort().trim().toLowerCase()) {
+            case "newest" -> " ORDER BY pp.created_at DESC ";
+            case "price-asc" -> " ORDER BY product_price ASC NULLS LAST, pp.id ASC ";
+            case "price-desc" -> " ORDER BY product_price DESC NULLS LAST, pp.id ASC ";
+            case "rating" -> " ORDER BY pp.rating DESC NULLS LAST, pp.rating_count DESC, pp.id ASC ";
+            case "popular" -> " ORDER BY pp.sold_count DESC NULLS LAST, pp.id ASC ";
+            default -> " ORDER BY pp.created_at DESC ";
         };
     }
 
@@ -889,6 +968,28 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 sql,
                 Map.of("variantId", variantId),
                 (rs, rowNum) -> rs.getString("image_url"));
+    }
+
+    private Map<UUID, List<String>> fetchGalleryInBatch(List<UUID> productIds) {
+        if (productIds == null || productIds.isEmpty()) return Collections.emptyMap();
+
+        String sql = """
+                SELECT product_id, image_url
+                FROM product_images
+                WHERE product_id IN (:productIds)
+                ORDER BY product_id, position ASC
+                """;
+
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIds", productIds));
+        Map<UUID, List<String>> result = new HashMap<>();
+
+        for (Map<String, Object> row : rows) {
+            UUID productId = (UUID) row.get("product_id");
+            String imageUrl = (String) row.get("image_url");
+            result.computeIfAbsent(productId, k -> new ArrayList<>()).add(imageUrl);
+        }
+
+        return result;
     }
 
     private List<String> fetchGallery(UUID productId) {

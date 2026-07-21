@@ -112,3 +112,17 @@ kubectl delete -f infrastructure/
 kubectl delete -f config/
 ```
 *(Lưu ý: Lệnh xóa `infrastructure/` có thể làm mất dữ liệu Database/Kafka nếu bạn không cấu hình PersistentVolume (PVC) để giữ lại dữ liệu. Hãy cẩn thận khi dùng ở môi trường Production).*
+
+## 7. Xử Lý Lỗi Mạng / Rớt DNS (Đặc thù môi trường Local)
+
+Ở môi trường Local (như k3d, minikube, docker desktop), khi máy tính bị **Sleep**, Sleep Host, hoặc Docker daemon khởi động lại, các giao diện mạng ảo (veth) của các Pod đang chạy thường bị lỗi (stale network). K8s sẽ cố gắng restart container bên trong nhưng không thay đổi cấu trúc mạng của Pod. Điều này dẫn đến các ứng dụng không thể phân giải tên miền (DNS) của các services khác (ví dụ: `java.net.UnknownHostException: postgres.furnisight-infras.svc.cluster.local`) và liên tục rớt vào trạng thái `CrashLoopBackOff` hoặc `Error`.
+
+**Cách khắc phục:** 
+Cách nhanh nhất là xóa bỏ các Pod bị kẹt mạng để K8s (qua Deployment/StatefulSet) tự động sinh ra các Pod mới với cấu hình mạng "sạch" và kết nối bình thường:
+
+```bash
+# Xóa và tạo lại toàn bộ Pod trong namespace furnisight-apps
+kubectl delete pods --all -n furnisight-apps
+```
+
+*(Lựa chọn khác: Bạn có thể tắt và bật lại toàn bộ cụm cluster bằng lệnh `k3d cluster stop <tên-cluster>` và `k3d cluster start <tên-cluster>`)*

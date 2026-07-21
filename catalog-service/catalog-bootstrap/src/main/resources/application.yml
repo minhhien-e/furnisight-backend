@@ -2,9 +2,9 @@ server:
   port: ${SERVER_PORT:8083}
   tomcat:
     threads:
-      max: 1000
-    accept-count: 2000
-    max-connections: 10000
+      max: 200
+    accept-count: 200
+    max-connections: 2000
   servlet:
     context-path: /api/v1
 
@@ -36,7 +36,8 @@ spring:
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 200
+      maximum-pool-size: 50
+      minimum-idle: 2
 
   jpa:
     hibernate:

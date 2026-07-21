@@ -25,32 +25,22 @@ public class CatalogStockGrpcClient implements CatalogStockPort {
             return Map.of();
         }
 
-        GetProductSummariesRequest request = GetProductSummariesRequest.newBuilder()
-                .addAllItems(items.stream()
+        com.furnisight.catalog.CheckProductStocksRequest request = com.furnisight.catalog.CheckProductStocksRequest.newBuilder()
+                .addAllVariantIds(items.stream()
                         .filter(Objects::nonNull)
-                        .filter(item -> item.productId() != null && !item.productId().isBlank())
-                        .map(this::toGrpcItem)
+                        .filter(item -> item.variantId() != null && !item.variantId().isBlank())
+                        .map(LookupItem::variantId)
                         .toList())
                 .build();
 
         Map<String, StockItem> stockItems = new LinkedHashMap<>();
-        for (ProductSummary product : catalogStub.getProductSummaries(request).getProductsList()) {
-            Integer stockQuantity = product.hasVariant() && product.getVariant().hasStockQuantity()
-                    ? product.getVariant().getStockQuantity()
-                    : null;
+        for (com.furnisight.catalog.ProductStock stock : catalogStub.checkProductStocks(request).getStocksList()) {
             stockItems.put(
-                    stockKey(product.getId(), product.getSelectedVariantId()),
-                    new StockItem(product.getId(), product.getSelectedVariantId(), stockQuantity)
+                    stockKey(stock.getProductId(), stock.getVariantId()),
+                    new StockItem(stock.getProductId(), stock.getVariantId(), stock.getStockQuantity())
             );
         }
         return stockItems;
-    }
-
-    private GetProductSummaryItem toGrpcItem(LookupItem item) {
-        return GetProductSummaryItem.newBuilder()
-                .setProductId(item.productId())
-                .setSelectedVariantId(normalize(item.variantId()))
-                .build();
     }
 
     private String stockKey(String productId, String variantId) {

@@ -47,7 +47,7 @@ spring:
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 200
+      maximum-pool-size: 50
       minimum-idle: 2
       connection-timeout: 30000
 
@@ -58,6 +58,12 @@ spring:
       password: ${REDIS_PASSWORD:}
 
   jpa:
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 50
+        order_inserts: true
+        order_updates: true
     hibernate:
       ddl-auto: validate
     show-sql: false

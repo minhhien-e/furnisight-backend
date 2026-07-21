@@ -9,9 +9,11 @@ import java.util.UUID;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 
 public interface ProductReadRepository {
-    Optional<ProductResponse> findProductDetailBySlug(String slug);
     Optional<ProductResponse> findProductDetailById(UUID productId);
-    PageResponse<ProductResponse> searchProducts(SearchProductsQuery query);
+    List<ProductResponse> findProductDetailsByIds(List<UUID> productIds);
+    Optional<ProductResponse> findProductDetailBySlug(String slug);
+    List<ProductResponse.ProductStockDto> findStockByVariantIds(List<UUID> variantIds);
+    PageResponse<ProductResponse> searchProducts(SearchProductsQuery queryParam);
     List<ProductResponse> findRecommendedProducts(
             String categorySlug, String status, int limit);
     List<ProductResponse> findTopProducts(int limit);

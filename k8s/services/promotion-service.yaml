@@ -24,6 +24,9 @@ spec:
         ports:
         - containerPort: 8080
         - containerPort: 9090
+        env:
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx256m -Xms128m -Xss512k -XX:+UseG1GC -XX:MaxMetaspaceSize=128m -Dserver.tomcat.threads.max=100"
         envFrom:
         - configMapRef:
             name: shared-env

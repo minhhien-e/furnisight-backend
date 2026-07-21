@@ -88,4 +88,14 @@ public class ProductResponse implements java.io.Serializable {
         private String modelUrl;
         private List<String> imageUrls;
     }
+
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ProductStockDto implements java.io.Serializable {
+        private UUID productId;
+        private UUID variantId;
+        private Integer stockQuantity;
+    }
 }

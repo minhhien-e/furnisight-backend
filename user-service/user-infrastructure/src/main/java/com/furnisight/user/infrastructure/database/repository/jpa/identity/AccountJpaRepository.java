@@ -15,8 +15,15 @@ import java.time.LocalDateTime;
 public interface AccountJpaRepository extends JpaRepository<Account, UUID> {
     Optional<Account> findByEmail(Email email);
 
+    @Query("SELECT a.email FROM Account a WHERE a.id = :id")
+    Optional<Email> findEmailById(@Param("id") UUID id);
+
     @Query("SELECT COUNT(a) > 0 FROM Account a WHERE a.email = :email AND a.status = 'ACTIVE'")
     boolean existsByEmail(@Param("email") Email email);
+
+    @org.springframework.data.jpa.repository.Modifying
+    @Query("UPDATE Account a SET a.failedLoginAttempts = :failedLoginAttempts, a.status = :status, a.lockoutEnd = :lockoutEnd WHERE a.id = :id")
+    void updateLoginStatus(@Param("id") UUID id, @Param("failedLoginAttempts") int failedLoginAttempts, @Param("status") AccountStatus status, @Param("lockoutEnd") LocalDateTime lockoutEnd);
 
     @Query("""
             SELECT a FROM Account a

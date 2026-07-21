@@ -27,8 +27,20 @@ public class LoginAccountService implements LoginAccountUseCase {
         String identifier = command.identifier() == null ? "" : command.identifier().trim();
         Account account = accountRepository.findByCredential(identifier)
             .orElseThrow(() -> new NotFoundException(ErrorCode.ACCOUNT_NOT_FOUND));
+
+        int initialFailedAttempts = account.getFailedLoginAttempts();
+        com.furnisight.user.domain.enums.identity.AccountStatus initialStatus = account.getStatus();
+        java.time.LocalDateTime initialLockoutEnd = account.getLockoutEnd();
+
         boolean isValidPassword = authenticationService.login(account, command.password());
-        accountRepository.save(account);
+        
+        boolean hasChanged = initialFailedAttempts != account.getFailedLoginAttempts() ||
+                             initialStatus != account.getStatus() ||
+                             !java.util.Objects.equals(initialLockoutEnd, account.getLockoutEnd());
+
+        if (hasChanged) {
+            accountRepository.updateLoginStatus(account);
+        }
         
         if (!isValidPassword)
             throw new DomainException(ErrorCode.INVALID_PASSWORD);

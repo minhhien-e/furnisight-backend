@@ -46,6 +46,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     @Override
+    @org.springframework.cache.annotation.Cacheable(value = "categories", key = "'all'")
     public List<CategoryResponse> findAllCategories() {
         String sql = """
                 SELECT *
@@ -57,6 +58,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     }
 
     @Override
+    @org.springframework.cache.annotation.Cacheable(value = "categories", key = "'root'")
     public List<CategoryResponse> findRootCategories() {
         String sql = """
                 SELECT *

@@ -11,7 +11,7 @@ dependencies {
     api "net.devh:grpc-server-spring-boot-starter:3.1.0.RELEASE"
     implementation "net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE"
 
-    api 'com.furnisight:proto-lib:1.0.1784217958952'
+    api 'com.furnisight:proto-lib:1.0.1784620518303'
 
     implementation 'org.springframework.kafka:spring-kafka'
     implementation 'org.springframework.boot:spring-boot-starter-security'

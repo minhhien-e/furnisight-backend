@@ -11,6 +11,8 @@ public interface AccountRepository{
     void delete(Account account);
     Optional<Account> findById(UUID id);
     Optional<Account> findByEmail(Email email);
+    Optional<Email> findEmailById(UUID id);
     boolean existsAccount(Email email);
     Optional<Account> findByCredential(String identifier);
+    void updateLoginStatus(Account account);
 }

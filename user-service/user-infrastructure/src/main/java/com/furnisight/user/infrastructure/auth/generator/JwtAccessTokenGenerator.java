@@ -31,12 +31,11 @@ public class JwtAccessTokenGenerator implements AccessTokenGenerator {
     private final RoleRepository roleRepository;
 
     @Override
-    public AccessToken generateToken(Account account) {
+    public AccessToken generateToken(Account account, List<Role> roles) {
         Instant now = Instant.now();
         Instant expiresAt = now.plusMillis(jwtConfig.getAccessTokenExpirationMs());
 
         JwsHeader header = JwsHeader.with(SignatureAlgorithm.RS256).build();
-        List<Role> roles = roleRepository.findAllByAccountId(account.getId());
 
         List<String> permissionNames = getPermissions(account, roles).stream()
             .map(Permission::name).toList();

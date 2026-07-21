@@ -44,11 +44,14 @@ public class TokenLifeCycleService {
     // ─── JWT / Refresh tokens ──────────────────────────────────────────────────
 
     public AccountToken generateAccountToken(Account account) {
-        AccessToken accessToken = accessTokenGenerator.generateToken(account);
-        RefreshToken refreshToken = refreshTokenGenerator.generateToken();
-        List<String> roles = roleRepository.findAllByAccountId(account.getId()).stream()
+        java.util.List<com.furnisight.user.domain.entities.identity.Role> rolesList = roleRepository.findAllByAccountId(account.getId());
+        List<String> rolesString = rolesList.stream()
                 .map(role -> role.getName().getValue()).toList();
-        var accountToken = new AccountToken(account.getId(), accessToken, refreshToken, roles);
+                
+        AccessToken accessToken = accessTokenGenerator.generateToken(account, rolesList);
+        RefreshToken refreshToken = refreshTokenGenerator.generateToken();
+        
+        var accountToken = new AccountToken(account.getId(), accessToken, refreshToken, rolesString);
         return accountTokenRepository.save(accountToken);
     }
 
@@ -56,11 +59,15 @@ public class TokenLifeCycleService {
         if (accountToken.refreshTokenIsExpired())
             throw new UnauthorizedException(ErrorCode.TOKEN_EXPIRED);
         accountToken.revoke();
-        AccessToken newAccessToken = accessTokenGenerator.generateToken(account);
-        RefreshToken refreshToken = refreshTokenGenerator.generateToken();
-        List<String> roles = roleRepository.findAllByAccountId(account.getId()).stream()
+        
+        java.util.List<com.furnisight.user.domain.entities.identity.Role> rolesList = roleRepository.findAllByAccountId(account.getId());
+        List<String> rolesString = rolesList.stream()
                 .map(role -> role.getName().getValue()).toList();
-        var newAccountToken = new AccountToken(account.getId(), newAccessToken, refreshToken, roles);
+                
+        AccessToken newAccessToken = accessTokenGenerator.generateToken(account, rolesList);
+        RefreshToken refreshToken = refreshTokenGenerator.generateToken();
+        
+        var newAccountToken = new AccountToken(account.getId(), newAccessToken, refreshToken, rolesString);
         return accountTokenRepository.save(newAccountToken);
     }
 

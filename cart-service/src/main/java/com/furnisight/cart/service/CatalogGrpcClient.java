@@ -8,43 +8,68 @@ import com.furnisight.catalog.ProductSummary;
 import io.grpc.Channel;
 import lombok.extern.slf4j.Slf4j;
 import net.devh.boot.grpc.client.inject.GrpcClient;
-import org.springframework.stereotype.Component;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.Objects;
+import java.util.List;
+import java.util.ArrayList;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class CatalogGrpcClient {
 
     @GrpcClient("catalog-service")
     private Channel catalogChannel;
+
+    private final LocalProductCache localProductCache;
 
     public Map<String, ProductSummary> getProductSummaries(Collection<ProductLookupItem> items, String locale) {
         if (items == null || items.isEmpty()) {
             return Collections.emptyMap();
         }
 
+        String loc = normalizeLocale(locale);
+        Map<String, ProductSummary> resultMap = new LinkedHashMap<>();
+        List<ProductLookupItem> itemsToFetch = new ArrayList<>();
+
+        for (ProductLookupItem item : items) {
+            if (item == null || item.productId() == null || item.productId().isBlank()) continue;
+            
+            String productKey = keyOf(item.productId(), item.selectedVariantId());
+            String cacheKey = productKey + "::" + loc;
+            
+            ProductSummary cachedProduct = localProductCache.get(cacheKey);
+            if (cachedProduct != null) {
+                resultMap.put(productKey, cachedProduct);
+            } else {
+                itemsToFetch.add(item);
+            }
+        }
+
+        if (itemsToFetch.isEmpty()) {
+            return resultMap;
+        }
+
         GetProductSummariesRequest request = GetProductSummariesRequest.newBuilder()
-                .addAllItems(items.stream()
-                        .filter(Objects::nonNull)
-                        .filter(item -> item.productId() != null && !item.productId().isBlank())
+                .addAllItems(itemsToFetch.stream()
                         .map(this::toGrpcItem)
                         .toList())
-                .setLocale(normalizeLocale(locale))
+                .setLocale(loc)
                 .build();
 
         CatalogServiceGrpc.CatalogServiceBlockingStub stub = CatalogServiceGrpc.newBlockingStub(catalogChannel);
         GetProductSummariesResponse response = stub.getProductSummaries(request);
 
-        Map<String, ProductSummary> productMap = new LinkedHashMap<>();
         for (ProductSummary product : response.getProductsList()) {
-            productMap.put(keyOf(product.getId(), product.getSelectedVariantId()), product);
+            String productKey = keyOf(product.getId(), product.getSelectedVariantId());
+            resultMap.put(productKey, product);
+            localProductCache.put(productKey + "::" + loc, product);
         }
-        return productMap;
+        return resultMap;
     }
 
     private GetProductSummaryItem toGrpcItem(ProductLookupItem item) {

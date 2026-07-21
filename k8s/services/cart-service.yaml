@@ -24,6 +24,9 @@ spec:
         ports:
         - containerPort: 8080
         - containerPort: 9090
+        env:
+        - name: JAVA_TOOL_OPTIONS
+          value: "-Xmx512m -Xms256m -Xss512k -XX:+UseG1GC -XX:MaxMetaspaceSize=256m -Dserver.tomcat.threads.max=200"
         envFrom:
         - configMapRef:
             name: shared-env
@@ -36,14 +39,15 @@ spec:
             memory: 256Mi
             cpu: 100m
           limits:
-            memory: 512Mi
-            cpu: 500m
+            memory: 1Gi
+            cpu: 2000m
         readinessProbe:
           httpGet:
             path: /api/v1/actuator/health
             port: 8080
           initialDelaySeconds: 60
           periodSeconds: 10
+          timeoutSeconds: 5
         livenessProbe:
           httpGet:
             path: /api/v1/actuator/health

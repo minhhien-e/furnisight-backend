@@ -37,6 +37,11 @@ public class AccountRepositoryImpl implements AccountRepository {
     }
 
     @Override
+    public Optional<Email> findEmailById(UUID id) {
+        return accountJpaRepository.findEmailById(id);
+    }
+
+    @Override
     public boolean existsAccount(Email email) {
         return accountJpaRepository.existsByEmail(email);
     }
@@ -44,5 +49,11 @@ public class AccountRepositoryImpl implements AccountRepository {
     @Override
     public Optional<Account> findByCredential(String identifier) {
         return accountJpaRepository.findByIdentifier(identifier);
+    }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional
+    public void updateLoginStatus(Account account) {
+        accountJpaRepository.updateLoginStatus(account.getId(), account.getFailedLoginAttempts(), account.getStatus(), account.getLockoutEnd());
     }
 }

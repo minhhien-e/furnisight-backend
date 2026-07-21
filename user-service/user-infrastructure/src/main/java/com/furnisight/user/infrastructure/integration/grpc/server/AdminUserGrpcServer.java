@@ -244,6 +244,27 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     }
 
     @Override
+    public void getAccountEmailById(GetAccountByIdRequest request, StreamObserver<AccountEmailResponse> responseObserver) {
+        try {
+            String emailStr = accountRepository.findEmailById(UUID.fromString(request.getId()))
+                    .map(com.furnisight.user.domain.valueobjects.identity.Email::getValue)
+                    .orElseThrow(() -> new IllegalArgumentException("Account not found"));
+
+            responseObserver.onNext(AccountEmailResponse.newBuilder().setEmail(emailStr).build());
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException e) {
+            responseObserver.onError(io.grpc.Status.INVALID_ARGUMENT
+                    .withDescription(e.getMessage())
+                    .asRuntimeException());
+        } catch (Exception e) {
+            log.error("Error fetching account email: {}", e.getMessage(), e);
+            responseObserver.onError(io.grpc.Status.INTERNAL
+                    .withDescription("Internal server error")
+                    .asRuntimeException());
+        }
+    }
+
+    @Override
     public void banAccount(BanAccountRequest request, StreamObserver<AdminActionResponse> responseObserver) {
             BanAccountCommand command = new BanAccountCommand(
                     UUID.fromString(request.getAdminId()),

@@ -21,6 +21,7 @@ import lombok.RequiredArgsConstructor;
 import net.devh.boot.grpc.server.service.GrpcService;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Comparator;
 import java.util.UUID;
 
@@ -38,10 +39,21 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
     ) {
         try {
             String locale = productTranslationService.normalizeLang(request.getLocale());
-            List<ProductSummary> products = resolveRequestItems(request).stream()
-                    .map(item -> productReadRepository.findProductDetailById(item.productId())
-                            .map(detail -> toProductSummary(localizeDetail(detail, locale), item.selectedVariantId())))
-                    .flatMap(java.util.Optional::stream)
+            List<SummaryRequestItem> requestItems = resolveRequestItems(request);
+            List<UUID> productIds = requestItems.stream()
+                    .map(SummaryRequestItem::productId)
+                    .distinct()
+                    .toList();
+
+            Map<UUID, ProductResponse> productMap = productReadRepository.findProductDetailsByIds(productIds).stream()
+                    .collect(java.util.stream.Collectors.toMap(ProductResponse::getId, detail -> detail));
+
+            List<ProductSummary> products = requestItems.stream()
+                    .filter(item -> productMap.containsKey(item.productId()))
+                    .map(item -> {
+                        ProductResponse detail = productMap.get(item.productId());
+                        return toProductSummary(localizeDetail(detail, locale), item.selectedVariantId());
+                    })
                     .toList();
 
             responseObserver.onNext(
@@ -136,6 +148,49 @@ public class GrpcCatalogService extends CatalogServiceGrpc.CatalogServiceImplBas
                     .withDescription(ex.getMessage())
                     .withCause(ex)
                     .asRuntimeException());
+        }
+    }
+
+    @Override
+    public void checkProductStocks(
+            com.furnisight.catalog.CheckProductStocksRequest request,
+            StreamObserver<com.furnisight.catalog.CheckProductStocksResponse> responseObserver
+    ) {
+        try {
+            List<UUID> variantIds = request.getVariantIdsList().stream()
+                    .map(UUID::fromString)
+                    .toList();
+
+            List<ProductResponse.ProductStockDto> stockDtos = productReadRepository.findStockByVariantIds(variantIds);
+
+            List<com.furnisight.catalog.ProductStock> stocks = stockDtos.stream()
+                    .map(dto -> com.furnisight.catalog.ProductStock.newBuilder()
+                            .setProductId(dto.getProductId().toString())
+                            .setVariantId(dto.getVariantId().toString())
+                            .setStockQuantity(dto.getStockQuantity())
+                            .build())
+                    .toList();
+
+            responseObserver.onNext(
+                    com.furnisight.catalog.CheckProductStocksResponse.newBuilder()
+                            .addAllStocks(stocks)
+                            .build()
+            );
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException ex) {
+            responseObserver.onError(
+                    Status.INVALID_ARGUMENT
+                            .withDescription(ex.getMessage())
+                            .withCause(ex)
+                            .asRuntimeException()
+            );
+        } catch (Exception ex) {
+            responseObserver.onError(
+                    Status.INTERNAL
+                            .withDescription(ex.getMessage())
+                            .withCause(ex)
+                            .asRuntimeException()
+            );
         }
     }
 

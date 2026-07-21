@@ -54,8 +54,6 @@ public class OrderTranslationService {
             return order;
         }
 
-        order.setCustomerNote(translateValue(order.getCustomerNote()));
-
         if (order.getItems() != null) {
             order.getItems().forEach(item -> {
                 OrderResponse.ProductSnapshotResponse snapshot = item.getProductSnapshot();

@@ -10,7 +10,7 @@ dependencies {
     implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
     implementation "net.devh:grpc-server-spring-boot-starter:2.15.0.RELEASE"
 
-    implementation 'com.furnisight:proto-lib:1.0.1784217958952'
+    implementation 'com.furnisight:proto-lib:1.0.1784620518303'
 
     api 'org.springframework.kafka:spring-kafka'
     api 'org.springframework.boot:spring-boot-starter-mail'
