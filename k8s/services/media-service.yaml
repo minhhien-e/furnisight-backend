@@ -23,6 +23,7 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
+            - containerPort: 9090
 
           envFrom:
             - configMapRef:
@@ -56,6 +57,9 @@ spec:
     - name: http
       port: 8080
       targetPort: 8080
+    - name: grpc
+      port: 9090
+      targetPort: 9090
 
   selector:
     app: media-service

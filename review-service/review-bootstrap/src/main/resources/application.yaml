@@ -8,7 +8,7 @@ grpc:
     port: ${GRPC_SERVER_PORT:9097}
   client:
     media-service:
-      address: ${MEDIA_SERVICE_GRPC_ADDRESS:dns:///localhost:9094}
+      address: ${MEDIA_SERVICE_GRPC_ADDRESS:dns:///localhost:9090}
       negotiationType: plaintext
     order-service:
       address: ${ORDER_SERVICE_GRPC_ADDRESS:dns:///localhost:9095}

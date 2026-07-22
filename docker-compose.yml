@@ -330,7 +330,7 @@ services:
       <<: *java-build
     expose:
       - "8080"
-      - "9094"
+      - "9090"
     env_file:
       - ./cart-service/.env
     environment:

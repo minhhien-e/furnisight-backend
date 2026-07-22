@@ -161,11 +161,16 @@ public class MediaService {
      */
     @Transactional
     public void delete(UUID id) {
-        MediaAsset asset = mediaAssetRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException(ErrorCode.MEDIA_NOT_FOUND));
-        deleteFromCloudinary(asset);
-        mediaAssetRepository.delete(asset);
-        log.info("Deleted media id={} publicId={}", id, asset.getCloudinaryPublicId());
+        mediaAssetRepository.findById(id).ifPresent(asset -> {
+            deleteFromCloudinary(asset);
+            try {
+                mediaAssetRepository.delete(asset);
+                mediaAssetRepository.flush();
+            } catch (org.springframework.orm.ObjectOptimisticLockingFailureException | org.hibernate.StaleObjectStateException e) {
+                log.warn("Media asset id={} publicId={} was deleted or modified concurrently", id, asset.getCloudinaryPublicId());
+            }
+        });
+        log.info("Deleted media id={}", id);
     }
 
     private void deleteFromCloudinary(MediaAsset asset) {

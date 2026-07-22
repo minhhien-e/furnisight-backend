@@ -43,4 +43,4 @@ management:
 
 grpc:
   server:
-    port: ${GRPC_SERVER_PORT:9094}
+    port: ${GRPC_SERVER_PORT:9090}

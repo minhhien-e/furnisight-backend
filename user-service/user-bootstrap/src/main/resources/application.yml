@@ -21,7 +21,7 @@ grpc:
       address: ${CATALOG_SERVICE_GRPC_ADDRESS:dns:///localhost:9093}
       negotiationType: plaintext
     media-service:
-      address: ${MEDIA_SERVICE_GRPC_ADDRESS:dns:///localhost:9094}
+      address: ${GRPC_MEDIA_SERVICE_ADDRESS:static://localhost:9090}
       negotiationType: plaintext
 spring:
   application:
