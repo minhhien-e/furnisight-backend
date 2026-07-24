@@ -17,7 +17,7 @@ x-deploy-large: &deploy-large
   resources:
     limits:
       cpus: "2.0"
-      memory: 3G
+      memory: 8G
 
 x-java-env: &java-env
   JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"

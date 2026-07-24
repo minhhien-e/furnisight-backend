@@ -32,10 +32,10 @@ spec:
             name: furnisight-secrets
         resources:
           requests:
-            memory: 1Gi
+            memory: 2Gi
             cpu: 500m
           limits:
-            memory: 4Gi
+            memory: 8Gi
             cpu: 2000m
         readinessProbe:
           httpGet:

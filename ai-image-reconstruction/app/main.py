@@ -174,7 +174,7 @@ def run_inference_from_viewer():
 
 
 @app.post("/predict")
-async def predict(
+def predict(
     request: Request,
     file: UploadFile = File(...),
     image_type: str = Form("360"),
@@ -191,7 +191,7 @@ async def predict(
     image_path = STATIC_DIR / f"{name}_input.png"
 
     try:
-        raw = await file.read()
+        raw = file.file.read()
         with open(image_path, "wb") as f:
             f.write(raw)
     except Exception as exc:
