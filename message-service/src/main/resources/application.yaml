@@ -1,5 +1,4 @@
 spring:
-  
   application:
     name: message-service
   jackson:
@@ -27,7 +26,6 @@ spring:
     locations: classpath:db/migration
 
   kafka:
-    
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:kafka:29092}
 
     producer:
@@ -44,8 +42,6 @@ spring:
 
   jpa:
     hibernate:
-      naming:
-        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
       ddl-auto: validate
     properties:
       hibernate:
@@ -53,8 +49,6 @@ spring:
         jdbc:
           time_zone: Asia/Ho_Chi_Minh
     show-sql: true
-
-
 
 server:
   forward-headers-strategy: framework
@@ -70,10 +64,10 @@ management:
   endpoints:
     web:
       exposure:
-        include: "*" 
+        include: "*"
   endpoint:
     health:
-      show-details: always 
+      show-details: always
 
 grpc:
   server:

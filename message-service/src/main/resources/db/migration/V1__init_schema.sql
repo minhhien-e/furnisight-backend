@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS conversations (
     CONSTRAINT chk_conversations_priority CHECK (priority IN ('LOW', 'MEDIUM', 'HIGH', 'URGENT'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_conversations_buyer_id         ON conversations (buyer_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_conversations_buyer_id         ON conversations (buyer_id) WHERE buyer_id IS NOT NULL;
 CREATE INDEX IF NOT EXISTS idx_conversations_assigned_admin   ON conversations (assigned_admin_id);
 CREATE INDEX IF NOT EXISTS idx_conversations_status           ON conversations (status);
 CREATE INDEX IF NOT EXISTS idx_conversations_last_message_at  ON conversations (last_message_at DESC);
