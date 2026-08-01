@@ -268,6 +268,8 @@ message RoomTypeDto {
     bool visible = 5;
     string created_at = 6;
     string updated_at = 7;
+    string image_url = 8;
+    string media_id = 9;
 }
 
 message CreateRoomTypeRequest {
@@ -275,6 +277,8 @@ message CreateRoomTypeRequest {
     string slug = 2;
     string description = 3;
     bool visible = 4;
+    string image_url = 5;
+    string media_id = 6;
 }
 
 message UpdateRoomTypeRequest {
@@ -283,6 +287,8 @@ message UpdateRoomTypeRequest {
     string slug = 3;
     string description = 4;
     bool visible = 5;
+    string image_url = 6;
+    string media_id = 7;
 }
 
 message DeleteRoomTypeRequest {
