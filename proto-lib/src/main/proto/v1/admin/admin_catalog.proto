@@ -24,6 +24,11 @@ service AdminCatalogService {
     rpc CreateCategory (CreateCategoryRequest) returns (AdminActionResponse);
     rpc UpdateCategory (UpdateCategoryRequest) returns (AdminActionResponse);
     rpc DeleteCategory (DeleteCategoryRequest) returns (AdminActionResponse);
+    rpc GetAdminRoomTypes (GetAdminRoomTypesRequest) returns (RoomTypeListResponse);
+    rpc GetRoomTypeDetail (GetRoomTypeDetailRequest) returns (RoomTypeDto);
+    rpc CreateRoomType (CreateRoomTypeRequest) returns (AdminActionResponse);
+    rpc UpdateRoomType (UpdateRoomTypeRequest) returns (AdminActionResponse);
+    rpc DeleteRoomType (DeleteRoomTypeRequest) returns (AdminActionResponse);
 }
 
 message AdminActionResponse {
@@ -244,5 +249,46 @@ message DeleteCategoryRequest {
 }
 
 message GetCategoryDetailRequest {
+    string id = 1;
+}
+
+message GetAdminRoomTypesRequest {
+    string query = 1;
+}
+
+message RoomTypeListResponse {
+    repeated RoomTypeDto room_types = 1;
+}
+
+message RoomTypeDto {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+    string description = 4;
+    bool visible = 5;
+    string created_at = 6;
+    string updated_at = 7;
+}
+
+message CreateRoomTypeRequest {
+    string name = 1;
+    string slug = 2;
+    string description = 3;
+    bool visible = 4;
+}
+
+message UpdateRoomTypeRequest {
+    string id = 1;
+    string name = 2;
+    string slug = 3;
+    string description = 4;
+    bool visible = 5;
+}
+
+message DeleteRoomTypeRequest {
+    string id = 1;
+}
+
+message GetRoomTypeDetailRequest {
     string id = 1;
 }
