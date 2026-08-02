@@ -89,6 +89,8 @@ message ProductVariantDto {
     bool supports3d = 15;
     string model_url = 16;
     repeated string image_urls = 17;
+    repeated string features = 18;
+    string specifications = 19;
 }
 
 message ProductStatsResponse {
@@ -174,6 +176,8 @@ message ProductVariantInput {
     bool supports3d = 14;
     string model_url = 15;
     repeated string image_urls = 16;
+    repeated string features = 17;
+    string specifications = 18;
 }
 
 message StockInVariantRequest {
