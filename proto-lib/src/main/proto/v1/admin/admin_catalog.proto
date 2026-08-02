@@ -220,6 +220,7 @@ message CategoryDto {
     string description = 9;
     string image_url = 10;
     string parent_id = 11;
+    string room_type_id = 12;
 }
 
 message CategoryStatsResponse {
@@ -235,6 +236,7 @@ message CreateCategoryRequest {
     bool visible = 5;
     string description = 6;
     string image_url = 7;
+    string room_type_id = 8;
 }
 
 message UpdateCategoryRequest {
@@ -246,6 +248,7 @@ message UpdateCategoryRequest {
     bool visible = 6;
     string description = 7;
     string image_url = 8;
+    string room_type_id = 9;
 }
 
 message DeleteCategoryRequest {
