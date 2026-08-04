@@ -24,14 +24,18 @@ public class OrderItemValidationService {
         if (commandItems == null || commandItems.isEmpty()) {
             throw new ValidationException(ErrorCode.ORDER_ITEM_EMPTY);
         }
-        commandItems.forEach(this::validateItem);
-        validateStock(commandItems);
+        List<CatalogStockPort.LookupItem> lookupItems = commandItems.stream()
+                .map(item -> new CatalogStockPort.LookupItem(item.getProductId(), item.getVariantId()))
+                .toList();
+        Map<String, CatalogStockPort.ProductItem> productItems = catalogStockPort.getProductItems(lookupItems, "vi");
+        
+        commandItems.forEach(item -> validateItem(item, productItems));
 
         List<OrderItemParam> items = commandItems.stream()
-                .map(this::toOrderItemParam)
+                .map(item -> toOrderItemParam(item, productItems))
                 .toList();
         List<ValidateComboRequest.Item> comboItems = commandItems.stream()
-                .map(this::toComboItem)
+                .map(item -> toComboItem(item, productItems))
                 .toList();
 
         return OrderItemValidationResult.builder()
@@ -41,58 +45,68 @@ public class OrderItemValidationService {
                 .build();
     }
 
-    private OrderItemParam toOrderItemParam(CreateOrderCommand.OrderItemCommand item) {
-        validateItem(item);
+    private OrderItemParam toOrderItemParam(CreateOrderCommand.OrderItemCommand item, Map<String, CatalogStockPort.ProductItem> productItems) {
+        CatalogStockPort.ProductItem product = productItems.get(stockKey(item.getProductId(), item.getVariantId()));
+        
+        com.furnisight.order.domain.valueobjects.ProductDimensions dimensions = null;
+        if (product.weight() != null || product.length() != null || product.width() != null || product.height() != null) {
+            dimensions = com.furnisight.order.domain.valueobjects.ProductDimensions.builder()
+                    .weight(product.weight())
+                    .length(product.length())
+                    .width(product.width())
+                    .height(product.height())
+                    .build();
+        }
+
         return OrderItemParam.builder()
-                .productId(item.getProductId())
-                .variantId(item.getVariantId())
-                .slug(item.getSlug())
+                .productId(product.productId())
+                .variantId(product.variantId())
+                .slug(product.slug())
                 .categoryName(item.getCategoryName())
-                .productName(item.getProductName())
-                .price(item.getPrice())
+                .productName(product.productName())
+                .price(product.price())
                 .quantity(item.getQuantity())
-                .imageUrl(item.getImageUrl())
+                .imageUrl(product.imageUrl())
+                .color(product.color())
+                .material(product.material())
+                .warranty(product.warranty())
+                .dimensions(dimensions)
                 .build();
     }
 
-    private ValidateComboRequest.Item toComboItem(CreateOrderCommand.OrderItemCommand item) {
-        validateItem(item);
+    private ValidateComboRequest.Item toComboItem(CreateOrderCommand.OrderItemCommand item, Map<String, CatalogStockPort.ProductItem> productItems) {
+        CatalogStockPort.ProductItem product = productItems.get(stockKey(item.getProductId(), item.getVariantId()));
         return ValidateComboRequest.Item.builder()
-                .productId(item.getProductId())
-                .variantId(item.getVariantId())
+                .productId(product.productId())
+                .variantId(product.variantId())
                 .quantity(item.getQuantity())
-                .price(item.getPrice())
+                .price(product.price())
                 .build();
-    }
-
-    private void validateItem(CreateOrderCommand.OrderItemCommand item) {
-        if (item == null || isBlank(item.getProductId()) || isBlank(item.getVariantId())) {
-            throw new ValidationException(ErrorCode.INVALID_PRODUCT_INFO);
-        }
-        if (item.getQuantity() == null || item.getQuantity() <= 0) {
-            throw new ValidationException(ErrorCode.INVALID_QUANTITY);
-        }
-        if (item.getPrice() == null || item.getPrice() <= 0.0) {
-            throw new ValidationException(ErrorCode.NEGATIVE_PRICE);
-        }
     }
 
     private boolean isBlank(String value) {
         return value == null || value.isBlank();
     }
 
-    private void validateStock(List<CreateOrderCommand.OrderItemCommand> commandItems) {
-        List<CatalogStockPort.LookupItem> lookupItems = commandItems.stream()
-                .map(item -> new CatalogStockPort.LookupItem(item.getProductId(), item.getVariantId()))
-                .toList();
-        Map<String, CatalogStockPort.StockItem> stockItems = catalogStockPort.getStockItems(lookupItems);
-
-        for (CreateOrderCommand.OrderItemCommand item : commandItems) {
-            CatalogStockPort.StockItem stockItem = stockItems.get(stockKey(item.getProductId(), item.getVariantId()));
-            Integer stockQuantity = stockItem != null ? stockItem.stockQuantity() : null;
-            if (stockQuantity == null || item.getQuantity() > stockQuantity) {
-                throw new ValidationException(ErrorCode.INSUFFICIENT_STOCK);
-            }
+    private void validateItem(CreateOrderCommand.OrderItemCommand item, Map<String, CatalogStockPort.ProductItem> productItems) {
+        if (item == null || isBlank(item.getProductId()) || isBlank(item.getVariantId())) {
+            throw new ValidationException(ErrorCode.INVALID_PRODUCT_INFO);
+        }
+        if (item.getQuantity() == null || item.getQuantity() <= 0) {
+            throw new ValidationException(ErrorCode.INVALID_QUANTITY);
+        }
+        
+        CatalogStockPort.ProductItem product = productItems.get(stockKey(item.getProductId(), item.getVariantId()));
+        if (product == null) {
+            throw new ValidationException(ErrorCode.INVALID_PRODUCT_INFO);
+        }
+        
+        if (product.price() == null || product.price() <= 0.0) {
+            throw new ValidationException(ErrorCode.NEGATIVE_PRICE);
+        }
+        
+        if (product.stockQuantity() == null || item.getQuantity() > product.stockQuantity()) {
+            throw new ValidationException(ErrorCode.INSUFFICIENT_STOCK);
         }
     }
 

@@ -90,7 +90,8 @@ public class ProductService {
                 variant.getModelMediaId(),
                 variant.getModelUrl(),
                 variant.getSupports3D(),
-                variant.getImageUrlsList());
+                variant.getImageUrlsList(),
+                variant.getSpecifications());
     }
 
     private List<ProductVariantInput> toVariantInputs(List<UpsertProductVariantRequest> variants) {
@@ -118,6 +119,7 @@ public class ProductService {
                 .setModelUrl(value(variant.modelUrl()))
                 .setSupports3D(variant.supports3d())
                 .addAllImageUrls(cleanList(variant.imageUrls()))
+                .setSpecifications(value(variant.specifications()))
                 .build();
     }
 

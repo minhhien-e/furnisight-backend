@@ -20,7 +20,7 @@ public class UpdateCategoryService implements UpdateCategoryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"categories_root", "categories_sub", "categories_all", "category_detail"}, allEntries = true)
+    @CacheEvict(value = {"categories", "category_detail"}, allEntries = true)
     public void execute(UpdateCategoryCommand command) {
         Category category = categoryRepository.findById(command.getCategoryId())
                 .orElseThrow(() -> new NotFoundException(ErrorCode.CATEGORY_NOT_FOUND));
@@ -28,7 +28,7 @@ public class UpdateCategoryService implements UpdateCategoryUseCase {
         CategoryName name = new CategoryName(command.getName());
         CategorySlug slug = new CategorySlug(command.getSlug());
 
-        category.update(name, slug, command.getParentId());
+        category.update(name, slug, command.getParentId(), command.getRoomTypeId());
         category.setIconUrl(command.getIconId());
         category.setVisible(command.getVisible() == null || command.getVisible());
         category.setDescription(command.getDescription());

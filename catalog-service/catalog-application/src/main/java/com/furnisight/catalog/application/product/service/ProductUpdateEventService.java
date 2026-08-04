@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.catalog.domain.entities.OutboxMessage;
 import com.furnisight.catalog.domain.entities.Product;
-import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.repository.OutboxMessageRepository;
@@ -42,7 +41,7 @@ public class ProductUpdateEventService {
                 product.getId().toString(),
                 product.getName() == null ? null : product.getName().getValue(),
                 product.getSlug() == null ? null : product.getSlug().getValue(),
-                firstImage(product),
+                product.getImageUrl(),
                 product.getProductStatus() == null ? null : product.getProductStatus().name(),
                 product.getVariants() == null ? List.of() : product.getVariants().stream()
                         .map(this::toVariantPayload)
@@ -50,28 +49,16 @@ public class ProductUpdateEventService {
         );
     }
 
-    private String firstImage(Product product) {
-        if (product.getGallery() == null || product.getGallery().isEmpty()) {
-            return null;
-        }
-        return product.getGallery().stream()
-                .sorted(Comparator.comparing(ProductImage::getPosition, Comparator.nullsLast(Integer::compareTo)))
-                .map(ProductImage::getImageUrl)
-                .filter(imageUrl -> imageUrl != null && !imageUrl.isBlank())
-                .findFirst()
-                .orElse(null);
-    }
-
     private ProductUpdatedVariantPayload toVariantPayload(ProductVariant variant) {
         return new ProductUpdatedVariantPayload(
                 variant.getId() == null ? null : variant.getId().toString(),
                 toDouble(variant.getPrice() == null ? null : variant.getPrice().getValue()),
                 variant.getStockQuantity() == null ? null : variant.getStockQuantity().getValue(),
-                variant.getDimensions() == null ? null : variant.getDimensions().getLength(),
-                variant.getDimensions() == null ? null : variant.getDimensions().getWidth(),
-                variant.getDimensions() == null ? null : variant.getDimensions().getHeight(),
-                variant.getDimensions() == null ? null : variant.getDimensions().getWeight(),
-                variant.getColor(),
+                variant.getEffectiveDimensions() == null ? null : variant.getEffectiveDimensions().getLength(),
+                variant.getEffectiveDimensions() == null ? null : variant.getEffectiveDimensions().getWidth(),
+                variant.getEffectiveDimensions() == null ? null : variant.getEffectiveDimensions().getHeight(),
+                variant.getEffectiveDimensions() == null ? null : variant.getEffectiveDimensions().getWeight(),
+                variant.getEffectiveColor(),
                 variant.getMaterial(),
                 variant.getWarranty(),
                 variant.getModelUrl(),

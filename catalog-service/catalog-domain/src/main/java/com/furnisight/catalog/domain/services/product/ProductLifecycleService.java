@@ -6,7 +6,6 @@ import java.util.UUID;
 import org.springframework.stereotype.Service;
 
 import com.furnisight.catalog.domain.entities.Product;
-import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.exceptions.AlreadyExistsException;
@@ -38,7 +37,10 @@ public class ProductLifecycleService {
             String sku,
             String descriptionValue,
             List<String> features,
-            List<String> imageUrls,
+            String imageUrl,
+            UUID imageMediaId,
+            String color,
+            ProductDimensions dimensions,
             List<ProductVariant> variants) {
 
         ProductName name = new ProductName(nameValue);
@@ -49,20 +51,6 @@ public class ProductLifecycleService {
             throw new AlreadyExistsException(ErrorCode.DUPLICATE_PRODUCT_NAME);
         }
 
-        List<ProductImage> gallery = new ArrayList<>();
-        if (imageUrls != null) {
-            for (String imageUrl : imageUrls) {
-                if (imageUrl == null || imageUrl.isBlank()) {
-                    continue;
-                }
-                gallery.add(ProductImage.builder()
-                        .id(UUID.randomUUID())
-                        .imageUrl(imageUrl.trim())
-                        .position(gallery.size())
-                        .build());
-            }
-        }
-
         Product product = Product.create(
                 categoryId,
                 name,
@@ -70,7 +58,10 @@ public class ProductLifecycleService {
                 sku,
                 description,
                 features,
-                gallery,
+                imageUrl,
+                imageMediaId,
+                color,
+                dimensions,
                 variants);
 
         return product;
@@ -102,18 +93,6 @@ public class ProductLifecycleService {
      */
     public void changeCategory(Product product, UUID categoryId) {
         product.changeCategory(categoryId);
-    }
-
-    public void addImage(Product product, ProductImage image) {
-        product.addImage(image);
-    }
-
-    public void moveImage(Product product, ProductImage image, int newPosition) {
-        product.moveImage(image, newPosition);
-    }
-
-    public void removeImage(Product product, UUID imageId) {
-        product.removeImage(imageId);
     }
 
     public void addVariant(Product product, ProductVariant variant) {
@@ -172,6 +151,23 @@ public class ProductLifecycleService {
             String modelUrl,
             Boolean supports3d,
             List<String> imageUrls) {
+        return createVariant(sku, lowStockThreshold, price, stockQuantity, dimensions, material, warranty, color, modelMediaId, modelUrl, supports3d, imageUrls, null);
+    }
+
+    public ProductVariant createVariant(
+            String sku,
+            Integer lowStockThreshold,
+            Price price,
+            StockQuantity stockQuantity,
+            ProductDimensions dimensions,
+            String material,
+            String warranty,
+            String color,
+            UUID modelMediaId,
+            String modelUrl,
+            Boolean supports3d,
+            List<String> imageUrls,
+            com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications specifications) {
 
         String formattedSku = sku == null ? "" : sku.trim().toUpperCase(Locale.ROOT);
         if (formattedSku.isBlank()) {
@@ -205,6 +201,7 @@ public class ProductLifecycleService {
                 .price(price)
                 .stockQuantity(stockQuantity)
                 .dimensions(dimensions)
+                .specifications(specifications)
                 .material(material)
                 .warranty(warranty)
                 .color(color)

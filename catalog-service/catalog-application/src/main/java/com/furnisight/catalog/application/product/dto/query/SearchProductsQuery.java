@@ -17,6 +17,7 @@ public class SearchProductsQuery implements Serializable {
     private String lang;
     private String q;
     private String category;
+    private String roomType;
     private String sort;
     private List<String> priceBands;
     private List<Double> priceSliderPct;

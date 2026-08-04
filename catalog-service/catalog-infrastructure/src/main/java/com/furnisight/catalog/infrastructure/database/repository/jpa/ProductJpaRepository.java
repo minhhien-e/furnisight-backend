@@ -18,4 +18,7 @@ public interface ProductJpaRepository extends JpaRepository<Product, UUID> {
     @Modifying
     @Query("update ProductVariant variant set variant.lowStockThreshold = :threshold where variant.id = :variantId")
     int updateVariantLowStockThreshold(@Param("variantId") UUID variantId, @Param("threshold") int threshold);
+
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.categoryId IN (SELECT c.id FROM Category c WHERE c.roomTypeId = :roomTypeId)")
+    int countByRoomTypeId(@Param("roomTypeId") UUID roomTypeId);
 }

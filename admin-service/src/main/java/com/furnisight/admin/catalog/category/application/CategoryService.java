@@ -33,6 +33,7 @@ public class CategoryService {
                 .setVisible(request.visible())
                 .setDescription(value(request.description()))
                 .setImageUrl(value(request.imageUrl()))
+                .setRoomTypeId(value(request.roomTypeId()))
                 .build()));
     }
 
@@ -45,6 +46,7 @@ public class CategoryService {
                 .setVisible(request.visible())
                 .setDescription(value(request.description()))
                 .setImageUrl(value(request.imageUrl()))
+                .setRoomTypeId(value(request.roomTypeId()))
                 .build()));
     }
 
@@ -56,7 +58,8 @@ public class CategoryService {
         return new CategoryResponse(
                 category.getId(), category.getName(), category.getSlug(), category.getProductCount(),
                 category.getVisible(), category.getVisibleLabel(), category.getCreatedAt(),
-                category.getIconId(), category.getDescription(), category.getImageUrl());
+                category.getIconId(), category.getDescription(), category.getImageUrl(),
+                category.getRoomTypeId());
     }
 
     private ActionResultResponse toActionResult(com.furnisight.admin.catalog.AdminActionResponse response) {

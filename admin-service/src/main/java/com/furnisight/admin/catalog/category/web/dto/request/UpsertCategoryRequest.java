@@ -6,6 +6,7 @@ public record UpsertCategoryRequest(
         String iconId,
         boolean visible,
         String description,
-        String imageUrl
+        String imageUrl,
+        String roomTypeId
 ) {
 }

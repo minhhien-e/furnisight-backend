@@ -1,5 +1,6 @@
 package com.furnisight.catalog.application.product.dto.command;
 
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -29,4 +30,5 @@ public class AddProductVariantCommand {
     private String modelUrl;
     private Boolean supports3d;
     private List<String> imageUrls;
+    private VariantSpecifications specifications;
 }

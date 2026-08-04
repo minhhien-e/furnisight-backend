@@ -6,6 +6,8 @@ import com.furnisight.catalog.application.common.dto.PageResponse;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.dto.query.SearchProductsQuery;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
+import com.furnisight.catalog.infrastructure.integration.remote.RemoteMediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -23,8 +25,33 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     private static final TypeReference<List<String>> STRING_LIST_TYPE = new TypeReference<>() {
     };
 
+    private VariantSpecifications parseSpecifications(Object rawJson) {
+        if (rawJson == null) return null;
+        String json = rawJson.toString();
+        if (json.isBlank()) return null;
+        try {
+            return objectMapper.readValue(json, VariantSpecifications.class);
+        } catch (Exception e) {
+            log.warn("Failed to parse variant specifications JSON", e);
+            return null;
+        }
+    }
+
+    private List<String> parseFeatures(Object rawJson) {
+        if (rawJson == null) return List.of();
+        String json = rawJson.toString();
+        if (json.isBlank()) return List.of();
+        try {
+            return objectMapper.readValue(json, new com.fasterxml.jackson.core.type.TypeReference<List<String>>() {});
+        } catch (Exception e) {
+            log.warn("Failed to parse variant features JSON", e);
+            return List.of();
+        }
+    }
+
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final RemoteMediaUrlResolver mediaUrlResolver;
 
     @Override
     public Optional<ProductResponse> findProductDetailBySlug(String slug) {
@@ -210,6 +237,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         appendSearchFilter(whereClause, params, queryParam);
         appendStatusFilter(whereClause, params, queryParam);
         appendCategoryFilter(whereClause, params, queryParam);
+        appendRoomTypeFilter(whereClause, params, queryParam);
         appendVariantFilters(whereClause, params, queryParam);
         appendRatingFilters(whereClause, params, queryParam);
 
@@ -224,7 +252,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
         String mainSql = """
                 WITH paged_products AS (
-                    SELECT p.id, p.name, p.slug, p.sold_count, p.rating, p.rating_count, p.created_at, p.category_id
+                    SELECT p.id, p.name, p.slug, p.sold_count, p.rating, p.rating_count, p.created_at, p.category_id, p.image_url, p.image_media_id
                     """ + (queryParam.getSort() != null && queryParam.getSort().toLowerCase().contains("price") 
                            ? ", (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price " 
                            : "") + """
@@ -241,13 +269,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     COALESCE(v3d.supports_3d, false) AS supports_3d,
                     c.name AS category_name,
                     (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = pp.id) AS product_price,
-                    (
-                        SELECT pi.image_url
-                        FROM product_images pi
-                        WHERE pi.product_id = pp.id
-                        ORDER BY pi.position ASC
-                        LIMIT 1
-                    ) AS product_image,
+                    pp.image_url AS product_image_url,
+                    pp.image_media_id AS product_media_id,
                     pp.rating AS product_rating,
                     pp.rating_count AS product_rating_count,
                     pp.created_at
@@ -304,13 +327,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     cheapest_variant.supports_3d,
                     p.sold_count,
                     p.features AS product_features,
-                    (
-                        SELECT pi.image_url
-                        FROM product_images pi
-                        WHERE pi.product_id = p.id
-                        ORDER BY pi.position ASC
-                        LIMIT 1
-                    ) AS product_image,
+                    p.image_url AS product_image_url,
+                    p.image_media_id AS product_media_id,
                     p.rating AS product_rating,
                     p.rating_count AS product_rating_count
                 FROM products p
@@ -372,13 +390,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     v3d.model_url,
                     COALESCE(v3d.supports_3d, false) AS supports_3d,
                     (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price,
-                    (
-                        SELECT pi.image_url
-                        FROM product_images pi
-                        WHERE pi.product_id = p.id
-                        ORDER BY pi.position ASC
-                        LIMIT 1
-                    ) AS product_image,
+                    p.image_url AS product_image_url,
+                    p.image_media_id AS product_media_id,
                     p.rating AS product_rating,
                     p.rating_count AS product_rating_count
                 FROM products p
@@ -526,6 +539,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 AND (
                     LOWER(p.name) LIKE :q
                     OR LOWER(p.description) LIKE :q
+                    OR LOWER(p.sku) LIKE :q
+                    OR p.id IN (
+                        SELECT pv.product_id FROM product_variants pv
+                        WHERE LOWER(pv.sku) LIKE :q
+                    )
                 )
                 """);
 
@@ -535,7 +553,17 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     private String buildAdminProductWhereClause(String query, String status, String category, Map<String, Object> params) {
         StringBuilder whereClause = new StringBuilder(" WHERE 1 = 1 ");
         if (query != null && !query.isBlank()) {
-            whereClause.append(" AND (LOWER(p.name) LIKE :adminQuery OR LOWER(p.slug) LIKE :adminQuery) ");
+            whereClause.append("""
+                     AND (
+                         LOWER(p.name) LIKE :adminQuery 
+                         OR LOWER(p.slug) LIKE :adminQuery
+                         OR LOWER(p.sku) LIKE :adminQuery
+                         OR p.id IN (
+                             SELECT pv.product_id FROM product_variants pv
+                             WHERE LOWER(pv.sku) LIKE :adminQuery
+                         )
+                     ) 
+                    """);
             params.put("adminQuery", "%" + query.trim().toLowerCase() + "%");
         }
         if (status != null && !status.isBlank()) {
@@ -573,56 +601,95 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         params.put("status", status);
     }
 
-    private void appendCategoryFilter(StringBuilder whereClause, Map<String, Object> params,
+    private void appendRoomTypeFilter(StringBuilder whereClause, Map<String, Object> params,
             SearchProductsQuery query) {
-        if (query.getCategory() == null || query.getCategory().isBlank()) {
+        if (query.getRoomType() == null || query.getRoomType().isBlank() || "all".equalsIgnoreCase(query.getRoomType().trim())) {
             return;
         }
 
-        UUID categoryId = resolveCategoryId(query.getCategory());
+        String roomType = query.getRoomType().trim().toLowerCase();
 
-        if (categoryId == null) {
+        String sql = """
+                SELECT c.id FROM categories c
+                JOIN room_types rt ON c.room_type_id = rt.id
+                WHERE LOWER(rt.slug) = :roomType OR CAST(rt.id AS text) = :roomType
+                """;
+        List<UUID> categoryIds = jdbcTemplate.query(
+                sql,
+                Map.of("roomType", roomType),
+                (rs, rowNum) -> (UUID) rs.getObject("id"));
+
+        if (categoryIds == null || categoryIds.isEmpty()) {
             whereClause.append(" AND 1 = 0 ");
             return;
         }
 
-        // Include the category itself AND all its child categories
+        whereClause.append(" AND p.category_id IN (:roomTypeCatIds) ");
+        params.put("roomTypeCatIds", categoryIds);
+    }
+
+    private void appendCategoryFilter(StringBuilder whereClause, Map<String, Object> params,
+            SearchProductsQuery query) {
+        if (query.getCategory() == null || query.getCategory().isBlank() || "all".equalsIgnoreCase(query.getCategory().trim())) {
+            return;
+        }
+
+        List<UUID> categoryIds = resolveCategoryIds(query.getCategory());
+
+        if (categoryIds == null || categoryIds.isEmpty()) {
+            whereClause.append(" AND 1 = 0 ");
+            return;
+        }
+
+        whereClause.append(" AND p.category_id IN (:categoryIds) ");
+        params.put("categoryIds", categoryIds);
+    }
+
+    private List<UUID> resolveCategoryIds(String rawCategory) {
+        String category = rawCategory.trim();
+
+        // 1. Try RoomType slug or RoomType UUID matching
+        String roomTypeSql = """
+                SELECT c.id FROM categories c
+                JOIN room_types rt ON c.room_type_id = rt.id
+                WHERE LOWER(rt.slug) = :category OR CAST(rt.id AS text) = :category
+                """;
+        List<UUID> roomTypeCatIds = jdbcTemplate.query(
+                roomTypeSql,
+                Map.of("category", category.toLowerCase()),
+                (rs, rowNum) -> (UUID) rs.getObject("id"));
+
+        if (!roomTypeCatIds.isEmpty()) {
+            return roomTypeCatIds;
+        }
+
+        // 2. Try Category slug or Category UUID matching
+        UUID categoryId = null;
+        try {
+            categoryId = UUID.fromString(category);
+        } catch (IllegalArgumentException ignored) {
+            String sql = "SELECT id FROM categories WHERE LOWER(slug) = :slug LIMIT 1";
+            List<UUID> ids = jdbcTemplate.query(sql, Map.of("slug", category.toLowerCase()), (rs, rowNum) -> (UUID) rs.getObject("id"));
+            if (!ids.isEmpty()) {
+                categoryId = ids.get(0);
+            }
+        }
+
+        if (categoryId == null) {
+            return List.of();
+        }
+
         List<UUID> categoryIds = new ArrayList<>();
         categoryIds.add(categoryId);
 
-        String childSql = """
-                SELECT id FROM categories WHERE parent_id = :parentId
-                """;
+        String childSql = "SELECT id FROM categories WHERE parent_id = :parentId";
         List<UUID> childIds = jdbcTemplate.query(
                 childSql,
                 Map.of("parentId", categoryId),
                 (rs, rowNum) -> (UUID) rs.getObject("id"));
         categoryIds.addAll(childIds);
 
-        whereClause.append(" AND p.category_id IN (:categoryIds) ");
-        params.put("categoryIds", categoryIds);
-    }
-
-    private UUID resolveCategoryId(String rawCategory) {
-        String category = rawCategory.trim();
-
-        try {
-            return UUID.fromString(category);
-        } catch (IllegalArgumentException ignored) {
-            String sql = """
-                    SELECT id
-                    FROM categories
-                    WHERE LOWER(slug) = :slug
-                    LIMIT 1
-                    """;
-
-            List<UUID> ids = jdbcTemplate.query(
-                    sql,
-                    Map.of("slug", category.toLowerCase()),
-                    (rs, rowNum) -> (UUID) rs.getObject("id"));
-
-            return ids.isEmpty() ? null : ids.get(0);
-        }
+        return categoryIds;
     }
 
     private void appendVariantFilters(StringBuilder whereClause, Map<String, Object> params,
@@ -757,7 +824,12 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
             price = 0.0;
         }
 
-        String imageUrl = normalizeText(rs.getString("product_image"), null);
+        String imageUrl = normalizeText(rs.getString("product_image_url"), null);
+        UUID mediaId = rs.getObject("product_media_id", UUID.class);
+        if (imageUrl == null && mediaId != null) {
+            imageUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+        }
+
         Boolean supports3d = rs.getBoolean("supports_3d");
 
         return ProductResponse.builder()
@@ -823,25 +895,28 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
         String sql = """
                 SELECT
-                    id,
-                    product_id,
-                    price,
-                    stock_quantity,
-                    weight,
-                    length,
-                    width,
-                    height,
-                    color,
-                    material,
-                    warranty,
-                    sku,
-                    low_stock_threshold,
-                    supports_3d,
-                    model_media_id,
-                    model_url
-                FROM product_variants
-                WHERE product_id IN (:productIds)
-                ORDER BY product_id, price ASC
+                    pv.id,
+                    pv.product_id,
+                    COALESCE(pv.price, p.base_price) AS price,
+                    pv.stock_quantity,
+                    pv.weight,
+                    pv.length,
+                    pv.width,
+                    pv.height,
+                    pv.color,
+                    pv.material,
+                    pv.warranty,
+                    pv.sku,
+                    pv.low_stock_threshold,
+                    pv.supports_3d,
+                    pv.model_media_id,
+                    pv.model_url,
+                    COALESCE(pv.specifications, p.specifications) AS specifications,
+                    p.features AS features
+                FROM product_variants pv
+                JOIN products p ON pv.product_id = p.id
+                WHERE pv.product_id IN (:productIds)
+                ORDER BY pv.product_id, price ASC NULLS LAST
                 """;
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIds", productIds));
@@ -871,6 +946,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     .supports3d(row.get("supports_3d") != null && (Boolean) row.get("supports_3d"))
                     .modelMediaId((UUID) row.get("model_media_id"))
                     .modelUrl(normalizeText((String) row.get("model_url"), ""))
+                    .specifications(parseSpecifications(row.get("specifications")))
+                    .features(parseFeatures(row.get("features")))
                     .imageUrls(new ArrayList<>())
                     .build();
 
@@ -892,7 +969,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         if (variantIds == null || variantIds.isEmpty()) return Collections.emptyMap();
 
         String sql = """
-                SELECT variant_id, image_url
+                SELECT variant_id, image_url, media_id
                 FROM product_variant_images
                 WHERE variant_id IN (:variantIds)
                 ORDER BY variant_id, position ASC
@@ -904,7 +981,13 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         for (Map<String, Object> row : rows) {
             UUID variantId = (UUID) row.get("variant_id");
             String imageUrl = (String) row.get("image_url");
-            result.computeIfAbsent(variantId, k -> new ArrayList<>()).add(imageUrl);
+            UUID mediaId = (UUID) row.get("media_id");
+            if (imageUrl == null && mediaId != null) {
+                imageUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+            }
+            if (imageUrl != null) {
+                result.computeIfAbsent(variantId, k -> new ArrayList<>()).add(imageUrl);
+            }
         }
 
         return result;
@@ -913,24 +996,27 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     private List<ProductResponse.VariantDto> fetchVariants(UUID productId) {
         String sql = """
                 SELECT
-                    id,
-                    price,
-                    stock_quantity,
-                    weight,
-                    length,
-                    width,
-                    height,
-                    color,
-                    material,
-                    warranty,
-                    sku,
-                    low_stock_threshold,
-                    supports_3d,
-                    model_media_id,
-                    model_url
-                FROM product_variants
-                WHERE product_id = :productId
-                ORDER BY price ASC
+                    pv.id,
+                    COALESCE(pv.price, p.base_price) AS price,
+                    pv.stock_quantity,
+                    pv.weight,
+                    pv.length,
+                    pv.width,
+                    pv.height,
+                    pv.color,
+                    pv.material,
+                    pv.warranty,
+                    pv.sku,
+                    pv.low_stock_threshold,
+                    pv.supports_3d,
+                    pv.model_media_id,
+                    pv.model_url,
+                    COALESCE(pv.specifications, p.specifications) AS specifications,
+                    p.features AS features
+                FROM product_variants pv
+                JOIN products p ON pv.product_id = p.id
+                WHERE pv.product_id = :productId
+                ORDER BY price ASC NULLS LAST
                 """;
 
         return jdbcTemplate.query(
@@ -952,32 +1038,41 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .supports3d(rs.getBoolean("supports_3d"))
                         .modelMediaId((UUID) rs.getObject("model_media_id"))
                         .modelUrl(normalizeText(rs.getString("model_url"), ""))
+                        .specifications(parseSpecifications(rs.getObject("specifications")))
+                        .features(parseFeatures(rs.getObject("features")))
                         .imageUrls(fetchVariantImages((UUID) rs.getObject("id")))
                         .build());
     }
 
     private List<String> fetchVariantImages(UUID variantId) {
         String sql = """
-                SELECT image_url
+                SELECT image_url, media_id
                 FROM product_variant_images
                 WHERE variant_id = :variantId
                 ORDER BY position ASC
                 """;
 
-        return jdbcTemplate.query(
+        List<String> results = jdbcTemplate.query(
                 sql,
                 Map.of("variantId", variantId),
-                (rs, rowNum) -> rs.getString("image_url"));
+                (rs, rowNum) -> {
+                    String img = rs.getString("image_url");
+                    UUID mediaId = rs.getObject("media_id", UUID.class);
+                    if (img == null && mediaId != null) {
+                        img = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+                    }
+                    return img;
+                });
+        return results.stream().filter(Objects::nonNull).toList();
     }
 
     private Map<UUID, List<String>> fetchGalleryInBatch(List<UUID> productIds) {
         if (productIds == null || productIds.isEmpty()) return Collections.emptyMap();
 
         String sql = """
-                SELECT product_id, image_url
-                FROM product_images
-                WHERE product_id IN (:productIds)
-                ORDER BY product_id, position ASC
+                SELECT id AS product_id, image_url, image_media_id AS media_id
+                FROM products
+                WHERE id IN (:productIds)
                 """;
 
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIds", productIds));
@@ -986,7 +1081,13 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         for (Map<String, Object> row : rows) {
             UUID productId = (UUID) row.get("product_id");
             String imageUrl = (String) row.get("image_url");
-            result.computeIfAbsent(productId, k -> new ArrayList<>()).add(imageUrl);
+            UUID mediaId = (UUID) row.get("media_id");
+            if (imageUrl == null && mediaId != null) {
+                imageUrl = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+            }
+            if (imageUrl != null) {
+                result.computeIfAbsent(productId, k -> new ArrayList<>()).add(imageUrl);
+            }
         }
 
         return result;
@@ -994,16 +1095,23 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
     private List<String> fetchGallery(UUID productId) {
         String sql = """
-                SELECT image_url
-                FROM product_images
-                WHERE product_id = :productId
-                ORDER BY position ASC
+                SELECT image_url, image_media_id AS media_id
+                FROM products
+                WHERE id = :productId
                 """;
 
-        return jdbcTemplate.query(
+        List<String> results = jdbcTemplate.query(
                 sql,
                 Map.of("productId", productId),
-                (rs, rowNum) -> rs.getString("image_url"));
+                (rs, rowNum) -> {
+                    String img = rs.getString("image_url");
+                    UUID mediaId = rs.getObject("media_id", UUID.class);
+                    if (img == null && mediaId != null) {
+                        img = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+                    }
+                    return img;
+                });
+        return results.stream().filter(Objects::nonNull).toList();
     }
 
     private List<String> parseJsonList(String json) {

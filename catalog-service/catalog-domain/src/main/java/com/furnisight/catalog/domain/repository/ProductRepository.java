@@ -11,4 +11,5 @@ public interface ProductRepository {
     boolean existsByNameValue(String name);
     Optional<UUID> findVariantIdBySku(String normalizedSku);
     int updateVariantLowStockThreshold(UUID variantId, int lowStockThreshold);
+    int countByRoomTypeId(UUID roomTypeId);
 }

@@ -33,6 +33,7 @@ public class CartService {
 
     public CartResponse getCart(UUID userId, String locale) {
         Cart cart = getOrCreateCart(userId);
+        cartEnrichmentPolicy.enrichCart(cart, locale);
         clampCartQuantities(cart);
         return toResponse(cart);
     }
@@ -60,10 +61,7 @@ public class CartService {
                     .build());
         }
 
-        // Fetch exact price and info for the newly added item using gRPC
-        cartEnrichmentPolicy.enrichCart(cart, locale);
-        
-        return saveAndRespond(cart);
+        return saveAndRespond(cart, locale);
     }
 
     public CartResponse updateCartItem(
@@ -78,7 +76,7 @@ public class CartService {
         findItem(cart, productId, variantId)
                 .ifPresent(item -> updateExistingItem(cart, item, request));
 
-        return saveAndRespond(cart);
+        return saveAndRespond(cart, locale);
     }
 
     public CartResponse removeCartItem(UUID userId, String productId, String variantId, String locale) {
@@ -86,7 +84,7 @@ public class CartService {
 
         cart.getItems().removeIf(item -> CartUtils.isSameItem(item, productId, variantId));
 
-        return saveAndRespond(cart);
+        return saveAndRespond(cart, locale);
     }
 
     public void clearCart(UUID userId) {
@@ -95,7 +93,8 @@ public class CartService {
         saveCart(cart);
     }
 
-    private CartResponse saveAndRespond(Cart cart) {
+    private CartResponse saveAndRespond(Cart cart, String locale) {
+        cartEnrichmentPolicy.enrichCart(cart, locale);
         clampCartQuantities(cart);
         Cart savedCart = saveCart(cart);
         return toResponse(savedCart);
@@ -212,6 +211,13 @@ public class CartService {
                 .imageUrl(item.getImageUrl())
                 .quantity(item.getQuantity())
                 .stockQuantity(item.getStockQuantity())
+                .length(item.getLength())
+                .width(item.getWidth())
+                .height(item.getHeight())
+                .weight(item.getWeight())
+                .color(item.getColor())
+                .material(item.getMaterial())
+                .warranty(item.getWarranty())
                 .variants(toVariantResponses(item.getVariants()))
                 .build();
     }

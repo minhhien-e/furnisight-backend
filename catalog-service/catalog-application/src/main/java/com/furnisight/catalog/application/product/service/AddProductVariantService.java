@@ -50,7 +50,8 @@ public class AddProductVariantService implements AddProductVariantUseCase {
                 command.getModelMediaId(),
                 command.getModelUrl(),
                 command.getSupports3d(),
-                command.getImageUrls()
+                command.getImageUrls(),
+                command.getSpecifications()
         );
 
         productLifecycleService.addVariant(product, variant);

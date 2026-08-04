@@ -45,5 +45,20 @@ public class CreateOrderCommand {
         private Double price;
         private Integer quantity;
         private String imageUrl;
+        private String color;
+        private String material;
+        private String warranty;
+        private ProductDimensionsCommand dimensions;
+
+        @Data
+        @Builder
+        @NoArgsConstructor
+        @AllArgsConstructor
+        public static class ProductDimensionsCommand {
+            private Double weight;
+            private Double length;
+            private Double width;
+            private Double height;
+        }
     }
 }

@@ -42,6 +42,7 @@ public class CategoryController {
                 .visible(request.getVisible())
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
+                .roomTypeId(request.getRoomTypeId())
                 .build();
         createCategoryUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -58,6 +59,7 @@ public class CategoryController {
                 .visible(request.getVisible())
                 .description(request.getDescription())
                 .imageUrl(request.getImageUrl())
+                .roomTypeId(request.getRoomTypeId())
                 .build();
         updateCategoryUseCase.execute(command);
         return ResponseEntity.ok().build();

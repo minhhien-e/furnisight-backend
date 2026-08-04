@@ -8,14 +8,21 @@ import com.furnisight.admin.catalog.CreateCategoryRequest;
 import com.furnisight.admin.catalog.CreateProductRequest;
 import com.furnisight.admin.catalog.DeleteCategoryRequest;
 import com.furnisight.admin.catalog.DeleteProductRequest;
+import com.furnisight.admin.catalog.DeleteRoomTypeRequest;
 import com.furnisight.admin.catalog.GetAdminCategoriesRequest;
 import com.furnisight.admin.catalog.GetAdminProductsRequest;
+import com.furnisight.admin.catalog.GetAdminRoomTypesRequest;
+import com.furnisight.admin.catalog.GetRoomTypeDetailRequest;
 import com.furnisight.admin.catalog.GetLowStockProductsRequest;
 import com.furnisight.admin.catalog.GetProductDetailRequest;
 import com.furnisight.admin.catalog.LowStockProductListResponse;
 import com.furnisight.admin.catalog.ProductPageResponse;
 import com.furnisight.admin.catalog.ProductStatsResponse;
 import com.furnisight.admin.catalog.ProductDto;
+import com.furnisight.admin.catalog.RoomTypeDto;
+import com.furnisight.admin.catalog.RoomTypeListResponse;
+import com.furnisight.admin.catalog.CreateRoomTypeRequest;
+import com.furnisight.admin.catalog.UpdateRoomTypeRequest;
 import com.furnisight.admin.catalog.StockInVariantRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
@@ -98,5 +105,29 @@ public class AdminCatalogGrpcClient {
 
     public AdminActionResponse deleteCategory(String id) {
         return adminCatalogServiceStub.deleteCategory(DeleteCategoryRequest.newBuilder().setId(id == null ? "" : id).build());
+    }
+
+    public RoomTypeListResponse getRoomTypes(String query) {
+        return adminCatalogServiceStub.getAdminRoomTypes(GetAdminRoomTypesRequest.newBuilder()
+                .setQuery(query == null ? "" : query)
+                .build());
+    }
+
+    public RoomTypeDto getRoomTypeDetail(String id) {
+        return adminCatalogServiceStub.getRoomTypeDetail(GetRoomTypeDetailRequest.newBuilder()
+                .setId(id == null ? "" : id)
+                .build());
+    }
+
+    public AdminActionResponse createRoomType(CreateRoomTypeRequest request) {
+        return adminCatalogServiceStub.createRoomType(request);
+    }
+
+    public AdminActionResponse updateRoomType(UpdateRoomTypeRequest request) {
+        return adminCatalogServiceStub.updateRoomType(request);
+    }
+
+    public AdminActionResponse deleteRoomType(String id) {
+        return adminCatalogServiceStub.deleteRoomType(DeleteRoomTypeRequest.newBuilder().setId(id == null ? "" : id).build());
     }
 }

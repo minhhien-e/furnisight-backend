@@ -16,4 +16,5 @@ public class CreateCategoryCommand {
     private Boolean visible;
     private String description;
     private String imageUrl;
+    private UUID roomTypeId;
 }

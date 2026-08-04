@@ -120,6 +120,10 @@ spring:
               args:
                 regexp: /ai-classifier/(?<segment>.*)
                 replacement: /$\{segment}
+          metadata:
+            # AI classifier cần thời gian xử lý ảnh với model ML (2 phút)
+            response-timeout: 120000
+            connect-timeout: 10000
 
         - id: ai-image-reconstruction
           uri: ${AI_IMAGE_RECONSTRUCTION_URL}

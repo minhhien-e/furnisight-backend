@@ -3,7 +3,6 @@ package com.furnisight.catalog.application.product.service;
 import com.furnisight.catalog.application.product.dto.command.CreateProductCommand;
 import com.furnisight.catalog.application.product.port.in.usecase.CreateProductUseCase;
 import com.furnisight.catalog.domain.entities.Product;
-import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.entities.ProductVariantImage;
 import com.furnisight.catalog.domain.repository.ProductRepository;
@@ -42,8 +41,10 @@ public class CreateProductService implements CreateProductUseCase {
                 if (!skus.add(sku) || productRepository.findVariantIdBySku(sku).isPresent()) {
                     throw new IllegalArgumentException("Variant SKU already exists: " + sku);
                 }
-                ProductDimensions dims = new ProductDimensions(
-                        v.getWeight(), v.getLength(), v.getWidth(), v.getHeight());
+                ProductDimensions dims = null;
+                if (v.getWeight() != null && v.getLength() != null && v.getWidth() != null && v.getHeight() != null) {
+                    dims = new ProductDimensions(v.getWeight(), v.getLength(), v.getWidth(), v.getHeight());
+                }
                 ProductVariant variant = productLifecycleService.createVariant(
                         v.getSku(),
                         v.getLowStockThreshold(),
@@ -62,6 +63,9 @@ public class CreateProductService implements CreateProductUseCase {
             }
         }
 
+        ProductDimensions productDims = new ProductDimensions(
+                command.getWeight(), command.getLength(), command.getWidth(), command.getHeight());
+
         Product product = productLifecycleService.createProduct(
                 command.getCategoryId(),
                 command.getName(),
@@ -69,7 +73,10 @@ public class CreateProductService implements CreateProductUseCase {
                 command.getSku(),
                 command.getDescription(),
                 command.getFeatures(),
-                command.getImageUrls(),
+                command.getImageUrl(),
+                command.getImageMediaId(),
+                command.getColor(),
+                productDims,
                 variants);
 
         productRepository.save(product);

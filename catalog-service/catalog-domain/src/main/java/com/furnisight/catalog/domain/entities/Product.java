@@ -6,7 +6,10 @@ import com.furnisight.catalog.domain.exceptions.ValidationException;
 import com.furnisight.catalog.domain.seedwork.AggregateRoot;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDescription;
 import com.furnisight.catalog.domain.valueobjects.product.ProductName;
+import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
 import com.furnisight.catalog.domain.valueobjects.product.ProductSlug;
+import com.furnisight.catalog.domain.valueobjects.product.Price;
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -39,6 +42,14 @@ public class Product extends AggregateRoot {
     @Embedded
     private ProductDescription description;
 
+    @Embedded
+    @AttributeOverride(name = "value", column = @Column(name = "base_price"))
+    private Price basePrice;
+
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "specifications", columnDefinition = "jsonb")
+    private VariantSpecifications specifications;
+
     @Enumerated(EnumType.STRING)
     private ProductStatus productStatus;
 
@@ -56,8 +67,17 @@ public class Product extends AggregateRoot {
     @Column(name = "features", columnDefinition = "jsonb")
     private List<String> features;
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ProductImage> gallery;
+    @Column(name = "image_url")
+    private String imageUrl;
+
+    @Column(name = "image_media_id")
+    private UUID imageMediaId;
+
+    @Column(name = "color")
+    private String color;
+
+    @Embedded
+    private ProductDimensions dimensions;
 
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<ProductVariant> variants;
@@ -69,8 +89,15 @@ public class Product extends AggregateRoot {
             String sku,
             ProductDescription description,
             List<String> features,
-            List<ProductImage> gallery,
+            String imageUrl,
+            UUID imageMediaId,
+            String color,
+            ProductDimensions dimensions,
             List<ProductVariant> variants) {
+
+        if (dimensions == null) {
+            throw new ValidationException(ErrorCode.INVALID_PRODUCT_DIMENSIONS, "Product dimensions are required");
+        }
 
         Product product = Product.builder()
                 .id(UUID.randomUUID())
@@ -83,14 +110,13 @@ public class Product extends AggregateRoot {
                 .rating(0.0)
                 .ratingCount(0)
                 .features(features != null ? features : new ArrayList<>())
-                .gallery(new ArrayList<>())
+                .imageUrl(imageUrl)
+                .imageMediaId(imageMediaId)
+                .color(color)
+                .dimensions(dimensions)
                 .variants(new ArrayList<>())
                 .productStatus(ProductStatus.ACTIVE)
                 .build();
-
-        if (gallery != null) {
-            gallery.forEach(product::addImage);
-        }
 
         if (variants != null) {
             variants.forEach(product::addVariant);
@@ -99,49 +125,9 @@ public class Product extends AggregateRoot {
         return product;
     }
 
-    public void addImage(ProductImage image) {
-        if (image == null)
-            return;
-
-        if (this.gallery == null) {
-            this.gallery = new ArrayList<>();
-        }
-
-        image.setProduct(this);
-        this.gallery.add(image);
-    }
-
-    public void moveImage(ProductImage image, int newPosition) {
-        if (image == null)
-            return;
-        if (this.gallery == null || this.gallery.isEmpty())
-            return;
-
-        if (newPosition < 0 || newPosition >= this.gallery.size()) {
-            return;
-        }
-
-        ProductImage targetImage = this.gallery.stream()
-                .filter(i -> Objects.equals(i.getPosition(), newPosition))
-                .findFirst()
-                .orElse(null);
-
-        if (targetImage == null)
-            return;
-
-        Integer currentPosition = image.getPosition();
-
-        image.setPosition(newPosition);
-        targetImage.setPosition(currentPosition);
-
-        this.gallery.sort(Comparator.comparing(ProductImage::getPosition));
-    }
-
-    public void removeImage(UUID imageId) {
-        if (this.gallery == null || imageId == null)
-            return;
-
-        this.gallery.removeIf(image -> imageId.equals(image.getId()));
+    public void updateImage(String imageUrl, UUID imageMediaId) {
+        this.imageUrl = imageUrl;
+        this.imageMediaId = imageMediaId;
     }
 
     public void addVariant(ProductVariant variant) {

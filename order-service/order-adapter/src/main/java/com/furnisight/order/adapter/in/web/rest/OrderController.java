@@ -34,6 +34,7 @@ public class OrderController {
             @RequestHeader(name = HttpHeaders.ACCEPT_LANGUAGE, required = false) String acceptLanguage,
             @RequestParam(name = "lang", required = false) String lang,
             @RequestBody CreateOrderCommand command) {
+        System.out.println("RECEIVED ORDER COMMAND: " + command);
         command.setUserId(currentUserProvider.getCurrentUserId());
         return ResponseEntity.ok(orderTranslationService.localizeOrder(
                 createOrderUseCase.createOrder(command),

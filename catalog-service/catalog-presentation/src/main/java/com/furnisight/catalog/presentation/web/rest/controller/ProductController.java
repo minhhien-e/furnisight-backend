@@ -47,7 +47,7 @@ public class ProductController {
                 .sku(request.getSku())
                 .description(request.getDescription())
                 .features(request.getFeatures())
-                .imageUrls(request.getImageUrls())
+                .imageUrl(request.getImageUrls() != null && !request.getImageUrls().isEmpty() ? request.getImageUrls().get(0) : null)
                 .variants(java.util.Optional.ofNullable(request.getVariants()).orElse(List.of()).stream()
                         .map(v -> CreateProductCommand.VariantCommand.builder()
                                 .price(v.getPrice())
@@ -120,6 +120,7 @@ public class ProductController {
                 .modelUrl(request.getModelUrl())
                 .supports3d(request.getSupports3d())
                 .imageUrls(request.getImageUrls())
+                .specifications(request.getSpecifications())
                 .build();
         addProductVariantUseCase.execute(command);
         return ResponseEntity.status(HttpStatus.CREATED).build();
@@ -156,6 +157,7 @@ public class ProductController {
             @RequestParam(name = "lang", required = false) String lang,
             @RequestParam(name = "q", required = false) String q,
             @RequestParam(name = "category", required = false) String category,
+            @RequestParam(name = "roomType", required = false) String roomType,
             @RequestParam(name = "sort", required = false) String sort,
             @RequestParam(name = "priceBands", required = false) List<String> priceBands,
             @RequestParam(name = "priceSliderPct", required = false) List<Double> priceSliderPct,
@@ -173,6 +175,7 @@ public class ProductController {
                 .lang(resolveLang(lang, acceptLanguage))
                 .q(q)
                 .category(category)
+                .roomType(roomType)
                 .sort(sort)
                 .priceBands(priceBands)
                 .priceSliderPct(priceSliderPct)

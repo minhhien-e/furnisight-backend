@@ -20,12 +20,12 @@ public class CreateCategoryService implements CreateCategoryUseCase {
 
     @Override
     @Transactional
-    @CacheEvict(value = {"categories_root", "categories_sub", "categories_all", "category_detail"}, allEntries = true)
+    @CacheEvict(value = {"categories", "category_detail"}, allEntries = true)
     public void execute(CreateCategoryCommand command) {
         CategoryName name = new CategoryName(command.getName());
         CategorySlug slug = new CategorySlug(command.getSlug());
 
-        Category category = categoryLifecycleService.createCategory(name, slug, command.getParentId());
+        Category category = categoryLifecycleService.createCategory(name, slug, command.getParentId(), command.getRoomTypeId());
         category.setIconUrl(command.getIconId());
         category.setVisible(command.getVisible() == null || command.getVisible());
         category.setDescription(command.getDescription());

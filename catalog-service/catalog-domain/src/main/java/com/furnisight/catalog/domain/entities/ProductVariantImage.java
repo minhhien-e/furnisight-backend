@@ -34,7 +34,10 @@ public class ProductVariantImage extends BaseEntity {
     @ToString.Exclude
     private ProductVariant variant;
 
-    @Column(name = "image_url", nullable = false)
+    @Column(name = "media_id")
+    private UUID mediaId;
+
+    @Column(name = "image_url")
     private String imageUrl;
 
     @Column(name = "position")

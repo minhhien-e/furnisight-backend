@@ -17,7 +17,7 @@ public class CategoryLifecycleService {
 
     private final CategoryRepository categoryRepository;
 
-    public Category createCategory(CategoryName name, CategorySlug slug, UUID parentId) {
+    public Category createCategory(CategoryName name, CategorySlug slug, UUID parentId, UUID roomTypeId) {
 
         if (categoryRepository.existsSlug(slug)) {
             throw new AlreadyExistsException(ErrorCode.DUPLICATE_CATEGORY_SLUG);
@@ -27,10 +27,10 @@ public class CategoryLifecycleService {
             throw new AlreadyExistsException(ErrorCode.DUPLICATE_CATEGORY_NAME);
         }
 
-        return Category.create(name, slug, parentId);
+        return Category.create(name, slug, parentId, roomTypeId);
     }
 
-    public void updateCategory(Category category, CategoryName name, CategorySlug slug, UUID parentId) {
+    public void updateCategory(Category category, CategoryName name, CategorySlug slug, UUID parentId, UUID roomTypeId) {
         if (slug != null && !slug.equals(category.getSlug())) {
             if (categoryRepository.existsSlug(slug)) {
                 throw new AlreadyExistsException(ErrorCode.DUPLICATE_CATEGORY_SLUG);
@@ -48,6 +48,6 @@ public class CategoryLifecycleService {
             }
         }
 
-        category.update(name, slug, parentId);
+        category.update(name, slug, parentId, roomTypeId);
     }
 }

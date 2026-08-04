@@ -39,4 +39,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public int updateVariantLowStockThreshold(UUID variantId, int lowStockThreshold) {
         return jpaProductRepository.updateVariantLowStockThreshold(variantId, lowStockThreshold);
     }
+
+    @Override
+    public int countByRoomTypeId(UUID roomTypeId) {
+        return jpaProductRepository.countByRoomTypeId(roomTypeId);
+    }
 }

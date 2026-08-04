@@ -49,12 +49,18 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
     @org.springframework.cache.annotation.Cacheable(value = "categories", key = "'all'")
     public List<CategoryResponse> findAllCategories() {
         String sql = """
-                SELECT *
-                FROM categories
-                ORDER BY name ASC
+                SELECT c.*, COUNT(p.id) as real_product_count
+                FROM categories c
+                LEFT JOIN products p ON c.id = p.category_id
+                GROUP BY c.id
+                ORDER BY c.name ASC
                 """;
 
-        return jdbcTemplate.query(sql, (rs, rowNum) -> mapRowToDto(rs));
+        return jdbcTemplate.query(sql, (rs, rowNum) -> {
+            CategoryResponse response = mapRowToDto(rs);
+            response.setProductCount(rs.getInt("real_product_count"));
+            return response;
+        });
     }
 
     @Override
@@ -128,6 +134,7 @@ public class CategoryReadRepositoryImpl implements CategoryReadRepository {
                 .slug(rs.getString("slug"))
                 .path(rs.getString("path"))
                 .parentId((UUID) rs.getObject("parent_id"))
+                .roomTypeId((UUID) rs.getObject("room_type_id"))
                 .productCount(rs.getInt("product_count"))
                 .visible(rs.getBoolean("visible"))
                 .description(rs.getString("description"))

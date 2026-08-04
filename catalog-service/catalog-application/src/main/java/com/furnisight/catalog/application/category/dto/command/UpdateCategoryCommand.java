@@ -20,4 +20,5 @@ public class UpdateCategoryCommand {
     private Boolean visible;
     private String description;
     private String imageUrl;
+    private UUID roomTypeId;
 }

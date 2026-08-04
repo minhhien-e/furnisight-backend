@@ -4,6 +4,7 @@ data:
 
   # --- CẤU HÌNH KHÁC (OTHERS) ---
   PORT: "8000"
+  CATEGORY_MAPPING: '{"livingroom": "phong-khach", "bedroom": "phong-ngu", "kitchen": "phong-bep", "bathroom": "phong-tam"}'
 
 kind: ConfigMap
 metadata:

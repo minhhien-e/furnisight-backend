@@ -10,6 +10,7 @@ public record CategoryResponse(
         String createdAt,
         String iconId,
         String description,
-        String imageUrl
+        String imageUrl,
+        String roomTypeId
 ) {
 }

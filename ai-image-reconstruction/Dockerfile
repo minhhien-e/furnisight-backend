@@ -16,7 +16,7 @@ COPY requirements.txt ./
 
 # Install requirements
 RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+    pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Pre-download TorchVision ResNet50 weights to avoid runtime download and DNS issues
 RUN python -c "from torchvision.models import resnet50, ResNet50_Weights; resnet50(weights=ResNet50_Weights.IMAGENET1K_V1)"

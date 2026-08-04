@@ -31,10 +31,10 @@
     "recommendation_limit": 6,
     "recommendation_timeout_seconds": 3,
     "category_mapping": {
-      "livingroom": "living-room",
-      "bedroom": "bedroom",
-      "kitchen": "kitchen",
-      "bathroom": "bathroom"
+      "livingroom": "phong-khach",
+      "bedroom": "phong-ngu",
+      "kitchen": "phong-bep",
+      "bathroom": "phong-tam"
     }
   }
 }

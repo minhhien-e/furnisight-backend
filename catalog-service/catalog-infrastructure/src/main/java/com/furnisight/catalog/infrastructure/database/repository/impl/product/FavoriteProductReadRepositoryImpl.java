@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
 import com.furnisight.catalog.application.product.port.out.FavoriteProductReadRepository;
+import com.furnisight.catalog.infrastructure.integration.remote.RemoteMediaUrlResolver;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,6 +23,7 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final ObjectMapper objectMapper;
+    private final RemoteMediaUrlResolver mediaUrlResolver;
 
     @Override
     public List<ProductResponse> findTopFavoritedProductsSince(LocalDateTime since, int limit) {
@@ -34,7 +36,8 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
                     p.id AS product_id,
                     p.name AS product_name,
                     p.slug AS product_slug,
-                    (SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.position ASC LIMIT 1) AS product_image,
+                    (SELECT pi.image_url FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.position ASC LIMIT 1) AS product_image_url,
+                    (SELECT pi.media_id FROM product_images pi WHERE pi.product_id = p.id ORDER BY pi.position ASC LIMIT 1) AS product_media_id,
                     p.features AS product_attributes,
                     p.features AS product_metadata,
                     c.name AS category_name,
@@ -72,7 +75,11 @@ public class FavoriteProductReadRepositoryImpl implements FavoriteProductReadRep
                         price = 0.0;
                     }
 
-                    String image = normalizeText(rs.getString("product_image"), null);
+                    String image = normalizeText(rs.getString("product_image_url"), null);
+                    UUID mediaId = rs.getObject("product_media_id", UUID.class);
+                    if (image == null && mediaId != null) {
+                        image = mediaUrlResolver.resolveUrl(mediaId).orElse(null);
+                    }
 
                     Map<String, Object> attributes = parseJsonMapObject(rs.getString("product_attributes"));
 

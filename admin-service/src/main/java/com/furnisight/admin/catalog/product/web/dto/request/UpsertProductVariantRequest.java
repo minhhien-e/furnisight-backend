@@ -16,6 +16,7 @@ public record UpsertProductVariantRequest(
         String modelMediaId,
         String modelUrl,
         boolean supports3d,
-        java.util.List<String> imageUrls
+        java.util.List<String> imageUrls,
+        String specifications
 ) {
 }

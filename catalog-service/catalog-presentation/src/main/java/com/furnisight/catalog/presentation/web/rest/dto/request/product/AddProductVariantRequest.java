@@ -1,5 +1,6 @@
 package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
 import lombok.*;
 
 @Data
@@ -22,4 +23,5 @@ public class AddProductVariantRequest {
     private java.util.UUID modelMediaId;
     private String modelUrl;
     private java.util.List<String> imageUrls;
+    private VariantSpecifications specifications;
 }

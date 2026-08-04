@@ -21,6 +21,13 @@ import com.furnisight.admin.catalog.ProductPageResponse;
 import com.furnisight.admin.catalog.ProductStatsResponse;
 import com.furnisight.admin.catalog.ProductVariantDto;
 import com.furnisight.admin.catalog.ProductVariantInput;
+import com.furnisight.admin.catalog.RoomTypeDto;
+import com.furnisight.admin.catalog.RoomTypeListResponse;
+import com.furnisight.admin.catalog.CreateRoomTypeRequest;
+import com.furnisight.admin.catalog.UpdateRoomTypeRequest;
+import com.furnisight.admin.catalog.DeleteRoomTypeRequest;
+import com.furnisight.admin.catalog.GetAdminRoomTypesRequest;
+import com.furnisight.admin.catalog.GetRoomTypeDetailRequest;
 import com.furnisight.admin.catalog.StockInVariantRequest;
 import com.furnisight.admin.catalog.UpdateCategoryRequest;
 import com.furnisight.admin.catalog.UpdateProductRequest;
@@ -43,11 +50,12 @@ import com.furnisight.catalog.application.product.port.in.usecase.ReleaseInvento
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductInfoUseCase;
 import com.furnisight.catalog.application.product.port.in.usecase.UpdateProductStatusUseCase;
 import com.furnisight.catalog.application.product.port.out.ProductReadRepository;
-import com.furnisight.catalog.domain.entities.ProductImage;
 import com.furnisight.catalog.domain.entities.Product;
 import com.furnisight.catalog.domain.entities.ProductVariant;
 import com.furnisight.catalog.domain.entities.ProductVariantImage;
+import com.furnisight.catalog.domain.entities.RoomType;
 import com.furnisight.catalog.domain.repository.ProductRepository;
+import com.furnisight.catalog.domain.repository.RoomTypeRepository;
 import com.furnisight.catalog.domain.enums.ProductStatus;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
@@ -77,10 +85,12 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     private static final int DEFAULT_PAGE_SIZE = 20;
     private static final int LOW_STOCK_THRESHOLD = 5;
+    private static final com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
 
     private final ProductReadRepository productReadRepository;
     private final ProductRepository productRepository;
     private final CategoryReadRepository categoryReadRepository;
+    private final RoomTypeRepository roomTypeRepository;
     private final CreateProductUseCase createProductUseCase;
     private final UpdateProductInfoUseCase updateProductInfoUseCase;
     private final UpdateProductStatusUseCase updateProductStatusUseCase;
@@ -174,13 +184,29 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         complete(responseObserver, () -> {
             validateVariantInputs(request.getVariantsList(), emptyToNull(request.getSku()));
             String productSku = emptyToNull(request.getSku());
+            double weight = 1.0, length = 1.0, width = 1.0, height = 1.0;
+            String color = null;
+            if (request.getVariantsCount() > 0) {
+                ProductVariantInput firstVariant = request.getVariants(0);
+                weight = firstVariant.getWeight() > 0 ? firstVariant.getWeight() : 1.0;
+                length = firstVariant.getLength() > 0 ? firstVariant.getLength() : 1.0;
+                width = firstVariant.getWidth() > 0 ? firstVariant.getWidth() : 1.0;
+                height = firstVariant.getHeight() > 0 ? firstVariant.getHeight() : 1.0;
+                color = emptyToNull(firstVariant.getColor());
+            }
+
             createProductUseCase.execute(CreateProductCommand.builder()
                 .categoryId(resolveCategoryId(request.getCategoryId(), request.getCategory()))
                 .name(request.getName())
                 .slug(resolveSlug(request.getSlug(), request.getName()))
                 .sku(productSku)
                 .description(defaultText(request.getDescription(), request.getName()))
-                .imageUrls(request.getImageUrlsList())
+                .imageUrl(request.getImageUrlsCount() > 0 ? request.getImageUrlsList().get(0) : null)
+                .weight(weight)
+                .length(length)
+                .width(width)
+                .height(height)
+                .color(color)
                 .variants(resolveCreateVariants(request.getVariantsList(), request.getPrice(), request.getStock(), productSku))
                 .build());
         }, "Product created");
@@ -219,7 +245,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
             String productSku = emptyToNull(request.getSku()) != null ? emptyToNull(request.getSku()) : product.getSku();
             replaceVariants(productId, request.getVariantsList(), request.getPrice(), request.getStock(), productSku);
-            replaceGallery(productId, request.getImageUrlsList());
+            replaceImage(productId, request.getImageUrlsList());
 
         }, "Product updated");
     }
@@ -316,6 +342,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .visible(request.getVisible())
                 .description(emptyToNull(request.getDescription()))
                 .imageUrl(emptyToNull(request.getImageUrl()))
+                .roomTypeId(parseOptionalUuid(request.getRoomTypeId()))
                 .build()), "Category created");
     }
 
@@ -330,6 +357,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .visible(request.getVisible())
                 .description(emptyToNull(request.getDescription()))
                 .imageUrl(emptyToNull(request.getImageUrl()))
+                .roomTypeId(parseOptionalUuid(request.getRoomTypeId()))
                 .build()), "Category updated");
     }
 
@@ -340,6 +368,96 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setMessage("Category delete is not supported until catalog-service has a delete use case")
                 .build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void getAdminRoomTypes(GetAdminRoomTypesRequest request, StreamObserver<RoomTypeListResponse> responseObserver) {
+        try {
+            String query = emptyToNull(request.getQuery());
+            List<RoomTypeDto> roomTypes = roomTypeRepository.findAll().stream()
+                    .filter(rt -> query == null
+                            || rt.getName().toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT))
+                            || rt.getSlug().toLowerCase(Locale.ROOT).contains(query.toLowerCase(Locale.ROOT)))
+                    .map(this::toRoomTypeDto)
+                    .toList();
+            responseObserver.onNext(RoomTypeListResponse.newBuilder().addAllRoomTypes(roomTypes).build());
+            responseObserver.onCompleted();
+        } catch (Exception ex) {
+            log.error("Failed to get admin room types", ex);
+            responseObserver.onError(mapToGrpcException(ex));
+        }
+    }
+
+    @Override
+    public void getRoomTypeDetail(GetRoomTypeDetailRequest request, StreamObserver<RoomTypeDto> responseObserver) {
+        try {
+            RoomType roomType = roomTypeRepository.findById(UUID.fromString(request.getId()))
+                    .orElseThrow(() -> new IllegalArgumentException("Room type not found"));
+            responseObserver.onNext(toRoomTypeDto(roomType));
+            responseObserver.onCompleted();
+        } catch (Exception ex) {
+            log.error("Failed to get room type detail", ex);
+            responseObserver.onError(mapToGrpcException(ex));
+        }
+    }
+
+    @Override
+    public void createRoomType(CreateRoomTypeRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        complete(responseObserver, () -> {
+            String slug = emptyToNull(request.getSlug());
+            if (slug == null) {
+                slug = resolveSlug(null, request.getName());
+            }
+            RoomType roomType = RoomType.create(
+                    request.getName(),
+                    slug,
+                    request.getDescription(),
+                    emptyToNull(request.getImageUrl()),
+                    emptyToNull(request.getMediaId()) != null ? UUID.fromString(request.getMediaId()) : null
+            );
+            if (!request.getVisible()) {
+                roomType.update(roomType.getName(), roomType.getSlug(), roomType.getDescription(), roomType.getImageUrl(), roomType.getMediaId(), false);
+            }
+            roomTypeRepository.save(roomType);
+        }, "Room type created");
+    }
+
+    @Override
+    public void updateRoomType(UpdateRoomTypeRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        complete(responseObserver, () -> {
+            RoomType roomType = roomTypeRepository.findById(UUID.fromString(request.getId()))
+                    .orElseThrow(() -> new IllegalArgumentException("Room type not found"));
+            roomType.update(
+                    request.getName(),
+                    resolveSlug(request.getSlug(), request.getName()),
+                    request.getDescription(),
+                    emptyToNull(request.getImageUrl()),
+                    emptyToNull(request.getMediaId()) != null ? UUID.fromString(request.getMediaId()) : null,
+                    request.getVisible()
+            );
+            roomTypeRepository.save(roomType);
+        }, "Room type updated");
+    }
+
+    @Override
+    public void deleteRoomType(DeleteRoomTypeRequest request, StreamObserver<AdminActionResponse> responseObserver) {
+        complete(responseObserver, () -> {
+            roomTypeRepository.deleteById(UUID.fromString(request.getId()));
+        }, "Room type deleted");
+    }
+
+    private RoomTypeDto toRoomTypeDto(RoomType roomType) {
+        return RoomTypeDto.newBuilder()
+                .setId(roomType.getId().toString())
+                .setName(safe(roomType.getName()))
+                .setSlug(safe(roomType.getSlug()))
+                .setDescription(safe(roomType.getDescription()))
+                .setVisible(roomType.getVisible())
+                .setImageUrl(safe(roomType.getImageUrl()))
+                .setMediaId(roomType.getMediaId() != null ? roomType.getMediaId().toString() : "")
+                .setCreatedAt(roomType.getCreatedAt() != null ? roomType.getCreatedAt().toString() : "")
+                .setUpdatedAt(roomType.getUpdatedAt() != null ? roomType.getUpdatedAt().toString() : "")
+                .build();
     }
 
     private ProductDto toProductDto(ProductResponse product) {
@@ -358,7 +476,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setSupports3D(product.getSupports3d() != null ? product.getSupports3d() : false)
                 .setModel3DFileName("")
                 .setModel3DSize(0)
-                .addAllImageUrls(product.getImageUrls() == null ? List.of() : product.getImageUrls())
+                .addAllImageUrls(product.getImageUrls() == null || product.getImageUrls().isEmpty() ? List.of() : product.getImageUrls())
                 .addAllVariants(fetchAdminVariantDtos(product.getId()))
                 .build();
     }
@@ -405,6 +523,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .modelUrl(model.url())
                 .supports3d(model.supports3d())
                 .imageUrls(variant.getImageUrlsList())
+                .specifications(parseSpecifications(variant.getSpecifications()))
                 .build();
     }
 
@@ -469,6 +588,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .modelUrl(model.url())
                 .supports3d(model.supports3d())
                 .images(toVariantImages(input.getImageUrlsList()))
+                .specifications(parseSpecifications(input.getSpecifications()))
                 .build();
     }
 
@@ -497,10 +617,13 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setHeight(variant.getHeight() == null ? 0D : variant.getHeight())
                 .setLowStockThreshold(validThreshold(variant.getLowStockThreshold()))
                 .setLabel(variantLabel(variant))
-                .setModelMediaId(variant.getModelMediaId() == null ? "" : variant.getModelMediaId().toString())
+                .setModelMediaId(variant.getModelMediaId() != null ? variant.getModelMediaId().toString() : "")
                 .setModelUrl(safe(variant.getModelUrl()))
-                .setSupports3D(variant.getSupports3d() != null && variant.getSupports3d())
-                .addAllImageUrls(variant.getImageUrls() == null ? List.of() : variant.getImageUrls())
+                .setSupports3D(Boolean.TRUE.equals(variant.getSupports3d()))
+                .addAllImageUrls(variant.getImageUrls() != null ?
+                        variant.getImageUrls() :
+                        List.of())
+                .setSpecifications(variant.getSpecifications() != null ? toJsonString(variant.getSpecifications()) : "")
                 .build();
     }
 
@@ -646,25 +769,18 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         return variant.getId() == null ? "Variant" : variant.getId().toString();
     }
 
-    private void replaceGallery(UUID productId, List<String> imageUrls) {
+    private void replaceImage(UUID productId, List<String> imageUrls) {
         productRepository.findById(productId).ifPresent(product -> {
-            if (product.getGallery() != null) {
-                product.getGallery().clear();
-            }
-            if (imageUrls != null) {
-                int position = 0;
-                for (String imageUrl : imageUrls) {
-                    if (imageUrl == null || imageUrl.isBlank()) {
-                        continue;
-                    }
-                    product.addImage(ProductImage.builder()
-                            .id(UUID.randomUUID())
-                            .imageUrl(imageUrl.trim())
-                            .position(position++)
-                            .build());
+            if (imageUrls != null && !imageUrls.isEmpty()) {
+                String imageUrl = imageUrls.get(0);
+                if (imageUrl != null && !imageUrl.isBlank()) {
+                    product.updateImage(imageUrl.trim(), null);
+                    productRepository.save(product);
                 }
+            } else {
+                product.updateImage(null, null);
+                productRepository.save(product);
             }
-            productRepository.save(product);
         });
     }
 
@@ -692,6 +808,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .setDescription(safe(category.getDescription()))
                 .setImageUrl(safe(category.getImageUrl()))
                 .setParentId(category.getParentId() != null ? category.getParentId().toString() : "")
+                .setRoomTypeId(category.getRoomTypeId() != null ? category.getRoomTypeId().toString() : "")
                 .build();
     }
 
@@ -847,5 +964,23 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
             return io.grpc.Status.INVALID_ARGUMENT.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
         }
         return io.grpc.Status.INTERNAL.withDescription(ex.getMessage()).withCause(ex).asRuntimeException();
+    }
+
+    private com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications parseSpecifications(String json) {
+        if (json == null || json.isBlank()) return null;
+        try {
+            return OBJECT_MAPPER.readValue(json, com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications.class);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private String toJsonString(com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications specs) {
+        if (specs == null) return "";
+        try {
+            return OBJECT_MAPPER.writeValueAsString(specs);
+        } catch (Exception e) {
+            return "";
+        }
     }
 }

@@ -11,4 +11,25 @@ public interface CatalogStockPort {
 
     record StockItem(String productId, String variantId, Integer stockQuantity) {
     }
+
+    record ProductItem(
+            String productId,
+            String variantId,
+            String slug,
+            String categoryName,
+            String productName,
+            Double price,
+            String imageUrl,
+            String color,
+            String material,
+            String warranty,
+            Double weight,
+            Double length,
+            Double width,
+            Double height,
+            Integer stockQuantity
+    ) {
+    }
+
+    Map<String, ProductItem> getProductItems(Collection<LookupItem> items, String locale);
 }

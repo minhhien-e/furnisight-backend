@@ -1,5 +1,6 @@
 package com.furnisight.catalog.presentation.web.rest.dto.request.product;
 
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
 import lombok.*;
 
 import java.util.List;
@@ -15,6 +16,8 @@ public class CreateProductRequest {
     private String slug;
     private String sku;
     private String description;
+    private Double basePrice;
+    private VariantSpecifications specifications;
     private List<String> features;
     private List<String> imageUrls;
 
@@ -40,5 +43,6 @@ public class CreateProductRequest {
         private UUID modelMediaId;
         private String modelUrl;
         private List<String> imageUrls;
+        private VariantSpecifications specifications;
     }
 }

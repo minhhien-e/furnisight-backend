@@ -1,5 +1,7 @@
 package com.furnisight.catalog.application.product.dto.response;
 
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -51,6 +53,7 @@ public class ProductResponse implements java.io.Serializable {
         private String path;
         private String parentId;
         private String parentLabel;
+        private String roomTypeId;
     }
 
     @Data
@@ -87,6 +90,8 @@ public class ProductResponse implements java.io.Serializable {
         private UUID modelMediaId;
         private String modelUrl;
         private List<String> imageUrls;
+        private List<String> features;
+        private VariantSpecifications specifications;
     }
 
     @Data

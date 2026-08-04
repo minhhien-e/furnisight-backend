@@ -20,7 +20,13 @@ public class CreateProductCommand {
     private String description;
 
     private List<String> features;
-    private List<String> imageUrls;
+    private String imageUrl;
+    private UUID imageMediaId;
+    private Double weight;
+    private Double length;
+    private Double width;
+    private Double height;
+    private String color;
     private List<VariantCommand> variants;
 
     @Data
@@ -31,9 +37,9 @@ public class CreateProductCommand {
         private Double price;
         private Integer stockQuantity;
         private Double weight;
-        private Double length;   // cm, required
-        private Double width;    // cm, required
-        private Double height;   // cm, required
+        private Double length;   // cm, optional
+        private Double width;    // cm, optional
+        private Double height;   // cm, optional
         private String material; // required
         private String warranty; // optional
         private String color;
@@ -43,5 +49,6 @@ public class CreateProductCommand {
         private String modelUrl;
         private Boolean supports3d;
         private List<String> imageUrls;
+        private com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications specifications;
     }
 }

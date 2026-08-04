@@ -20,31 +20,23 @@ public class CartItem {
     private String imageUrl;
     private Integer quantity;
 
-    @Transient
     private String slug;
 
     @Transient
     private Integer stockQuantity;
 
-    @Transient
     private Double length;
 
-    @Transient
     private Double width;
 
-    @Transient
     private Double height;
 
-    @Transient
     private Double weight;
 
-    @Transient
     private String color;
 
-    @Transient
     private String material;
 
-    @Transient
     private String warranty;
 
     @Transient

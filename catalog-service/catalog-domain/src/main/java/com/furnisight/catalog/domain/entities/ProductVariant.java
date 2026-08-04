@@ -2,8 +2,11 @@ package com.furnisight.catalog.domain.entities;
 
 import com.furnisight.catalog.domain.seedwork.BaseEntity;
 import com.furnisight.catalog.domain.valueobjects.product.ProductDimensions;
+import com.furnisight.catalog.domain.valueobjects.product.VariantSpecifications;
 import lombok.*;
 import jakarta.persistence.*;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 import com.furnisight.catalog.domain.valueobjects.product.Price;
 import com.furnisight.catalog.domain.valueobjects.product.StockQuantity;
 import com.furnisight.catalog.domain.exceptions.*;
@@ -40,6 +43,10 @@ public class ProductVariant extends BaseEntity {
     @Embedded
     private ProductDimensions dimensions;
 
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "specifications", columnDefinition = "jsonb")
+    private VariantSpecifications specifications;
+
     /** Chất liệu chính — required (TEXT) */
     @Column(name = "material", nullable = false)
     private String material;
@@ -75,15 +82,17 @@ public class ProductVariant extends BaseEntity {
 
     public ProductVariant(Product product, Price price, StockQuantity stockQuantity,
                           ProductDimensions dimensions, String material, String warranty,
-                          String color, UUID modelMediaId, String modelUrl, Boolean supports3d) {
+                          String color, UUID modelMediaId, String modelUrl, Boolean supports3d,
+                          VariantSpecifications specifications) {
         this.id = UUID.randomUUID();
         this.stockQuantity = new StockQuantity(0);
-        update(product, price, stockQuantity, dimensions, material, warranty, color, modelMediaId, modelUrl, supports3d);
+        update(product, price, stockQuantity, dimensions, material, warranty, color, modelMediaId, modelUrl, supports3d, specifications);
     }
 
     public void update(Product product, Price price, StockQuantity stockQuantity,
                        ProductDimensions dimensions, String material, String warranty,
-                       String color, UUID modelMediaId, String modelUrl, Boolean supports3d) {
+                       String color, UUID modelMediaId, String modelUrl, Boolean supports3d,
+                       VariantSpecifications specifications) {
         if (material == null || material.isBlank()) {
             throw new ValidationException(ErrorCode.INVALID_PRODUCT_DIMENSIONS, "Material cannot be blank");
         }
@@ -101,6 +110,7 @@ public class ProductVariant extends BaseEntity {
         } else if (this.supports3d == null) {
             this.supports3d = false;
         }
+        this.specifications = specifications;
     }
 
     public void replaceImages(List<ProductVariantImage> images) {
@@ -147,5 +157,13 @@ public class ProductVariant extends BaseEntity {
             throw new ValidationException(ErrorCode.INVALID_STOCK_QUANTITY, "Quantity to add must be greater than 0");
         }
         this.stockQuantity = this.stockQuantity.increase(quantity);
+    }
+
+    public ProductDimensions getEffectiveDimensions() {
+        return this.dimensions != null ? this.dimensions : (this.product != null ? this.product.getDimensions() : null);
+    }
+
+    public String getEffectiveColor() {
+        return (this.color != null && !this.color.isBlank()) ? this.color : (this.product != null ? this.product.getColor() : null);
     }
 }
