@@ -1,18 +1,18 @@
 package com.furnisight.catalog.domain.valueobjects.product;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import java.util.HashMap;
+import java.util.Map;
 
-import java.util.ArrayList;
-import java.util.List;
+public class VariantSpecifications extends HashMap<String, Object> implements java.io.Serializable {
+    
+    public VariantSpecifications() {
+        super();
+    }
 
-@Data
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
-public class VariantSpecifications implements java.io.Serializable {
-    @Builder.Default
-    private List<SpecificationGroup> specGroups = new ArrayList<>();
+    public VariantSpecifications(Map<String, Object> map) {
+        super();
+        if (map != null) {
+            this.putAll(map);
+        }
+    }
 }

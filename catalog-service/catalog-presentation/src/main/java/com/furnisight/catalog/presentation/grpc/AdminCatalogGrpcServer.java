@@ -492,10 +492,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         return List.of(CreateProductCommand.VariantCommand.builder()
                 .price(Math.max(fallbackPrice, 0D))
                 .stockQuantity(Math.max(fallbackStock, 0))
-                .weight(1D)
-                .length(1D)
-                .width(1D)
-                .height(1D)
+                .weight(null)
+                .length(null)
+                .width(null)
+                .height(null)
                 .material("N/A")
                 .color("")
                 .warranty("")
@@ -510,10 +510,10 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         return CreateProductCommand.VariantCommand.builder()
                 .price(Math.max(variant.getPrice(), 0D))
                 .stockQuantity(Math.max(variant.getStock(), 0))
-                .weight(positiveOrDefault(variant.getWeight()))
-                .length(positiveOrDefault(variant.getLength()))
-                .width(positiveOrDefault(variant.getWidth()))
-                .height(positiveOrDefault(variant.getHeight()))
+                .weight(positiveOrNull(variant.getWeight()))
+                .length(positiveOrNull(variant.getLength()))
+                .width(positiveOrNull(variant.getWidth()))
+                .height(positiveOrNull(variant.getHeight()))
                 .material(defaultText(variant.getMaterial(), "N/A"))
                 .warranty(safe(variant.getWarranty()))
                 .color(safe(variant.getColor()))
@@ -574,11 +574,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
                 .id(variantId == null ? UUID.randomUUID() : variantId)
                 .price(new Price(BigDecimal.valueOf(Math.max(input.getPrice(), 0D))))
                 .stockQuantity(new StockQuantity(Math.max(input.getStock(), 0)))
-                .dimensions(new ProductDimensions(
-                        positiveOrDefault(input.getWeight()),
-                        positiveOrDefault(input.getLength()),
-                        positiveOrDefault(input.getWidth()),
-                        positiveOrDefault(input.getHeight())))
+                .dimensions((input.getWeight() > 0 && input.getLength() > 0 && input.getWidth() > 0 && input.getHeight() > 0) ?
+                        new ProductDimensions(input.getWeight(), input.getLength(), input.getWidth(), input.getHeight()) : null)
                 .material(defaultText(input.getMaterial(), "N/A"))
                 .warranty(safe(input.getWarranty()))
                 .color(safe(input.getColor()))
@@ -952,8 +949,8 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
         return value == null || value.isBlank() ? fallback : value;
     }
 
-    private double positiveOrDefault(double value) {
-        return value > 0 ? value : 1D;
+    private Double positiveOrNull(double value) {
+        return value > 0 ? value : null;
     }
 
     private String safe(String value) {
