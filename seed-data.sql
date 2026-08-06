@@ -15,8 +15,8 @@ INSERT INTO promotions (id, code, name, description, icon, voucher_type, discoun
 ('77777777-7777-7777-7777-777777777775', 'STUDENT10', 'Ưu đãi Sinh viên', 'Giảm 10% tối đa 100k', 'mdi-school', 'PUBLIC', 'PERCENT', 10, 100000, 200000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
 ('77777777-7777-7777-7777-777777777776', 'HAPPYWEEKEND', 'Cuối Tuần Vui Vẻ', 'Giảm trực tiếp 150k', 'mdi-calendar-weekend', 'PUBLIC', 'FIXED', 150000, 150000, 1500000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
 ('77777777-7777-7777-7777-777777777777', 'FLASH50', 'Flash Sale Nửa Giá', 'Giảm 50% tối đa 500k', 'mdi-flash', 'PUBLIC', 'PERCENT', 50, 500000, 1000000, '2026-06-06 00:00:00', '2026-06-06 23:59:59', TRUE),
-('77777777-7777-7777-7777-777777777778', 'PRIVATE500', 'Voucher Bí Mật', 'Giảm 500k cho khách VIP', 'mdi-lock', 'PRIVATE', 'FIXED', 500000, 500000, 5000000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
-('77777777-7777-7777-7777-777777777779', 'LOYALTY20', 'Tri Ân Khách Hàng', 'Giảm 20% tối đa 2 triệu', 'mdi-heart', 'PRIVATE', 'PERCENT', 20, 2000000, 5000000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE)
+('77777777-7777-7777-7777-777777777778', 'PRIVATE500', 'Voucher Bí Mật', 'Giảm 500k cho khách VIP', 'mdi-lock', 'PERSONAL', 'FIXED', 500000, 500000, 5000000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
+('77777777-7777-7777-7777-777777777779', 'LOYALTY20', 'Tri Ân Khách Hàng', 'Giảm 20% tối đa 2 triệu', 'mdi-heart', 'PERSONAL', 'PERCENT', 20, 2000000, 5000000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE)
 ON CONFLICT (id) DO NOTHING;
 
 -- 2. Seed data for promotion_combos

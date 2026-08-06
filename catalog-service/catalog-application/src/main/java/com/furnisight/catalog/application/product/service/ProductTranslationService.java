@@ -3,6 +3,7 @@ package com.furnisight.catalog.application.product.service;
 import com.furnisight.catalog.application.common.dto.PageResponse;
 import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import com.furnisight.catalog.application.product.dto.response.ProductResponse;
+import com.furnisight.catalog.application.roomtype.dto.response.RoomTypeResponse;
 import com.furnisight.catalog.application.translation.port.out.TextTranslationPort;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -58,6 +59,15 @@ public class ProductTranslationService {
                 variant.setMaterial(translateValue(variant.getMaterial()));
                 variant.setColor(translateValue(variant.getColor()));
                 variant.setWarranty(translateValue(variant.getWarranty()));
+                variant.setFeatures(translateList(variant.getFeatures()));
+                if (variant.getSpecifications() != null) {
+                    variant.getSpecifications().replaceAll((k, v) -> {
+                        if (v instanceof String str) {
+                            return translateValue(str);
+                        }
+                        return v;
+                    });
+                }
             });
         }
 
@@ -98,6 +108,24 @@ public class ProductTranslationService {
         }
         categories.forEach(category -> localizeCategory(category, targetLang));
         return categories;
+    }
+
+    public RoomTypeResponse localizeRoomType(RoomTypeResponse roomType, String targetLang) {
+        if (roomType == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
+            return roomType;
+        }
+
+        roomType.setName(translateValue(roomType.getName()));
+        roomType.setDescription(translateValue(roomType.getDescription()));
+        return roomType;
+    }
+
+    public List<RoomTypeResponse> localizeRoomTypes(List<RoomTypeResponse> roomTypes, String targetLang) {
+        if (roomTypes == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
+            return roomTypes;
+        }
+        roomTypes.forEach(roomType -> localizeRoomType(roomType, targetLang));
+        return roomTypes;
     }
 
     private String translateValue(String value) {

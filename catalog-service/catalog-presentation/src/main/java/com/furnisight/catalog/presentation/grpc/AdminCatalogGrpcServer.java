@@ -36,6 +36,7 @@ import com.furnisight.catalog.application.category.dto.command.CreateCategoryCom
 import com.furnisight.catalog.application.category.dto.command.UpdateCategoryCommand;
 import com.furnisight.catalog.application.category.dto.response.CategoryResponse;
 import com.furnisight.catalog.application.category.port.in.usecase.CreateCategoryUseCase;
+import com.furnisight.catalog.application.category.port.in.usecase.DeleteCategoryUseCase;
 import com.furnisight.catalog.application.category.port.in.usecase.UpdateCategoryUseCase;
 import com.furnisight.catalog.application.category.port.out.CategoryReadRepository;
 import com.furnisight.catalog.application.product.dto.command.ChangeProductCategoryCommand;
@@ -98,6 +99,7 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     private final ReleaseInventoryUseCase releaseInventoryUseCase;
     private final CreateCategoryUseCase createCategoryUseCase;
     private final UpdateCategoryUseCase updateCategoryUseCase;
+    private final DeleteCategoryUseCase deleteCategoryUseCase;
     private final GrpcMediaClient grpcMediaClient;
 
     @Override
@@ -363,11 +365,13 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
 
     @Override
     public void deleteCategory(DeleteCategoryRequest request, StreamObserver<AdminActionResponse> responseObserver) {
-        responseObserver.onNext(AdminActionResponse.newBuilder()
-                .setSuccess(false)
-                .setMessage("Category delete is not supported until catalog-service has a delete use case")
-                .build());
-        responseObserver.onCompleted();
+        complete(responseObserver, () -> {
+            deleteCategoryUseCase.execute(
+                    com.furnisight.catalog.application.category.dto.command.DeleteCategoryCommand.builder()
+                            .categoryId(UUID.fromString(request.getId()))
+                            .build()
+            );
+        }, "Category deleted");
     }
 
     @Override

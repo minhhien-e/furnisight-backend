@@ -21,6 +21,9 @@ public class SearchProductsService implements SearchProductsUseCase {
     @Override
     @org.springframework.cache.annotation.Cacheable(value = "search_products", sync = true)
     public PageResponse<ProductResponse> execute(SearchProductsQuery query) {
+        if (query.getQ() != null && !query.getQ().isBlank()) {
+            query.setQ(productTranslationService.translateSearchQuery(query.getQ(), query.getLang()));
+        }
         PageResponse<ProductResponse> page = productReadRepository.searchProducts(query);
         return productTranslationService.localizePage(page, query.getLang());
     }

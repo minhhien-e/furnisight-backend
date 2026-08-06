@@ -14,6 +14,7 @@ public interface CategoryJpaRepository extends JpaRepository<Category, UUID> {
     boolean existsByNameValueAndParentId(String valueName, UUID parentId);
 
     List<Category> findByParentId(UUID parentId);
+    boolean existsByParentId(UUID parentId);
 
     boolean existsBySlug(CategorySlug slug);
 }

@@ -21,4 +21,6 @@ public interface ProductJpaRepository extends JpaRepository<Product, UUID> {
 
     @Query("SELECT COUNT(p) FROM Product p WHERE p.categoryId IN (SELECT c.id FROM Category c WHERE c.roomTypeId = :roomTypeId)")
     int countByRoomTypeId(@Param("roomTypeId") UUID roomTypeId);
+
+    boolean existsByCategoryId(UUID categoryId);
 }

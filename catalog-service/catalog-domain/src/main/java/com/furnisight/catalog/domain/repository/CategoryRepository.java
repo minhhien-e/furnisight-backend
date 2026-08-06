@@ -12,4 +12,6 @@ public interface CategoryRepository {
     Category save(Category category);
     boolean existsByNameAndParentId(String name, UUID parentId);
     boolean existsSlug(CategorySlug slug);
+    boolean existsByParentId(UUID parentId);
+    void deleteById(UUID id);
 }

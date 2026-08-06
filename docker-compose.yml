@@ -22,6 +22,7 @@ x-deploy-large: &deploy-large
 x-java-env: &java-env
   JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"
   SERVER_PORT: 8080
+  GRPC_SERVER_PORT: 9090
   TZ: Asia/Ho_Chi_Minh
 
 x-java-build: &java-build
@@ -37,6 +38,7 @@ x-java-service: &java-service
     <<: *java-env
   expose:
     - "8080"
+    - "9090"
 
 x-postgres-dep: &postgres-dep
   postgres:
@@ -220,9 +222,6 @@ services:
       <<: *java-build
     env_file:
       - ./user-service/.env
-    expose:
-      - "8080"
-      - "9091"
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
     healthcheck:
@@ -282,10 +281,7 @@ services:
       REDIS_HOST: redis
       TRANSLATION_BASE_URL: http://libretranslate:5000
       REVIEW_SERVICE_GRPC_HOST: review-service
-      REVIEW_SERVICE_GRPC_ADDRESS: dns:///review-service:9097
-    expose:
-      - "8080"
-      - "9093"
+      REVIEW_SERVICE_GRPC_ADDRESS: dns:///review-service:9090
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
       redis:
@@ -308,9 +304,6 @@ services:
     environment:
       <<: *java-env
       REDIS_HOST: redis
-    expose:
-      - "8080"
-      - "9097"
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
       redis:
@@ -330,9 +323,6 @@ services:
     build:
       context: ./cart-service
       <<: *java-build
-    expose:
-      - "8080"
-      - "9090"
     env_file:
       - ./cart-service/.env
     environment:
@@ -348,9 +338,6 @@ services:
     build:
       context: ./notification-service
       <<: *java-build
-    expose:
-      - "8080"
-      - "9091"
     env_file:
       - ./notification-service/.env
     environment:
@@ -372,9 +359,6 @@ services:
     build:
       context: ./order-service
       <<: *java-build
-    expose:
-      - "8080"
-      - "9095"
     env_file:
       - ./order-service/.env
     environment:
@@ -393,9 +377,6 @@ services:
     build:
       context: ./promotion-service
       <<: *java-build
-    expose:
-      - "8080"
-      - "9096"
     env_file:
       - ./promotion-service/.env
     environment:
@@ -433,7 +414,7 @@ services:
     expose:
       - "8080"
     environment:
-      CATALOG_GRPC_TARGET: catalog-service:9093
+      CATALOG_GRPC_TARGET: catalog-service:9090
     depends_on:
       - catalog-service
     volumes:
@@ -472,10 +453,10 @@ services:
     container_name: furnisight_ai_review_sentiment
     <<: *common-service
     environment:
-      AI_REVIEW_SENTIMENT_GRPC_PORT: 50051
+      AI_REVIEW_SENTIMENT_GRPC_PORT: 9090
     expose:
       - "8080"
-      - "50051"
+      - "9090"
     deploy: *deploy-medium
 
   media-service:
@@ -507,12 +488,9 @@ services:
       <<: *java-build
     env_file:
       - ./message-service/.env
-    expose:
-      - "8080"
-      - "9097"
     environment:
       <<: *java-env
-      USER_SERVICE_GRPC_ADDRESS: dns:///user-service:9091
+      USER_SERVICE_GRPC_ADDRESS: dns:///user-service:9090
     depends_on:
       <<: [*postgres-dep, *kafka-dep]
       user-service:

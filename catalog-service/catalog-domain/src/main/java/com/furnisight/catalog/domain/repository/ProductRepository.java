@@ -12,4 +12,5 @@ public interface ProductRepository {
     Optional<UUID> findVariantIdBySku(String normalizedSku);
     int updateVariantLowStockThreshold(UUID variantId, int lowStockThreshold);
     int countByRoomTypeId(UUID roomTypeId);
+    boolean existsByCategoryId(UUID categoryId);
 }

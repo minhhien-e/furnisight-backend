@@ -44,4 +44,9 @@ public class ProductRepositoryImpl implements ProductRepository {
     public int countByRoomTypeId(UUID roomTypeId) {
         return jpaProductRepository.countByRoomTypeId(roomTypeId);
     }
+
+    @Override
+    public boolean existsByCategoryId(UUID categoryId) {
+        return jpaProductRepository.existsByCategoryId(categoryId);
+    }
 }

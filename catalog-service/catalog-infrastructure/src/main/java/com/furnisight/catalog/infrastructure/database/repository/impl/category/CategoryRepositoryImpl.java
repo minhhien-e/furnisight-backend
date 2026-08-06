@@ -42,4 +42,14 @@ public class CategoryRepositoryImpl implements CategoryRepository {
     public boolean existsSlug(CategorySlug slug) {
         return jpaCategoryRepository.existsBySlug(slug);
     }
+
+    @Override
+    public boolean existsByParentId(UUID parentId) {
+        return jpaCategoryRepository.existsByParentId(parentId);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        jpaCategoryRepository.deleteById(id);
+    }
 }

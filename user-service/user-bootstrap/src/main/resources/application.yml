@@ -15,10 +15,10 @@ server:
         secure: true
 grpc:
   server:
-    port: 9091
+    port: ${GRPC_SERVER_PORT:9090}
   client:
     catalog-service:
-      address: ${CATALOG_SERVICE_GRPC_ADDRESS:dns:///localhost:9093}
+      address: ${CATALOG_SERVICE_GRPC_ADDRESS:dns:///localhost:9090}
       negotiationType: plaintext
     media-service:
       address: ${GRPC_MEDIA_SERVICE_ADDRESS:static://localhost:9090}

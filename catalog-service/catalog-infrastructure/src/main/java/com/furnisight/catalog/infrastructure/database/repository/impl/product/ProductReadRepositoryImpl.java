@@ -116,6 +116,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.image_url AS product_image_url,
+                    p.image_media_id AS product_media_id,
                     (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
                     (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
                     EXISTS(SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true) AS supports_3d,
@@ -809,7 +811,12 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
             dto.setPrice(variants.get(0).getPrice());
         }
 
-        dto.setGallery(fetchGallery(dto.getId()));
+        List<String> gallery = fetchGallery(dto.getId());
+        dto.setGallery(gallery);
+        // Also set imageUrls if not already populated from the main query
+        if ((dto.getImageUrls() == null || dto.getImageUrls().isEmpty()) && !gallery.isEmpty()) {
+            dto.setImageUrls(new ArrayList<>(gallery));
+        }
     }
 
     private ProductResponse mapRowToProductSummary(ResultSet rs, int rowNum) throws SQLException {
@@ -866,6 +873,14 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     "Bảo hành 12 tháng");
         }
 
+        String productImageUrl = normalizeText(rs.getString("product_image_url"), null);
+        UUID productMediaId = null;
+        try { productMediaId = rs.getObject("product_media_id", UUID.class); } catch (Exception ignored) {}
+        if (productImageUrl == null && productMediaId != null) {
+            productImageUrl = mediaUrlResolver.resolveUrl(productMediaId).orElse(null);
+        }
+        List<String> imageUrls = productImageUrl != null ? new ArrayList<>(List.of(productImageUrl)) : new ArrayList<>();
+
         return ProductResponse.builder()
                 .id(id)
                 .slug(normalizeText(rs.getString("product_slug"), id.toString()))
@@ -877,6 +892,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                         .parentId(parentCategorySlug)
                         .parentLabel(parentCategoryName)
                         .build())
+                .categoryName(categoryName)
                 .name(normalizeText(rs.getString("product_name"), "Sản phẩm"))
                 .description(normalizeText(rs.getString("product_description"), ""))
                 .status(normalizeText(rs.getString("product_status"), "ACTIVE"))
@@ -887,6 +903,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 .features(features)
                 .price(0.0)
                 .roomTypeHint(categoryName)
+                .imageUrls(imageUrls)
                 .build();
     }
 
