@@ -16,7 +16,7 @@ public class GetTopRandomReviewsService implements GetTopRandomReviewsUseCase {
     private final ReviewQueryRepository reviewQueryRepository;
 
     @Override
-    @Cacheable(value = "top_random_reviews", key = "#p0")
+    @Cacheable(value = "top_random_reviews", key = "#p0", unless = "#result == null || #result.isEmpty()")
     public List<ReviewResponse> getTopRandomReviews(int limit) {
         return reviewQueryRepository.findTopRandomReviews(limit);
     }
