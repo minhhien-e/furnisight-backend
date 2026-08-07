@@ -165,6 +165,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.image_url AS product_image_url,
+                    p.image_media_id AS product_media_id,
                     (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
                     (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
                     EXISTS(SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true) AS supports_3d,
@@ -178,12 +180,12 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id
                 LEFT JOIN categories pc ON c.parent_id = pc.id
-                WHERE p.id IN (:productIds)
+                WHERE CAST(p.id AS text) IN (:productIdsText)
                 """;
 
         List<ProductResponse> products = jdbcTemplate.query(
                 sql,
-                Map.of("productIds", productIds),
+                Map.of("productIdsText", productIds.stream().map(UUID::toString).toList()),
                 (rs, rowNum) -> mapRowToProductDetail(rs));
 
         if (!products.isEmpty()) {
@@ -217,12 +219,12 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     v.product_id,
                     v.stock_quantity
                 FROM product_variants v
-                WHERE v.id IN (:variantIds)
+                WHERE CAST(v.id AS text) IN (:variantIdsText)
                 """;
 
         return jdbcTemplate.query(
                 sql,
-                Map.of("variantIds", variantIds),
+                Map.of("variantIdsText", variantIds.stream().map(UUID::toString).toList()),
                 (rs, rowNum) -> ProductResponse.ProductStockDto.builder()
                         .variantId((UUID) rs.getObject("id"))
                         .productId((UUID) rs.getObject("product_id"))
@@ -932,11 +934,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.features AS features
                 FROM product_variants pv
                 JOIN products p ON pv.product_id = p.id
-                WHERE pv.product_id IN (:productIds)
+                WHERE CAST(pv.product_id AS text) IN (:productIdsText)
                 ORDER BY pv.product_id, price ASC NULLS LAST
                 """;
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIds", productIds));
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIdsText", productIds.stream().map(UUID::toString).toList()));
 
         List<UUID> variantIds = new ArrayList<>();
         Map<UUID, ProductResponse.VariantDto> variantMap = new HashMap<>();
@@ -988,11 +990,11 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         String sql = """
                 SELECT variant_id, image_url, media_id
                 FROM product_variant_images
-                WHERE variant_id IN (:variantIds)
+                WHERE CAST(variant_id AS text) IN (:variantIdsText)
                 ORDER BY variant_id, position ASC
                 """;
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("variantIds", variantIds));
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("variantIdsText", variantIds.stream().map(UUID::toString).toList()));
         Map<UUID, List<String>> result = new HashMap<>();
 
         for (Map<String, Object> row : rows) {
@@ -1089,10 +1091,10 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         String sql = """
                 SELECT id AS product_id, image_url, image_media_id AS media_id
                 FROM products
-                WHERE id IN (:productIds)
+                WHERE CAST(id AS text) IN (:productIdsText)
                 """;
 
-        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIds", productIds));
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, Map.of("productIdsText", productIds.stream().map(UUID::toString).toList()));
         Map<UUID, List<String>> result = new HashMap<>();
 
         for (Map<String, Object> row : rows) {
