@@ -35,7 +35,7 @@ import java.util.Optional;
 public class RevenueService {
 
     private static final int SNAPSHOT_MONTHS = 12;
-    private static final int STALE_MINUTES   = 5;
+    private static final int STALE_MINUTES   = 0; // Disabled cache to update immediately
 
     private final AdminOrderGrpcClient orderClient;
     private final RevenueSnapshotRepository snapshotRepository;
