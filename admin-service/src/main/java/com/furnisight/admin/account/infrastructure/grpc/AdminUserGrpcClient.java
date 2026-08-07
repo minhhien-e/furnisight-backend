@@ -116,7 +116,7 @@ public class AdminUserGrpcClient {
         return adminUserServiceStub.deleteAccount(request);
     }
 
-    public AdminActionResponse createAccount(UUID adminId, String email, String name, String phone, String password, UUID roleId) {
+    public AdminActionResponse createAccount(UUID adminId, String email, String name, String phone, String password, UUID roleId, boolean isAdmin) {
         CreateAccountRequest request = CreateAccountRequest.newBuilder()
                 .setAdminId(adminId.toString())
                 .setEmail(email == null ? "" : email)
@@ -124,6 +124,7 @@ public class AdminUserGrpcClient {
                 .setPhone(phone == null ? "" : phone)
                 .setPassword(password == null ? "" : password)
                 .setRoleId(roleId == null ? "" : roleId.toString())
+                .setIsAdmin(isAdmin)
                 .build();
         return adminUserServiceStub.createAccount(request);
     }

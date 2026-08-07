@@ -54,6 +54,9 @@ public class UserService {
     }
 
     public ActionResultResponse updateUserStatus(UUID adminId, UUID accountId, String status) {
+        if (adminId.equals(accountId)) {
+            return new ActionResultResponse(false, "You cannot change the status of your own account");
+        }
         if ("BANNED".equalsIgnoreCase(status)) {
             return toActionResult(userClient.banAccount(adminId, accountId, "Banned by Admin"));
         }
@@ -97,14 +100,17 @@ public class UserService {
     }
 
     public ActionResultResponse deleteUser(UUID adminId, UUID accountId) {
+        if (adminId.equals(accountId)) {
+            return new ActionResultResponse(false, "You cannot delete your own account");
+        }
         return toActionResult(userClient.deleteAccount(adminId, accountId));
     }
 
-    public ActionResultResponse createUser(UUID adminId, CreateUserRequest request) {
+    public ActionResultResponse createUser(UUID adminId, CreateUserRequest request, boolean isAdmin) {
         UUID roleId = request.getRole() != null && !request.getRole().isBlank() ? UUID.fromString(request.getRole()) : null;
         return toActionResult(userClient.createAccount(
                 adminId, request.getEmail(), request.getName(), request.getPhone(),
-                request.getPassword(), roleId));
+                request.getPassword(), roleId, isAdmin));
     }
 
     private UserResponse toUserResponse(AccountDto account) {

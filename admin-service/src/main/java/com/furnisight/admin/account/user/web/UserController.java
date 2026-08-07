@@ -48,7 +48,18 @@ public class UserController {
     public ResponseEntity<ActionResultResponse> createUser(
             @RequestBody CreateUserRequest request, HttpServletRequest httpRequest) {
         UUID adminId = currentUserProvider.getCurrentUserId();
-        ActionResultResponse result = userService.createUser(adminId, request);
+        ActionResultResponse result = userService.createUser(adminId, request, false);
+        auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.CREATE_USER,
+                request.getEmail(), result, "", httpRequest);
+        return ResponseEntity.ok(result);
+    }
+
+    @PostMapping("/create-admin")
+    @PreAuthorize("hasAuthority('ACCOUNT_MANAGE') or hasAuthority('ADMIN')")
+    public ResponseEntity<ActionResultResponse> createAdminUser(
+            @RequestBody CreateUserRequest request, HttpServletRequest httpRequest) {
+        UUID adminId = currentUserProvider.getCurrentUserId();
+        ActionResultResponse result = userService.createUser(adminId, request, true);
         auditLogService.record(adminId, com.furnisight.admin.audit.domain.AuditAction.CREATE_USER,
                 request.getEmail(), result, "", httpRequest);
         return ResponseEntity.ok(result);

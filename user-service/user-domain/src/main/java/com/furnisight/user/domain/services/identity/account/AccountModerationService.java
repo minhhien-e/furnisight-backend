@@ -60,7 +60,8 @@ public class AccountModerationService {
 
     public AccountRole assignRole(Account admin, Account target, UUID roleId) {
         ensureInteract(admin.getId(), target.getId(), Permission.ACCOUNT_MANAGE);
-        return accountRoleRepository.save(new AccountRole(target.getId(), roleId));
+        return accountRoleRepository.findByAccountIdAndRoleId(target.getId(), roleId)
+                .orElseGet(() -> accountRoleRepository.save(new AccountRole(target.getId(), roleId)));
     }
 
     public void revokeRole(Account admin, Account target, AccountRole accountRole) {
