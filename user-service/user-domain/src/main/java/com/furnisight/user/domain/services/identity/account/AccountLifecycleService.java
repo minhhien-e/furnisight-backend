@@ -70,8 +70,7 @@ public class AccountLifecycleService {
         if (existingAccountByEmail.isPresent()) {
             account = existingAccountByEmail.get();
         } else {
-            String randomPassword = UUID.randomUUID().toString();
-            Password hashedPassword = new Password(passwordHasher.hash(randomPassword));
+            Password hashedPassword = new Password(null);
 
             account = new Account(email, hashedPassword);
             account.activate();
@@ -84,7 +83,7 @@ public class AccountLifecycleService {
                 account.registerEvent(new SocialAccountCreatedEvent(
                         account.getId(),
                         email.getValue(),
-                        randomPassword,
+                        null,
                         LocalDateTime.now()));
             }
 
