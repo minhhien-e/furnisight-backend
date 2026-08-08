@@ -1,0 +1,9 @@
+Thông tin thẻ Test VNPAY Sandbox (Môi trường thử nghiệm):
+
+Ngân hàng (Bank Code): NCB
+Số thẻ: 9704198526191432198
+Tên chủ thẻ: NGUYEN VAN A
+Ngày phát hành: 07/15
+Mã OTP: 123456
+
+(Lưu ý: Dùng thông tin trên để điền vào cổng thanh toán VNPAY trong môi trường test/sandbox)
