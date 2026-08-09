@@ -544,7 +544,6 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
         whereClause.append("""
                 AND (
                     LOWER(p.name) LIKE :q
-                    OR LOWER(p.description) LIKE :q
                     OR LOWER(p.sku) LIKE :q
                     OR p.id IN (
                         SELECT pv.product_id FROM product_variants pv

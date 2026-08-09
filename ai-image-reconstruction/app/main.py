@@ -6,6 +6,11 @@ from urllib.parse import quote
 
 import numpy as np
 import torch
+
+# Optimize PyTorch CPU Threading (Prevent core contention on high-core CPUs)
+torch.set_num_threads(8)
+torch.set_num_interop_threads(2)
+
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse

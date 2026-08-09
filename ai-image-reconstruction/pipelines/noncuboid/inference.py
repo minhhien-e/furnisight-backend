@@ -1,4 +1,4 @@
-﻿import os
+import os
 from pathlib import Path
 
 import numpy as np
@@ -17,9 +17,9 @@ from pipelines.noncuboid.models import ConvertLayout, Detector, DisplayLayout, L
 
 
 QUALITY_TO_STRIDE = {
-    "low": 4,
-    "medium": 2,
-    "high": 1,
+    "low": 8,
+    "medium": 4,
+    "high": 2,
 }
 
 
@@ -134,22 +134,22 @@ def run_one_image(
 
     dense_path = output_dir / f"{name}_normal_dense.glb"
 
-    try:
-        DisplayLayout(
-            layout_img.copy(),
-            seg,
-            depth,
-            polys,
-            _seg,
-            _depth,
-            _polys,
-            inputs["iseg"][0].cpu().numpy(),
-            inputs["ilbox"][0].cpu().numpy(),
-            f"{name}_normal",
-            output_dir=str(output_dir),
-        )
-    except Exception as exc:
-        print(f"Skipped NonCuboid select overlay export: {exc}")
+    # try:
+    #     DisplayLayout(
+    #         layout_img.copy(),
+    #         seg,
+    #         depth,
+    #         polys,
+    #         _seg,
+    #         _depth,
+    #         _polys,
+    #         inputs["iseg"][0].cpu().numpy(),
+    #         inputs["ilbox"][0].cpu().numpy(),
+    #         f"{name}_normal",
+    #         output_dir=str(output_dir),
+    #     )
+    # except Exception as exc:
+    #     print(f"Skipped NonCuboid select overlay export: {exc}")
 
     dense_exported, dense_kind = export_dense_colored_glb_from_inv_depth(
         src_bgr,

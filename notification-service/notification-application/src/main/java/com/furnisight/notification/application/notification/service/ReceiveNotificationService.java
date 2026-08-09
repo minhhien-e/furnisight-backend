@@ -34,6 +34,7 @@ public class ReceiveNotificationService implements ReceiveNotificationUseCase {
         }
 
         InboxMessage message = InboxMessage.builder()
+            .id(java.util.UUID.randomUUID())
             .userId(command.getUserId())
             .title(command.getTitle())
             .body(command.getBody())
