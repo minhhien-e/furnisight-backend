@@ -258,9 +258,9 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
 
         String mainSql = """
                 WITH paged_products AS (
-                    SELECT p.id, p.name, p.slug, p.sold_count, p.rating, p.rating_count, p.created_at, p.category_id, p.image_url, p.image_media_id
+                    SELECT p.id, p.name, p.slug, p.sold_count, p.rating, p.rating_count, p.created_at, p.category_id, p.image_url, p.image_media_id, p.base_price
                     """ + (queryParam.getSort() != null && queryParam.getSort().toLowerCase().contains("price") 
-                           ? ", (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price " 
+                           ? ", COALESCE((SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id), p.base_price) AS product_price " 
                            : "") + """
                     FROM products p
                     """ + whereClause + resolveOrderBy(queryParam) + """
@@ -274,7 +274,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     v3d.model_url,
                     COALESCE(v3d.supports_3d, false) AS supports_3d,
                     c.name AS category_name,
-                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = pp.id) AS product_price,
+                    COALESCE((SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = pp.id), pp.base_price) AS product_price,
                     pp.image_url AS product_image_url,
                     pp.image_media_id AS product_media_id,
                     pp.rating AS product_rating,
@@ -395,7 +395,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     c.name AS category_name,
                     v3d.model_url,
                     COALESCE(v3d.supports_3d, false) AS supports_3d,
-                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price,
+                    COALESCE((SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id), p.base_price) AS product_price,
                     p.image_url AS product_image_url,
                     p.image_media_id AS product_media_id,
                     p.rating AS product_rating,
@@ -437,7 +437,7 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
                     (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
                     c.name AS category_name,
-                    (SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id) AS product_price,
+                    COALESCE((SELECT MIN(pv.price) FROM product_variants pv WHERE pv.product_id = p.id), p.base_price) AS product_price,
                     (SELECT COALESCE(SUM(pv.stock_quantity), 0) FROM product_variants pv WHERE pv.product_id = p.id) AS product_stock
                 FROM products p
                 LEFT JOIN categories c ON p.category_id = c.id

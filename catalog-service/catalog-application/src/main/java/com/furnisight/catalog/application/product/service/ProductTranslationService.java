@@ -18,6 +18,7 @@ public class ProductTranslationService {
     public static final String TARGET_LANG_EN = "en";
 
     private final TextTranslationPort textTranslationPort;
+    private static final java.util.concurrent.ExecutorService EXECUTOR = java.util.concurrent.Executors.newCachedThreadPool();
 
     public String normalizeLang(String lang) {
         if (lang == null || lang.isBlank()) {
@@ -44,33 +45,35 @@ public class ProductTranslationService {
             return product;
         }
 
-        product.setName(translateValue(product.getName()));
-        product.setDescription(translateValue(product.getDescription()));
-        product.setFeatures(translateList(product.getFeatures()));
-        product.setCategoryName(translateValue(product.getCategoryName()));
+        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setName(translateValue(product.getName())), EXECUTOR));
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setDescription(translateValue(product.getDescription())), EXECUTOR));
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setFeatures(translateList(product.getFeatures())), EXECUTOR));
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setCategoryName(translateValue(product.getCategoryName())), EXECUTOR));
 
         if (product.getCategory() != null) {
-            product.getCategory().setLabel(translateValue(product.getCategory().getLabel()));
-            product.getCategory().setParentLabel(translateValue(product.getCategory().getParentLabel()));
+            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.getCategory().setLabel(translateValue(product.getCategory().getLabel())), EXECUTOR));
+            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.getCategory().setParentLabel(translateValue(product.getCategory().getParentLabel())), EXECUTOR));
         }
 
         if (product.getVariants() != null) {
-            product.getVariants().forEach(variant -> {
-                variant.setMaterial(translateValue(variant.getMaterial()));
-                variant.setColor(translateValue(variant.getColor()));
-                variant.setWarranty(translateValue(variant.getWarranty()));
-                variant.setFeatures(translateList(variant.getFeatures()));
+            for (var variant : product.getVariants()) {
+                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setMaterial(translateValue(variant.getMaterial())), EXECUTOR));
+                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setColor(translateValue(variant.getColor())), EXECUTOR));
+                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setWarranty(translateValue(variant.getWarranty())), EXECUTOR));
+                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setFeatures(translateList(variant.getFeatures())), EXECUTOR));
                 if (variant.getSpecifications() != null) {
-                    variant.getSpecifications().replaceAll((k, v) -> {
-                        if (v instanceof String str) {
-                            return translateValue(str);
+                    for (var entry : variant.getSpecifications().entrySet()) {
+                        if (entry.getValue() instanceof String str) {
+                            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> entry.setValue(translateValue(str)), EXECUTOR));
                         }
-                        return v;
-                    });
+                    }
                 }
-            });
+            }
         }
-
+        
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         return product;
     }
 
@@ -78,7 +81,11 @@ public class ProductTranslationService {
         if (products == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return products;
         }
-        products.forEach(product -> localizeProduct(product, targetLang));
+        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        for (ProductResponse product : products) {
+            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> localizeProduct(product, targetLang), EXECUTOR));
+        }
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         return products;
     }
 
@@ -97,8 +104,11 @@ public class ProductTranslationService {
             return category;
         }
 
-        category.setName(translateValue(category.getName()));
-        category.setDescription(translateValue(category.getDescription()));
+        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> category.setName(translateValue(category.getName())), EXECUTOR));
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> category.setDescription(translateValue(category.getDescription())), EXECUTOR));
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        
         return category;
     }
 
@@ -106,7 +116,11 @@ public class ProductTranslationService {
         if (categories == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return categories;
         }
-        categories.forEach(category -> localizeCategory(category, targetLang));
+        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        for (CategoryResponse category : categories) {
+            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> localizeCategory(category, targetLang), EXECUTOR));
+        }
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         return categories;
     }
 
@@ -115,8 +129,11 @@ public class ProductTranslationService {
             return roomType;
         }
 
-        roomType.setName(translateValue(roomType.getName()));
-        roomType.setDescription(translateValue(roomType.getDescription()));
+        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> roomType.setName(translateValue(roomType.getName())), EXECUTOR));
+        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> roomType.setDescription(translateValue(roomType.getDescription())), EXECUTOR));
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+
         return roomType;
     }
 
@@ -124,7 +141,11 @@ public class ProductTranslationService {
         if (roomTypes == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return roomTypes;
         }
-        roomTypes.forEach(roomType -> localizeRoomType(roomType, targetLang));
+        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        for (RoomTypeResponse roomType : roomTypes) {
+            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> localizeRoomType(roomType, targetLang), EXECUTOR));
+        }
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         return roomTypes;
     }
 
@@ -140,6 +161,11 @@ public class ProductTranslationService {
         if (values == null || values.isEmpty()) {
             return values;
         }
-        return values.stream().map(this::translateValue).toList();
+        java.util.List<java.util.concurrent.CompletableFuture<String>> futures = new java.util.ArrayList<>();
+        for (String val : values) {
+            futures.add(java.util.concurrent.CompletableFuture.supplyAsync(() -> translateValue(val), EXECUTOR));
+        }
+        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        return futures.stream().map(java.util.concurrent.CompletableFuture::join).toList();
     }
 }
