@@ -1,0 +1,43 @@
+# ----- Output / runtime -----
+src/output
+src/output_api/
+outputs/
+results/
+checkpoints
+flagged
+
+# ----- Model / weights (không đẩy lên Git) -----
+*.pth
+*.pt
+*.pkl
+*.ckpt
+*.safetensors
+*.onnx
+weights/
+
+# ----- Python -----
+venv/
+env/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.manifest
+
+# ----- IDE / OS -----
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ----- Logs / cache -----
+*.log
+.cache/

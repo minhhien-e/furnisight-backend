@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+  PORT: "8000"
+  CATEGORY_MAPPING: '{"livingroom": "phong-khach", "bedroom": "phong-ngu", "kitchen": "phong-bep", "bathroom": "phong-tam"}'
+
+kind: ConfigMap
+metadata:
+  name: ai-image-classifier-env
+  namespace: furnisight-apps

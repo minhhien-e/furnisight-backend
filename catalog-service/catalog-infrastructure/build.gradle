@@ -1,0 +1,19 @@
+dependencies {
+    api project(':catalog-application')
+    api project(':catalog-domain')
+
+    api 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.kafka:spring-kafka'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation "net.devh:grpc-client-spring-boot-starter:2.15.0.RELEASE"
+    implementation 'com.furnisight:proto-lib:1.0.1785769618058'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    runtimeOnly 'org.postgresql:postgresql'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}

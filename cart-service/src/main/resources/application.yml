@@ -1,0 +1,35 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api/v1
+
+grpc:
+  server:
+    port: ${GRPC_SERVER_PORT:9090}
+  client:
+    catalog-service:
+      address: ${CATALOG_SERVICE_GRPC_ADDRESS:dns:///localhost:9090}
+      negotiationType: plaintext
+
+spring:
+  application:
+    name: cart-service
+  jackson:
+    default-property-inclusion: non_null
+
+  data:
+    mongodb:
+      uri: ${MONGODB_URI:mongodb://localhost:27017/furnisight_cart}
+      uuid-representation: standard
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    consumer:
+      group-id: ${KAFKA_CONSUMER_GROUP_ID:cart-service-group}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+    listener:
+      missing-topics-fatal: false

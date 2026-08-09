@@ -1,0 +1,493 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Mesh Viewer</title>
+  <link rel="icon" href="data:," />
+  <style>
+    :root {
+      --bg: #0f1115;
+      --panel: #171a21;
+      --panel-2: #1d212b;
+      --text: #e6e9ef;
+      --text-2: #9aa3b2;
+      --accent: #5c8dff;
+      --border: #2a3140;
+      --ok: #53d38c;
+    }
+    html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); font-family: Arial, sans-serif; }
+    .app {
+      height: 100%;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+    }
+    .sidebar {
+      border-right: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .sidebar-header {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel-2);
+    }
+    .title { font-size: 14px; font-weight: 700; }
+    .subtitle { font-size: 12px; color: var(--text-2); margin-top: 4px; }
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
+    }
+    button {
+      background: #242b38;
+      color: var(--text);
+      border: 1px solid #394458;
+      border-radius: 8px;
+      padding: 7px 10px;
+      cursor: pointer;
+      font-size: 12px;
+    }
+    button:hover { border-color: var(--accent); }
+    #meshList {
+      margin: 0;
+      padding: 8px;
+      list-style: none;
+      overflow: auto;
+      flex: 1;
+    }
+    .mesh-item {
+      padding: 10px;
+      border: 1px solid transparent;
+      border-radius: 10px;
+      margin-bottom: 7px;
+      background: #1a1f29;
+      cursor: pointer;
+    }
+    .mesh-item:hover { border-color: #435270; }
+    .mesh-item.active {
+      border-color: var(--accent);
+      background: #1f2a44;
+    }
+    .mesh-name { font-size: 13px; word-break: break-word; }
+    .mesh-meta { font-size: 11px; color: var(--text-2); margin-top: 4px; }
+    .viewer-wrap {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+    .viewer-topbar {
+      height: 46px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 12px;
+    }
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 999px;
+      background: var(--ok);
+      box-shadow: 0 0 10px rgba(83, 211, 140, 0.6);
+    }
+    .hint { color: var(--text-2); font-size: 12px; }
+    #viewer { flex: 1; min-height: 0; }
+    .empty {
+      color: var(--text-2);
+      font-size: 12px;
+      padding: 12px;
+    }
+  </style>
+</head>
+<body>
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js"
+    }
+  }
+  </script>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <div class="title">Results Meshes</div>
+        <div class="subtitle">Auto load from <code>outputs/api</code></div>
+        <div class="controls">
+          <button id="refreshBtn">Refresh</button>
+          <button id="runBtn">Run Model</button>
+          <button id="resetViewBtn">Reset View</button>
+        </div>
+      </div>
+      <ul id="meshList"></ul>
+      <div id="emptyState" class="empty" style="display:none;">
+        Chua co file mesh. Hay chay inference truoc.
+      </div>
+    </aside>
+    <section class="viewer-wrap">
+      <div class="viewer-topbar">
+        <span class="status-dot"></span>
+        <span id="activeFile" class="hint">Chua chon mesh</span>
+        <span id="logHint" class="hint" style="margin-left:auto;"></span>
+      </div>
+      <div id="viewer"></div>
+    </section>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.165.0/build/three.module.js';
+    import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/controls/OrbitControls.js';
+    import { GLTFLoader } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/GLTFLoader.js';
+    import { OBJLoader } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/OBJLoader.js';
+    import { PLYLoader } from 'https://cdn.jsdelivr.net/npm/three@0.165.0/examples/jsm/loaders/PLYLoader.js';
+
+    const container = document.getElementById('viewer');
+    const listEl = document.getElementById('meshList');
+    const emptyStateEl = document.getElementById('emptyState');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const runBtn = document.getElementById('runBtn');
+    const resetViewBtn = document.getElementById('resetViewBtn');
+    const activeFileEl = document.getElementById('activeFile');
+    const logHintEl = document.getElementById('logHint');
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0f1115);
+
+    const camera = new THREE.PerspectiveCamera(60, 1, 0.01, 1000);
+    camera.position.set(0, 1.2, 2.2);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(window.devicePixelRatio);
+    container.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.9));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(2, 4, 3);
+    scene.add(dir);
+    scene.add(new THREE.GridHelper(3, 12, 0x3f4b62, 0x2a3140));
+    scene.add(new THREE.AxesHelper(0.5));
+
+    let currentObject = null;
+    let currentName = '';
+    const APPLY_LEFT_RIGHT_UNMIRROR = false;
+    let currentBoundsHelper = null;
+
+    function onResize() {
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / Math.max(h, 1);
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    }
+    window.addEventListener('resize', onResize);
+    onResize();
+
+    function fitCameraToObject(object3d) {
+      const box = new THREE.Box3().setFromObject(object3d);
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const distance = maxDim * 1.9;
+
+      camera.position.copy(center.clone().add(new THREE.Vector3(distance, distance * 0.55, distance)));
+      camera.near = maxDim / 1000;
+      camera.far = maxDim * 1000;
+      camera.updateProjectionMatrix();
+      controls.target.copy(center);
+      controls.update();
+    }
+
+    function snapObjectToGridFloor(object3d, options = {}) {
+      const centerXZ = options.centerXZ !== false;
+      const box = new THREE.Box3().setFromObject(object3d);
+      if (box.isEmpty()) return;
+
+      const size = box.getSize(new THREE.Vector3());
+      const center = box.getCenter(new THREE.Vector3());
+
+      // Place model bottom on grid plane (y=0).
+      object3d.position.y += -box.min.y;
+
+      // Optional: keep model centered around world origin in X/Z.
+      if (centerXZ) {
+        object3d.position.x += -center.x;
+        object3d.position.z += -center.z;
+      }
+
+      // Prevent tiny floating errors from leaving mesh slightly above/below grid.
+      const boxAfter = new THREE.Box3().setFromObject(object3d);
+      object3d.position.y += -boxAfter.min.y;
+    }
+
+    function prepareMeshMaterials(root, options = {}) {
+      const forceUnlitTexture = !!options.forceUnlitTexture;
+      root.traverse((child) => {
+        if (!child.isMesh) return;
+        child.geometry.computeVertexNormals();
+        const hasVertexColor = !!child.geometry.getAttribute('color');
+        const hasTextureMap = !!child.material?.map;
+        if (hasTextureMap) {
+          const map = child.material.map;
+          if (map) {
+            map.colorSpace = THREE.SRGBColorSpace;
+            map.needsUpdate = true;
+          }
+          if (forceUnlitTexture) {
+            child.material = new THREE.MeshBasicMaterial({
+              map,
+              side: THREE.DoubleSide,
+              toneMapped: false
+            });
+          } else {
+            // Keep texture material; only enforce side visibility.
+            child.material.side = THREE.DoubleSide;
+            child.material.needsUpdate = true;
+          }
+        } else if (hasVertexColor) {
+          if (child.material) {
+            child.material.vertexColors = true;
+            child.material.side = THREE.DoubleSide;
+            child.material.toneMapped = false;
+            child.material.needsUpdate = true;
+          } else {
+            child.material = new THREE.MeshBasicMaterial({
+              vertexColors: true,
+              toneMapped: false,
+              side: THREE.DoubleSide
+            });
+          }
+        } else if (!child.material) {
+          child.material = new THREE.MeshStandardMaterial({
+            color: 0xd8dde8,
+            metalness: 0,
+            roughness: 1,
+            side: THREE.DoubleSide
+          });
+        } else {
+          child.material.side = THREE.DoubleSide;
+          child.material.needsUpdate = true;
+        }
+      });
+    }
+
+    function clearCurrentObject() {
+      if (currentBoundsHelper) {
+        scene.remove(currentBoundsHelper);
+        currentBoundsHelper.geometry?.dispose?.();
+        currentBoundsHelper.material?.dispose?.();
+        currentBoundsHelper = null;
+      }
+      if (!currentObject) return;
+      scene.remove(currentObject);
+      currentObject.traverse?.((child) => {
+        if (!child.isMesh) return;
+        child.geometry?.dispose?.();
+        if (Array.isArray(child.material)) child.material.forEach((m) => m.dispose?.());
+        else child.material?.dispose?.();
+      });
+      currentObject = null;
+    }
+
+    function addDenseBoundsHelper(object3d, name) {
+      if (!name.toLowerCase().includes('_dense.')) return;
+      const box = new THREE.Box3().setFromObject(object3d);
+      if (box.isEmpty()) return;
+      const helper = new THREE.Box3Helper(box, 0x55ddff);
+      scene.add(helper);
+      currentBoundsHelper = helper;
+    }
+
+    function loadGLTFFromURL(url) {
+      return new Promise((resolve, reject) => {
+        const loader = new GLTFLoader();
+        loader.load(url, (gltf) => resolve(gltf.scene), undefined, reject);
+      });
+    }
+
+    function loadOBJFromText(text) {
+      const loader = new OBJLoader();
+      return loader.parse(text);
+    }
+
+    function loadPLYFromArrayBuffer(buffer) {
+      const loader = new PLYLoader();
+      const geometry = loader.parse(buffer);
+      const hasColor = !!geometry.getAttribute('color');
+      const material = new THREE.MeshBasicMaterial({
+        color: hasColor ? 0xffffff : 0xbfbfbf,
+        vertexColors: hasColor,
+        toneMapped: false,
+        side: THREE.DoubleSide
+      });
+      return new THREE.Mesh(geometry, material);
+    }
+
+    async function openMeshByURL(name, url) {
+      const ext = name.split('.').pop().toLowerCase();
+      clearCurrentObject();
+
+      let object3d = null;
+      if (ext === 'glb' || ext === 'gltf') {
+        object3d = await loadGLTFFromURL(url);
+      } else if (ext === 'obj') {
+        const res = await fetch(url);
+        const text = await res.text();
+        object3d = loadOBJFromText(text);
+      } else if (ext === 'ply') {
+        const res = await fetch(url);
+        const buf = await res.arrayBuffer();
+        object3d = loadPLYFromArrayBuffer(buf);
+      } else {
+        throw new Error(`Unsupported format: ${ext}`);
+      }
+
+      const isAlignedMesh = name.toLowerCase().includes('_aligned.');
+      prepareMeshMaterials(object3d, { forceUnlitTexture: isAlignedMesh });
+      if (APPLY_LEFT_RIGHT_UNMIRROR) {
+        // Fix common left-right mirrored reconstruction coordinates.
+        object3d.scale.x *= -1;
+      }
+      // Keep model grounded on the viewer grid for easier placement checks.
+      snapObjectToGridFloor(object3d, { centerXZ: true });
+      currentObject = object3d;
+      currentName = name;
+      scene.add(currentObject);
+      addDenseBoundsHelper(currentObject, name);
+      fitCameraToObject(currentObject);
+      activeFileEl.textContent = `Dang hien thi: ${name}`;
+    }
+
+    function formatDate(isoOrSeconds) {
+      const d = typeof isoOrSeconds === 'number' ? new Date(isoOrSeconds * 1000) : new Date(isoOrSeconds);
+      if (Number.isNaN(d.getTime())) return '-';
+      return d.toLocaleString();
+    }
+
+    function formatSize(bytes) {
+      const n = Number(bytes || 0);
+      if (n < 1024) return `${n} B`;
+      if (n < 1024 * 1024) return `${(n / 1024).toFixed(1)} KB`;
+      if (n < 1024 * 1024 * 1024) return `${(n / (1024 * 1024)).toFixed(1)} MB`;
+      return `${(n / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+    }
+
+    function setActiveItem(name) {
+      Array.from(listEl.querySelectorAll('.mesh-item')).forEach((el) => {
+        el.classList.toggle('active', el.dataset.name === name);
+      });
+    }
+
+    async function refreshMeshList(autoOpenFirst = false) {
+      try {
+        const res = await fetch('/api/meshes');
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        const meshes = Array.isArray(data.meshes) ? data.meshes : [];
+
+        listEl.innerHTML = '';
+        emptyStateEl.style.display = meshes.length ? 'none' : 'block';
+
+        for (const item of meshes) {
+          const li = document.createElement('li');
+          li.className = 'mesh-item';
+          li.dataset.name = item.name;
+          li.innerHTML = `
+            <div class="mesh-name">${item.name}</div>
+            <div class="mesh-meta">${formatSize(item.size)} • ${formatDate(item.mtime)}</div>
+          `;
+          li.addEventListener('click', async () => {
+            try {
+              await openMeshByURL(item.name, item.url);
+              setActiveItem(item.name);
+            } catch (err) {
+              alert(`Load failed: ${err.message || err}`);
+            }
+          });
+          listEl.appendChild(li);
+        }
+
+        if (meshes.length && (autoOpenFirst || !currentName)) {
+          await openMeshByURL(meshes[0].name, meshes[0].url);
+          setActiveItem(meshes[0].name);
+        } else if (currentName) {
+          const exists = meshes.some((m) => m.name === currentName);
+          if (!exists) {
+            clearCurrentObject();
+            currentName = '';
+            activeFileEl.textContent = 'Mesh hien tai da bi xoa, vui long chon file khac';
+          } else {
+            setActiveItem(currentName);
+          }
+        }
+      } catch (err) {
+        console.error(err);
+        listEl.innerHTML = '';
+        emptyStateEl.style.display = 'block';
+        emptyStateEl.textContent = 'Khong lay duoc danh sach mesh. Hay chay: python view_server.py';
+      }
+    }
+
+    async function updateRunStatus() {
+      try {
+        const res = await fetch('/api/run_status');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.state === 'running') {
+          runBtn.disabled = true;
+          runBtn.textContent = 'Running...';
+          activeFileEl.textContent = 'Dang chay inference tu input_images...';
+          logHintEl.textContent = data.log_file ? `Log: ${data.log_file}` : '';
+        } else {
+          runBtn.disabled = false;
+          runBtn.textContent = 'Run Model';
+          if (data.state === 'done') {
+            activeFileEl.textContent = 'Inference xong. Mesh moi da san sang.';
+            logHintEl.textContent = data.log_file ? `Log: ${data.log_file}` : '';
+          } else if (data.state === 'failed') {
+            activeFileEl.textContent = `Inference loi: ${data.message || 'unknown error'}`;
+            logHintEl.textContent = data.log_file ? `Log: ${data.log_file}` : '';
+          }
+        }
+      } catch (_err) {
+        // Keep UI usable even if status endpoint is unavailable.
+      }
+    }
+
+    refreshBtn.addEventListener('click', () => refreshMeshList(false));
+    runBtn.addEventListener('click', async () => {
+      try {
+        const res = await fetch('/api/run_inference', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok || !data.ok) {
+          alert(`Khong the chay model: ${data.message || res.status}`);
+          return;
+        }
+        await updateRunStatus();
+      } catch (err) {
+        alert(`Khong goi duoc API run: ${err.message || err}`);
+      }
+    });
+    resetViewBtn.addEventListener('click', () => {
+      if (currentObject) fitCameraToObject(currentObject);
+    });
+
+    setInterval(() => refreshMeshList(false), 8000);
+    setInterval(() => updateRunStatus(), 3000);
+    refreshMeshList(true);
+    updateRunStatus();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
+</html>

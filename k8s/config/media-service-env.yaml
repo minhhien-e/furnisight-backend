@@ -1,0 +1,16 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+
+  # --- DATABASE ---
+  DATASOURCE_URL: jdbc:postgresql://postgres.furnisight-infras.svc.cluster.local:5432/furnisight_media_db
+  DATASOURCE_USERNAME: postgres
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+  MAX_FILE_SIZE: 50MB
+  MAX_REQUEST_SIZE: 55MB
+
+kind: ConfigMap
+metadata:
+  name: media-service-env
+  namespace: furnisight-apps

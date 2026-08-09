@@ -1,0 +1,41 @@
+package com.furnisight.notification.application.profile.service;
+
+import com.furnisight.notification.application.profile.port.in.command.CreateDefaultNotificationProfileCommand;
+import com.furnisight.notification.application.profile.port.in.dto.response.NotificationProfileResponse;
+import com.furnisight.notification.application.profile.port.in.usecase.CreateDefaultNotificationProfileUseCase;
+import com.furnisight.notification.application.profile.port.out.repository.NotificationProfileRepository;
+import com.furnisight.notification.domain.exceptions.NotFoundException;
+import com.furnisight.notification.domain.exceptions.ErrorCode;
+import com.furnisight.notification.domain.model.entity.NotificationProfile;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Service
+@RequiredArgsConstructor
+public class CreateDefaultNotificationProfileService implements CreateDefaultNotificationProfileUseCase {
+
+    private final NotificationProfileRepository notificationProfileRepository;
+
+    @Override
+    @Transactional
+    public NotificationProfileResponse execute(CreateDefaultNotificationProfileCommand command) {
+        try {
+            return NotificationProfileResponse.from(notificationProfileRepository.findByUserId(command.getUserId()));
+        } catch (NotFoundException ignored) {
+            // Create the default profile below.
+        }
+
+        NotificationProfile preference = NotificationProfile.builder()
+                .id(command.getUserId())
+                .userId(command.getUserId())
+                .orderUpdatesEnabled(true)
+                .promotionsEnabled(true)
+                .walletUpdatesEnabled(true)
+                .socialUpdatesEnabled(true)
+                .build();
+
+        NotificationProfile saved = notificationProfileRepository.save(preference);
+        return NotificationProfileResponse.from(saved);
+    }
+}

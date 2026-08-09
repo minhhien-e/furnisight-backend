@@ -1,0 +1,520 @@
+x-common-service: &common-service
+  restart: always
+
+x-deploy-small: &deploy-small
+  resources:
+    limits:
+      cpus: "0.5"
+      memory: 512M
+
+x-deploy-medium: &deploy-medium
+  resources:
+    limits:
+      cpus: "1.0"
+      memory: 1G
+
+x-deploy-large: &deploy-large
+  resources:
+    limits:
+      cpus: "2.0"
+      memory: 8G
+
+x-java-env: &java-env
+  JAVA_TOOL_OPTIONS: "-Xms128m -Xmx256m"
+  SERVER_PORT: 8080
+  GRPC_SERVER_PORT: 9090
+  TZ: Asia/Ho_Chi_Minh
+
+x-java-build: &java-build
+  dockerfile: Dockerfile
+  args:
+    - GITHUB_ACTOR=${GITHUB_ACTOR}
+  secrets:
+    - GITHUB_TOKEN
+
+x-java-service: &java-service
+  <<: *common-service
+  environment:
+    <<: *java-env
+  expose:
+    - "8080"
+    - "9090"
+
+x-postgres-dep: &postgres-dep
+  postgres:
+    condition: service_healthy
+
+x-kafka-dep: &kafka-dep
+  kafka:
+    condition: service_healthy
+
+services:
+  postgres:
+    image: postgres:13.1-alpine
+    container_name: furnisight_user_postgres
+    restart: unless-stopped
+    command: ["postgres", "-c", "max_connections=200"]
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      TZ: Asia/Ho_Chi_Minh
+      PGTZ: Asia/Ho_Chi_Minh
+    expose:
+      - "5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d furnisight_user_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy: *deploy-small
+
+  mongo:
+    image: mongo:7
+    container_name: mongo-rs
+    <<: *common-service
+    expose:
+      - "27017"
+    command: ["mongod", "--replSet", "rs0", "--bind_ip_all"]
+    volumes:
+      - mongo_data:/data/db
+    deploy: *deploy-medium
+
+  mongo-init:
+    image: mongo:7
+    depends_on:
+      - mongo
+    restart: "no"
+    volumes:
+      - ./mongo-init.js:/mongo-init.js
+    entrypoint: >
+      bash -c "
+        sleep 5 &&
+        mongosh --host mongo:27017 --eval \"try { rs.initiate({ _id: 'rs0', members: [{ _id: 0, host: 'mongo:27017' }] }); } catch(e) { print('Replica set already initialized'); }\" &&
+        sleep 5 &&
+        mongosh --host mongo:27017 /mongo-init.js
+      "
+    deploy: *deploy-small
+
+  redis:
+    image: redis:7
+    container_name: redis-server
+    <<: *common-service
+    expose:
+      - "6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    deploy: *deploy-small
+
+  libretranslate:
+    image: libretranslate/libretranslate:latest
+    container_name: libretranslate
+    <<: *common-service
+    entrypoint: ["/bin/bash", "/bootstrap/install-and-start.sh"]
+    volumes:
+      - ./libretranslate-data:/home/libretranslate/.local
+      - ./libretranslate-bootstrap/install-and-start.sh:/bootstrap/install-and-start.sh:ro
+    ports:
+      - "127.0.0.1:5000:5000"
+    expose:
+      - "5000"
+    environment:
+      - LT_LOAD_ONLY=en,vi
+    healthcheck:
+      test: ["CMD-SHELL", "./venv/bin/python scripts/healthcheck.py"]
+      interval: 15s
+      timeout: 10s
+      retries: 20
+      start_period: 60s
+    deploy: *deploy-medium
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: furnisight_kafka
+    restart: unless-stopped
+    expose:
+      - "29092"
+      - "29093"
+    environment:
+      TZ: Asia/Ho_Chi_Minh
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:29092,CONTROLLER://0.0.0.0:29093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,CONTROLLER:PLAINTEXT
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:29093
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "kafka-topics --bootstrap-server kafka:29092 --list || exit 1",
+        ]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 40s
+    deploy: *deploy-medium
+
+  gateway:
+    image: furnisight-gateway:latest
+    build:
+      context: ./gateway
+      dockerfile: Dockerfile
+    container_name: furnisight_gateway
+    <<: *common-service
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - ./gateway/.env
+    environment:
+      <<: *java-env
+    depends_on:
+      redis:
+        condition: service_started
+      user-service:
+        condition: service_healthy
+      catalog-service:
+        condition: service_started
+      review-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      notification-service:
+        condition: service_started
+      message-service:
+        condition: service_healthy
+      order-service:
+        condition: service_started
+      promotion-service:
+        condition: service_started
+      media-service:
+        condition: service_started
+      ai-image-classifier:
+        condition: service_started
+      ai-image-reconstruction:
+        condition: service_started
+      admin-service:
+        condition: service_started
+    deploy: *deploy-medium
+
+  user-service:
+    <<: *java-service
+    image: furnisight-user-service:latest
+    container_name: furnisight_user_service
+    build:
+      context: ./user-service
+      <<: *java-build
+    env_file:
+      - ./user-service/.env
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'wget -qO- http://localhost:8080/api/v1/actuator/health | grep -q ''"status":"UP"''',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 18
+      start_period: 30s
+    deploy: *deploy-small
+
+  admin-service:
+    <<: *java-service
+    image: furnisight-admin-service:latest
+    container_name: furnisight_admin_service
+    build:
+      context: ./admin-service
+      <<: *java-build
+    env_file:
+      - ./admin-service/.env
+    environment:
+      <<: *java-env
+      REVIEW_SERVICE_GRPC_HOST: review-service
+    volumes:
+      - admin_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      promotion-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      message-service:
+        condition: service_started
+      review-service:
+        condition: service_started
+    deploy: *deploy-small
+
+  catalog-service:
+    <<: *java-service
+    image: furnisight-catalog-service:latest
+    container_name: furnisight_catalog_service
+    build:
+      context: ./catalog-service
+      <<: *java-build
+    env_file:
+      - ./catalog-service/.env
+    environment:
+      <<: *java-env
+      REDIS_HOST: redis
+      TRANSLATION_BASE_URL: http://libretranslate:5000
+      REVIEW_SERVICE_GRPC_HOST: review-service
+      REVIEW_SERVICE_GRPC_ADDRESS: dns:///review-service:9090
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
+      redis:
+        condition: service_started
+      libretranslate:
+        condition: service_healthy
+      review-service:
+        condition: service_started
+    deploy: *deploy-small
+
+  review-service:
+    <<: *java-service
+    image: furnisight-review-service:latest
+    container_name: furnisight_review_service
+    build:
+      context: ./review-service
+      <<: *java-build
+    env_file:
+      - ./review-service/.env
+    environment:
+      <<: *java-env
+      REDIS_HOST: redis
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
+      redis:
+        condition: service_started
+      order-service:
+        condition: service_started
+      media-service:
+        condition: service_started
+      ai-review-sentiment:
+        condition: service_started
+    deploy: *deploy-small
+
+  cart-service:
+    <<: *java-service
+    image: furnisight-cart-service:latest
+    container_name: furnisight_cart_service
+    build:
+      context: ./cart-service
+      <<: *java-build
+    env_file:
+      - ./cart-service/.env
+    environment:
+      <<: *java-env
+    depends_on:
+      - mongo
+    deploy: *deploy-small
+
+  notification-service:
+    <<: *java-service
+    image: furnisight-notification-service:latest
+    container_name: furnisight_notification_service
+    build:
+      context: ./notification-service
+      <<: *java-build
+    env_file:
+      - ./notification-service/.env
+    environment:
+      <<: *java-env
+      TRANSLATION_BASE_URL: http://libretranslate:5000
+    depends_on:
+      mongo:
+        condition: service_started
+      kafka:
+        condition: service_started
+      libretranslate:
+        condition: service_healthy
+    deploy: *deploy-small
+
+  order-service:
+    <<: *java-service
+    image: furnisight-order-service:latest
+    container_name: furnisight_order_service
+    build:
+      context: ./order-service
+      <<: *java-build
+    env_file:
+      - ./order-service/.env
+    environment:
+      <<: *java-env
+      TRANSLATION_BASE_URL: http://libretranslate:5000
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
+      libretranslate:
+        condition: service_healthy
+    deploy: *deploy-small
+
+  promotion-service:
+    <<: *java-service
+    image: furnisight-promotion-service:latest
+    container_name: furnisight_promotion_service
+    build:
+      context: ./promotion-service
+      <<: *java-build
+    env_file:
+      - ./promotion-service/.env
+    environment:
+      <<: *java-env
+      TRANSLATION_BASE_URL: http://libretranslate:5000
+      REDIS_HOST: redis
+    depends_on:
+      redis:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      notification-service:
+        condition: service_started
+      user-service:
+        condition: service_started
+      order-service:
+        condition: service_started
+      cart-service:
+        condition: service_started
+      catalog-service:
+        condition: service_started
+      libretranslate:
+        condition: service_healthy
+    deploy: *deploy-small
+
+  ai-image-classifier:
+    image: furnisight-ai-image-classifier:latest
+    build:
+      context: ./ai-image-classifier
+      dockerfile: Dockerfile
+    container_name: furnisight_ai_classifier
+    <<: *common-service
+    expose:
+      - "8080"
+    environment:
+      CATALOG_GRPC_TARGET: catalog-service:9090
+    depends_on:
+      - catalog-service
+    volumes:
+      - ./ai-image-classifier/models:/app/models:ro
+    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+    deploy: *deploy-medium
+
+  ai-image-reconstruction:
+    image: furnisight-ai-image-reconstruction:latest
+    build:
+      context: ./ai-image-reconstruction
+      dockerfile: Dockerfile
+      args:
+        TORCH_WHEEL: ${TORCH_WHEEL:-}
+    container_name: furnisight_ai_reconstruction
+    <<: *common-service
+    env_file:
+      - ./media-service/.env
+      - ./ai-image-reconstruction/.env
+    environment:
+      STORAGE_BACKEND: ${AI_RECONSTRUCTION_STORAGE_BACKEND:-cloudinary}
+      CLOUDINARY_FOLDER: ${AI_RECONSTRUCTION_CLOUDINARY_FOLDER:-furnisight/ai-reconstruction}
+      RETAIN_LOCAL_OUTPUTS: ${AI_RECONSTRUCTION_RETAIN_LOCAL_OUTPUTS:-false}
+    volumes:
+      - ./ai-image-reconstruction/checkpoints:/app/checkpoints:ro
+      - ./ai-image-reconstruction/outputs:/app/outputs
+    expose:
+      - "8080"
+    deploy: *deploy-large
+
+  ai-review-sentiment:
+    image: furnisight-ai-review-sentiment:latest
+    build:
+      context: ./ai-review-sentiment
+      dockerfile: Dockerfile
+    container_name: furnisight_ai_review_sentiment
+    <<: *common-service
+    environment:
+      AI_REVIEW_SENTIMENT_GRPC_PORT: 9090
+    expose:
+      - "8080"
+      - "9090"
+    deploy: *deploy-medium
+
+  media-service:
+    <<: *java-service
+    image: furnisight-media-service:latest
+    container_name: furnisight_media_service
+    build:
+      context: ./media-service
+      <<: *java-build
+    env_file:
+      - ./media-service/.env
+    environment:
+      <<: *java-env
+    volumes:
+      - media_storage:/app/storage
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    deploy: *deploy-medium
+
+  message-service:
+    <<: *java-service
+    image: furnisight-message-service:latest
+    container_name: furnisight_message_service
+    build:
+      context: ./message-service
+      <<: *java-build
+    env_file:
+      - ./message-service/.env
+    environment:
+      <<: *java-env
+      USER_SERVICE_GRPC_ADDRESS: dns:///user-service:9090
+    depends_on:
+      <<: [*postgres-dep, *kafka-dep]
+      user-service:
+        condition: service_healthy
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          'wget -qO- http://localhost:8080/actuator/health | grep -q ''"status":"UP"''',
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+    deploy: *deploy-small
+
+volumes:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  kafka_data:
+  media_storage:
+  admin_data:
+
+secrets:
+  GITHUB_TOKEN:
+    file: ./.github_token

@@ -5,7 +5,7 @@
 **/.env.*
 !**/.env.example
 **/*.local
-
+**/secret-env.yaml
 # =========================
 # IDEs / Editors
 # =========================
@@ -14,7 +14,6 @@
 **/*.iws
 **/*.iml
 **/*.ipr
-**/out/
 
 # VS Code
 **/.vscode/
@@ -45,6 +44,7 @@
 **/.mvn/wrapper/maven-wrapper.jar
 **/.gradle/
 **/build/
+**/bin/
 !**/gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
@@ -112,3 +112,12 @@
 **/.Trashes
 **/ehthumbs.db
 **/Thumbs.db
+**/*.pem
+
+# Runtime AI weights mounted into containers.
+ai-image-classifier/models/big-lama.pt
+/libretranslate-data/*
+!/libretranslate-data/.gitkeep
+
+# Secrets
+**/.github_token

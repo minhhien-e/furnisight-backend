@@ -1,0 +1,16 @@
+Tên sản phẩm: Sofa Băng Cao Cấp Vải Nỉ
+SKU: SOFA-B-001
+Giá: 5500000
+Số lượng tồn kho: 20
+Mô tả: Sofa băng kích thước 2m, bọc vải nỉ cao cấp nhập khẩu, nệm mút D40 êm ái chống xẹp lún. Thiết kế hiện đại phù hợp cho phòng khách căn hộ.
+
+--- BIẾN THỂ SẢN PHẨM ---
+Tên biến thể 1: Màu Xám
+SKU Biến thể: SOFA-B-001-GRAY
+Giá: 5500000
+Tồn kho: 10
+
+Tên biến thể 2: Màu Be
+SKU Biến thể: SOFA-B-001-BEIGE
+Giá: 5800000
+Tồn kho: 10

@@ -1,0 +1,19 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+fastapi
+uvicorn[standard]
+
+torch
+torchvision
+
+opencv-python-headless
+Pillow
+
+ultralytics
+simple-lama-inpainting
+
+python-multipart
+pydantic-settings
+grpcio>=1.81.0
+protobuf>=6.33.5
+pytest

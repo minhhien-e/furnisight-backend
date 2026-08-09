@@ -1,0 +1,9 @@
+plugins {
+    id 'java-library'
+}
+tasks.withType(JavaCompile) {
+    options.compilerArgs += ["-parameters"]
+}
+dependencies {
+    implementation project(':user-infrastructure')
+}

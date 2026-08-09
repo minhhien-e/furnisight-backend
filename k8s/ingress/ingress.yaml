@@ -1,0 +1,41 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: furnisight-ingress
+  namespace: furnisight-apps
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+    # Giới hạn kích thước upload (đặc biệt cho upload ảnh)
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  rules:
+    - host: api.furnisight.store
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: gateway
+                port:
+                  number: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: furnisight-frontend-ingress
+  namespace: furnisight-frontend
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+    - host: furnisight.store
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: furnisight-frontend
+                port:
+                  number: 80

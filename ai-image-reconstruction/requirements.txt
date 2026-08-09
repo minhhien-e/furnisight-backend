@@ -1,0 +1,43 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+# =================================
+# Core Deep Learning
+# =================================
+torch
+torchvision
+numpy==1.23.5
+scipy==1.8.1
+einops==0.6.1
+
+# =================================
+# Computer Vision
+# =================================
+opencv-python==4.5.5.64
+pillow==9.5.0
+imageio==2.19.2
+pylsd-nova==1.2.0
+
+# =================================
+# 3D Processing
+# =================================
+open3d==0.16.0
+Shapely==1.8.2
+trimesh==4.4.9
+
+# =================================
+# Web / API
+# =================================
+fastapi==0.95.2
+uvicorn==0.22.0
+python-multipart==0.0.6
+cloudinary==1.39.0
+
+# =================================
+# Utilities
+# =================================
+yacs==0.1.8
+PyYAML==6.0
+tqdm==4.64.0
+termcolor==1.1.0
+requests==2.31.0
+easydict==1.9

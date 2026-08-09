@@ -1,0 +1,32 @@
+apiVersion: v1
+data:
+  # --- CẤU HÌNH HỆ THỐNG (SYSTEM) ---
+  APP_SECURITY_WHITELIST_AUTH_ALL: /users/auth/register,/users/auth/login,/users/auth/login/google,/users/auth/verify,/users/auth/refresh-token,/users/auth/logout,/users/auth/realms/.well-known/jwks.json
+  APP_SECURITY_WHITELIST_OAUTH_ALL: /users/oauth2/**,/users/login/oauth2/**
+  APP_SECURITY_WHITELIST_PASSWORD_ALL: /users/auth/password/forgot,/users/auth/password/reset,/users/auth/password/verify
+  APP_SECURITY_WHITELIST_PUBLIC_ALL: /actuator/**,/messages/ws/**,/ai-classifier/**,/ai-reconstruction/**
+  APP_SECURITY_WHITELIST_PUBLIC_GET: /catalog/**,/promotions/**,/orders/payment/*/callback,/reviews/**
+  CORS_ALLOWED_HEADERS: "*"
+  CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+
+  # --- HẠ TẦNG (KAFKA, REDIS, CACHE...) ---
+  KAFKA_UI_URL: http://kafka-ui:8080
+
+  # --- CẤU HÌNH KHÁC (OTHERS) ---
+  ADMIN_SERVICE_URL: http://admin-service:8080
+  AI_IMAGE_CLASSIFIER_URL: http://ai-image-classifier:8080
+  AI_IMAGE_RECONSTRUCTION_URL: http://ai-image-reconstruction:8080
+  AUTH_SERVER_URL: http://user-service:8080/api/v1/auth/realms
+  CART_SERVICE_URL: http://cart-service:8080
+  CATALOG_SERVICE_URL: http://catalog-service:8080
+  MEDIA_SERVICE_URL: http://media-service:8080
+  MESSAGE_SERVICE_WS_URL: ws://message-service:8080
+  NOTIFICATION_SERVICE_URL: http://notification-service:8080
+  ORDER_SERVICE_URL: http://order-service:8080
+  PROMOTION_SERVICE_URL: http://promotion-service:8080
+  USER_SERVICE_URL: http://user-service:8080
+
+kind: ConfigMap
+metadata:
+  name: gateway-env
+  namespace: furnisight-apps

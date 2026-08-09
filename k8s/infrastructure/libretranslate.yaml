@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: libretranslate-pvc
+  namespace: furnisight-infras
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: libretranslate
+  namespace: furnisight-infras
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: libretranslate
+  template:
+    metadata:
+      labels:
+        app: libretranslate
+    spec:
+      containers:
+        - name: libretranslate
+          image: libretranslate/libretranslate:latest
+          # Bootstrap command from docker-compose
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              cd /app && ./scripts/entrypoint.sh
+          ports:
+            - containerPort: 5000
+          env:
+            - name: LT_LOAD_ONLY
+              value: "en,vi"
+          volumeMounts:
+            - name: libretranslate-data
+              mountPath: /home/libretranslate/.local
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "2Gi"
+              cpu: "1000m"
+      volumes:
+        - name: libretranslate-data
+          persistentVolumeClaim:
+            claimName: libretranslate-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: libretranslate
+  namespace: furnisight-infras
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5000
+      targetPort: 5000
+  selector:
+    app: libretranslate

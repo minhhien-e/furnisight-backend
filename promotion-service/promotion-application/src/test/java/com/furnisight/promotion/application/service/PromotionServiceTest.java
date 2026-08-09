@@ -1,0 +1,341 @@
+package com.furnisight.promotion.application.service;
+
+import com.furnisight.promotion.application.dto.ValidateVoucherCommand;
+import com.furnisight.promotion.domain.common.PageResponse;
+import com.furnisight.promotion.application.dto.RecommendVouchersCommand;
+import com.furnisight.promotion.domain.repository.marketing.MarketingCampaignRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionRepository;
+import com.furnisight.promotion.domain.repository.promotion.PromotionComboRepository;
+import com.furnisight.promotion.domain.repository.promotion.UserVoucherRepository;
+import com.furnisight.promotion.domain.entities.MarketingCampaign;
+import com.furnisight.promotion.domain.entities.PromotionCombo;
+import com.furnisight.promotion.domain.entities.Promotion;
+import com.furnisight.promotion.domain.entities.UserVoucher;
+import com.furnisight.promotion.domain.enums.CampaignStatus;
+import com.furnisight.promotion.domain.enums.DiscountType;
+import com.furnisight.promotion.domain.enums.VoucherType;
+import org.junit.jupiter.api.Test;
+
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+class PromotionServiceTest {
+    private static final UUID USER_ID = UUID.randomUUID();
+
+    private final InMemoryPromotionRepository promotionRepository = new InMemoryPromotionRepository();
+    private final InMemoryUserVoucherRepository userVoucherRepository = new InMemoryUserVoucherRepository();
+    private final PromotionService service = new PromotionService(
+            promotionRepository,
+            userVoucherRepository,
+            new EmptyMarketingCampaignRepository(),
+            new EmptyPromotionComboRepository()
+    );
+
+    @Test
+    void percentVoucherUsesMaxDiscountCap() {
+        promotionRepository.save(voucher("SAVE50", DiscountType.PERCENT, 50.0, 120.0, 0.0));
+
+        var response = validate("SAVE50", "shop", 1000.0, 0.0);
+
+        assertThat(response.isValid()).isTrue();
+        assertThat(response.getDiscount()).isEqualTo(120.0);
+    }
+
+    @Test
+    void fixedVoucherCannotExceedSubtotal() {
+        promotionRepository.save(voucher("FIXED", DiscountType.FIXED, 500.0, null, 0.0));
+
+        var response = validate("FIXED", "shop", 300.0, 0.0);
+
+        assertThat(response.isValid()).isTrue();
+        assertThat(response.getDiscount()).isEqualTo(300.0);
+    }
+
+    @Test
+    void shippingVoucherIsClampedByShippingFee() {
+        promotionRepository.save(voucher("SHIP", DiscountType.SHIPPING_CAP, 50.0, null, 0.0));
+
+        var response = validate("SHIP", "ship", 1000.0, 35.0);
+
+        assertThat(response.isValid()).isTrue();
+        assertThat(response.getDiscount()).isEqualTo(35.0);
+    }
+
+    @Test
+    void rejectsWrongVoucherTypeForShopAndShipping() {
+        promotionRepository.save(voucher("SHOP", DiscountType.PERCENT, 10.0, null, 0.0));
+        promotionRepository.save(voucher("SHIP", DiscountType.SHIPPING_CAP, 30.0, null, 0.0));
+
+        assertThat(validate("SHOP", "ship", 1000.0, 40.0).isValid()).isFalse();
+        assertThat(validate("SHIP", "shop", 1000.0, 40.0).isValid()).isFalse();
+    }
+
+    @Test
+    void rejectsVoucherNotOwnedByUserOrAlreadyUsed() {
+        Promotion promotion = promotionRepository.save(voucher("OWNED", DiscountType.FIXED, 50.0, null, 0.0));
+        var unowned = service.validateVoucher(ValidateVoucherCommand.builder()
+                .userId(USER_ID).code("OWNED").type("shop").subtotal(100.0).shippingFee(0.0).build());
+        assertThat(unowned.isValid()).isFalse();
+
+        UserVoucher used = UserVoucher.builder().id(UUID.randomUUID()).userId(USER_ID)
+                .promotionId(promotion.getId()).used(true).build();
+        used.setPromotion(promotion);
+        userVoucherRepository.save(used);
+        assertThat(service.validateVoucher(ValidateVoucherCommand.builder()
+                .userId(USER_ID).code("OWNED").type("shop").subtotal(100.0).shippingFee(0.0).build()).isValid()).isFalse();
+    }
+
+    @Test
+    void recommendationPrefersRequestedCodeAndChoosesBestOtherType() {
+        Promotion preferred = promotionRepository.save(voucher("TARGET", DiscountType.FIXED, 10.0, null, 0.0));
+        Promotion betterShop = promotionRepository.save(voucher("BEST", DiscountType.FIXED, 40.0, null, 0.0));
+        Promotion shipping = promotionRepository.save(voucher("SHIP", DiscountType.SHIPPING_CAP, 30.0, null, 0.0));
+        for (Promotion promotion : List.of(preferred, betterShop, shipping)) {
+            UserVoucher owned = UserVoucher.builder().id(UUID.randomUUID()).userId(USER_ID)
+                    .promotionId(promotion.getId()).used(false).build();
+            owned.setPromotion(promotion);
+            userVoucherRepository.save(owned);
+        }
+        RecommendVouchersCommand command = new RecommendVouchersCommand();
+        command.setSubtotal(100.0);
+        command.setShippingFee(20.0);
+        command.setPreferredVoucherCode("TARGET");
+
+        var result = service.recommendVouchers(USER_ID, command);
+
+        assertThat(result.getShopVoucher().getCode()).isEqualTo("TARGET");
+        assertThat(result.getShippingVoucher().getCode()).isEqualTo("SHIP");
+        assertThat(result.getShippingDiscount()).isEqualTo(20.0);
+    }
+
+    @Test
+    void rejectsInactiveExpiredNotStartedAndMinOrder() {
+        Promotion inactive = voucher("OFF", DiscountType.PERCENT, 10.0, null, 0.0);
+        inactive.setActive(false);
+        promotionRepository.save(inactive);
+
+        Promotion future = voucher("FUTURE", DiscountType.PERCENT, 10.0, null, 0.0);
+        future.setStartDate(LocalDateTime.now().plusDays(1));
+        promotionRepository.save(future);
+
+        Promotion expired = voucher("EXPIRED", DiscountType.PERCENT, 10.0, null, 0.0);
+        expired.setEndDate(LocalDateTime.now().minusDays(1));
+        promotionRepository.save(expired);
+
+        promotionRepository.save(voucher("MIN", DiscountType.PERCENT, 10.0, null, 500.0));
+
+        assertThat(validate("OFF", "shop", 1000.0, 0.0).isValid()).isFalse();
+        assertThat(validate("FUTURE", "shop", 1000.0, 0.0).isValid()).isFalse();
+        assertThat(validate("EXPIRED", "shop", 1000.0, 0.0).isValid()).isFalse();
+        assertThat(validate("MIN", "shop", 300.0, 0.0).isValid()).isFalse();
+    }
+
+    @Test
+    void adminVouchersAreSortedByCreatedAtDescending() {
+        Promotion older = voucher("OLDER", DiscountType.PERCENT, 10.0, null, 0.0);
+        older.setCreatedAt(LocalDateTime.of(2026, 6, 13, 10, 0));
+        promotionRepository.save(older);
+
+        Promotion newer = voucher("NEWER", DiscountType.PERCENT, 10.0, null, 0.0);
+        newer.setCreatedAt(LocalDateTime.of(2026, 6, 14, 10, 0));
+        promotionRepository.save(newer);
+
+        assertThat(service.getAdminVouchers(null, null, null))
+                .extracting("code")
+                .containsExactly("NEWER", "OLDER");
+    }
+
+    private com.furnisight.promotion.application.dto.ValidateVoucherResponse validate(
+            String code,
+            String type,
+            double subtotal,
+            double shippingFee
+    ) {
+        promotionRepository.findByCode(code).ifPresent(promotion -> {
+            if (userVoucherRepository.findByUserIdAndPromotionId(USER_ID, promotion.getId()).isEmpty()) {
+                UserVoucher owned = UserVoucher.builder().id(UUID.randomUUID()).userId(USER_ID)
+                        .promotionId(promotion.getId()).used(false).build();
+                owned.setPromotion(promotion);
+                userVoucherRepository.save(owned);
+            }
+        });
+        return service.validateVoucher(ValidateVoucherCommand.builder()
+                .userId(USER_ID)
+                .code(code)
+                .type(type)
+                .subtotal(subtotal)
+                .shippingFee(shippingFee)
+                .build());
+    }
+
+    private Promotion voucher(
+            String code,
+            DiscountType discountType,
+            double discountValue,
+            Double maxDiscount,
+            double minOrder
+    ) {
+        return Promotion.builder()
+                .id(UUID.randomUUID())
+                .code(code)
+                .name(code)
+                .description("")
+                .icon("badgePercent")
+                .voucherType(VoucherType.PUBLIC)
+                .discountType(discountType)
+                .discountValue(discountValue)
+                .maxDiscount(maxDiscount)
+                .minOrder(minOrder)
+                .active(true)
+                .build();
+    }
+
+    private static final class InMemoryPromotionRepository implements PromotionRepository {
+        private final List<Promotion> promotions = new ArrayList<>();
+
+        @Override
+        public Optional<Promotion> findById(UUID id) {
+            return promotions.stream().filter(p -> p.getId().equals(id)).findFirst();
+        }
+
+        @Override
+        public Optional<Promotion> findByCode(String code) {
+            return promotions.stream().filter(p -> p.getCode().equalsIgnoreCase(code)).findFirst();
+        }
+
+        @Override
+        public List<Promotion> findAll() {
+            return List.copyOf(promotions);
+        }
+
+        @Override
+        public List<Promotion> findAllActive() {
+            return promotions.stream().filter(Promotion::isActive).toList();
+        }
+
+        @Override
+        public PageResponse<Promotion> findPublicActivePage(LocalDateTime now, LocalDateTime expiresBefore,
+                                                            boolean shippingOnly, int page, int size) {
+            List<Promotion> items = promotions.stream().filter(Promotion::isActive)
+                    .filter(p -> p.getVoucherType() == VoucherType.PUBLIC)
+                    .filter(p -> !shippingOnly || p.getDiscountType() == DiscountType.SHIPPING_CAP)
+                    .filter(p -> expiresBefore == null || (p.getEndDate() != null && !p.getEndDate().isAfter(expiresBefore)))
+                    .toList();
+            int from = Math.min(items.size(), page * size);
+            int to = Math.min(items.size(), from + size);
+            return new PageResponse<>(items.subList(from, to), (int) Math.ceil((double) items.size() / size), items.size(), page, size);
+        }
+
+        @Override
+        public Promotion save(Promotion promotion) {
+            promotions.removeIf(p -> p.getId().equals(promotion.getId()));
+            promotions.add(promotion);
+            return promotion;
+        }
+
+        @Override
+        public void deleteById(UUID id) {
+            promotions.removeIf(p -> p.getId().equals(id));
+        }
+    }
+
+    private static final class InMemoryUserVoucherRepository implements UserVoucherRepository {
+        private final List<UserVoucher> userVouchers = new ArrayList<>();
+
+        @Override
+        public List<UserVoucher> findByUserId(UUID userId) {
+            return userVouchers.stream().filter(v -> v.getUserId().equals(userId)).toList();
+        }
+
+        @Override
+        public List<UserVoucher> findUsableByUserId(UUID userId, LocalDateTime now) {
+            return findByUserId(userId).stream().filter(v -> !v.isUsed()).toList();
+        }
+
+        @Override
+        public Optional<UserVoucher> findByUserIdAndPromotionId(UUID userId, UUID promotionId) {
+            return userVouchers.stream()
+                    .filter(v -> v.getUserId().equals(userId))
+                    .filter(v -> v.getPromotionId().equals(promotionId))
+                    .findFirst();
+        }
+
+        @Override
+        public long countByPromotionId(UUID promotionId) {
+            return userVouchers.stream().filter(v -> v.getPromotionId().equals(promotionId)).count();
+        }
+
+        @Override
+        public long countAll() {
+            return userVouchers.size();
+        }
+
+        @Override
+        public UserVoucher save(UserVoucher userVoucher) {
+            userVouchers.add(userVoucher);
+            return userVoucher;
+        }
+    }
+
+    private static final class EmptyMarketingCampaignRepository implements MarketingCampaignRepository {
+        @Override
+        public List<MarketingCampaign> findAll() {
+            return List.of();
+        }
+
+        @Override
+        public Optional<MarketingCampaign> findById(UUID id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public MarketingCampaign save(MarketingCampaign campaign) {
+            return campaign;
+        }
+
+        @Override
+        public void deleteById(UUID id) {
+        }
+
+        @Override
+        public List<MarketingCampaign> findDueScheduled(CampaignStatus status, LocalDateTime now) {
+            return List.of();
+        }
+    }
+
+    private static final class EmptyPromotionComboRepository implements PromotionComboRepository {
+        @Override
+        public List<PromotionCombo> findAll() {
+            return List.of();
+        }
+
+        @Override
+        public List<PromotionCombo> findActive() {
+            return List.of();
+        }
+
+        @Override
+        public PageResponse<PromotionCombo> findActivePage(LocalDateTime now, int page, int size, String sort) {
+            return new PageResponse<>(List.of(), 0, 0, page, size);
+        }
+
+        @Override
+        public Optional<PromotionCombo> findById(UUID id) {
+            return Optional.empty();
+        }
+
+        @Override
+        public PromotionCombo save(PromotionCombo combo) {
+            return combo;
+        }
+
+        @Override
+        public void deleteById(UUID id) {
+        }
+    }
+}

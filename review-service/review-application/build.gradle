@@ -1,0 +1,7 @@
+dependencies {
+    api project(':review-domain')
+
+    implementation 'org.springframework:spring-context'
+    implementation 'org.springframework:spring-tx'
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+}

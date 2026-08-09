@@ -1,0 +1,40 @@
+{
+  "project_name": "AI Image Classification Microservice",
+  "version": "1.0.0",
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8000
+  },
+  "classifier_normal": {
+    "model_name": "resnet50",
+    "image_size": 224,
+    "num_classes": 4,
+    "model_path": "models/resnet50_normal_best.pth",
+    "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
+  },
+  "classifier_360": {
+    "model_name": "resnet50",
+    "image_size": 224,
+    "num_classes": 4,
+    "model_path": "models/resnet50_360_best.pth",
+    "class_names": ["bathroom", "bedroom", "kitchen", "livingroom"]
+  },
+  "object_remover": {
+    "yolo_model_path": "models/yolov8s-seg.pt",
+    "lama_model_path": "models/big-lama.pt",
+    "confidence": 0.35,
+    "max_image_size": 1024,
+    "remove_classes": [0, 56, 57, 58, 59, 60, 62, 63, 66, 67, 72, 73, 74, 75]
+  },
+  "recommendation": {
+    "catalog_grpc_target": "catalog-service:9093",
+    "recommendation_limit": 6,
+    "recommendation_timeout_seconds": 3,
+    "category_mapping": {
+      "livingroom": "phong-khach",
+      "bedroom": "phong-ngu",
+      "kitchen": "phong-bep",
+      "bathroom": "phong-tam"
+    }
+  }
+}

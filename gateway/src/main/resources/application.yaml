@@ -1,0 +1,175 @@
+server:
+  port: 8080
+  forward-headers-strategy: none
+
+spring:
+  application:
+    name: gateway
+  jackson:
+    default-property-inclusion: non_null
+  reactor:
+    context-propagation: auto
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${AUTH_SERVER_URL}/.well-known/jwks.json
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: 6379
+  cloud:
+    gateway:
+      routes:
+        - id: user-service
+          uri: ${USER_SERVICE_URL}
+          predicates:
+            - Path=/users/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /users/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: catalog-service
+          uri: ${CATALOG_SERVICE_URL}
+          predicates:
+            - Path=/catalog/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /catalog/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: review-service
+          uri: ${REVIEW_SERVICE_URL:http://review-service:8080}
+          predicates:
+            - Path=/reviews,/reviews/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /reviews(?<segment>/?.*)
+                replacement: /api/v1/reviews$\{segment}
+
+        - id: cart-service
+          uri: ${CART_SERVICE_URL}
+          predicates:
+            - Path=/cart/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /cart/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: notification-service
+          uri: ${NOTIFICATION_SERVICE_URL}
+          predicates:
+            - Path=/notifications/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /notifications/(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: message-service-websocket
+          uri: ${MESSAGE_SERVICE_WS_URL:ws://message-service:8080}
+          predicates:
+            - Path=/messages/ws/*/*/websocket
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /messages/(?<segment>.*)
+                replacement: /$\{segment}
+
+        - id: message-service
+          uri: ${MESSAGE_SERVICE_URL:http://message-service:8080}
+          predicates:
+            - Path=/messages/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /messages/(?<segment>.*)
+                replacement: /$\{segment}
+
+        - id: order-service
+          uri: ${ORDER_SERVICE_URL}
+          predicates:
+            - Path=/orders/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /orders/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: promotion-service
+          uri: ${PROMOTION_SERVICE_URL}
+          predicates:
+            - Path=/promotions/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /promotions/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: ai-image-classifier
+          uri: ${AI_IMAGE_CLASSIFIER_URL}
+          predicates:
+            - Path=/ai-classifier/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /ai-classifier/(?<segment>.*)
+                replacement: /$\{segment}
+          metadata:
+            # AI classifier cần thời gian xử lý ảnh với model ML (2 phút)
+            response-timeout: 120000
+            connect-timeout: 10000
+
+        - id: ai-image-reconstruction
+          uri: ${AI_IMAGE_RECONSTRUCTION_URL}
+          predicates:
+            - Path=/ai-reconstruction/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /ai-reconstruction/(?<segment>.*)
+                replacement: /$\{segment}
+          metadata:
+            # AI reconstruction chạy trên CPU nên cần timeout lớn (5 phút)
+            response-timeout: 300000
+            connect-timeout: 10000
+
+        - id: media-service-api
+          uri: ${MEDIA_SERVICE_URL}
+          predicates:
+            - Path=/media/**
+          filters:
+            - name: RewritePath
+              args:
+                regexp: /media/?(?<segment>.*)
+                replacement: /api/v1/$\{segment}
+
+        - id: admin-service
+          uri: ${ADMIN_SERVICE_URL:http://localhost:8088}
+          predicates:
+            - Path=/admin/**
+
+      forwarded:
+        enabled: true
+      # Timeout mặc định cho tất cả các route (30 giây)
+      httpclient:
+        response-timeout: 30s
+        connect-timeout: 5000
+        pool:
+          type: elastic
+          max-connections: 10000
+          acquire-timeout: 30000
+
+app:
+  security:
+    whitelist:
+      public-all: ${APP_SECURITY_WHITELIST_PUBLIC_ALL}
+      auth-all: ${APP_SECURITY_WHITELIST_AUTH_ALL}
+      password-all: ${APP_SECURITY_WHITELIST_PASSWORD_ALL}
+      oauth-all: ${APP_SECURITY_WHITELIST_OAUTH_ALL}
+      public-get: ${APP_SECURITY_WHITELIST_PUBLIC_GET}
