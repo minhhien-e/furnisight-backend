@@ -69,6 +69,8 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
                     p.description AS product_description,
                     p.product_status,
                     p.features AS product_features,
+                    p.image_url AS product_image_url,
+                    p.image_media_id AS product_media_id,
                     (SELECT pv.model_media_id FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_media_id,
                     (SELECT pv.model_url FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true ORDER BY pv.price ASC LIMIT 1) AS model_url,
                     EXISTS(SELECT 1 FROM product_variants pv WHERE pv.product_id = p.id AND pv.supports_3d = true) AS supports_3d,

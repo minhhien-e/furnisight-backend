@@ -21,7 +21,7 @@ ON CONFLICT (id) DO NOTHING;
 
 -- 2. Seed data for promotion_combos
 INSERT INTO promotion_combos (id, name, description, discount_type, discount_value, start_date, end_date, active, image_url, original_amount, final_amount, saved_amount) VALUES
-('44444444-4444-4444-4444-444444444444', 'Combo Phòng Ăn Gia Đình', 'Bàn ăn Davison và 4 ghế ăn Norrie', 'PERCENTAGE', 15, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE, 'https://images.unsplash.com/photo-1617806118233-18e1c0945594?auto=format&fit=crop&q=80&w=800', 133998500, 113898725, 20099775),
+('44444444-4444-4444-4444-444444444444', 'Combo Phòng Ăn Gia Đình', 'Bàn ăn Davison và 4 ghế ăn Norrie', 'PERCENTAGE', 15, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE, 'https://images.unsplash.com/photo-1595526114035-0d45ed16cfbf?auto=format&fit=crop&q=80&w=800', 133998500, 113898725, 20099775),
 ('55555555-5555-5555-5555-555555555555', 'Combo Phòng Khách Hiện Đại', 'Ghế bành da Loop, bàn phụ Koa và Bàn console', 'FIXED_AMOUNT', 10000000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE, 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&q=80&w=800', 87500100, 77500100, 10000000),
 ('88888888-8888-8888-8888-888888888888', 'Combo Phòng Ngủ Ấm Áp', 'Giường bệt Andes và ghế băng bọc lông cừu Socca', 'PERCENTAGE', 10, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE, 'https://images.unsplash.com/photo-1505693314120-0d443867891c?auto=format&fit=crop&q=80&w=800', 68327400, 61494660, 6832740)
 ON CONFLICT (id) DO NOTHING;
