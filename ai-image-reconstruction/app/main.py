@@ -1,3 +1,4 @@
+import math
 import os
 import uuid
 from argparse import Namespace
@@ -7,9 +8,32 @@ from urllib.parse import quote
 import numpy as np
 import torch
 
-# Optimize PyTorch CPU Threading (Prevent core contention on high-core CPUs)
-torch.set_num_threads(8)
-torch.set_num_interop_threads(2)
+def get_cpu_quota():
+    try:
+        if os.path.exists("/sys/fs/cgroup/cpu.max"):
+            with open("/sys/fs/cgroup/cpu.max") as f:
+                quota, period = f.read().split()
+                if quota != "max":
+                    return math.ceil(int(quota) / int(period))
+        elif os.path.exists("/sys/fs/cgroup/cpu/cpu.cfs_quota_us"):
+            with open("/sys/fs/cgroup/cpu/cpu.cfs_quota_us") as f:
+                quota = int(f.read())
+            if quota > -1:
+                with open("/sys/fs/cgroup/cpu/cpu.cfs_period_us") as f:
+                    period = int(f.read())
+                return math.ceil(quota / period)
+    except Exception:
+        pass
+    try:
+        return len(os.sched_getaffinity(0))
+    except AttributeError:
+        return os.cpu_count() or 1
+
+# Optimize PyTorch CPU Threading (Prevent core contention on Docker/Kubernetes)
+# Auto-detect CPU limits from Docker's cgroup to avoid hardcoding threads.
+cpu_threads = int(os.environ.get("OMP_NUM_THREADS", get_cpu_quota()))
+torch.set_num_threads(max(1, cpu_threads))
+torch.set_num_interop_threads(1)
 
 from fastapi import FastAPI, File, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware

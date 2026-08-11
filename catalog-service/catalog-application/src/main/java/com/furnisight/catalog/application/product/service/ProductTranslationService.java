@@ -8,7 +8,9 @@ import com.furnisight.catalog.application.translation.port.out.TextTranslationPo
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
@@ -18,7 +20,6 @@ public class ProductTranslationService {
     public static final String TARGET_LANG_EN = "en";
 
     private final TextTranslationPort textTranslationPort;
-    private static final java.util.concurrent.ExecutorService EXECUTOR = java.util.concurrent.Executors.newCachedThreadPool();
 
     public String normalizeLang(String lang) {
         if (lang == null || lang.isBlank()) {
@@ -40,40 +41,105 @@ public class ProductTranslationService {
         return textTranslationPort.translate(query, TARGET_LANG_EN, SOURCE_LANG_VI);
     }
 
-    public ProductResponse localizeProduct(ProductResponse product, String targetLang) {
-        if (product == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
-            return product;
+    private class TranslationBatcher {
+        private final List<String> texts = new ArrayList<>();
+        private final List<Consumer<String>> setters = new ArrayList<>();
+
+        public void add(String text, Consumer<String> setter) {
+            if (text != null && !text.isBlank()) {
+                texts.add(text);
+                setters.add(setter);
+            }
         }
 
-        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        public void addList(List<String> list, Consumer<List<String>> listSetter) {
+            if (list == null || list.isEmpty()) return;
+            
+            // To translate a list, we collect each item and then construct a new list.
+            // But since the items are translated in batch, we can use an array/list to collect the results
+            // and set the final list once all items are translated.
+            final String[] translatedArr = new String[list.size()];
+            final int[] completedCount = {0};
+            
+            for (int i = 0; i < list.size(); i++) {
+                final int index = i;
+                String item = list.get(i);
+                add(item, translatedItem -> {
+                    translatedArr[index] = translatedItem;
+                    completedCount[0]++;
+                    if (completedCount[0] == list.size()) {
+                        List<String> translatedList = new ArrayList<>();
+                        for (String str : translatedArr) {
+                            if (str != null) translatedList.add(str);
+                        }
+                        listSetter.accept(translatedList);
+                    }
+                });
+            }
+        }
 
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setName(translateValue(product.getName())), EXECUTOR));
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setDescription(translateValue(product.getDescription())), EXECUTOR));
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setFeatures(translateList(product.getFeatures())), EXECUTOR));
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.setCategoryName(translateValue(product.getCategoryName())), EXECUTOR));
+        public void execute(String source, String target) {
+            if (texts.isEmpty()) return;
+            List<String> translated = textTranslationPort.translateBatch(texts, source, target);
+            if (translated != null && translated.size() == texts.size()) {
+                for (int i = 0; i < translated.size(); i++) {
+                    setters.get(i).accept(translated.get(i));
+                }
+            }
+        }
+    }
+
+    private void collectProduct(ProductResponse product, TranslationBatcher batcher) {
+        if (product == null) return;
+        
+        batcher.add(product.getName(), product::setName);
+        batcher.add(product.getDescription(), product::setDescription);
+        batcher.addList(product.getFeatures(), product::setFeatures);
+        batcher.add(product.getCategoryName(), product::setCategoryName);
 
         if (product.getCategory() != null) {
-            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.getCategory().setLabel(translateValue(product.getCategory().getLabel())), EXECUTOR));
-            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> product.getCategory().setParentLabel(translateValue(product.getCategory().getParentLabel())), EXECUTOR));
+            batcher.add(product.getCategory().getLabel(), product.getCategory()::setLabel);
+            batcher.add(product.getCategory().getParentLabel(), product.getCategory()::setParentLabel);
         }
 
         if (product.getVariants() != null) {
             for (var variant : product.getVariants()) {
-                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setMaterial(translateValue(variant.getMaterial())), EXECUTOR));
-                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setColor(translateValue(variant.getColor())), EXECUTOR));
-                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setWarranty(translateValue(variant.getWarranty())), EXECUTOR));
-                futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> variant.setFeatures(translateList(variant.getFeatures())), EXECUTOR));
+                batcher.add(variant.getMaterial(), variant::setMaterial);
+                batcher.add(variant.getColor(), variant::setColor);
+                batcher.add(variant.getWarranty(), variant::setWarranty);
+                batcher.addList(variant.getFeatures(), variant::setFeatures);
                 if (variant.getSpecifications() != null) {
                     for (var entry : variant.getSpecifications().entrySet()) {
                         if (entry.getValue() instanceof String str) {
-                            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> entry.setValue(translateValue(str)), EXECUTOR));
+                            batcher.add(str, translatedStr -> entry.setValue(translatedStr));
                         }
                     }
                 }
             }
         }
+    }
+
+    private void collectCategory(CategoryResponse category, TranslationBatcher batcher) {
+        if (category == null) return;
+        batcher.add(category.getName(), category::setName);
+        batcher.add(category.getDescription(), category::setDescription);
+    }
+
+    private void collectRoomType(RoomTypeResponse roomType, TranslationBatcher batcher) {
+        if (roomType == null) return;
+        batcher.add(roomType.getName(), roomType::setName);
+        batcher.add(roomType.getDescription(), roomType::setDescription);
+    }
+
+    public ProductResponse localizeProduct(ProductResponse product, String targetLang) {
+        if (product == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
+            return product;
+        }
+
+        TranslationBatcher batcher = new TranslationBatcher();
+        collectProduct(product, batcher);
+        batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
         
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
         return product;
     }
 
@@ -81,11 +147,13 @@ public class ProductTranslationService {
         if (products == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return products;
         }
-        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        
+        TranslationBatcher batcher = new TranslationBatcher();
         for (ProductResponse product : products) {
-            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> localizeProduct(product, targetLang), EXECUTOR));
+            collectProduct(product, batcher);
         }
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
+        
         return products;
     }
 
@@ -104,10 +172,9 @@ public class ProductTranslationService {
             return category;
         }
 
-        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> category.setName(translateValue(category.getName())), EXECUTOR));
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> category.setDescription(translateValue(category.getDescription())), EXECUTOR));
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        TranslationBatcher batcher = new TranslationBatcher();
+        collectCategory(category, batcher);
+        batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
         
         return category;
     }
@@ -116,11 +183,13 @@ public class ProductTranslationService {
         if (categories == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return categories;
         }
-        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        
+        TranslationBatcher batcher = new TranslationBatcher();
         for (CategoryResponse category : categories) {
-            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> localizeCategory(category, targetLang), EXECUTOR));
+            collectCategory(category, batcher);
         }
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
+        
         return categories;
     }
 
@@ -129,10 +198,9 @@ public class ProductTranslationService {
             return roomType;
         }
 
-        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> roomType.setName(translateValue(roomType.getName())), EXECUTOR));
-        futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> roomType.setDescription(translateValue(roomType.getDescription())), EXECUTOR));
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        TranslationBatcher batcher = new TranslationBatcher();
+        collectRoomType(roomType, batcher);
+        batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
 
         return roomType;
     }
@@ -141,31 +209,13 @@ public class ProductTranslationService {
         if (roomTypes == null || SOURCE_LANG_VI.equals(normalizeLang(targetLang))) {
             return roomTypes;
         }
-        java.util.List<java.util.concurrent.CompletableFuture<Void>> futures = new java.util.ArrayList<>();
+        
+        TranslationBatcher batcher = new TranslationBatcher();
         for (RoomTypeResponse roomType : roomTypes) {
-            futures.add(java.util.concurrent.CompletableFuture.runAsync(() -> localizeRoomType(roomType, targetLang), EXECUTOR));
+            collectRoomType(roomType, batcher);
         }
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
+        batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
+        
         return roomTypes;
-    }
-
-    private String translateValue(String value) {
-        if (value == null || value.isBlank()) {
-            return value;
-        }
-        // DB is VI, output is EN
-        return textTranslationPort.translate(value, SOURCE_LANG_VI, TARGET_LANG_EN);
-    }
-
-    private List<String> translateList(List<String> values) {
-        if (values == null || values.isEmpty()) {
-            return values;
-        }
-        java.util.List<java.util.concurrent.CompletableFuture<String>> futures = new java.util.ArrayList<>();
-        for (String val : values) {
-            futures.add(java.util.concurrent.CompletableFuture.supplyAsync(() -> translateValue(val), EXECUTOR));
-        }
-        java.util.concurrent.CompletableFuture.allOf(futures.toArray(new java.util.concurrent.CompletableFuture[0])).join();
-        return futures.stream().map(java.util.concurrent.CompletableFuture::join).toList();
     }
 }
