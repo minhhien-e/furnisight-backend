@@ -12,7 +12,7 @@ service AdminUserService {
     rpc GetAccounts (GetAccountsRequest) returns (AccountPageResponse);
     rpc GetAccountById (GetAccountByIdRequest) returns (AccountDetailResponse);
     rpc GetAccountEmailById (GetAccountByIdRequest) returns (AccountEmailResponse);
-    rpc GetAccountStats (google.protobuf.Empty) returns (AccountStatsResponse);
+    rpc GetAccountStats (GetAccountStatsRequest) returns (AccountStatsResponse);
     rpc BanAccount (BanAccountRequest) returns (AdminActionResponse);
     rpc UnbanAccount (UnbanAccountRequest) returns (AdminActionResponse);
     rpc ActivateAccount (ActivateAccountRequest) returns (AdminActionResponse);
@@ -145,6 +145,11 @@ message AccountStatsResponse {
     int64 active_users = 2;
     int64 banned_users = 3;
     int64 new_users_this_month = 4;
+}
+
+message GetAccountStatsRequest {
+    string start_date = 1; // optional
+    string end_date = 2; // optional
 }
 
 message BanAccountRequest {

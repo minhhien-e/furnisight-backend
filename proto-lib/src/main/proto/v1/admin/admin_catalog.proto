@@ -13,7 +13,7 @@ service AdminCatalogService {
     rpc GetProductDetail (GetProductDetailRequest) returns (ProductDto);
     rpc StockInVariant (StockInVariantRequest) returns (AdminActionResponse);
     rpc UpdateVariantThreshold (UpdateVariantThresholdRequest) returns (AdminActionResponse);
-    rpc GetProductStats (google.protobuf.Empty) returns (ProductStatsResponse);
+    rpc GetProductStats (GetProductStatsRequest) returns (ProductStatsResponse);
     rpc GetLowStockProducts (GetLowStockProductsRequest) returns (LowStockProductListResponse);
     rpc CreateProduct (CreateProductRequest) returns (AdminActionResponse);
     rpc UpdateProduct (UpdateProductRequest) returns (AdminActionResponse);
@@ -90,6 +90,11 @@ message ProductVariantDto {
     string model_url = 16;
     repeated string image_urls = 17;
     string specifications = 19;
+}
+
+message GetProductStatsRequest {
+    string start_date = 1; // optional
+    string end_date = 2; // optional
 }
 
 message ProductStatsResponse {

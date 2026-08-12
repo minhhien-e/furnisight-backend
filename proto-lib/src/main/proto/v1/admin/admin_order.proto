@@ -10,7 +10,7 @@ import "google/protobuf/empty.proto";
 
 service AdminOrderService {
     rpc GetAdminOrders (GetAdminOrdersRequest) returns (OrderPageResponse);
-    rpc GetOrderStats (google.protobuf.Empty) returns (OrderStatsResponse);
+    rpc GetOrderStats (GetOrderStatsRequest) returns (OrderStatsResponse);
     rpc GetRecentOrders (GetRecentOrdersRequest) returns (RecentOrderListResponse);
     rpc GetAdminVouchers (GetAdminVouchersRequest) returns (VoucherListResponse);
     rpc CreateVoucher (CreateVoucherRequest) returns (AdminActionResponse);
@@ -53,6 +53,11 @@ message OrderDto {
     string customer = 8;
     int32 item_count = 9;
     string tracking_code = 10;
+}
+
+message GetOrderStatsRequest {
+    string start_date = 1; // optional
+    string end_date = 2; // optional
 }
 
 message OrderStatsResponse {
