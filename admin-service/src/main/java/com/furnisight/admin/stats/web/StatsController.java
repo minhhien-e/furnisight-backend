@@ -18,7 +18,9 @@ public class StatsController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<StatsResponse> getStats() {
-        return ResponseEntity.ok(adminStatsService.getStats());
+    public ResponseEntity<StatsResponse> getStats(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String startDate,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endDate) {
+        return ResponseEntity.ok(adminStatsService.getStats(startDate, endDate));
     }
 }

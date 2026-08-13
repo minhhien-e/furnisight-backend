@@ -1,0 +1,7 @@
+Tên combo: Combo Phòng Khách Mùa Hè
+Mô tả: Giảm giá 15% khi mua trọn bộ Sofa và Bàn trà.
+Loại giảm giá: PERCENTAGE
+Giá trị giảm: 15
+Sản phẩm:
+- Product ID: sp_sofa_001, Số lượng: 1
+- Product ID: sp_bantr_002, Số lượng: 1

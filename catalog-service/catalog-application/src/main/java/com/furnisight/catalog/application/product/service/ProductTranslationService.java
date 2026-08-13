@@ -89,12 +89,10 @@ public class ProductTranslationService {
         }
     }
 
-    private void collectProduct(ProductResponse product, TranslationBatcher batcher) {
+    private void collectProduct(ProductResponse product, TranslationBatcher batcher, boolean isSummary) {
         if (product == null) return;
         
         batcher.add(product.getName(), product::setName);
-        batcher.add(product.getDescription(), product::setDescription);
-        batcher.addList(product.getFeatures(), product::setFeatures);
         batcher.add(product.getCategoryName(), product::setCategoryName);
 
         if (product.getCategory() != null) {
@@ -102,16 +100,21 @@ public class ProductTranslationService {
             batcher.add(product.getCategory().getParentLabel(), product.getCategory()::setParentLabel);
         }
 
-        if (product.getVariants() != null) {
-            for (var variant : product.getVariants()) {
-                batcher.add(variant.getMaterial(), variant::setMaterial);
-                batcher.add(variant.getColor(), variant::setColor);
-                batcher.add(variant.getWarranty(), variant::setWarranty);
-                batcher.addList(variant.getFeatures(), variant::setFeatures);
-                if (variant.getSpecifications() != null) {
-                    for (var entry : variant.getSpecifications().entrySet()) {
-                        if (entry.getValue() instanceof String str) {
-                            batcher.add(str, translatedStr -> entry.setValue(translatedStr));
+        if (!isSummary) {
+            batcher.add(product.getDescription(), product::setDescription);
+            batcher.addList(product.getFeatures(), product::setFeatures);
+
+            if (product.getVariants() != null) {
+                for (var variant : product.getVariants()) {
+                    batcher.add(variant.getMaterial(), variant::setMaterial);
+                    batcher.add(variant.getColor(), variant::setColor);
+                    batcher.add(variant.getWarranty(), variant::setWarranty);
+                    batcher.addList(variant.getFeatures(), variant::setFeatures);
+                    if (variant.getSpecifications() != null) {
+                        for (var entry : variant.getSpecifications().entrySet()) {
+                            if (entry.getValue() instanceof String str) {
+                                batcher.add(str, translatedStr -> entry.setValue(translatedStr));
+                            }
                         }
                     }
                 }
@@ -137,7 +140,7 @@ public class ProductTranslationService {
         }
 
         TranslationBatcher batcher = new TranslationBatcher();
-        collectProduct(product, batcher);
+        collectProduct(product, batcher, false);
         batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
         
         return product;
@@ -150,7 +153,7 @@ public class ProductTranslationService {
         
         TranslationBatcher batcher = new TranslationBatcher();
         for (ProductResponse product : products) {
-            collectProduct(product, batcher);
+            collectProduct(product, batcher, true);
         }
         batcher.execute(SOURCE_LANG_VI, TARGET_LANG_EN);
         

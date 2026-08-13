@@ -473,6 +473,22 @@ public class ProductReadRepositoryImpl implements ProductReadRepository {
     }
 
     @Override
+    public long countProductsCreatedBetween(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate) {
+        StringBuilder sql = new StringBuilder("SELECT COUNT(*) FROM products WHERE 1=1 ");
+        Map<String, Object> params = new HashMap<>();
+        if (startDate != null) {
+            sql.append(" AND created_at >= :startDate");
+            params.put("startDate", startDate);
+        }
+        if (endDate != null) {
+            sql.append(" AND created_at < :endDate");
+            params.put("endDate", endDate);
+        }
+        Long total = jdbcTemplate.queryForObject(sql.toString(), params, Long.class);
+        return total == null ? 0L : total;
+    }
+
+    @Override
     public long countLowStockProducts() {
         Long total = jdbcTemplate.queryForObject(
                 """

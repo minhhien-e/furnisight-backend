@@ -69,10 +69,22 @@ public class AdminUserGrpcServer extends AdminUserServiceGrpc.AdminUserServiceIm
     private final RevokeRolePermissionUseCase revokeRolePermissionUseCase;
 
     @Override
-    public void getAccountStats(Empty request, StreamObserver<AccountStatsResponse> responseObserver) {
+    public void getAccountStats(GetAccountStatsRequest request, StreamObserver<AccountStatsResponse> responseObserver) {
             LocalDate firstDayOfMonth = LocalDate.now().withDayOfMonth(1);
             LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
             LocalDateTime nextMonthStart = firstDayOfMonth.plusMonths(1).atStartOfDay();
+
+            if (request.getStartDate() != null && !request.getStartDate().isBlank() &&
+                request.getEndDate() != null && !request.getEndDate().isBlank()) {
+                try {
+                    LocalDate start = LocalDate.parse(request.getStartDate());
+                    LocalDate end = LocalDate.parse(request.getEndDate());
+                    monthStart = start.atStartOfDay();
+                    nextMonthStart = end.plusDays(1).atStartOfDay();
+                } catch (Exception e) {
+                    // Ignore parse errors and fallback to defaults
+                }
+            }
 
             AccountStatsResponse response = AccountStatsResponse.newBuilder()
                     .setTotalUsers(accountJpaRepository.count())

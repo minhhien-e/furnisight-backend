@@ -8,6 +8,8 @@ import lombok.NoArgsConstructor;
 @Data
 @Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class GetOrderStatsQuery {
-    
+    private String startDate;
+    private String endDate;
 }

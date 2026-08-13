@@ -19,28 +19,28 @@ public interface MessageRepository extends JpaRepository<Message, Integer> {
             SELECT *
             FROM messages m
             WHERE m.conversation_id = :conversationId
-              AND (:includeInternal = true OR COALESCE(m.isinternal, false) = false)
+              AND (:includeInternal = true OR COALESCE(m.is_internal, false) = false)
               AND (
                 LOWER(COALESCE(m.content, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.attachmentname, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.attachmenttype, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.attachmenturl, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.mediaid, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.attachment_name, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.attachment_type, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.attachment_url, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.media_id, '')) LIKE LOWER(CONCAT('%', :query, '%'))
                 OR LOWER(COALESCE(CAST(m.attachments AS text), '')) LIKE LOWER(CONCAT('%', :query, '%'))
               )
-            ORDER BY m.createdat ASC, m.id ASC
+            ORDER BY m.created_at ASC, m.id ASC
             """,
         countQuery = """
             SELECT COUNT(*)
             FROM messages m
             WHERE m.conversation_id = :conversationId
-              AND (:includeInternal = true OR COALESCE(m.isinternal, false) = false)
+              AND (:includeInternal = true OR COALESCE(m.is_internal, false) = false)
               AND (
                 LOWER(COALESCE(m.content, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.attachmentname, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.attachmenttype, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.attachmenturl, '')) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(COALESCE(m.mediaid, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.attachment_name, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.attachment_type, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.attachment_url, '')) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(COALESCE(m.media_id, '')) LIKE LOWER(CONCAT('%', :query, '%'))
                 OR LOWER(COALESCE(CAST(m.attachments AS text), '')) LIKE LOWER(CONCAT('%', :query, '%'))
               )
             """,

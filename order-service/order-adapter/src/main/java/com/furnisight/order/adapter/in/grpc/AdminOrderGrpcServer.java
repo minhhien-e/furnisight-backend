@@ -66,8 +66,11 @@ public class AdminOrderGrpcServer extends AdminOrderServiceGrpc.AdminOrderServic
     }
 
     @Override
-    public void getOrderStats(com.google.protobuf.Empty request, StreamObserver<OrderStatsResponse> responseObserver) {
-        OrderStatsResult result = getOrderStatsUseCase.getOrderStats(GetOrderStatsQuery.builder().build());
+    public void getOrderStats(GetOrderStatsRequest request, StreamObserver<OrderStatsResponse> responseObserver) {
+        OrderStatsResult result = getOrderStatsUseCase.getOrderStats(GetOrderStatsQuery.builder()
+                .startDate(request.getStartDate())
+                .endDate(request.getEndDate())
+                .build());
         responseObserver.onNext(mapper.toOrderStatsResponse(result));
         responseObserver.onCompleted();
     }

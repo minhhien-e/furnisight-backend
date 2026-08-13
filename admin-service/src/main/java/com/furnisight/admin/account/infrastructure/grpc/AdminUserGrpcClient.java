@@ -138,7 +138,11 @@ public class AdminUserGrpcClient {
                 .build());
     }
 
-    public AccountStatsResponse getAccountStats() {
-        return adminUserServiceStub.getAccountStats(com.google.protobuf.Empty.getDefaultInstance());
+    public AccountStatsResponse getAccountStats(String startDate, String endDate) {
+        GetAccountStatsRequest request = GetAccountStatsRequest.newBuilder()
+                .setStartDate(startDate == null ? "" : startDate)
+                .setEndDate(endDate == null ? "" : endDate)
+                .build();
+        return adminUserServiceStub.getAccountStats(request);
     }
 }

@@ -46,8 +46,11 @@ public class AdminCatalogGrpcClient {
                 .build());
     }
 
-    public ProductStatsResponse getProductStats() {
-        return adminCatalogServiceStub.getProductStats(com.google.protobuf.Empty.getDefaultInstance());
+    public ProductStatsResponse getProductStats(String startDate, String endDate) {
+        return adminCatalogServiceStub.getProductStats(com.furnisight.admin.catalog.GetProductStatsRequest.newBuilder()
+                .setStartDate(startDate == null ? "" : startDate)
+                .setEndDate(endDate == null ? "" : endDate)
+                .build());
     }
 
     public ProductDto getProductDetail(String id) {

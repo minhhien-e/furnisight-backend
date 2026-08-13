@@ -92,9 +92,19 @@ public class CachedTextTranslationAdapter implements TextTranslationPort {
         }
 
         if (!uncachedTexts.isEmpty()) {
-            java.util.List<String> translatedUncached = translateAndCacheBatch(uncachedTexts, normalizedSource, normalizedTarget);
+            // Deduplicate uncached texts to avoid translating the same string multiple times
+            java.util.List<String> uniqueUncached = uncachedTexts.stream().distinct().toList();
+            
+            // Translate all texts synchronously in batches
+            java.util.List<String> translatedUnique = translateAndCacheBatch(uniqueUncached, normalizedSource, normalizedTarget);
+            
+            java.util.Map<String, String> translationMap = new java.util.HashMap<>();
+            for (int i = 0; i < uniqueUncached.size(); i++) {
+                translationMap.put(uniqueUncached.get(i), translatedUnique.get(i));
+            }
+            
             for (int i = 0; i < uncachedTexts.size(); i++) {
-                results.set(uncachedIndices.get(i), translatedUncached.get(i));
+                results.set(uncachedIndices.get(i), translationMap.get(uncachedTexts.get(i)));
             }
         }
 
@@ -102,17 +112,50 @@ public class CachedTextTranslationAdapter implements TextTranslationPort {
     }
 
     private java.util.List<String> translateAndCacheBatch(java.util.List<String> originalTexts, String sourceLang, String targetLang) {
-        try {
-            java.util.List<String> translated = libreTranslateHttpClient.translateBatch(originalTexts, sourceLang, targetLang);
-            for (int i = 0; i < originalTexts.size(); i++) {
-                String cacheKey = buildCacheKey(sourceLang, targetLang, originalTexts.get(i));
-                translationCacheStore.put(cacheKey, translated.get(i));
-            }
-            return translated;
-        } catch (Exception ex) {
-            log.warn("Batch translation failed for {} -> {} with {} items", sourceLang, targetLang, originalTexts.size(), ex);
-            return originalTexts;
+        int chunkSize = 8;
+        java.util.List<CompletableFuture<java.util.List<String>>> futures = new java.util.ArrayList<>();
+
+        for (int i = 0; i < originalTexts.size(); i += chunkSize) {
+            int end = Math.min(originalTexts.size(), i + chunkSize);
+            java.util.List<String> chunk = originalTexts.subList(i, end);
+
+            CompletableFuture<java.util.List<String>> future = CompletableFuture.supplyAsync(() -> {
+                try {
+                    return libreTranslateHttpClient.translateBatch(chunk, sourceLang, targetLang);
+                } catch (Exception ex) {
+                    log.warn("Batch chunk translation failed for {} -> {} with {} items", sourceLang, targetLang, chunk.size(), ex);
+                    return null; // Return null to indicate failure for this chunk
+                }
+            });
+            futures.add(future);
         }
+
+        java.util.List<String> translated = new java.util.ArrayList<>(originalTexts.size());
+        for (int i = 0; i < futures.size(); i++) {
+            java.util.List<String> chunkResult = futures.get(i).join();
+            int startIdx = i * chunkSize;
+            int endIdx = Math.min(originalTexts.size(), startIdx + chunkSize);
+            java.util.List<String> originalChunk = originalTexts.subList(startIdx, endIdx);
+            
+            if (chunkResult == null || chunkResult.size() != originalChunk.size()) {
+                // If chunk failed, fallback to original texts and do NOT cache
+                translated.addAll(originalChunk);
+            } else {
+                // Chunk succeeded, add to results and cache them
+                translated.addAll(chunkResult);
+                for (int j = 0; j < chunkResult.size(); j++) {
+                    String orig = originalChunk.get(j);
+                    String trans = chunkResult.get(j);
+                    // Prevent cache poisoning if LibreTranslate fails silently and returns original text
+                    if (trans != null && !trans.equals(orig)) {
+                        String cacheKey = buildCacheKey(sourceLang, targetLang, orig);
+                        translationCacheStore.put(cacheKey, trans);
+                    }
+                }
+            }
+        }
+
+        return translated;
     }
 
     private String buildCacheKey(String sourceLang, String targetLang, String text) {

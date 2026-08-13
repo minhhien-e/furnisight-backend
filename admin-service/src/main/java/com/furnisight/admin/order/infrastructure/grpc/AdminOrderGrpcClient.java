@@ -37,8 +37,11 @@ public class AdminOrderGrpcClient {
                 .build());
     }
 
-    public OrderStatsResponse getOrderStats() {
-        return adminOrderServiceStub.getOrderStats(com.google.protobuf.Empty.getDefaultInstance());
+    public OrderStatsResponse getOrderStats(String startDate, String endDate) {
+        return adminOrderServiceStub.getOrderStats(com.furnisight.admin.order.GetOrderStatsRequest.newBuilder()
+                .setStartDate(startDate == null ? "" : startDate)
+                .setEndDate(endDate == null ? "" : endDate)
+                .build());
     }
 
     public RecentOrderListResponse getRecentOrders(int limit) {
