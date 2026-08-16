@@ -30,12 +30,22 @@ public class PromotionTranslationService {
     private final Map<String, CompletableFuture<String>> inFlight = new ConcurrentHashMap<>();
 
     public PromotionTranslationService(
-            RestClient.Builder restClientBuilder,
             @Value("${translation.enabled:true}") boolean enabled,
-            @Value("${translation.base-url:http://libretranslate:5000}") String baseUrl
+            @Value("${translation.base-url:http://libretranslate:5000}") String baseUrl,
+            @Value("${translation.timeout:20s}") java.time.Duration timeout
     ) {
         this.enabled = enabled;
-        this.restClient = restClientBuilder.baseUrl(baseUrl).build();
+        
+        org.springframework.http.client.JdkClientHttpRequestFactory requestFactory = new org.springframework.http.client.JdkClientHttpRequestFactory(
+                java.net.http.HttpClient.newBuilder()
+                        .connectTimeout(timeout)
+                        .build());
+        requestFactory.setReadTimeout(timeout);
+        
+        this.restClient = RestClient.builder()
+                .baseUrl(baseUrl)
+                .requestFactory(requestFactory)
+                .build();
     }
 
     public String normalizeLang(String lang) {
@@ -46,11 +56,81 @@ public class PromotionTranslationService {
         return normalized.startsWith(TARGET_LANG) ? TARGET_LANG : SOURCE_LANG;
     }
 
+    private class TranslationBatcher {
+        private final List<String> texts = new java.util.ArrayList<>();
+        private final List<java.util.function.Consumer<String>> setters = new java.util.ArrayList<>();
+
+        public void add(String text, java.util.function.Consumer<String> setter) {
+            if (text != null && !text.isBlank()) {
+                texts.add(text);
+                setters.add(setter);
+            }
+        }
+
+        public void execute(String source, String target) {
+            if (texts.isEmpty() || !enabled) return;
+            
+            // Collect unique texts to translate to avoid translating same string multiple times
+            List<String> uniqueTexts = texts.stream().distinct().toList();
+            Map<String, String> translationMap = new java.util.HashMap<>();
+            
+            // Check cache
+            List<String> toTranslate = new java.util.ArrayList<>();
+            for (String text : uniqueTexts) {
+                String cacheKey = buildCacheKey(text);
+                if (cache.containsKey(cacheKey)) {
+                    translationMap.put(text, cache.get(cacheKey));
+                } else {
+                    toTranslate.add(text);
+                }
+            }
+
+            if (!toTranslate.isEmpty()) {
+                try {
+                    TranslateBatchResponse response = restClient.post()
+                            .uri("/translate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .body(new TranslateBatchRequest(toTranslate, source, target))
+                            .retrieve()
+                            .body(TranslateBatchResponse.class);
+                    
+                    if (response != null && response.translatedText() != null && response.translatedText().size() == toTranslate.size()) {
+                        for (int i = 0; i < toTranslate.size(); i++) {
+                            String orig = toTranslate.get(i);
+                            String trans = response.translatedText().get(i);
+                            translationMap.put(orig, trans);
+                            cache.put(buildCacheKey(orig), trans);
+                        }
+                    } else {
+                        // Fallback to original
+                        for (String text : toTranslate) {
+                            translationMap.put(text, text);
+                        }
+                    }
+                } catch (Exception ex) {
+                    log.warn("Batch promotion translation failed for {} items: {}", toTranslate.size(), ex.getMessage());
+                    for (String text : toTranslate) {
+                        translationMap.put(text, text);
+                    }
+                }
+            }
+
+            // Apply translations
+            for (int i = 0; i < texts.size(); i++) {
+                String orig = texts.get(i);
+                String trans = translationMap.getOrDefault(orig, orig);
+                setters.get(i).accept(trans);
+            }
+        }
+    }
+
     public List<PromotionDto> localizePromotions(List<PromotionDto> promotions, String lang) {
         if (promotions == null || !TARGET_LANG.equals(normalizeLang(lang))) {
             return promotions;
         }
-        promotions.forEach(this::localizePromotion);
+        TranslationBatcher batcher = new TranslationBatcher();
+        promotions.forEach(p -> collectPromotion(p, batcher));
+        batcher.execute(SOURCE_LANG, TARGET_LANG);
         return promotions;
     }
 
@@ -71,8 +151,10 @@ public class PromotionTranslationService {
         if (response == null || !TARGET_LANG.equals(normalizeLang(lang))) {
             return response;
         }
-        localizePromotion(response.getShopVoucher());
-        localizePromotion(response.getShippingVoucher());
+        TranslationBatcher batcher = new TranslationBatcher();
+        collectPromotion(response.getShopVoucher(), batcher);
+        collectPromotion(response.getShippingVoucher(), batcher);
+        batcher.execute(SOURCE_LANG, TARGET_LANG);
         return response;
     }
 
@@ -80,8 +162,10 @@ public class PromotionTranslationService {
         if (response == null || !TARGET_LANG.equals(normalizeLang(lang))) {
             return response;
         }
-        response.setMessage(translateValue(response.getMessage()));
-        localizePromotion(response.getVoucher());
+        TranslationBatcher batcher = new TranslationBatcher();
+        batcher.add(response.getMessage(), response::setMessage);
+        collectPromotion(response.getVoucher(), batcher);
+        batcher.execute(SOURCE_LANG, TARGET_LANG);
         return response;
     }
 
@@ -89,7 +173,9 @@ public class PromotionTranslationService {
         if (combos == null || !TARGET_LANG.equals(normalizeLang(lang))) {
             return combos;
         }
-        combos.forEach(this::localizeCombo);
+        TranslationBatcher batcher = new TranslationBatcher();
+        combos.forEach(c -> collectCombo(c, batcher));
+        batcher.execute(SOURCE_LANG, TARGET_LANG);
         return combos;
     }
 
@@ -110,69 +196,33 @@ public class PromotionTranslationService {
         if (response == null || !TARGET_LANG.equals(normalizeLang(lang))) {
             return response;
         }
-        response.setComboName(translateValue(response.getComboName()));
-        response.setMessage(translateValue(response.getMessage()));
+        TranslationBatcher batcher = new TranslationBatcher();
+        batcher.add(response.getComboName(), response::setComboName);
+        batcher.add(response.getMessage(), response::setMessage);
+        batcher.execute(SOURCE_LANG, TARGET_LANG);
         return response;
     }
 
-    private void localizePromotion(PromotionDto promotion) {
+    private void collectPromotion(PromotionDto promotion, TranslationBatcher batcher) {
         if (promotion == null) {
             return;
         }
-        promotion.setName(translateValue(promotion.getName()));
-        promotion.setDescription(translateValue(promotion.getDescription()));
-        promotion.setStatusLabel(translateValue(promotion.getStatusLabel()));
+        batcher.add(promotion.getName(), promotion::setName);
+        batcher.add(promotion.getDescription(), promotion::setDescription);
+        batcher.add(promotion.getStatusLabel(), promotion::setStatusLabel);
     }
 
-    private void localizeCombo(MarketingComboDto combo) {
+    private void collectCombo(MarketingComboDto combo, TranslationBatcher batcher) {
         if (combo == null) {
             return;
         }
-        combo.setName(translateValue(combo.getName()));
-        combo.setDescription(translateValue(combo.getDescription()));
+        batcher.add(combo.getName(), combo::setName);
+        batcher.add(combo.getDescription(), combo::setDescription);
         if (combo.getItems() != null) {
             combo.getItems().forEach(item -> {
-                item.setProductName(translateValue(item.getProductName()));
-                item.setCategoryName(translateValue(item.getCategoryName()));
+                batcher.add(item.getProductName(), item::setProductName);
+                batcher.add(item.getCategoryName(), item::setCategoryName);
             });
-        }
-    }
-
-    private String translateValue(String value) {
-        if (!enabled || value == null || value.isBlank()) {
-            return value;
-        }
-        String cacheKey = buildCacheKey(value);
-        String cached = cache.get(cacheKey);
-        if (cached != null) {
-            return cached;
-        }
-
-        CompletableFuture<String> future = inFlight.computeIfAbsent(cacheKey, key ->
-                CompletableFuture.supplyAsync(() -> {
-                    try {
-                        TranslateResponse response = restClient.post()
-                                .uri("/translate")
-                                .contentType(MediaType.APPLICATION_JSON)
-                                .body(new TranslateRequest(value, SOURCE_LANG, TARGET_LANG))
-                                .retrieve()
-                                .body(TranslateResponse.class);
-                        String translated = response == null || response.translatedText() == null
-                                || response.translatedText().isBlank()
-                                ? value
-                                : response.translatedText();
-                        cache.put(key, translated);
-                        return translated;
-                    } catch (Exception ex) {
-                        log.warn("Promotion translation failed for text='{}': {}", value, ex.getMessage());
-                        return value;
-                    }
-                }));
-
-        try {
-            return future.join();
-        } finally {
-            inFlight.remove(cacheKey, future);
         }
     }
 
@@ -180,9 +230,9 @@ public class PromotionTranslationService {
         return SOURCE_LANG + ":" + TARGET_LANG + ":" + value.trim().replaceAll("\\s+", " ");
     }
 
-    private record TranslateRequest(String q, String source, String target) {
+    private record TranslateBatchRequest(List<String> q, String source, String target) {
     }
 
-    private record TranslateResponse(String translatedText) {
+    private record TranslateBatchResponse(List<String> translatedText) {
     }
 }

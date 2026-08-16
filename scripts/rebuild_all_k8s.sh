@@ -6,7 +6,7 @@ echo "🚀 Xoá các container image furnisight cũ..."
 docker rmi $(docker images --format "{{.Repository}}:{{.Tag}}" | grep "furnisight") -f || true
 
 echo "🚀 Build lại toàn bộ backend services..."
-cd "/run/media/minhhien/New Volume/Workspace/Projects/Thesis/be"
+cd "/run/media/minhhien/New Volume1/Workspace/Projects/Thesis/be"
 docker compose build --no-cache
 
 echo "📦 Nạp backend images vào K3d cluster..."
@@ -16,7 +16,7 @@ echo "🔄 Khởi động lại backend deployments..."
 kubectl rollout restart deployment -n furnisight-apps
 
 echo "🚀 Build lại frontend service..."
-cd "/run/media/minhhien/New Volume/Workspace/Projects/Work/FE/interior-3d"
+cd "/run/media/minhhien/New Volume1/Workspace/Projects/Work/FE/interior-3d"
 docker build --no-cache -t furnisight-frontend:latest .
 
 echo "📦 Nạp frontend image vào K3d cluster..."

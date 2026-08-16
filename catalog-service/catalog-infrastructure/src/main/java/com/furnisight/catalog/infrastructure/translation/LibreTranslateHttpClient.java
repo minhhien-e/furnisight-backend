@@ -43,9 +43,33 @@ public class LibreTranslateHttpClient {
         return response.translatedText().trim();
     }
 
+    public java.util.List<String> translateBatch(java.util.List<String> texts, String sourceLang, String targetLang) {
+        if (texts == null || texts.isEmpty()) {
+            return texts;
+        }
+
+        LibreTranslateBatchResponse response = restClient.post()
+                .uri("/translate")
+                .body(new LibreTranslateBatchRequest(texts, sourceLang, targetLang))
+                .retrieve()
+                .body(LibreTranslateBatchResponse.class);
+
+        if (response == null || response.translatedText() == null || response.translatedText().isEmpty()) {
+            throw new IllegalStateException("LibreTranslate returned empty translatedText for batch");
+        }
+
+        return response.translatedText();
+    }
+
     private record LibreTranslateRequest(String q, String source, String target) {
     }
 
     private record LibreTranslateResponse(String translatedText) {
+    }
+
+    private record LibreTranslateBatchRequest(java.util.List<String> q, String source, String target) {
+    }
+
+    private record LibreTranslateBatchResponse(java.util.List<String> translatedText) {
     }
 }

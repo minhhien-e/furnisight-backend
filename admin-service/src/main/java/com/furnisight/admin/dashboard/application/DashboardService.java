@@ -31,21 +31,21 @@ public class DashboardService {
     private final OrderService orderService;
     private final InventoryService inventoryService;
 
-    public DashboardResponse getDashboardData() {
-        AccountStatsResponse userStats = userClient.getAccountStats();
-        OrderStatsResponse orderStats = orderClient.getOrderStats();
-        ProductStatsResponse productStats = catalogClient.getProductStats();
+    public DashboardResponse getDashboardData(String startDate, String endDate) {
+        AccountStatsResponse userStats = userClient.getAccountStats(startDate, endDate);
+        OrderStatsResponse orderStats = orderClient.getOrderStats(startDate, endDate);
+        ProductStatsResponse productStats = catalogClient.getProductStats(startDate, endDate);
 
         WelcomeResponse welcome = new WelcomeResponse(
                 orderStats.getRevenueThisMonth(),
                 orderStats.getOrdersToday(),
-                userStats.getTotalUsers());
+                userStats.getNewUsersThisMonth());
 
         List<KpiResponse> kpis = List.of(
-                new KpiResponse(KpiType.USERS, userStats.getTotalUsers(), (double) userStats.getNewUsersThisMonth()),
+                new KpiResponse(KpiType.USERS, (double) userStats.getNewUsersThisMonth(), (double) userStats.getTotalUsers()),
                 new KpiResponse(KpiType.REVENUE, orderStats.getRevenueThisMonth(), orderStats.getTotalRevenue()),
-                new KpiResponse(KpiType.ORDERS, orderStats.getTotalOrders(), (double) orderStats.getOrdersToday()),
-                new KpiResponse(KpiType.PRODUCTS, productStats.getTotalProducts(), (double) productStats.getLowStockProducts()));
+                new KpiResponse(KpiType.ORDERS, (double) orderStats.getOrdersToday(), (double) orderStats.getTotalOrders()),
+                new KpiResponse(KpiType.PRODUCTS, (double) productStats.getActiveProducts(), (double) productStats.getTotalProducts()));
 
         List<String> validStatuses = List.of("DELIVERED", "CANCELLED", "CANCELLED_BY_ADMIN");
 

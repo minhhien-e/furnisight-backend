@@ -14,6 +14,7 @@ import com.furnisight.admin.catalog.GetAdminProductsRequest;
 import com.furnisight.admin.catalog.GetCategoryDetailRequest;
 import com.furnisight.admin.catalog.GetLowStockProductsRequest;
 import com.furnisight.admin.catalog.GetProductDetailRequest;
+import com.furnisight.admin.catalog.GetProductStatsRequest;
 import com.furnisight.admin.catalog.LowStockProductDto;
 import com.furnisight.admin.catalog.LowStockProductListResponse;
 import com.furnisight.admin.catalog.ProductDto;
@@ -145,13 +146,26 @@ public class AdminCatalogGrpcServer extends AdminCatalogServiceGrpc.AdminCatalog
     }
 
     @Override
-    public void getProductStats(com.google.protobuf.Empty request, StreamObserver<ProductStatsResponse> responseObserver) {
+    public void getProductStats(GetProductStatsRequest request, StreamObserver<ProductStatsResponse> responseObserver) {
         try {
-            long active = productReadRepository.countProductsByStatus(ProductStatus.ACTIVE.name());
+            java.time.LocalDateTime startDate = null;
+            java.time.LocalDateTime endDate = null;
+            if (request.getStartDate() != null && !request.getStartDate().isBlank() &&
+                request.getEndDate() != null && !request.getEndDate().isBlank()) {
+                try {
+                    startDate = java.time.LocalDate.parse(request.getStartDate()).atStartOfDay();
+                    endDate = java.time.LocalDate.parse(request.getEndDate()).plusDays(1).atStartOfDay();
+                } catch (Exception e) {
+                    // ignore
+                }
+            }
+
+            long newProductsInPeriod = productReadRepository.countProductsCreatedBetween(startDate, endDate);
             long inactive = productReadRepository.countProductsByStatus(ProductStatus.INACTIVE.name());
+            long total = productReadRepository.countAdminProducts(null, null, null);
             ProductStatsResponse response = ProductStatsResponse.newBuilder()
-                    .setTotalProducts(active + inactive)
-                    .setActiveProducts(active)
+                    .setTotalProducts(total)
+                    .setActiveProducts(newProductsInPeriod) // Hijacked for dashboard in period
                     .setInactiveProducts(inactive)
                     .setLowStockProducts(productReadRepository.countLowStockProducts())
                     .setOutOfStockProducts(productReadRepository.countOutOfStockProducts())

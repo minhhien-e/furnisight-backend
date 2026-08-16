@@ -60,3 +60,4 @@ management:
 translation:
   enabled: ${TRANSLATION_ENABLED:true}
   base-url: ${TRANSLATION_BASE_URL:http://libretranslate:5000}
+  timeout: ${TRANSLATION_TIMEOUT:20s}

@@ -33,15 +33,15 @@ public class StatsService {
     private final AdminCatalogGrpcClient catalogClient;
     private final AdminReviewGrpcClient reviewClient;
 
-    public StatsResponse getStats() {
-        AccountStatsResponse userStats = userClient.getAccountStats();
-        OrderStatsResponse orderStats = orderClient.getOrderStats();
-        ProductStatsResponse productStats = catalogClient.getProductStats();
+    public StatsResponse getStats(String startDate, String endDate) {
+        AccountStatsResponse userStats = userClient.getAccountStats(startDate, endDate);
+        OrderStatsResponse orderStats = orderClient.getOrderStats(startDate, endDate);
+        ProductStatsResponse productStats = catalogClient.getProductStats(startDate, endDate);
         CategoryListResponse categories = catalogClient.getCategories(null);
         ReviewSentimentStatsResponse reviewStats = reviewClient.getReviewSentimentStats();
 
         List<CategoryDto> topCategories = categories.getCategoriesList().stream()
-                .filter(c -> c.getParentId() != null && !c.getParentId().trim().isEmpty())
+                .filter(c -> c.getProductCount() > 0)
                 .sorted(Comparator.comparingInt(CategoryDto::getProductCount).reversed())
                 .limit(5)
                 .toList();

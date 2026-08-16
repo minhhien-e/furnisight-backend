@@ -45,7 +45,7 @@ dependencies {
 	
 	// gRPC
 	implementation "net.devh:grpc-client-spring-boot-starter:3.1.0.RELEASE"
-	implementation 'com.furnisight:proto-lib:1.0.1785769618058'
+	implementation 'com.furnisight:proto-lib:1.0.1786502555762'
 	
 	// Tracking
 	implementation 'org.springframework.boot:spring-boot-starter-actuator'

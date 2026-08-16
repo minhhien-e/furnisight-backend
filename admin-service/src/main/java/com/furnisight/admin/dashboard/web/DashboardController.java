@@ -18,7 +18,9 @@ public class DashboardController {
 
     @GetMapping
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<DashboardResponse> getDashboardData() {
-        return ResponseEntity.ok(adminDashboardService.getDashboardData());
+    public ResponseEntity<DashboardResponse> getDashboardData(
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String startDate,
+            @org.springframework.web.bind.annotation.RequestParam(required = false) String endDate) {
+        return ResponseEntity.ok(adminDashboardService.getDashboardData(startDate, endDate));
     }
 }

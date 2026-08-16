@@ -34,23 +34,73 @@ public class GetOrderStatsService implements GetOrderStatsUseCase {
         LocalDateTime monthStart = firstDayOfMonth.atStartOfDay();
         LocalDateTime nextMonthStart = firstDayOfMonth.plusMonths(1).atStartOfDay();
 
+        if (query.getStartDate() != null && !query.getStartDate().isBlank() &&
+            query.getEndDate() != null && !query.getEndDate().isBlank()) {
+            try {
+                LocalDate start = LocalDate.parse(query.getStartDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+                LocalDate end = LocalDate.parse(query.getEndDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+                monthStart = start.atStartOfDay();
+                nextMonthStart = end.plusDays(1).atStartOfDay();
+                todayStart = monthStart;
+                tomorrowStart = nextMonthStart;
+            } catch (Exception e) {
+                // Ignore parse errors and fallback to defaults
+            }
+        }
+
         Map<String, Long> ordersByStatus = new HashMap<>();
         Map<String, Long> ordersThisMonthByStatus = new HashMap<>();
 
-        Arrays.stream(OrderStatus.values()).forEach(status -> {
+        for (OrderStatus status : OrderStatus.values()) {
             ordersByStatus.put(status.name(), orderRepository.countByStatus(status));
             ordersThisMonthByStatus.put(status.name(), orderRepository.countByStatusCreatedAtBetween(status, monthStart, nextMonthStart));
-        });
+        }
 
         List<OrderStatsResult.ChartPointResult> revenueChart = new ArrayList<>();
-        for (int i = 5; i >= 0; i--) {
-            LocalDate bucket = today.minusMonths(i).withDayOfMonth(1);
-            LocalDateTime start = bucket.atStartOfDay();
-            LocalDateTime end = bucket.plusMonths(1).atStartOfDay();
-            revenueChart.add(OrderStatsResult.ChartPointResult.builder()
-                    .label(bucket.format(DATE_FORMAT))
-                    .value(orderRepository.sumTotalAmountCreatedAtBetween(start, end))
-                    .build());
+        if (query.getStartDate() != null && !query.getStartDate().isBlank() &&
+            query.getEndDate() != null && !query.getEndDate().isBlank()) {
+            try {
+                LocalDate start = LocalDate.parse(query.getStartDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+                LocalDate end = LocalDate.parse(query.getEndDate(), DateTimeFormatter.ISO_LOCAL_DATE);
+                long days = java.time.temporal.ChronoUnit.DAYS.between(start, end);
+                
+                if (days <= 31) {
+                    for (int i = 0; i <= days; i++) {
+                        LocalDate bucket = start.plusDays(i);
+                        LocalDateTime bucketStart = bucket.atStartOfDay();
+                        LocalDateTime bucketEnd = bucket.plusDays(1).atStartOfDay();
+                        revenueChart.add(OrderStatsResult.ChartPointResult.builder()
+                                .label(bucket.format(DATE_FORMAT))
+                                .value(orderRepository.sumTotalAmountCreatedAtBetween(bucketStart, bucketEnd))
+                                .build());
+                    }
+                } else {
+                    long months = java.time.temporal.ChronoUnit.MONTHS.between(start.withDayOfMonth(1), end.withDayOfMonth(1));
+                    for (int i = 0; i <= months; i++) {
+                        LocalDate bucket = start.plusMonths(i).withDayOfMonth(1);
+                        LocalDateTime bucketStart = bucket.atStartOfDay();
+                        LocalDateTime bucketEnd = bucket.plusMonths(1).atStartOfDay();
+                        revenueChart.add(OrderStatsResult.ChartPointResult.builder()
+                                .label(bucket.format(DATE_FORMAT))
+                                .value(orderRepository.sumTotalAmountCreatedAtBetween(bucketStart, bucketEnd))
+                                .build());
+                    }
+                }
+            } catch (Exception e) {
+                // Ignore parse errors and fallback
+            }
+        }
+        
+        if (revenueChart.isEmpty()) {
+            for (int i = 5; i >= 0; i--) {
+                LocalDate bucket = today.minusMonths(i).withDayOfMonth(1);
+                LocalDateTime bucketStart = bucket.atStartOfDay();
+                LocalDateTime bucketEnd = bucket.plusMonths(1).atStartOfDay();
+                revenueChart.add(OrderStatsResult.ChartPointResult.builder()
+                        .label(bucket.format(DATE_FORMAT))
+                        .value(orderRepository.sumTotalAmountCreatedAtBetween(bucketStart, bucketEnd))
+                        .build());
+            }
         }
 
         return OrderStatsResult.builder()

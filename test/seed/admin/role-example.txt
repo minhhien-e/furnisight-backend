@@ -1,0 +1,2 @@
+Tên vai trò: STAFF
+Mô tả: Nhân viên cửa hàng, hỗ trợ tư vấn và quản lý đơn hàng.

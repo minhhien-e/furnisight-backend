@@ -1,0 +1,4 @@
+Tên loại phòng: Phòng Ăn
+Mô tả: Nơi diễn ra các bữa ăn gia đình, cần không gian ấm cúng và tiện dụng với bàn ăn và ghế phù hợp.
+Giá: 5000000
+

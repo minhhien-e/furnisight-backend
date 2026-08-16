@@ -20,6 +20,7 @@ public interface ProductReadRepository {
     List<ProductResponse> findAdminProducts(String query, String status, String category, int page, int size);
     long countAdminProducts(String query, String status, String category);
     long countProductsByStatus(String status);
+    long countProductsCreatedBetween(java.time.LocalDateTime startDate, java.time.LocalDateTime endDate);
     long countLowStockProducts();
     long countOutOfStockProducts();
     List<ProductResponse> findLowStockProducts(int limit);
