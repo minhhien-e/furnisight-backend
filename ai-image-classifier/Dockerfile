@@ -15,7 +15,8 @@ RUN apt-get update \
 
 # Install python dependencies
 COPY requirements.txt .
-RUN pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && \
+    pip install --default-timeout=1000 --no-cache-dir -r requirements.txt
 
 # Copy application source
 COPY ./app /app/app

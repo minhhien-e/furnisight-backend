@@ -420,7 +420,16 @@ services:
     volumes:
       - ./ai-image-classifier/models:/app/models:ro
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
-    deploy: *deploy-medium
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 2G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   ai-image-reconstruction:
     image: furnisight-ai-image-reconstruction:latest
@@ -443,7 +452,16 @@ services:
       - ./ai-image-reconstruction/outputs:/app/outputs
     expose:
       - "8080"
-    deploy: *deploy-large
+    deploy:
+      resources:
+        limits:
+          cpus: "4.0"
+          memory: 8G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
 
   ai-review-sentiment:
     image: furnisight-ai-review-sentiment:latest
@@ -511,7 +529,7 @@ services:
     image: nginx:alpine
     container_name: ingress_proxy
     ports:
-      - "8080:80"
+      - "80:80"
     volumes:
       - ./nginx-proxy/nginx.conf:/etc/nginx/nginx.conf:ro
     depends_on:

@@ -1,4 +1,4 @@
-﻿'''
+'''
 This script is helper function for preprocessing.
 Most of the code are converted from LayoutNet official's matlab code.
 All functions, naming rule and data flow follow official for easier
@@ -251,11 +251,23 @@ def lsdWrap(img):
     @img
         input image
     '''
-    if len(img.shape) == 3:
-        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    lines = None
+    try:
+        lines = lsd(img, quant=0.7)
+    except Exception:
+        lines = None
 
-    lines = lsd(img, quant=0.7)
     if lines is None:
+        try:
+            detector = cv2.createLineSegmentDetector(0)
+            lines_cv, _, _, _ = detector.detect(img)
+            if lines_cv is not None:
+                lines = lines_cv.reshape(-1, 4)
+                lines = np.hstack([lines, np.ones((lines.shape[0], 1))])
+        except Exception:
+            lines = None
+
+    if lines is None or len(lines) == 0:
         return np.zeros_like(img), np.array([])
     edgeMap = np.zeros_like(img)
     for i in range(lines.shape[0]):
@@ -356,6 +368,8 @@ def combineEdgesN(edges):
         if len(panoLst) == 0:
             continue
         arcList.append(panoLst)
+    if len(arcList) == 0:
+        return np.zeros((0, 8)), np.zeros((0, 8))
     arcList = np.vstack(arcList)
 
     # ori lines
@@ -836,19 +850,29 @@ def panoEdgeDetection(img, viewSize=320, qError=0.7, refineIter=3):
     lines, olines = combineEdgesN(edge)
 
     clines = lines.copy()
-    for _ in range(refineIter):
-        mainDirect, score, angle = findMainDirectionEMA(clines)
+    lines1rB, lines2rB, lines3rB = np.zeros((0, 8)), np.zeros((0, 8)), np.zeros((0, 8))
+    mainDirect = np.vstack([np.eye(3), -np.eye(3)])
+    score, angle = 0, 0
 
-        tp, typeCost = assignVanishingType(lines, mainDirect[:3], 0.1, 10)
-        lines1 = lines[tp==0]
-        lines2 = lines[tp==1]
-        lines3 = lines[tp==2]
+    if len(clines) > 0:
+        for _ in range(refineIter):
+            md, sc, ang = findMainDirectionEMA(clines)
+            if md is None:
+                break
+            mainDirect, score, angle = md, sc, ang
 
-        lines1rB = refitLineSegmentB(lines1, mainDirect[0], 0)
-        lines2rB = refitLineSegmentB(lines2, mainDirect[1], 0)
-        lines3rB = refitLineSegmentB(lines3, mainDirect[2], 0)
+            tp, typeCost = assignVanishingType(lines, mainDirect[:3], 0.1, 10)
+            lines1 = lines[tp==0]
+            lines2 = lines[tp==1]
+            lines3 = lines[tp==2]
 
-        clines = np.vstack([lines1rB, lines2rB, lines3rB])
+            lines1rB = refitLineSegmentB(lines1, mainDirect[0], 0)
+            lines2rB = refitLineSegmentB(lines2, mainDirect[1], 0)
+            lines3rB = refitLineSegmentB(lines3, mainDirect[2], 0)
+
+            if len(lines1rB) == 0 and len(lines2rB) == 0 and len(lines3rB) == 0:
+                break
+            clines = np.vstack([lines1rB, lines2rB, lines3rB])
 
     panoEdge1r = paintParameterLine(lines1rB, img.shape[1], img.shape[0])
     panoEdge2r = paintParameterLine(lines2rB, img.shape[1], img.shape[0])

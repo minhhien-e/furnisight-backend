@@ -17,4 +17,11 @@ services:
     volumes:
       - ./checkpoints:/app/checkpoints:ro
       - ./outputs:/app/outputs
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     restart: unless-stopped

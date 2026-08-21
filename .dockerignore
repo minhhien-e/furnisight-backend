@@ -6,7 +6,6 @@ models/
 checkpoints/
 outputs/
 
-# Large runtime/model artifacts must be mounted at runtime, not baked into the image.
 **/models/
 **/checkpoints/
 **/outputs/
