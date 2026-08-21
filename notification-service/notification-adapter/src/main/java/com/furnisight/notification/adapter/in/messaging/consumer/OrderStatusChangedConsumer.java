@@ -45,10 +45,16 @@ public class OrderStatusChangedConsumer extends AbstractNotificationConsumer<Ord
         try {
             JsonNode node = parsePayload(payload);
             OrderStatusChangedEvent event = objectMapper.treeToValue(node, OrderStatusChangedEvent.class);
+            String statusDescription = mapNextStatusToDescription(event.nextStatus());
+            var eventDataNode = objectMapper.valueToTree(java.util.Map.of(
+                    "orderCode", event.orderCode() != null ? event.orderCode() : "",
+                    "nextStatus", statusDescription,
+                    "paymentMethod", event.paymentMethod() != null ? event.paymentMethod() : ""
+            ));
 
             var renderResult = renderNotificationUseCase.execute(RenderNotificationCommand.builder()
                     .templateCode("order-status-changed-push")
-                    .data(TemplateEventData.from(objectMapper, event))
+                    .data(new TemplateEventData(eventDataNode))
                     .build());
 
             // 1. Send Push Notification (In-App)
@@ -68,6 +74,21 @@ public class OrderStatusChangedConsumer extends AbstractNotificationConsumer<Ord
             log.error("Failed to consume order status event", exception);
             throw new IllegalStateException("Invalid order status event", exception);
         }
+    }
+
+    private String mapNextStatusToDescription(String status) {
+        if (status == null) return "vừa chuyển sang trạng thái mới.";
+        return switch (status.toUpperCase()) {
+            case "PAID" -> "đã được thanh toán thành công.";
+            case "SHIPPING" -> "đang trên đường giao đến bạn.";
+            case "DELIVERED" -> "giao hàng thành công. Cảm ơn bạn!";
+            case "CANCELLED" -> "đã bị hủy.";
+            case "PROCESSING" -> "đang được xử lý.";
+            case "PENDING" -> "đang chờ thanh toán.";
+            case "CONFIRMED" -> "đã được xác nhận.";
+            case "REFUNDED" -> "đã được hoàn tiền.";
+            default -> "vừa chuyển sang trạng thái " + status + ".";
+        };
     }
 
     private JsonNode parsePayload(String payload) throws Exception {

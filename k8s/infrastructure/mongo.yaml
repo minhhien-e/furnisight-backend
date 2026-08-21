@@ -10,6 +10,15 @@ spec:
     requests:
       storage: 10Gi
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mongo-init-script
+  namespace: furnisight-infras
+data:
+  mongo-init.js: |
+    print("MongoDB initialization script executed");
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

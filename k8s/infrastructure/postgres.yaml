@@ -29,6 +29,24 @@ data:
     datestyle = 'iso, mdy'
     timezone = 'Asia/Ho_Chi_Minh'
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-init-script
+  namespace: furnisight-infras
+data:
+  init.sql: |
+    CREATE DATABASE furnisight_user_db;
+    CREATE DATABASE furnisight_catalog_db;
+    CREATE DATABASE furnisight_order_db;
+    CREATE DATABASE furnisight_cart_db;
+    CREATE DATABASE furnisight_admin_db;
+    CREATE DATABASE furnisight_notification_db;
+    CREATE DATABASE furnisight_promotion_db;
+    CREATE DATABASE furnisight_review_db;
+    CREATE DATABASE furnisight_media_db;
+    CREATE DATABASE furnisight_message_db;
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

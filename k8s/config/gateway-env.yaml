@@ -7,7 +7,7 @@ data:
   APP_SECURITY_WHITELIST_PUBLIC_ALL: /actuator/**,/messages/ws/**,/ai-classifier/**,/ai-reconstruction/**
   APP_SECURITY_WHITELIST_PUBLIC_GET: /catalog/**,/promotions/**,/orders/payment/*/callback,/reviews/**
   CORS_ALLOWED_HEADERS: "*"
-  CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+  CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173,http://localhost,https://furnisight.store,http://furnisight.store
 
   # --- HẠ TẦNG (KAFKA, REDIS, CACHE...) ---
   KAFKA_UI_URL: http://kafka-ui:8080

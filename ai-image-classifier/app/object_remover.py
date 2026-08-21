@@ -11,7 +11,10 @@ import numpy as np
 from PIL import Image
 
 from ultralytics import YOLO
-from simple_lama_inpainting.utils import prepare_img_and_mask
+try:
+    from simple_lama_inpainting.utils import prepare_img_and_mask
+except ImportError:
+    from simple_lama_inpainting.utils.util import prepare_img_and_mask
 from .config import settings
 
 
