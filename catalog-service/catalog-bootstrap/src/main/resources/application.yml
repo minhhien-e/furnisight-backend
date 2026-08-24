@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: ${SERVER_PORT:8083}
   tomcat:
     threads:
@@ -6,6 +6,10 @@ server:
     accept-count: 200
     max-connections: 2000
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     context-path: /api/v1
 
 grpc:
@@ -72,3 +76,4 @@ translation:
   timeout: ${TRANSLATION_TIMEOUT:20s}
   cache-ttl: ${TRANSLATION_CACHE_TTL:30d}
   cache-maximum-size: ${TRANSLATION_CACHE_MAXIMUM_SIZE:10000}
+

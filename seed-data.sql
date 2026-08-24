@@ -6,7 +6,7 @@
 -- 1. Seed data for promotions
 INSERT INTO promotions (id, code, name, description, icon, voucher_type, discount_type, discount_value, max_discount, min_order, start_date, end_date, active) VALUES
 ('11111111-1111-1111-1111-111111111111', 'WELCOME20', 'Welcome 20%', 'Giảm giá 20% cho khách hàng mới', 'mdi-gift', 'PUBLIC', 'PERCENT', 20, 500000, 1000000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
-('22222222-2222-2222-2222-222222222222', 'FREESHIP', 'Free Shipping', 'Miễn phí vận chuyển lên tới 50k', 'mdi-truck-fast', 'PUBLIC', 'FIXED', 50000, 50000, 500000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
+('22222222-2222-2222-2222-222222222222', 'FREESHIP', 'Free Shipping', 'Miễn phí vận chuyển lên tới 50k', 'mdi-truck-fast', 'PUBLIC', 'SHIPPING_CAP', 50000, 50000, 500000, '2023-01-01 00:00:00', '2026-12-31 23:59:59', TRUE),
 ('33333333-3333-3333-3333-333333333333', 'TET2026', 'Tết Nguyên Đán', 'Giảm 1 triệu cho đơn từ 10 triệu', 'mdi-firework', 'PUBLIC', 'FIXED', 1000000, 1000000, 10000000, '2026-01-01 00:00:00', '2026-02-28 23:59:59', TRUE),
 ('77777777-7777-7777-7777-777777777771', 'SUMMER2026', 'Chào Hè Rực Rỡ', 'Giảm 15% tối đa 1 triệu cho đơn từ 3 triệu', 'mdi-white-balance-sunny', 'PUBLIC', 'PERCENT', 15, 1000000, 3000000, '2026-05-01 00:00:00', '2026-08-31 23:59:59', TRUE),
 ('77777777-7777-7777-7777-777777777772', 'NEWYEAR2026', 'Đón Năm Mới', 'Giảm 200k cho đơn từ 2 triệu', 'mdi-pine-tree', 'PUBLIC', 'FIXED', 200000, 200000, 2000000, '2025-12-01 00:00:00', '2026-02-15 23:59:59', TRUE),

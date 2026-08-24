@@ -8,7 +8,7 @@ Write-Host "=========================================" -ForegroundColor Cyan
 
 $clusterExists = (D:\DevTools\k3d.exe cluster list | Select-String "thesis-cluster")
 if (-not $clusterExists) {
-    D:\DevTools\k3d.exe cluster create thesis-cluster --image "rancher/k3s:v1.28.14-k3s1" --port "80:80@loadbalancer" --port "8081:8080@loadbalancer"
+    D:\DevTools\k3d.exe cluster create thesis-cluster --image "rancher/k3s:v1.28.14-k3s1" --port "80:80@loadbalancer" --port "8081:8080@loadbalancer" --gpus="all"
 } else {
     Write-Host "Cluster 'thesis-cluster' already running." -ForegroundColor Green
 }
@@ -22,7 +22,7 @@ if (Test-Path $k3dPath) {
 }
 
 Write-Host "`n=========================================" -ForegroundColor Cyan
-Write-Host "2. Import tat ca 12 Docker Images vao K3d Cluster" -ForegroundColor Yellow
+Write-Host "2. Import tat ca 15 Docker Images vao K3d Cluster" -ForegroundColor Yellow
 Write-Host "=========================================" -ForegroundColor Cyan
 
 $allImages = @(
@@ -37,19 +37,23 @@ $allImages = @(
     "furnisight-review-service:latest",
     "furnisight-media-service:latest",
     "furnisight-message-service:latest",
-    "furnisight-admin-service:latest"
+    "furnisight-admin-service:latest",
+    "furnisight-ai-review-sentiment:latest",
+    "furnisight-ai-image-classifier:latest",
+    "furnisight-ai-image-reconstruction:latest"
 )
 
-Write-Host "Dang import 12 Docker Images vao thesis-cluster..." -ForegroundColor Yellow
+Write-Host "Dang import 15 Docker Images vao thesis-cluster..." -ForegroundColor Yellow
 D:\DevTools\k3d.exe image import $allImages -c thesis-cluster
 
 Write-Host "`n=========================================" -ForegroundColor Cyan
 Write-Host "3. Trien khai K8s Manifests" -ForegroundColor Yellow
 Write-Host "=========================================" -ForegroundColor Cyan
 D:\DevTools\kubectl.exe apply -f "$BeDir\k8s\namespace.yaml" --validate=false
-D:\DevTools\kubectl.exe apply -R -f "$BeDir\k8s\configs" --validate=false
-D:\DevTools\kubectl.exe apply -R -f "$BeDir\k8s\infras" --validate=false
+D:\DevTools\kubectl.exe apply -R -f "$BeDir\k8s\config" --validate=false
+D:\DevTools\kubectl.exe apply -R -f "$BeDir\k8s\infrastructure" --validate=false
 D:\DevTools\kubectl.exe apply -R -f "$BeDir\k8s\services" --validate=false
+D:\DevTools\kubectl.exe apply -R -f "$BeDir\k8s\ingress" --validate=false
 
 Write-Host "`n=========================================" -ForegroundColor Cyan
 Write-Host "4. Kiem tra danh sach Pods K8s" -ForegroundColor Green

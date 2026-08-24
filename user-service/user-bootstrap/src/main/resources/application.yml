@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8081
   tomcat:
     threads:
@@ -7,6 +7,10 @@ server:
     max-connections: 10000
   forward-headers-strategy: framework
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     context-path: /api/v1
     session:
       cookie:
@@ -99,3 +103,4 @@ jwt:
 app:
   frontend-url: ${FRONTEND_URL:http://localhost:5173}
   verify-url: ${VERIFY_URL:http://localhost:8080/users/auth/verify?otpCode=}
+

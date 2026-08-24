@@ -1,6 +1,10 @@
-server:
+﻿server:
   port: 8080
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     context-path: /api/v1
 
 grpc:
@@ -33,3 +37,4 @@ spring:
         spring.json.trusted.packages: "*"
     listener:
       missing-topics-fatal: false
+

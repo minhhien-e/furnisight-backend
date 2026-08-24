@@ -1,6 +1,10 @@
-server:
+﻿server:
   port: ${SERVER_PORT:8080}
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     context-path: /api/v1
 
 grpc:
@@ -59,3 +63,4 @@ management:
     web:
       exposure:
         include: health,info
+

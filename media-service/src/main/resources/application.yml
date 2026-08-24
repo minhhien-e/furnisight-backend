@@ -1,6 +1,10 @@
-server:
+﻿server:
   port: ${SERVER_PORT:8080}
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     context-path: /api/v1
 
 spring:
@@ -22,6 +26,10 @@ spring:
       ddl-auto: validate
     open-in-view: false
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     multipart:
       enabled: true
       max-file-size: ${MAX_FILE_SIZE:100MB}
@@ -44,3 +52,4 @@ management:
 grpc:
   server:
     port: ${GRPC_SERVER_PORT:9090}
+

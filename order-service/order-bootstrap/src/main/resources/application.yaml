@@ -1,7 +1,11 @@
-server:
+﻿server:
   port: 8085
   forward-headers-strategy: framework
   servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
     context-path: /api/v1
 grpc:
   server:
@@ -73,3 +77,4 @@ frontend:
 translation:
   enabled: ${TRANSLATION_ENABLED:true}
   base-url: ${TRANSLATION_BASE_URL:http://libretranslate:5000}
+

@@ -1,8 +1,12 @@
-server:
+﻿server:
   port: ${SERVER_PORT:8086}
   forward-headers-strategy: framework
   servlet:
     context-path: /api/v1
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
 
 grpc:
   server:
@@ -61,3 +65,4 @@ translation:
   enabled: ${TRANSLATION_ENABLED:true}
   base-url: ${TRANSLATION_BASE_URL:http://libretranslate:5000}
   timeout: ${TRANSLATION_TIMEOUT:20s}
+

@@ -1,4 +1,4 @@
-spring:
+﻿spring:
   application:
     name: message-service
   jackson:
@@ -51,6 +51,11 @@ spring:
     show-sql: true
 
 server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   forward-headers-strategy: framework
   port: ${SERVER_PORT:8080}
 
@@ -76,3 +81,4 @@ grpc:
     user-service:
       address: ${USER_SERVICE_GRPC_ADDRESS:dns:///localhost:9091}
       negotiation-type: plaintext
+

@@ -23,8 +23,11 @@ class StorageConfigurationError(RuntimeError):
 
 class LocalStorageBackend:
     def save_model(self, model_path: Path, public_name: str, base_url: str) -> StoredModel:
+        import time
         model_name = Path(model_path).name
-        url = base_url.rstrip("/") + f"/static/{quote(model_name)}"
+        prefix = os.getenv("PUBLIC_URL_PREFIX", "/ai-reconstruction")
+        # Return a relative path instead of base_url to avoid internal Docker hostnames leaking to frontend
+        url = f"{prefix}/static/{quote(model_name)}?t={int(time.time())}"
         return StoredModel(url=url, should_cleanup_local=False)
 
 

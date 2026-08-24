@@ -40,6 +40,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from PIL import Image
+import mimetypes
+
+mimetypes.add_type("model/gltf-binary", ".glb")
+mimetypes.add_type("model/gltf+json", ".gltf")
 
 from app.storage import (
     StorageConfigurationError,

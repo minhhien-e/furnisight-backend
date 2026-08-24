@@ -1,4 +1,4 @@
-﻿"""
+"""
 @author: Zhigang Jiang
 @time: 2022/05/25
 @description: reference: https://github.com/sunset1995/PanoPlane360/blob/main/vis_planes.py

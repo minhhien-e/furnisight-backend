@@ -1,4 +1,9 @@
-server:
+﻿server:
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
   port: ${SERVER_PORT:8088}
 
 spring:
@@ -64,3 +69,4 @@ management:
     web:
       exposure:
         include: health,info,prometheus
+

@@ -251,6 +251,9 @@ def lsdWrap(img):
     @img
         input image
     '''
+    if len(img.shape) == 3:
+        img = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
     lines = None
     try:
         lines = lsd(img, quant=0.7)

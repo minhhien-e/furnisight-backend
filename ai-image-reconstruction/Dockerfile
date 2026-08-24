@@ -24,7 +24,7 @@ RUN python -c "from torchvision.models import resnet50, ResNet50_Weights; resnet
 COPY app /app/app
 COPY pipelines /app/pipelines
 COPY fastapi_app.py inference.py convert_ckpt.py /app/
-COPY ./checkpoints /app/checkpoints
+# Removed COPY ./checkpoints /app/checkpoints to save 13GB in the image
 
 EXPOSE 8080
 
